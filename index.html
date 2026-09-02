@@ -205,7 +205,18 @@ button{background:none;border:0;cursor:pointer;padding:0}
 .btn-marca{background:var(--marca); border-color:transparent; color:#fff; box-shadow:var(--sombra-1)}
 .btn-marca:hover{background:var(--marca); filter:brightness(1.12)}
 .btn-1:hover{background:var(--tinta); filter:brightness(1.08)}
-.btn-peligro{color:var(--rojo)}
+/* "Eliminar" estaba en rojo, justo al lado de "Preparar", que también es
+   rojo. Dos rojos pegados con significados opuestos es pedir un resbalón.
+   Ahora nace neutro y solo se enciende cuando ya lo tienes debajo del dedo:
+   el aviso llega en el momento en que puede servir de algo. */
+.btn-peligro{color:var(--texto-2)}
+.btn-peligro:hover, .btn-peligro:focus-visible{
+  color:var(--rojo); border-color:color-mix(in srgb,var(--rojo) 45%,var(--linea-fuerte));
+  background:var(--panel-2);
+}
+/* Y se va al otro extremo de la fila, separado de los demás. */
+.acciones-ficha #btn-borrar{margin-left:auto}
+@media (max-width:860px){ .acciones-ficha #btn-borrar{margin-left:0} }
 /* Un botón discreto para meter dentro de la cabecera de un apartado, donde
    uno de tamaño normal se comería la línea. */
 .btn-fino{height:30px; padding:0 10px; font-size:12.5px; border-radius:var(--r-s)}
@@ -303,15 +314,40 @@ button{background:none;border:0;cursor:pointer;padding:0}
 }
 .muro-t:hover i{scale:1.045; box-shadow:var(--sombra-2)}
 .muro-t:active i{scale:.99}
+/* A DOS LÍNEAS, no a una con puntos suspensivos. Cortando, dos colores del
+   mismo cliente que solo se diferencian en la última palabra salían con el
+   mismo texto y los mismos puntos suspensivos: indistinguibles. Un muro que
+   sirve para reconocer de un vistazo no puede hacer eso. Se reserva la altura
+   de las dos líneas siempre, para que la rejilla no baile.
+   (Y sin ejemplos reales aquí: este archivo se cuelga en internet y el
+   comprobador de construir.py caza cualquier nombre de fórmula en claro.) */
 .muro-t span{
-  display:block; margin-top:7px; font-size:11.5px; font-weight:530; line-height:1.3;
-  color:var(--texto-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  margin-top:7px; font-size:11.5px; font-weight:530; line-height:1.3;
+  color:var(--texto-2); overflow:hidden; min-height:calc(2 * 1.3em);
 }
 .muro-mas{margin:22px 0 0; font-size:12.5px; color:var(--texto-3)}
 
 /* ── Ficha ───────────────────────────────────────────────────────── */
 .columna-ficha{flex:1 1 auto; overflow-y:auto; min-width:0; overscroll-behavior:contain; background:var(--panel)}
 .ficha{max-width:780px; margin:0 auto; padding:26px 26px 96px}
+/* En un monitor de verdad sobraba medio ancho: la ficha eran 780 px centrados
+   en 1440 y todo caía en una sola columna kilométrica. A partir de 1180 px se
+   parte en dos: la receta a la izquierda —que es lo que se mira— y el estado,
+   las parecidas y el historial a la derecha. Por debajo se apila como siempre,
+   y en ese orden, que es el bueno para el móvil. */
+.ficha-col{min-width:0}
+@media (min-width:1180px){
+  .ficha:not(.es-muro){max-width:1180px}
+  .ficha-cuerpo{display:grid; grid-template-columns:minmax(0,1.32fr) minmax(0,1fr);
+    gap:0 40px; align-items:start}
+  /* La primera tarjeta de cada columna arranca a la misma altura. */
+  .ficha-col > .tarjeta:first-child > .tarjeta-cab{padding-top:8px}
+  .ficha-col > .tarjeta-fm{margin-top:8px}
+  /* Los botones se quedan bajo la receta. Sueltos a lo ancho del monitor,
+     "Eliminar" acababa a 600 px de los demás y parecía de otra pantalla. */
+  .acciones-ficha{grid-column:1; grid-row:2}
+}
 
 .hero{display:flex; gap:22px; align-items:flex-start; margin-bottom:6px}
 /* La muestra que tocas en la lista o en el muro CRECE hasta convertirse en
@@ -352,6 +388,14 @@ button{background:none;border:0;cursor:pointer;padding:0}
 .hero-dato dd{margin:0; font-size:14px; font-weight:560; letter-spacing:-.008em}
 .hero-dato dd small{display:block; font-size:11.5px; font-weight:450; color:var(--texto-3); letter-spacing:0}
 .hero-dato dd.flojo{color:var(--texto-3); font-weight:450}
+.enlace-cliente{
+  display:inline-flex; align-items:center; gap:3px; margin:-2px -6px;
+  padding:2px 6px; border-radius:var(--r-s);
+  font:inherit; color:var(--marca); font-weight:600; text-align:left;
+  transition:background-color .15s var(--salida);
+}
+.enlace-cliente:hover{background:var(--marca-suave)}
+.enlace-cliente svg{width:13px;height:13px;opacity:.75}
 
 .etiqueta{
   display:inline-flex; align-items:center; gap:5px;
@@ -363,6 +407,41 @@ button{background:none;border:0;cursor:pointer;padding:0}
 .etiqueta.ok{background:color-mix(in srgb,var(--verde) 12%,transparent); border-color:color-mix(in srgb,var(--verde) 30%,transparent); color:var(--verde)}
 .etiqueta.avisa{background:var(--ambar-suave); border-color:color-mix(in srgb,var(--ambar) 34%,transparent); color:var(--ambar)}
 .etiqueta.info{background:var(--tinta-suave); border-color:var(--linea-fuerte); color:var(--texto-2)}
+/* Cuando el sello ES el botón, tiene que parecerlo: se levanta al pasar por
+   encima y se hunde al pulsarlo. Un sello que no se mueve no se pulsa nunca. */
+.sello-btn{
+  cursor:pointer; max-width:100%; text-align:left;
+  transition:box-shadow .15s var(--salida), border-color .15s var(--salida), scale .12s var(--salida);
+}
+.sello-btn:hover{box-shadow:var(--sombra-1); border-color:currentColor}
+.sello-btn:active{scale:.97}
+/* El texto puede ser largo ("Por revisar: cambió tal y cual"): se deja
+   crecer a dos líneas antes que cortarlo. */
+.sello-btn{height:auto; min-height:26px; padding:3px 9px; line-height:1.35; white-space:normal}
+
+.estado-act{margin:2px 0 0; font-size:14px; line-height:1.55; color:var(--texto-2)}
+.estado-act.ok{color:var(--verde)}
+.estado-act.avisa{color:var(--ambar)}
+.estado-act b{color:inherit; font-weight:640}
+
+/* Lista de pigmentos */
+.pig-lista{display:flex; flex-direction:column}
+.pig{
+  display:flex; align-items:center; gap:12px; padding:11px 0;
+  border-bottom:1px solid var(--linea);
+}
+.pig:last-child{border-bottom:0}
+.pig-color{
+  width:30px; height:30px; border-radius:9px; flex:0 0 auto;
+  outline:1px solid var(--contorno); outline-offset:-1px;
+}
+.pig-nom{flex:1 1 auto; min-width:0; font-size:14.5px; font-weight:560}
+.pig-nom small{
+  display:block; font-size:12.5px; font-weight:450; color:var(--texto-2);
+  margin-top:1px;
+}
+.pig-nom small b{color:var(--ambar); font-weight:640}
+.pig .btn{flex:0 0 auto}
 
 /* Antes cada bloque era una tarjeta blanca flotando sobre gris: cinco cajas
    apiladas y ninguna más importante que otra. Ahora la ficha se lee como una
@@ -401,7 +480,11 @@ button{background:none;border:0;cursor:pointer;padding:0}
 .ing-nom small{display:block; font-size:11.5px; color:var(--texto-3); font-weight:450}
 .ing-nom button{color:var(--marca-2); font-size:11.5px; font-weight:600; text-align:left}
 .ing-nom button:hover{text-decoration:underline}
-.ing-pct{font-size:12px; color:var(--texto-3); width:42px; text-align:right; flex:0 0 auto}
+/* Los porcentajes iban en --texto-3 (#8a8f95 sobre blanco): 2,9 de contraste,
+   cuando lo mínimo decente son 4,5. Con la luz de una nave y el móvil a un
+   palmo, eso no se lee. Suben a --texto-2 y a 12,5 px. */
+.ing-pct{font-size:12.5px; color:var(--texto-2); width:44px; text-align:right;
+  flex:0 0 auto; font-variant-numeric:tabular-nums}
 .ing-g{font-size:16px; font-weight:640; width:84px; text-align:right; flex:0 0 auto; letter-spacing:-.015em}
 .ing-g em{font-style:normal; font-size:11.5px; color:var(--texto-3); font-weight:450; margin-left:2px}
 /* Al cambiar la cantidad, los gramos que se han movido se marcan un momento.
@@ -856,7 +939,10 @@ body[data-rol="taller"] .historial .btn{display:none !important}
    tira la regla ENTERA. Con :has() dentro de aquella lista, un navegador que
    no lo soporte (Firefox ESR 115, Chrome viejo del taller) le enseñaba al
    operario TODOS los botones, incluido Eliminar. Comprobado. */
-body[data-rol="taller"] .interruptor:has(#chk-act){display:none !important}
+/* Ya no hay interruptor: el control es el propio sello, y para el taller ni
+   siquiera se genera como botón (ver selloActualizacion). Esta regla se queda
+   como segunda barrera por si alguna vez se cuela. */
+body[data-rol="taller"] #sello-act{display:none !important}
 body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 .sello-rol{
   display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 10px;
@@ -941,9 +1027,14 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 
 .aviso-global{
   display:flex; align-items:center; gap:9px; padding:8px 12px 8px 14px;
-  background:var(--ambar-suave); color:var(--ambar); font-size:12.5px;
-  border-bottom:1px solid color-mix(in srgb,var(--ambar) 24%,transparent);
+  /* Era una franja ámbar de lado a lado: lo más llamativo de la pantalla,
+     para decir algo que no cambia nunca. Ahora es una línea discreta; el
+     aviso de verdad, el que va pegado al color, está en la propia ficha. */
+  background:var(--panel-2); color:var(--texto-2); font-size:12.5px;
+  border-bottom:1px solid var(--linea);
 }
+.aviso-global svg{color:var(--ambar)}
+.aviso-global b{color:var(--texto)}
 .aviso-global[hidden]{display:none}
 .aviso-global svg{width:15px;height:15px;flex:0 0 auto}
 .aviso-global #btn-explicar-cal{margin-left:auto; font-weight:640; color:inherit; text-decoration:underline; font-size:12.5px; white-space:nowrap}
@@ -954,7 +1045,7 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
   display:grid; place-items:center; color:inherit; opacity:.7;
   transition:opacity .15s var(--salida), background-color .15s var(--salida);
 }
-.aviso-global .cerrar-aviso:hover{opacity:1; background:color-mix(in srgb,var(--ambar) 14%,transparent)}
+.aviso-global .cerrar-aviso:hover{opacity:1; background:var(--linea)}
 .aviso-global .cerrar-aviso svg{width:14px;height:14px}
 
 /* Piloto de sincronización. Escondido mientras todo va bien. */
@@ -995,6 +1086,11 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
   font-size:13px; background:var(--fondo); color:var(--texto);
 }
 .actualiza button:active{scale:.96}
+.actualiza button[data-tirar]{
+  background:transparent; color:var(--fondo); opacity:.72; font-weight:560;
+  padding:0 4px;
+}
+.actualiza button[data-tirar]:hover{opacity:1}
 @media (max-width:520px){ .actualiza{left:12px; right:12px; translate:0; max-width:none} }
 @media (max-width:520px){ @keyframes sube-aviso{from{opacity:0; translate:0 12px} to{opacity:1; translate:0 0}} }
 
@@ -2261,7 +2357,10 @@ function falloNube(e){
 let indicesListos = false;   // ver limpiarMateriasHuerfanas
 function aplicarCambios(){
   for(const mp of (cambios.materias||[])){
-    if(!DATOS.materias_primas.some(m=>m.id===mp.id)) DATOS.materias_primas.push(mp);
+    // Antes solo se añadían las nuevas. Ahora también hay retoques sobre las
+    // de siempre (la fecha en que cambió el pigmento), y sin esto se perdían.
+    const ya = DATOS.materias_primas.find(m=>m.id===mp.id);
+    if(ya) Object.assign(ya, mp); else DATOS.materias_primas.push(mp);
   }
   limpiarMateriasHuerfanas();
   for(const nueva of cambios.nuevas){
@@ -2285,7 +2384,11 @@ function limpiarMateriasHuerfanas(){
   // permiso. Aquí no se notaba porque hoy no llega a escribir, pero una regla
   // que tiene una excepción escondida deja de ser una regla.
   if(!puedeEditar) return;
-  const creadas = new Set((cambios.materias||[]).map(m=>m.id));
+  // OJO: solo las CREADAS desde la app. Desde que se pueden retocar las de
+  // siempre, mirar toda la lista habría borrado del catálogo una materia base
+  // que nadie usa ahora mismo, con su fecha de cambio dentro.
+  const creadas = new Set((cambios.materias||[])
+    .map(m=>m.id).filter(id=>String(id).startsWith('mp-nueva-')));
   if(!creadas.size) return;
   const enUso = new Set();
   for(const f of DATOS.formulas)
@@ -2300,6 +2403,20 @@ function limpiarMateriasHuerfanas(){
   if(indicesListos) for(const id of sobran) materias.delete(id);
   cambios.materias = (cambios.materias||[]).filter(m=>!sobran.includes(m.id));
   guardar();
+}
+
+/* Las materias primas solo se podían CREAR, no editar. Ahora hay que poder
+   apuntarles la fecha en que se cambió el pigmento, así que pasan por aquí,
+   por el mismo sitio que todo lo demás: permiso, guardado y nube. */
+function anotarMateria(m, parche){
+  if(!puedeEditar){ brindis(SIN_PERMISO); return false; }
+  Object.assign(m, parche);
+  cambios.materias = (cambios.materias || []).filter(x=>x.id !== m.id);
+  cambios.materias.push(JSON.parse(JSON.stringify(m)));
+  cacheColor.clear();
+  const ok = guardar();
+  empujarMateria(m);
+  return ok;
 }
 
 function anotar(f, parche){
@@ -2319,6 +2436,60 @@ const porId = new Map(DATOS.formulas.map(f=>[f.id,f]));
 const materias = new Map(DATOS.materias_primas.map(m=>[m.id,m]));
 const grupos = new Map(DATOS.grupos_equivalencia.map(g=>[g.id,g]));
 indicesListos = true;
+
+/* ═══════════════════════════════════════════════════════════════════
+   ¿ESTÁ AL DÍA CON LOS PIGMENTOS?
+
+   Antes esto era un interruptor por fórmula y ya está: 860 gestos de uno en
+   uno, escondidos al final de la ficha. Resultado, 0 marcadas.
+
+   El planteamiento estaba mal, y no por vaguería suya. En la nave nadie
+   piensa «voy a revisar la fórmula 412»; se piensa «he cambiado ESE pigmento».
+   Así que lo que se marca ahora es EL PIGMENTO, y las fórmulas que lo llevan
+   —también a través de otras fórmulas— pasan solas a «por revisar».
+
+   Una fórmula está al día si la marcaste como buena DESPUÉS del último cambio
+   de cualquiera de sus pigmentos. Si mañana cambias el BLANCO, todas las que
+   lo lleven vuelven a la cola sin que tengas que acordarte de nada.
+   ═══════════════════════════════════════════════════════════════════ */
+let materiasDe = new Map();     // fórmula -> Set de materias primas, ya resueltas
+
+function calcularMateriasDe(){
+  materiasDe = new Map();
+  const enCurso = new Set();
+  const de = id=>{
+    if(materiasDe.has(id)) return materiasDe.get(id);
+    if(enCurso.has(id)) return new Set();      // cortafuegos de ciclos
+    enCurso.add(id);
+    const f = porId.get(id);
+    const out = new Set();
+    if(f) for(const i of f.ingredientes){
+      if(i.tipo === 'materia') out.add(i.ref);
+      else if(i.tipo === 'formula') for(const m of de(i.ref)) out.add(m);
+    }
+    enCurso.delete(id);
+    materiasDe.set(id, out);
+    return out;
+  };
+  for(const f of DATOS.formulas) de(f.id);
+}
+
+/** {aldia, motivo:'nunca'|'pigmento'|null, cambiados:[materias]} */
+function estadoAct(f){
+  const cambiados = [];
+  for(const id of (materiasDe.get(f.id) || [])){
+    const m = materias.get(id);
+    if(m && m.cambiado_el &&
+       (!f.fecha_actualizacion || m.cambiado_el > f.fecha_actualizacion))
+      cambiados.push(m);
+  }
+  if(!f.actualizada_pigmentos) return {aldia: false, motivo: 'nunca', cambiados};
+  if(cambiados.length) return {aldia: false, motivo: 'pigmento', cambiados};
+  return {aldia: true, motivo: null, cambiados: []};
+}
+const porRevisar = f => !estadoAct(f).aldia;
+
+calcularMateriasDe();
 
 // Quién usa a quién: para poder avisar de "esta fórmula la llevan otras 12".
 const usadaPor = new Map();
@@ -2472,7 +2643,7 @@ function pintarLista(reinicia=true){
     b.innerHTML =
       `<div class="muestra${c.metalizado?' metal':''}" style="background:${c.hex}"></div>`+
       `<div class="fila-txt"><div class="fila-nombre">${resaltar(f.nombre,txt)}</div></div>`+
-      (f.actualizada_pigmentos?`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--verde)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>`:'')+
+      (estadoAct(f).aldia?`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--verde)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>`:'')+
       (pend?`<span class="pin" title="Tiene algo pendiente de revisar"></span>`:'');
     frag.appendChild(b);
   }
@@ -2504,10 +2675,10 @@ function actualizar(){
 
   // El repaso trabaja sobre lo que tengas filtrado: si buscas "lezna", repasas
   // los lezna. Igual que el PDF, que imprime lo que estás viendo.
-  const sinAct = filtradas.filter(f=>!f.actualizada_pigmentos).length;
+  const sinAct = filtradas.filter(porRevisar).length;
   const rep = document.getElementById('chip-repaso');
   rep.hidden = !sinAct;
-  rep.textContent = `Repasar ${sinAct} sin actualizar`;
+  rep.textContent = `Repasar ${sinAct} por revisar`;
   rep.title = 'Ir una a una marcando las que ya están con los pigmentos nuevos';
 
   document.getElementById('limpiar').classList.toggle('on', !!$q.value);
@@ -2635,11 +2806,45 @@ function haceCuanto(iso){
 /* Idea 4: el hueco de al lado del nombre estaba en blanco. Aquí van las cuatro
    cosas que uno se pregunta con el bote delante. Las dos últimas solo salen si
    tienen algo que decir: una tira de guiones no es información. */
+/* El sello de estado, que ADEMÁS es el botón para cambiarlo.
+
+   Antes eran dos cosas separadas y en extremos opuestos de la ficha: aquí
+   arriba un sello que solo informaba, y abajo del todo, después de la receta y
+   dentro de "Estado y notas", el interruptor que lo cambiaba. La acción que
+   hay que hacer 860 veces estaba escondida detrás de un scroll. */
+function selloActualizacion(f){
+  const e = estadoAct(f);
+  const cls = e.aldia ? 'etiqueta ok' : e.motivo === 'pigmento' ? 'etiqueta avisa' : 'etiqueta';
+  const icono = e.aldia
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>'
+    : e.motivo === 'pigmento'
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>'
+      : '';
+  const txt = e.aldia
+    ? 'Pigmentos nuevos'
+    : e.motivo === 'pigmento'
+      ? `Por revisar: cambió ${e.cambiados.slice(0,2).map(m=>esc(m.nombre)).join(' y ')}${
+          e.cambiados.length > 2 ? ` y ${e.cambiados.length - 2} más` : ''}`
+      : 'Sin actualizar';
+  // Al taller se le enseña, pero no se le deja tocar: el sello es un sello.
+  if(!puedeEditar) return `<span class="${cls}">${icono}${txt}</span>` +
+    (e.aldia && f.fecha_actualizacion ? `<span class="etiqueta">${fecha(f.fecha_actualizacion)}</span>` : '');
+  return `<button class="${cls} sello-btn" id="sello-act"
+      title="${e.aldia ? 'Pulsa para quitar la marca' : 'Pulsa para marcarla como hecha con los pigmentos nuevos'}"
+      aria-pressed="${e.aldia}">${icono}${txt}</button>` +
+    (e.aldia && f.fecha_actualizacion ? `<span class="etiqueta">${fecha(f.fecha_actualizacion)}</span>` : '');
+}
+
 function datosHero(f, total, usan){
   const cli   = clienteDe(f.nombre);
   const veces = (f.preparaciones||[]).length;
   const d = [];
-  d.push(['Cliente', cli ? esc(cli) : '<span class="flojo">Sin cliente</span>']);
+  // Pulsando el cliente se ven todos sus colores. Era texto muerto, y la
+  // pregunta "¿qué le hacemos a este cliente?" es de las que más se hacen.
+  d.push(['Cliente', cli
+    ? `<button class="enlace-cliente" data-cliente="${esc(cli)}">${esc(cli)}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>`
+    : '<span class="flojo">Sin cliente</span>']);
   d.push(['Receta base', `<span class="num">${fmt(total)} g</span>`]);
   if(f.ultima_preparacion)
     d.push(['Última vez', `${haceCuanto(f.ultima_preparacion)}<small>${fechaCorta(f.ultima_preparacion)}${
@@ -2725,10 +2930,7 @@ function pintarFicha(){
       <div class="hero-txt">
         <h2>${esc(f.nombre)}</h2>
         <div class="hero-meta">
-          ${f.actualizada_pigmentos
-            ? `<span class="etiqueta ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>Pigmentos nuevos</span>`
-            : `<span class="etiqueta">Sin actualizar</span>`}
-          ${f.fecha_actualizacion ? `<span class="etiqueta">${fecha(f.fecha_actualizacion)}</span>` : ''}
+          ${selloActualizacion(f)}
           ${hermanas.length ? `<span class="etiqueta info">${grupo.tipo==='identica'?'Idéntica a':'Misma proporción que'} ${hermanas.length}</span>`:''}
         </div>
         ${datosHero(f, total, usan)}
@@ -2744,6 +2946,7 @@ function pintarFicha(){
         <span>Esta no tiene ingredientes apuntados a propósito: <b>la receta está escrita
         en el propio nombre</b>. Se guarda tal cual para no perderla.</span></div>` : ''}
 
+    <div class="ficha-cuerpo"><div class="ficha-col">
     <div class="tarjeta tarjeta-fm">
       <div class="tarjeta-cab"><h3>Fórmula</h3>
         <button class="btn btn-fino" id="btn-etiqueta" title="Imprimir una etiqueta para pegar en el bote">
@@ -2761,16 +2964,15 @@ function pintarFicha(){
                autocomplete="off" enterkeyhint="done" aria-label="Gramos que quieres preparar"
                value="${objetivo}">
         <span style="font-size:13px;color:var(--texto-2)">gramos</span>
-        <div class="multi">
-          <button data-bote="900" title="Dejando sitio para batir">Bote 1 kg</button>
-          <button data-bote="4500" title="Dejando sitio para batir">Bote 5 kg</button>
-          ${[1,2,3].map(m=>`<button data-mult="${m}">×${m}</button>`).join('')}
+        <div class="multi">${atajosCantidad(total).map(a=>
+          `<button data-cant="${a.g}" data-atajo="${a.c}" title="${a.pista||''}"${a.g===objetivo?' aria-pressed="true"':''}>${a.txt}</button>`).join('')}
         </div>
       </div>
       <div id="zona-lote">${zonaLote(f, total, totalMovido)}</div>
     </div>
 
     <div id="zona-desarrollo">${anidada ? tarjetaDesarrollo(f) : ''}</div>
+    </div><div class="ficha-col">
     ${hermanas.length ? `
       <div class="tarjeta"><div class="tarjeta-cab"><h3>${grupo.tipo==='identica'?'Fórmulas idénticas':'Misma proporción, otro tamaño de lote'}</h3></div>
       <div class="tarjeta-cuerpo">
@@ -2791,16 +2993,12 @@ function pintarFicha(){
 
     <div class="tarjeta"><div class="tarjeta-cab"><h3>Estado y notas</h3></div>
       <div class="tarjeta-cuerpo">
-        <label class="interruptor">
-          <input type="checkbox" id="chk-act" ${f.actualizada_pigmentos?'checked':''}>
-          <span class="pista"></span>
-          <span class="interruptor-txt">Actualizada a los pigmentos nuevos
-            <small>${f.fecha_actualizacion ? 'Marcada el '+fecha(f.fecha_actualizacion) : 'Todavía con las cantidades antiguas'}</small></span>
-        </label>
+        ${explicaActualizacion(f)}
         ${f.notas ? `<p style="margin:6px 0 0;font-size:14px;color:var(--texto-2);white-space:pre-wrap">${esc(f.notas)}</p>`:''}
         ${(f.historial&&f.historial.length) ? `<h3 style="font-size:11.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--texto-3);font-weight:700;margin:20px 0 2px">Historial</h3>
           <ul class="historial">${historialVisual(f)}</ul>`:''}
       </div></div>
+    </div>
 
     <div class="acciones-ficha">
       <button class="btn btn-marca" id="btn-preparar">
@@ -2811,24 +3009,31 @@ function pintarFicha(){
         Editar</button>
       <button class="btn" id="btn-duplicar">Duplicar</button>
       <button class="btn btn-peligro" id="btn-borrar">Eliminar</button>
-    </div>`;
+    </div></div>`;
 
   // Foto de los gramos actuales, para poder comparar en el siguiente repintado.
   ultimosGramos = lote ? lote.cantidades.slice() : f.ingredientes.map(i=>i.cantidad);
   ultimosGramos.total = lote ? lote.total : 0;
 
   document.getElementById('volver')?.addEventListener('click', cerrarFicha);
-  document.getElementById('chk-act').onchange = e=>{
-    if(anotar(f, {actualizada_pigmentos:e.target.checked,
-                  fecha_actualizacion: e.target.checked ? new Date().toISOString() : null}))
-      brindis(e.target.checked?'Marcada como actualizada':'Marca quitada');
+  document.getElementById('sello-act')?.addEventListener('click', ()=>{
+    const marcar = !estadoAct(f).aldia;
+    if(anotar(f, {actualizada_pigmentos: marcar,
+                  fecha_actualizacion: marcar ? new Date().toISOString() : null}))
+      brindis(marcar ? 'Marcada con los pigmentos nuevos' : 'Marca quitada');
     pintarFicha(); actualizar();
-  };
-  for(const b of $ficha.querySelectorAll('[data-mult]'))
-    b.onclick = ()=>ponerObjetivo(Math.round(total * +b.dataset.mult),
-                                  +b.dataset.mult === 1);
-  for(const b of $ficha.querySelectorAll('[data-bote]'))
-    b.onclick = ()=>ponerObjetivo(+b.dataset.bote);
+  });
+  $ficha.querySelector('[data-cliente]')?.addEventListener('click', e=>{
+    const cli = e.currentTarget.dataset.cliente;
+    $q.value = cli;
+    soloPendientes = false;
+    actualizar();
+    if(innerWidth <= 860) cerrarFicha();
+    brindis(`Colores de ${cli}`);
+  });
+  for(const b of $ficha.querySelectorAll('.multi [data-cant]'))
+    b.onclick = ()=>ponerObjetivo(+b.dataset.cant,
+                                  Math.abs(+b.dataset.cant - total) <= 0.5);
   enlazarZonaLote(f);
 
   /* ── El campo de los gramos ──────────────────────────────────────────
@@ -2865,7 +3070,7 @@ function pintarFicha(){
     objetivo = v;
     objetivoTocado = Math.abs(v - total) > 0.5;
     clearTimeout(tCalc);
-    tCalc = setTimeout(()=>{ recalcularLote(); pintarLote(); }, 250);
+    tCalc = setTimeout(()=>{ recalcularLote(); pintarLote(); marcarAtajo(); }, 250);
   };
   // Si se queda vacío y se va a otra cosa, se devuelve la cantidad que hay
   // puesta: un campo vacío no dice nada y el reparto de abajo sí existe.
@@ -2939,6 +3144,22 @@ const TOPE_BOTE = {900: 950, 4500: 4750};
 /* Todo lo que cambia cuando cambias los gramos, y NADA más. Existe para poder
    repintar solo esto mientras se escribe la cantidad: repintando la ficha
    entera se destruía el campo a media palabra (ver pintarLote). */
+/* Los atajos de cantidad, UNA sola lista.
+
+   Antes había dos juegos distintos para la misma decisión: en la ficha
+   "×1 ×2 ×3" y en el pesaje "250 g / 500 g". La misma pregunta con botones
+   diferentes según por dónde entraras. */
+function atajosCantidad(base){
+  const r = Math.round(base);
+  return [
+    {c:'bote1',  g: 900,   txt: 'Bote 1 kg', pista: 'Dejando sitio para batir (900 g)'},
+    {c:'bote5',  g: 4500,  txt: 'Bote 5 kg', pista: 'Dejando sitio para batir (4500 g)'},
+    {c:'receta', g: r,     txt: 'La receta', pista: `${fmt(r)} g, tal como la tienes guardada`},
+    {c:'x2',     g: r * 2, txt: '×2',        pista: `${fmt(r*2)} g`},
+    {c:'x3',     g: r * 3, txt: '×3',        pista: `${fmt(r*3)} g`},
+  ];
+}
+
 function zonaLote(f, total, totalMovido){
   return `${notaLote(total)}
     <div class="tarjeta-cuerpo">
@@ -2991,6 +3212,12 @@ function ponerObjetivo(gramos, esLaReceta){
   if(el) el.value = gramos;
   recalcularLote();
   pintarLote();
+  marcarAtajo();
+}
+/** Deja encendido el atajo que coincide con la cantidad puesta. */
+function marcarAtajo(){
+  for(const b of $ficha.querySelectorAll('.multi [data-cant]'))
+    b.setAttribute('aria-pressed', String(+b.dataset.cant === objetivo));
 }
 
 function notaLote(total){
@@ -3124,6 +3351,21 @@ function resolverIngrediente(f, k, idCand){
   reconstruir(); pintarFicha(); actualizar();
 }
 
+/* El porqué, en palabras. El BOTÓN está arriba, en el sello: aquí solo se
+   cuenta en qué situación está y por qué, que es lo que no cabe en un sello. */
+function explicaActualizacion(f){
+  const e = estadoAct(f);
+  if(e.aldia) return `<p class="estado-act ok">Hecha con los pigmentos nuevos${
+    f.fecha_actualizacion ? ', marcada el <b>' + fecha(f.fecha_actualizacion) + '</b>' : ''}.</p>`;
+  if(e.motivo === 'pigmento') return `<p class="estado-act avisa">Estaba dada por buena${
+    f.fecha_actualizacion ? ' el ' + fecha(f.fecha_actualizacion) : ''}, pero después
+    ${e.cambiados.length === 1 ? 'cambió' : 'cambiaron'}
+    ${e.cambiados.map(m=>`<b>${esc(m.nombre)}</b> (${fecha(m.cambiado_el)})`).join(', ')}.
+    Hay que volver a mirarla.</p>`;
+  return `<p class="estado-act">Todavía con las cantidades antiguas: nadie la ha
+    dado por buena con los pigmentos de ahora.</p>`;
+}
+
 function botonEnlace(h){
   return `<button class="enlace" data-ir="${h.id}"><i style="background:${color(h).hex}"></i>${esc(h.nombre)}</button>`;
 }
@@ -3157,13 +3399,74 @@ const fmtPlano = n => String(Math.round(n*100)/100);
 const PRECISION = 1;          // gramos que distingue la báscula
 let pes = null;
 
+/* ── Que no se pierda un pesaje a medias ─────────────────────────────────
+
+   Estás pesando 5 kg, te llaman, el móvil se bloquea o se cierra la app, y al
+   volver empezabas de cero: con el bote a medias y sin saber qué llevabas
+   echado. En un taller eso pasa todas las semanas.
+
+   Se guarda lo IMPRESCINDIBLE y por identificador, no el objeto entero: la
+   fórmula puede haber cambiado por el camino (o venir cambiada de la nube), y
+   revivir una copia vieja sería peor que perderla. Al volver se rehace el
+   plan con la receta que haya AHORA, y si algo no cuadra se dice.  */
+const CLAVE_PESAJE = 'pesaje-a-medias';
+const VIDA_PESAJE = 36 * 3600 * 1000;   // pasado un día y medio ya no es de hoy
+
+function guardarPesaje(){
+  try{
+    if(!pes || pes.paso !== 2 || !pes.hechos.size)
+      return localStorage.removeItem(CLAVE_PESAJE);
+    localStorage.setItem(CLAVE_PESAJE, JSON.stringify({
+      id: pes.f.id, objetivo: pes.objetivo, modo: pes.modo,
+      hechos: [...pes.hechos], cuando: Date.now(),
+      // Con qué ingredientes se empezó. Si la receta cambia mientras pesas,
+      // lo ya marcado deja de querer decir lo mismo y hay que descartarlo.
+      huella: pes.ing.map(i=>i.nombre + ':' + i.cantidad).join('|'),
+    }));
+  }catch(_){ /* sin sitio para guardar: se sigue, pero sin red de seguridad */ }
+}
+
+function leerPesajeGuardado(){
+  try{
+    const g = JSON.parse(localStorage.getItem(CLAVE_PESAJE) || 'null');
+    if(!g || !g.id || !Array.isArray(g.hechos) || !g.hechos.length) return null;
+    if(Date.now() - (g.cuando || 0) > VIDA_PESAJE) throw 0;
+    const f = porId.get(g.id);
+    if(!f) throw 0;
+    const ing = f.ingredientes.filter(i=>i.cantidad > 0);
+    if(ing.map(i=>i.nombre + ':' + i.cantidad).join('|') !== g.huella) throw 0;
+    return {g, f, ing};
+  }catch(_){
+    try{ localStorage.removeItem(CLAVE_PESAJE); }catch(__){}
+    return null;
+  }
+}
+
+/** Retoma el pesaje guardado. Devuelve false si ya no vale. */
+function retomarPesaje(){
+  const v = leerPesajeGuardado();
+  if(!v) return false;
+  const base = v.ing.reduce((s,i)=>s+i.cantidad,0);
+  pes = {f: v.f, ing: v.ing, base, prop: v.ing.map(i=>i.cantidad/base),
+         objetivo: v.g.objetivo, modo: v.g.modo || leerModo(),
+         hechos: new Map(v.g.hechos), paso: 2, lote: null, recien: null};
+  congelarPlan();
+  pintarPesaje();
+  if(!$dlg.open) $dlg.showModal();
+  return true;
+}
+
 function preparar(f){
   const ing = f.ingredientes.filter(i=>i.cantidad>0);
   const base = ing.reduce((s,i)=>s+i.cantidad,0);
   if(!ing.length || !base) return brindis('Esta fórmula no tiene cantidades');
+  // Se entra DIRECTO a pesar, con la cantidad que ya hay puesta en la ficha.
+  // Antes preguntaba otra vez lo mismo —y encima con otros atajos—: la misma
+  // decisión dos veces. Cambiarla sigue estando, en "Cambiar cantidad".
   pes = {f, ing, base, prop: ing.map(i=>i.cantidad/base),
          objetivo: objetivo > 0 ? objetivo : Math.round(base),
-         modo: leerModo(), hechos: new Map(), paso: 1, lote: null, recien: null};
+         modo: leerModo(), hechos: new Map(), paso: 2, lote: null, recien: null};
+  congelarPlan();
   pintarPesaje();
   $dlg.showModal();
 }
@@ -3228,11 +3531,8 @@ function pintarPesaje(){
       <label class="campo"><span>¿Cuántos gramos vas a preparar?</span>
         <input id="pes-cant" class="num" type="number" inputmode="numeric" min="1" step="1"
                value="${pes.objetivo}" style="font-size:22px;font-weight:700;text-align:right"></label>
-      <div class="pes-chips">
-        <button class="btn" data-cant="900">Bote 1 kg <em>(900 g)</em></button>
-        <button class="btn" data-cant="4500">Bote 5 kg <em>(4500 g)</em></button>
-        ${[...new Set([Math.round(pes.base),250,500])].sort((a,b)=>a-b)
-            .map(g=>`<button class="btn" data-cant="${g}">${fmt(g)} g${g===Math.round(pes.base)?' <em>(la receta)</em>':''}</button>`).join('')}
+      <div class="pes-chips">${atajosCantidad(pes.base).map(a=>
+        `<button class="btn" data-cant="${a.g}" data-atajo="${a.c}">${a.txt} <em>(${fmt(a.g)} g)</em></button>`).join('')}
       </div>
       <div id="pes-aviso"></div>`;
     const $c = document.getElementById('pes-cant');
@@ -3277,8 +3577,18 @@ function pintarPesaje(){
     <div class="pes-barra"><i style="width:${hechas/p.filas.length*100}%"></i></div>
     ${p.crecio ? `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
        <span>Te has pasado con algo, así que <b>el lote sube a ${fmt(p.total)} g</b> para que las proporciones sigan bien. Lo de más ya está descontado abajo.</span></div>`:''}
-    ${p.filas.some(x=>x.impesable) ? `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
-       <span>Hay ingredientes por debajo de 1 g: con tu báscula no se pueden pesar. Sube el lote.</span></div>`:''}
+    ${(()=>{ const min = loteMinimo();
+      // Se mira el LOTE MÍNIMO, no solo si alguna fila baja de 1 g. Redondeando,
+      // una receta de 998 g con un ingrediente de 1 g pedida a 100 g sale con
+      // todas las filas por encima de 1 g... y con las proporciones destrozadas.
+      // Ese aviso vivía en la pantalla de la cantidad, que ya no se pasa por
+      // ella, y se había quedado sin sitio.
+      if(!(pes.objetivo < min) && !p.filas.some(x=>x.impesable)) return '';
+      return `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+       <span>Con báscula de 1 g, por debajo de <b>${fmt(min)} g</b> algún ingrediente
+       de esta fórmula no se pesa bien y el color saldrá distinto.
+       <button class="pes-sube" data-subir="${min}">Subir a ${fmt(min)} g</button></span></div>`;
+    })()}
     <div class="pes-lista">
       ${p.filas.map(x=>filaPesaje(x, pes.modo, x.k === pes.recien)).join('')}
     </div>`;
@@ -3300,13 +3610,18 @@ function pintarPesaje(){
     b.onclick = ()=>{ const k=+b.dataset.echar;
       pes.hechos.set(k, plan().filas[k].objetivo);
       pes.recien = k;               // solo esta fila hace el barrido verde
-      pintarPesaje(); };
+      pintarPesaje(); guardarPesaje(); };
   for(const b of $dc.querySelectorAll('[data-deshacer]'))
     b.onclick = ()=>{ pes.hechos.delete(+b.dataset.deshacer);
-      pes.recien = null; pintarPesaje(); };
+      pes.recien = null; pintarPesaje(); guardarPesaje(); };
   for(const b of $dc.querySelectorAll('[data-ajustar]'))
     b.onclick = ()=>ajustar(+b.dataset.ajustar);
+  for(const b of $dc.querySelectorAll('[data-subir]'))
+    b.onclick = ()=>{ pes.objetivo = +b.dataset.subir; pes.hechos.clear();
+      pes.lote = null; congelarPlan(); pintarPesaje(); };
   document.getElementById('pes-atras').onclick = ()=>{ pes.paso=1; pes.lote=null; pes.recien=null; pintarPesaje(); };
+  // Cambiar de cantidad vacía lo pesado, así que ya no hay nada que retomar.
+  document.getElementById('pes-ir')?.addEventListener('click', guardarPesaje);
   // La etiqueta del pesaje lleva las cantidades REALES del lote que estás
   // haciendo, no las de la receta: si te has pasado y el lote ha subido, la
   // etiqueta tiene que decir lo que hay dentro del bote.
@@ -3314,6 +3629,12 @@ function pintarPesaje(){
     etiqueta(f, p.filas.map(x=>x.objetivo), p.total, pes.ing.map(i=>i.nombre));
   document.getElementById('pes-fin').onclick = ()=>{
     if(hechas===p.filas.length) apuntarPreparacion(f, p.total);
+    else if(pes.hechos.size){
+      // Cerrar con el bote a medias NO tira el trabajo: se guarda y se dice.
+      guardarPesaje(); pes=null; $dlg.close();
+      return brindis('Pesaje guardado: puedes seguir donde lo dejaste');
+    }
+    try{ localStorage.removeItem(CLAVE_PESAJE); }catch(_){}
     pes=null; $dlg.close();
   };
 }
@@ -3366,7 +3687,7 @@ function ajustar(k){
   document.getElementById('aj-si').onclick = ()=>{
     const v = parseFloat(String(document.getElementById('aj-g').value).replace(',','.'));
     if(!(v>0)) return brindis('Pon una cantidad');
-    pes.hechos.set(k, v); pintarPesaje();
+    pes.hechos.set(k, v); pintarPesaje(); guardarPesaje();
   };
   document.getElementById('aj-g').select();
 }
@@ -3377,6 +3698,7 @@ function apuntarPreparacion(f, gramos){
   // El taller no puede escribir, y no pasa nada: ha venido a preparar el bote,
   // no a llevar el registro. Lo que NO puede es leer "Anotado" cuando no se ha
   // anotado nada, que es lo que hacía antes.
+  try{ localStorage.removeItem(CLAVE_PESAJE); }catch(_){}
   if(!puedeEditar) return brindis('Preparado ' + fmt(gramos) + ' g');
   const prep = (f.preparaciones||[]).concat([{fecha:new Date().toISOString(), gramos}]);
   if(anotar(f, {preparaciones: prep.slice(-50), ultima_preparacion: prep[prep.length-1].fecha}))
@@ -3702,6 +4024,7 @@ function restaurar(f, k){
 function reconstruir(){
   indice = crearIndice(DATOS);
   cacheColor.clear();
+  calcularMateriasDe();
   usadaPor.clear();
   for(const f of DATOS.formulas)
     for(const i of f.ingredientes)
@@ -3895,6 +4218,18 @@ document.getElementById('btn-menu').onclick = ()=>{
         ${ultimaSync?`<br><small style="color:var(--texto-3)">Al día hasta ${esc(momento(ultimaSync))}.</small>`:''}</p>
       <button class="btn ${pend?'btn-marca':''}" id="op-sync">Sincronizar ahora</button></div>`:''}
 
+    ${puedeEditar?`<div class="campo"><span>Pigmentos</span>
+      <p style="margin:0 0 10px;font-size:14px;color:var(--texto-2)">${(()=>{
+        const rev = DATOS.formulas.filter(porRevisar).length;
+        const cam = DATOS.materias_primas.filter(m=>m.cambiado_el).length;
+        return cam
+          ? `Tienes <b>${cam} pigmento${cam===1?'':'s'}</b> marcado${cam===1?'':'s'} como cambiado${cam===1?'':'s'}
+             y <b>${rev}</b> fórmula${rev===1?'':'s'} por revisar.`
+          : `Cuando cambies un pigmento, márcalo aquí y las fórmulas que lo lleven
+             pasan solas a por revisar. Ahora mismo hay <b>${rev}</b> por revisar.`;
+      })()}</p>
+      <button class="btn" id="op-pigmentos">He cambiado un pigmento</button></div>`:''}
+
     ${puedeEditar && MODO==='archivo'?`<div class="campo"><span>Publicar</span>
       <p style="margin:0 0 10px;font-size:14px;color:var(--texto-2)">${n
         ? `Tienes <b>${n} cambio${n===1?'':'s'}</b> guardado${n===1?'':'s'} <b>solo en este aparato</b>.
@@ -3918,12 +4253,13 @@ document.getElementById('btn-menu').onclick = ()=>{
     <div class="campo"><span>Datos</span>
       <p style="margin:0;font-size:14px;color:var(--texto-2)" class="num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas · ${DATOS.grupos_equivalencia.length} grupos de equivalencia</p>
       <p style="margin:6px 0 0;font-size:12.5px;color:var(--texto-3)">
-        Versión <b class="num">827a8bee</b>. Si acabas de subir uno nuevo y aquí sigue
+        Versión <b class="num">3a81d3c5</b>. Si acabas de subir uno nuevo y aquí sigue
         el número de antes, cierra la app y vuelve a abrirla.</p>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
       </div></div>`;
   document.getElementById('op-calibracion').onclick = explicarCalibracion;
+  document.getElementById('op-pigmentos')?.addEventListener('click', pantallaPigmentos);
   document.getElementById('op-tema').value = localStorage.getItem('tema')||'auto';
   document.getElementById('op-tema').onchange = e=>{
     const v = e.target.value;
@@ -4015,10 +4351,73 @@ document.getElementById('btn-cerrar-aviso').onclick = ()=>{
    ═══════════════════════════════════════════════════════════════════ */
 let repaso = null;
 
+/* ═══════════════════════════════════════════════════════════════════
+   HE CAMBIADO UN PIGMENTO
+
+   La pantalla que faltaba. Aquí se apunta lo que pasa de verdad en la nave:
+   llega un bote de un pigmento de otro proveedor, o de otro lote, y a partir de ese
+   día todas las fórmulas que lo llevan hay que volver a mirarlas.
+
+   Marcando el pigmento se marcan de golpe las 47 que lo usan —incluidas las
+   que lo llevan a través de otra fórmula, que a mano no las encuentras—, y
+   además queda apuntado CUÁNDO, que es lo que permite saber si una fórmula
+   que diste por buena en marzo sigue valiendo hoy.
+   ═══════════════════════════════════════════════════════════════════ */
+/** Cuántas fórmulas llevan esta materia, contando las anidadas. */
+function cuantasLlevan(idMateria){
+  let n = 0;
+  for(const f of DATOS.formulas) if(materiasDe.get(f.id)?.has(idMateria)) n++;
+  return n;
+}
+
+function pantallaPigmentos(){
+  if(!puedeEditar) return brindis(SIN_PERMISO);
+  const pintar = ()=>{
+    const lista = DATOS.materias_primas
+      .map(m=>({m, n: cuantasLlevan(m.id)}))
+      .filter(x=>x.n > 0)
+      .sort((a,b)=> b.n - a.n || a.m.nombre.localeCompare(b.m.nombre,'es'));
+    $dt.textContent = 'He cambiado un pigmento';
+    $dc.innerHTML = `
+      <p style="margin:0 0 4px">Marca el pigmento que has cambiado. Las fórmulas que
+        lo llevan —también las que lo llevan dentro de otra fórmula— pasan solas
+        a <b>por revisar</b>.</p>
+      <p style="margin:0 0 16px;font-size:13.5px;color:var(--texto-2)">No se toca
+        ninguna receta: solo se apunta la fecha, para saber cuáles hay que volver a mirar.</p>
+      <div class="pig-lista">${lista.map(({m, n})=>`
+        <div class="pig">
+          <div class="pig-color" style="background:${m.hex_referencia
+            || 'repeating-linear-gradient(45deg,var(--linea),var(--linea) 5px,var(--panel-2) 5px,var(--panel-2) 10px)'}"></div>
+          <div class="pig-nom">${esc(m.nombre)}
+            <small>${n} fórmula${n===1?'':'s'}${m.cambiado_el
+              ? ` · cambiado el <b>${fecha(m.cambiado_el)}</b>` : ''}</small></div>
+          <button class="btn btn-fino ${m.cambiado_el?'':'btn-1'}" data-pig="${m.id}">
+            ${m.cambiado_el ? 'Quitar la marca' : 'Lo he cambiado'}</button>
+        </div>`).join('')}</div>`;
+    $dp.innerHTML = `<button class="btn btn-1" data-cerrar>Cerrar</button>`;
+    $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
+    for(const b of $dc.querySelectorAll('[data-pig]')) b.onclick = ()=>{
+      const m = materias.get(b.dataset.pig);
+      if(!m) return;
+      const quitar = !!m.cambiado_el;
+      if(!anotarMateria(m, {cambiado_el: quitar ? null : new Date().toISOString()})) return;
+      const n = cuantasLlevan(m.id);
+      brindis(quitar
+        ? `Marca quitada de ${m.nombre}`
+        : `${n} fórmula${n===1?'':'s'} con ${m.nombre} pasan a por revisar`);
+      actualizar();
+      if(seleccion) pintarFicha();
+      pintar();
+    };
+  };
+  pintar();
+  if(!$dlg.open) $dlg.showModal();
+}
+
 function empezarRepaso(){
   if(!puedeEditar) return brindis(SIN_PERMISO);
-  const cola = filtradas.filter(f=>!f.actualizada_pigmentos).map(f=>f.id);
-  if(!cola.length) return brindis('No queda ninguna sin actualizar');
+  const cola = filtradas.filter(porRevisar).map(f=>f.id);
+  if(!cola.length) return brindis('No queda ninguna por revisar');
   repaso = {cola, i: 0, hechas: 0, total: cola.length};
   pintarRepaso();
   if(!$dlg.open) $dlg.showModal();
@@ -4079,6 +4478,12 @@ function pintarRepaso(){
       </div>
     </div>
 
+    ${(()=>{ const e = estadoAct(f);
+      return e.motivo === 'pigmento' ? `<div class="aviso" style="margin-top:12px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+        <span>Sale porque ${e.cambiados.length===1?'cambiaste':'cambiaste'}
+        ${e.cambiados.map(m=>`<b>${esc(m.nombre)}</b> (${fecha(m.cambiado_el)})`).join(', ')}
+        después de darla por buena.</span></div>` : ''; })()}
     ${barraProporcion(f, total)}
     <div style="margin-top:2px">
       ${f.ingredientes.map(i=>`<div class="ing">
@@ -4456,8 +4861,17 @@ function reconciliar(archivo){
   for(const f of base.formulas)
     if(!vistas.has(f.id)) nuevo.borradas.push(f.id);
 
-  for(const m of (archivo.materias_primas || []))
-    if(m && m.id && !baseM.has(m.id)) nuevo.materias.push(m);
+  // Materias: las nuevas, y también las de siempre a las que se les haya
+  // cambiado algo (la fecha del pigmento). Antes solo se miraban las nuevas y
+  // al restaurar se perdía qué pigmentos habías marcado como cambiados.
+  const CAMPOS_M = ['nombre','hex_referencia','cambiado_el','abierto','tipo',
+                    'familia','fuerza','opacidad','revisar','nota','solo_referencia'];
+  for(const m of (archivo.materias_primas || [])){
+    if(!m || !m.id) continue;
+    const orig = baseM.get(m.id);
+    if(!orig){ nuevo.materias.push(m); continue; }
+    if(CAMPOS_M.some(k => (k in m) && !igual(m[k], orig[k]))) nuevo.materias.push(m);
+  }
 
   return nuevo;
 }
@@ -4867,7 +5281,7 @@ function panelPdf(seg){
   $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
   document.getElementById('pdf-ir').onclick = ()=>{
     const solo = document.getElementById('pdf-solo-act').checked;
-    const lista = solo ? filtradas.filter(f=>f.actualizada_pigmentos) : filtradas;
+    const lista = solo ? filtradas.filter(f=>estadoAct(f).aldia) : filtradas;
     if(!lista.length) return brindis('No hay ninguna fórmula que cumpla eso');
     generarPDF(lista, document.getElementById('pdf-tit').value, document.getElementById('pdf-sub').value);
     $dlg.close();
@@ -4989,7 +5403,7 @@ function generarPDF(lista, titulo, sub){
     const c = color(f);
     return `<article>
       <header><i style="background:${c.hex}"></i><h4>${esc(f.nombre)}</h4>
-        ${f.actualizada_pigmentos?'<b>✓</b>':''}</header>
+        ${estadoAct(f).aldia?'<b>✓</b>':''}</header>
       <table>${f.ingredientes.map(i=>`<tr><td>${esc(i.nombre)}</td><td>${fmt(i.cantidad)}</td></tr>`).join('')}
         <tr class="tot"><td>Total</td><td>${fmt(f.ingredientes.reduce((s,i)=>s+i.cantidad,0))}</td></tr></table>
     </article>`;
@@ -5129,6 +5543,28 @@ if(temaGuardado && temaGuardado!=='auto') document.documentElement.dataset.tema 
 
 actualizar();
 
+/* Si quedó un pesaje a medias, se ofrece seguirlo. No se abre solo: puede que
+   vengas a otra cosa, y plantarte un diálogo encima al abrir la app es de mala
+   educación. Pero tampoco se calla, que era el fallo de antes. */
+function avisarPesajeAMedias(){
+  const v = leerPesajeGuardado();
+  if(!v || document.querySelector('.pesaje-medias')) return;
+  const hechas = v.g.hechos.length;
+  const el = document.createElement('div');
+  el.className = 'actualiza pesaje-medias';
+  el.innerHTML = `<span>Pesaje a medias de <b>${esc(v.f.nombre)}</b>
+      · ${hechas} ingrediente${hechas===1?'':'s'} echado${hechas===1?'':'s'}</span>
+    <button type="button" data-seguir>Seguir</button>
+    <button type="button" data-tirar aria-label="Descartar el pesaje">Descartar</button>`;
+  el.querySelector('[data-seguir]').onclick = ()=>{ el.remove(); retomarPesaje(); };
+  el.querySelector('[data-tirar]').onclick = ()=>{
+    el.remove();
+    try{ localStorage.removeItem(CLAVE_PESAJE); }catch(_){}
+  };
+  document.body.appendChild(el);
+}
+avisarPesajeAMedias();
+
 /* Una puerta para las pruebas automáticas. Sin esto, la sincronización solo
    se podría probar a ojo en dos aparatos, que es como se cuelan los fallos
    que se descubren tres semanas después con fórmulas perdidas por el camino.
@@ -5139,7 +5575,11 @@ actualizar();
    se estropea su propia copia local, y se arregla recargando. */
 window.__app = {
   get DATOS(){ return DATOS; }, porId, materias, busq, norm, nube, MODO,
-  anotar, empujar, guardar, reconstruir, actualizar, sincronizar,
+  anotar, anotarMateria, empujar, guardar, reconstruir, actualizar, sincronizar,
+  estadoAct, porRevisar, materiasDe: ()=>materiasDe, cuantasLlevan,
+  pantallaPigmentos, empezarRepaso,
+  preparar, retomarPesaje, guardarPesaje, leerPesajeGuardado,
+  get pes(){ return pes; },
   get ultimaSync(){ return ultimaSync; },
   get estadoSync(){ return estadoSync; },
 };

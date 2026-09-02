@@ -2752,7 +2752,14 @@ function pintarFicha(){
       </div>
       <div class="calc">
         <label for="calc-total">Quiero preparar</label>
-        <input id="calc-total" class="num" type="number" inputmode="numeric" min="1" step="1" value="${objetivo}">
+        <!-- type="text" y no "number" a propósito: en un campo numérico el
+             navegador NO deja seleccionar el contenido por programa, y sin eso
+             no se puede hacer que al tocarlo se marque el número entero para
+             escribir encima. Con inputmode="numeric" el móvil sigue sacando el
+             teclado de cifras, que es lo que importa aquí. -->
+        <input id="calc-total" class="num" type="text" inputmode="numeric"
+               autocomplete="off" enterkeyhint="done" aria-label="Gramos que quieres preparar"
+               value="${objetivo}">
         <span style="font-size:13px;color:var(--texto-2)">gramos</span>
         <div class="multi">
           <button data-bote="900" title="Dejando sitio para batir">Bote 1 kg</button>
@@ -2760,15 +2767,10 @@ function pintarFicha(){
           ${[1,2,3].map(m=>`<button data-mult="${m}">×${m}</button>`).join('')}
         </div>
       </div>
-      ${notaLote(total)}
-      <div class="tarjeta-cuerpo">
-        ${barraProporcion(f, total)}
-        ${f.ingredientes.map((i,k)=>filaIng(i,total,k)).join('')}
-        <div class="total${totalMovido?' cambia':''}"><span>Total</span><span class="num">${fmt(lote?lote.total:0)} g</span></div>
-      </div>
+      <div id="zona-lote">${zonaLote(f, total, totalMovido)}</div>
     </div>
 
-    ${anidada ? tarjetaDesarrollo(f) : ''}
+    <div id="zona-desarrollo">${anidada ? tarjetaDesarrollo(f) : ''}</div>
     ${hermanas.length ? `
       <div class="tarjeta"><div class="tarjeta-cab"><h3>${grupo.tipo==='identica'?'Fórmulas idénticas':'Misma proporción, otro tamaño de lote'}</h3></div>
       <div class="tarjeta-cuerpo">
@@ -2823,29 +2825,60 @@ function pintarFicha(){
     pintarFicha(); actualizar();
   };
   for(const b of $ficha.querySelectorAll('[data-mult]'))
-    b.onclick = ()=>{ objetivo = Math.round(total * +b.dataset.mult);
-      objetivoTocado = +b.dataset.mult !== 1; recalcularLote(); pintarFicha(); };
+    b.onclick = ()=>ponerObjetivo(Math.round(total * +b.dataset.mult),
+                                  +b.dataset.mult === 1);
   for(const b of $ficha.querySelectorAll('[data-bote]'))
-    b.onclick = ()=>{ objetivo = +b.dataset.bote; objetivoTocado = true; recalcularLote(); pintarFicha(); };
-  for(const b of $ficha.querySelectorAll('[data-fiable]'))
-    b.onclick = ()=>{ objetivo = +b.dataset.fiable; objetivoTocado = true; recalcularLote(); pintarFicha(); };
+    b.onclick = ()=>ponerObjetivo(+b.dataset.bote);
+  enlazarZonaLote(f);
+
+  /* ── El campo de los gramos ──────────────────────────────────────────
+     Al tocarlo se marca el número entero, así que la primera cifra que
+     escribes lo sustituye. Es lo que hace que se pueda poner una cantidad de
+     un tirón, sin pelearse con el borrado.
+
+     Y mientras se escribe NO se repinta el campo, solo el reparto de abajo.
+     Es la diferencia entre poder escribir "900" y ver cómo el número se
+     rehace solo a media palabra. */
   const $ct = document.getElementById('calc-total');
   let tCalc;
+  const marcarTodo = ()=>{ try{ $ct.select(); }catch(_){} };
+  // El ratón y el dedo colocan el cursor DESPUÉS de dar el foco, deshaciendo
+  // la marca. Por eso no basta con marcar al enfocar: hay que aguantar hasta
+  // que termine ese toque. Solo la primera vez — si ya está dentro y vuelve a
+  // tocar, es que quiere poner el cursor en un sitio, y ahí no se estorba.
+  let reciénEnfocado = false;
+  // Para poder deshacer con Escape hace falta guardarse la cantidad de ANTES:
+  // `objetivo` cambia con cada tecla, así que a media palabra ya no queda nada
+  // a lo que volver.
+  let antesDeTocar = objetivo;
+  $ct.onfocus = ()=>{ reciénEnfocado = true; antesDeTocar = objetivo; marcarTodo(); };
+  $ct.onmouseup = e=>{ if(reciénEnfocado){ e.preventDefault(); reciénEnfocado = false; } };
+  $ct.ontouchend = ()=>{ if(reciénEnfocado){ reciénEnfocado = false; setTimeout(marcarTodo, 0); } };
   $ct.oninput = ()=>{
-    const v = Math.round(parseFloat(String($ct.value).replace(',','.')));
-    if(!isFinite(v) || v<=0) return;
+    // Solo cifras: si escribe una letra o un signo, se quita en el momento en
+    // vez de dejar el campo en un estado que luego no vale.
+    const limpio = String($ct.value).replace(/[^\d]/g, '').slice(0, 6);
+    if(limpio !== $ct.value) $ct.value = limpio;
+    if(!limpio) return;                       // campo vacío: no se toca nada
+    const v = parseInt(limpio, 10);
+    if(!(v > 0)) return;
     objetivo = v;
     objetivoTocado = Math.abs(v - total) > 0.5;
     clearTimeout(tCalc);
-    tCalc = setTimeout(()=>{ recalcularLote(); pintarFicha();
-      const el = document.getElementById('calc-total'); if(el){ el.focus(); } }, 320);
+    tCalc = setTimeout(()=>{ recalcularLote(); pintarLote(); }, 250);
   };
-  for(const b of $ficha.querySelectorAll('[data-ir]'))
-    b.onclick = ()=>abrir(b.dataset.ir, b.querySelector('i'));
-  for(const b of $ficha.querySelectorAll('[data-resolver]'))
-    b.onclick = ()=>resolverIngrediente(f, +b.dataset.resolver, b.dataset.cand);
-  for(const b of $ficha.querySelectorAll('[data-abrir-rect]'))
-    b.onclick = ()=>{ rectificando = +b.dataset.abrirRect; pintarFicha(); };
+  // Si se queda vacío y se va a otra cosa, se devuelve la cantidad que hay
+  // puesta: un campo vacío no dice nada y el reparto de abajo sí existe.
+  $ct.onblur = ()=>{ if(!$ct.value) $ct.value = objetivo; };
+  $ct.onkeydown = e=>{
+    if(e.key === 'Enter'){ e.preventDefault(); $ct.blur(); }   // cierra el teclado
+    if(e.key === 'Escape'){
+      e.preventDefault();
+      clearTimeout(tCalc);
+      ponerObjetivo(antesDeTocar, Math.abs(antesDeTocar - total) <= 0.5);
+      $ct.blur();
+    }
+  };
   for(const b of $ficha.querySelectorAll('[data-restaurar]'))
     b.onclick = ()=>restaurar(f, +b.dataset.restaurar);
   document.getElementById('btn-etiqueta').onclick = ()=>etiqueta(f,
@@ -2903,6 +2936,63 @@ function resolvedorAbierto(i, k){
 /* El bote de 1 kg no se llena hasta arriba: hay que poder batirlo. Por eso el
    atajo apunta a 900 g y nunca se pasa de 950. */
 const TOPE_BOTE = {900: 950, 4500: 4750};
+/* Todo lo que cambia cuando cambias los gramos, y NADA más. Existe para poder
+   repintar solo esto mientras se escribe la cantidad: repintando la ficha
+   entera se destruía el campo a media palabra (ver pintarLote). */
+function zonaLote(f, total, totalMovido){
+  return `${notaLote(total)}
+    <div class="tarjeta-cuerpo">
+      ${barraProporcion(f, total)}
+      ${f.ingredientes.map((i,k)=>filaIng(i,total,k)).join('')}
+      <div class="total${totalMovido?' cambia':''}"><span>Total</span><span class="num">${fmt(lote?lote.total:0)} g</span></div>
+    </div>`;
+}
+
+/* Repinta SOLO el reparto en gramos, dejando en paz el campo de la cantidad.
+
+   Antes esto llamaba a pintarFicha(), que rehace la ficha entera y con ella el
+   <input>. Con un temporizador de 320 ms por medio, el resultado era que el
+   campo desaparecía y volvía a nacer mientras escribías: borrabas el 65 y un
+   tercio de segundo después reaparecía solo. De ahí que no hubiera manera de
+   escribir una cantidad. */
+function pintarLote(){
+  const f = porId.get(seleccion);
+  if(!f) return;
+  const total = f.ingredientes.reduce((s,i)=>s+i.cantidad,0);
+  const movido = ultimosGramos && ultimosGramos.total !== undefined
+                 && ultimosGramos.total !== (lote?lote.total:0);
+  const z = document.getElementById('zona-lote');
+  if(z) z.innerHTML = zonaLote(f, total, movido);
+  const d = document.getElementById('zona-desarrollo');
+  if(d) d.innerHTML = f.ingredientes.some(i=>i.tipo==='formula') ? tarjetaDesarrollo(f) : '';
+  ultimosGramos = lote ? lote.cantidades.slice() : f.ingredientes.map(i=>i.cantidad);
+  ultimosGramos.total = lote ? lote.total : 0;
+  enlazarZonaLote(f);
+}
+
+/* Los botones que viven DENTRO de la zona que se repinta hay que volver a
+   engancharlos cada vez. Si se olvida uno, deja de responder y no lo dice. */
+function enlazarZonaLote(f){
+  for(const b of $ficha.querySelectorAll('[data-fiable]'))
+    b.onclick = ()=>{ ponerObjetivo(+b.dataset.fiable); };
+  for(const b of $ficha.querySelectorAll('[data-ir]'))
+    b.onclick = ()=>abrir(b.dataset.ir, b.querySelector('i'));
+  for(const b of $ficha.querySelectorAll('[data-resolver]'))
+    b.onclick = ()=>resolverIngrediente(f, +b.dataset.resolver, b.dataset.cand);
+  for(const b of $ficha.querySelectorAll('[data-abrir-rect]'))
+    b.onclick = ()=>{ rectificando = +b.dataset.abrirRect; pintarFicha(); };
+}
+
+/** Poner una cantidad desde un botón: actualiza el campo y repinta el reparto. */
+function ponerObjetivo(gramos, esLaReceta){
+  objetivo = gramos;
+  objetivoTocado = !esLaReceta;
+  const el = document.getElementById('calc-total');
+  if(el) el.value = gramos;
+  recalcularLote();
+  pintarLote();
+}
+
 function notaLote(total){
   if(!lote) return `<div class="calc-nota avisa">Esa cantidad no se puede repartir
     en gramos enteros. Sube el lote.</div>`;
@@ -3828,7 +3918,7 @@ document.getElementById('btn-menu').onclick = ()=>{
     <div class="campo"><span>Datos</span>
       <p style="margin:0;font-size:14px;color:var(--texto-2)" class="num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas · ${DATOS.grupos_equivalencia.length} grupos de equivalencia</p>
       <p style="margin:6px 0 0;font-size:12.5px;color:var(--texto-3)">
-        Versión <b class="num">6ea64562</b>. Si acabas de subir uno nuevo y aquí sigue
+        Versión <b class="num">827a8bee</b>. Si acabas de subir uno nuevo y aquí sigue
         el número de antes, cierra la app y vuelve a abrirla.</p>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

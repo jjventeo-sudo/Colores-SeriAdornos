@@ -441,7 +441,19 @@ button{background:none;border:0;cursor:pointer;padding:0}
   margin-top:1px;
 }
 .pig-nom small b{color:var(--ambar); font-weight:640}
+.choque{padding:12px 0; border-bottom:1px solid var(--linea);
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+.choque:last-child{border-bottom:0}
+.choque-nom{flex:1 1 200px; min-width:0; font-size:14.5px; font-weight:560}
+.choque-nom small{display:block; font-size:12.5px; font-weight:450;
+  color:var(--texto-2); margin-top:2px}
+.pig-btns{display:flex; gap:6px; flex:0 0 auto}
 .pig .btn{flex:0 0 auto}
+@media (max-width:520px){
+  .pig{flex-wrap:wrap}
+  .pig-nom{flex:1 1 100%; order:-1}
+  .pig-btns{margin-left:auto}
+}
 
 /* Antes cada bloque era una tarjeta blanca flotando sobre gris: cinco cajas
    apiladas y ninguna más importante que otra. Ahora la ficha se lee como una
@@ -658,6 +670,15 @@ button{background:none;border:0;cursor:pointer;padding:0}
 .chip:hover{background:color-mix(in srgb,var(--ambar) 20%,transparent)}
 .chip:active{scale:.96}
 .chip[aria-pressed="true"]{background:var(--ambar); color:var(--panel); border-color:transparent}
+/* El filtro por pigmento no es un aviso, es un estado: va en el color de la
+   marca para que se distinga de "tienes cosas pendientes". */
+.chip-filtro{
+  background:var(--marca-suave); color:var(--marca);
+  border-color:color-mix(in srgb,var(--marca) 30%,transparent);
+  display:inline-flex; align-items:center; gap:6px;
+}
+.chip-filtro:hover{background:color-mix(in srgb,var(--marca) 16%,transparent)}
+.chip-filtro svg{width:11px;height:11px}
 
 .rectificar{
   display:inline-block; margin-left:8px; font-size:11px; font-weight:560;
@@ -1152,6 +1173,7 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
     <section class="columna-lista">
       <div class="contador">
         <span id="contador"></span>
+        <button id="chip-pigmento" class="chip chip-filtro" hidden></button>
         <button id="chip-pend" class="chip" hidden></button>
         <button id="chip-repaso" class="chip" hidden></button>
       </div>
@@ -1599,6 +1621,8 @@ function loteFiable(cant, objetivo, paso = 1) {
 const CLAVE_SESION_NUBE = 'seriadornos-nube-sesion';
 const CLAVE_PENDIENTES  = 'seriadornos-nube-pendientes';
 const CLAVE_ESPEJO      = 'seriadornos-nube-espejo';
+const CLAVE_TOCADAS     = 'seriadornos-nube-tocadas';
+const CLAVE_CHOQUES     = 'seriadornos-nube-choques';
 
 const leer = (k, x=null) => { try{ return JSON.parse(localStorage.getItem(k)) ?? x; }catch(_){ return x; } };
 const escribir = (k, v) => { try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(_){ return false; } };
@@ -1668,6 +1692,11 @@ function crearNube({url, clave}){
       try{ detalle = (await r.json()).message || ''; }catch(_){}
       const err = new Error(detalle || ('error ' + r.status));
       err.status = r.status;
+      // Un proyecto gratuito de Supabase se PAUSA solo tras unos días sin
+      // actividad (vacaciones de agosto, sin ir más lejos). Los datos siguen
+      // ahí, pero la API deja de contestar como debe. Sin distinguirlo, la app
+      // decía "sin conexión" y te mandaba a mirar el wifi, que no era.
+      if([500, 502, 503, 504, 520, 521, 522, 540].includes(r.status)) err.dormido = true;
       throw err;
     }
     return r.status === 204 ? null : r.json();
@@ -1713,9 +1742,14 @@ function crearNube({url, clave}){
     const j = await r.json().catch(()=>({}));
     if(!r.ok){
       // El mensaje de Supabase viene en inglés y no ayuda a nadie en el taller.
-      throw new Error(r.status === 400
+      const err = new Error(r.status === 400
         ? 'Ese correo o esa contraseña no valen'
         : (j.msg || j.error_description || 'No se ha podido entrar'));
+      err.status = r.status;
+      // Volviendo de vacaciones, el primer sitio donde se topa uno con el
+      // proyecto pausado es aquí, en la pantalla de entrar.
+      if([500, 502, 503, 504, 520, 521, 522, 540].includes(r.status)) err.dormido = true;
+      throw err;
     }
     guardarSesion(j);
     rol = await leerRol();
@@ -1771,6 +1805,21 @@ function crearNube({url, clave}){
     return filas;
   }
 
+  /* La última marca de tiempo que este aparato ha VISTO de cada fórmula.
+
+     Es lo que permite darse cuenta de un choque: si escribiste una fórmula sin
+     cobertura y mientras tanto la tocaron en otro sitio, al volver la señal tu
+     versión se subiría encima de la otra y nadie se enteraría. Guardando qué
+     versión tenías delante cuando la tocaste, se puede comparar antes de pisar
+     nada. */
+  const leerTocadas = () => leer(CLAVE_TOCADAS, {});
+  function apuntarTocadas(filas){
+    if(!filas?.length) return;
+    const t = leerTocadas();
+    for(const f of filas) if(f.id && f.tocada) t[f.id] = f.tocada;
+    escribir(CLAVE_TOCADAS, t);
+  }
+
   /** Todo lo que ha cambiado desde `desde`. `desde` nulo = todo. */
   async function bajar(desde){
     const [formulas, materias, ajustes] = await Promise.all([
@@ -1778,6 +1827,7 @@ function crearNube({url, clave}){
       bajarTabla('colores_materias', desde),
       bajarTabla('colores_ajustes', desde),
     ]);
+    apuntarTocadas(formulas);
     const fechas = [...formulas, ...materias, ...ajustes].map(f => f.tocada).filter(Boolean);
     return {
       formulas, materias, ajustes,
@@ -1836,11 +1886,53 @@ function crearNube({url, clave}){
   // última, que es la que vale.
   function encolar(tipo, obj){
     const cola = leer(CLAVE_PENDIENTES, {});
-    cola[tipo + ':' + (obj.id || obj.clave)] = {tipo, obj, cuando: Date.now()};
+    const k = tipo + ':' + (obj.id || obj.clave);
+    cola[k] = {
+      tipo, obj, cuando: Date.now(),
+      // La marca que tenía la fila la última vez que este aparato la vio. Si
+      // al ir a subirla el servidor tiene otra más nueva, es que alguien la
+      // tocó por el camino: eso es un choque, no una subida.
+      visto: (cola[k]?.visto !== undefined)
+        ? cola[k].visto                        // el primer 'visto' es el bueno
+        : (leerTocadas()[obj.id] || null),
+    };
     escribir(CLAVE_PENDIENTES, cola);
     avisar('pendientes', Object.keys(cola).length);
   }
   const pendientes = () => Object.keys(leer(CLAVE_PENDIENTES, {})).length;
+
+  /* ── Choques ───────────────────────────────────────────────────────────
+     Tocas una fórmula en el móvil sin cobertura. Mientras tanto la tocas
+     también en el PC. Cuando el móvil recupera señal, su versión sube encima
+     y se lleva por delante la del PC sin decir una palabra.
+
+     Ahora, antes de subir algo que estaba esperando, se mira si la fila del
+     servidor ha cambiado desde que la tocaste. Si ha cambiado, NO se pisa: se
+     aparta y se pregunta. Perder trabajo en silencio es lo único que esta app
+     no se puede permitir. */
+  const leerChoques = () => leer(CLAVE_CHOQUES, {});
+  const choques = () => Object.values(leerChoques());
+
+  async function tocadaEnServidor(id){
+    const filas = await pedir(
+      `/rest/v1/colores_formulas?id=eq.${encodeURIComponent(id)}&select=tocada,nombre`);
+    return filas?.[0] || null;
+  }
+
+  /** 'mia' sube la de este aparato; 'servidor' tira la de aquí. */
+  async function resolverChoque(id, quien){
+    const ch = leerChoques();
+    const c = ch[id];
+    if(!c) return false;
+    if(quien === 'mia'){
+      await subirFormulas([c.obj]);
+      apuntarTocadas([await tocadaEnServidor(id)].filter(Boolean));
+    }
+    delete ch[id];
+    escribir(CLAVE_CHOQUES, ch);
+    avisar('choques', Object.keys(ch).length);
+    return true;
+  }
 
   async function vaciarCola(){
     const cola = leer(CLAVE_PENDIENTES, {});
@@ -1848,9 +1940,25 @@ function crearNube({url, clave}){
     if(!claves.length) return 0;
     let idas = 0;
     for(const k of claves){
-      const {tipo, obj} = cola[k];
+      const {tipo, obj, visto} = cola[k];
       try{
-        if(tipo === 'formula') await subirFormulas([obj]);
+        if(tipo === 'formula'){
+          // ¿Ha cambiado en el servidor desde que la tocaste aquí?
+          if(visto){
+            const suya = await tocadaEnServidor(obj.id);
+            if(suya && suya.tocada && suya.tocada > visto){
+              const ch = leerChoques();
+              ch[obj.id] = {id: obj.id, nombre: obj.nombre || suya.nombre,
+                            obj, mia: cola[k].cuando, suya: suya.tocada};
+              escribir(CLAVE_CHOQUES, ch);
+              delete cola[k];
+              avisar('choques', Object.keys(ch).length);
+              continue;
+            }
+          }
+          await subirFormulas([obj]);
+          apuntarTocadas([await tocadaEnServidor(obj.id)].filter(Boolean));
+        }
         else if(tipo === 'materia') await subirMaterias([obj]);
         else await subirAjustes([obj]);
         delete cola[k]; idas++;
@@ -1870,8 +1978,15 @@ function crearNube({url, clave}){
 
   /** Guardar una fórmula: se intenta ya, y si no hay red se encola. */
   async function guardarFormula(f){
-    try{ await subirFormulas([f]); return true; }
-    catch(e){
+    try{
+      const filas = await pedir('/rest/v1/colores_formulas', {
+        method: 'POST',
+        headers: {'Prefer': 'resolution=merge-duplicates,return=representation'},
+        body: JSON.stringify([filaFormula(f)]),
+      });
+      apuntarTocadas(filas || []);
+      return true;
+    }catch(e){
       if(e.sinRed){ encolar('formula', f); return false; }
       throw e;
     }
@@ -1927,6 +2042,7 @@ function crearNube({url, clave}){
     bajar, sembrar, guardarFormula, guardarMateria, subirAjustes,
     pendientes, vaciarCola,
     leerEspejo, guardarEspejo, borrarEspejo, montarDatos,
+    choques, resolverChoque,
     escuchar(f){ oyentes.add(f); return ()=>oyentes.delete(f); },
   };
 }
@@ -2167,7 +2283,11 @@ function pantallaEntrar(aviso){
         resolve(s);
       }catch(err){
         $b.disabled = false; $b.textContent = 'Entrar';
-        $e.querySelector('span').textContent = err.message || 'No se ha podido entrar';
+        $e.querySelector('span').innerHTML = err.dormido
+          ? 'El servidor no contesta. Si lleváis días sin abrir la app, es probable ' +
+            'que <b>Supabase haya pausado el proyecto</b>: entra en supabase.com, ' +
+            'ábrelo y dale a <b>Resume</b>. No se pierde nada.'
+          : esc0(err.message || 'No se ha podido entrar');
         $e.hidden = false; $c.select();
       }
     };
@@ -2347,12 +2467,29 @@ function empujarMateria(m){
 }
 function falloNube(e){
   if(e && e.sinRed) return marcarSync('pendiente');
+  if(e && e.dormido){ marcarSync('error'); return avisarDormido(); }
   if(e && e.status === 403){
     marcarSync('error');
     return brindis('El servidor no deja escribir con esta cuenta');
   }
   marcarSync('error');
   brindis('No se ha podido guardar en la nube: ' + (e && e.message || 'error'));
+}
+
+/* El proyecto gratuito de Supabase se pausa solo tras unos días sin actividad.
+   Los datos siguen ahí, pero la app deja de bajar nada. Es lo que va a pasar
+   volviendo de vacaciones, y "sin conexión" mandaría a mirar el wifi, que es
+   justo por donde NO está el problema. Se dice lo que hay y qué hacer. */
+function avisarDormido(){
+  if(document.querySelector('.dormido')) return;
+  const el = document.createElement('div');
+  el.className = 'actualiza dormido';
+  el.innerHTML = `<span><b>El servidor no contesta.</b> Si lleváis días sin abrir
+    la app, es probable que Supabase haya <b>pausado</b> el proyecto: entra en
+    supabase.com, ábrelo y dale a <b>Resume</b>. No se pierde nada.</span>
+    <button type="button" data-tirar aria-label="Cerrar">Vale</button>`;
+  el.querySelector('button').onclick = ()=>el.remove();
+  document.body.appendChild(el);
 }
 let indicesListos = false;   // ver limpiarMateriasHuerfanas
 function aplicarCambios(){
@@ -2538,9 +2675,16 @@ const busq = DATOS.formulas.map(f=>({
 
 const tienePendiente = f => f.ingredientes.some(i=>i.tipo==='sin_resolver');
 let soloPendientes = false;
+/* Filtro por pigmento: "enséñame las que llevan ESE pigmento". Es el paso que
+   le faltaba a la pantalla de pigmentos, que te decía el número y ahí te
+   dejaba. Cuenta también las que lo llevan dentro de otra fórmula.
+   (Sin ejemplos reales en los comentarios: este archivo se cuelga en internet
+   y el comprobador de construir.py caza cualquier nombre de fórmula.) */
+let filtroPigmento = null;
 
 function filtrar(txt){
   const t = norm(txt);
+  if(filtroPigmento) return DATOS.formulas.filter(f=>materiasDe.get(f.id)?.has(filtroPigmento));
   if(soloPendientes) return DATOS.formulas.filter(tienePendiente);
   if(!t) return DATOS.formulas.slice();
   const palabras = t.split(' ');
@@ -2675,6 +2819,14 @@ function actualizar(){
 
   // El repaso trabaja sobre lo que tengas filtrado: si buscas "lezna", repasas
   // los lezna. Igual que el PDF, que imprime lo que estás viendo.
+  const cp = document.getElementById('chip-pigmento');
+  cp.hidden = !filtroPigmento;
+  if(filtroPigmento){
+    cp.innerHTML = `Con ${esc(materias.get(filtroPigmento)?.nombre || '?')}
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>`;
+    cp.title = 'Quitar el filtro y ver todas';
+  }
+
   const sinAct = filtradas.filter(porRevisar).length;
   const rep = document.getElementById('chip-repaso');
   rep.hidden = !sinAct;
@@ -2688,7 +2840,22 @@ function actualizar(){
   if(!seleccion) muroDeColores();
 }
 
-$q.addEventListener('input', ()=>{ soloPendientes=false; actualizar(); });
+$q.addEventListener('input', ()=>{ soloPendientes=false; filtroPigmento=null; actualizar(); });
+document.getElementById('chip-pigmento').onclick = ()=>{ filtroPigmento=null; actualizar(); };
+
+/** Enseñar en la lista todas las fórmulas que llevan este pigmento. */
+function verPigmento(id){
+  const m = materias.get(id);
+  if(!m) return;
+  filtroPigmento = id;
+  soloPendientes = false;
+  $q.value = '';
+  $dlg.close();
+  cerrarFicha();
+  actualizar();
+  const n = filtradas.length;
+  brindis(`${n} fórmula${n===1?'':'s'} con ${m.nombre}`);
+}
 document.getElementById('chip-repaso').onclick = empezarRepaso;
 document.getElementById('chip-pend').onclick = ()=>{
   soloPendientes = !soloPendientes;
@@ -3399,6 +3566,41 @@ const fmtPlano = n => String(Math.round(n*100)/100);
 const PRECISION = 1;          // gramos que distingue la báscula
 let pes = null;
 
+/* ── La pantalla no se apaga mientras pesas ──────────────────────────────
+
+   Con el bote delante y las manos llenas de pigmento, que el móvil se apague
+   a los treinta segundos obliga a tocarlo para despertarlo. Justo lo que no
+   debería pasar.
+
+   Se pide sólo mientras hay una pesada abierta, y se suelta al cerrarla: un
+   candado que se queda puesto se come la batería del taller en una mañana.
+   Donde el navegador no lo soporte (iPhone por debajo de iOS 16.4) no pasa
+   nada: sigue funcionando todo, solo que la pantalla se apaga como siempre. */
+let candadoPantalla = null;
+let quierePantalla = false;
+let pidiendoPantalla = false;
+
+async function mantenerPantalla(si){
+  quierePantalla = si;
+  try{
+    if(si){
+      if(candadoPantalla || pidiendoPantalla || !navigator.wakeLock) return !!candadoPantalla;
+      pidiendoPantalla = true;
+      candadoPantalla = await navigator.wakeLock.request('screen');
+      candadoPantalla.addEventListener?.('release', ()=>{ candadoPantalla = null; });
+    }else if(candadoPantalla){
+      const c = candadoPantalla; candadoPantalla = null; await c.release();
+    }
+  }catch(_){ candadoPantalla = null; }
+  finally{ pidiendoPantalla = false; }
+  return !!candadoPantalla;
+}
+// El navegador suelta el candado en cuanto la app se va a segundo plano. Sin
+// volver a pedirlo, la pantalla se apagaba sola a partir de la segunda vez.
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden && quierePantalla && !candadoPantalla) mantenerPantalla(true);
+});
+
 /* ── Que no se pierda un pesaje a medias ─────────────────────────────────
 
    Estás pesando 5 kg, te llaman, el móvil se bloquea o se cierra la app, y al
@@ -3566,7 +3768,7 @@ function pintarPesaje(){
   $dt.textContent = f.nombre;
   $dc.innerHTML = `
     <div class="pes-cab">
-      <div><b class="num">${fmt(p.total)} g</b><small>total del lote</small></div>
+      <div><b class="num">${fmt(p.total)} g</b><small id="pes-sub">total del lote</small></div>
       <div class="pes-modo">
         <button data-modo="individual" aria-pressed="${pes.modo==='individual'}"
           title="Pones a cero la báscula entre cada ingrediente">Tarando</button>
@@ -3595,6 +3797,10 @@ function pintarPesaje(){
   // La animación se dispara al crearse la fila, así que el aviso se consume:
   // si no, cada repintado la haría revivir.
   pes.recien = null;
+  mantenerPantalla(true).then(puesto=>{
+    const el = document.getElementById('pes-sub');
+    if(puesto && el) el.textContent = 'total del lote · la pantalla no se apaga';
+  });
   $dp.innerHTML = `<button class="btn" id="pes-atras">Cambiar cantidad</button>
     <button class="btn" id="pes-etiqueta" title="Para pegar en el bote">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h6.6c.5 0 1 .2 1.4.6l6.9 6.9a2 2 0 0 1 0 2.8l-4.1 4.1a2 2 0 0 1-2.8 0l-6.9-6.9A2 2 0 0 1 6 11.1V7.5z"/><path d="M8.2 8.2v.01"/></svg>
@@ -3714,6 +3920,10 @@ const $dc = document.getElementById('dlg-cuerpo');
 const $dp = document.getElementById('dlg-pie');
 const $dt = document.getElementById('dlg-titulo');
 $dlg.addEventListener('click', e=>{ if(e.target===$dlg) $dlg.close(); });
+/* Cerrando el diálogo se cierra también la pesada: hay que soltar el candado
+   de la pantalla por todos los caminos, no solo por el botón de Terminado.
+   Con Escape, tocando fuera o con la flecha de atrás del móvil también. */
+$dlg.addEventListener('close', ()=>{ if(quierePantalla) mantenerPantalla(false); });
 for(const b of document.querySelectorAll('[data-cerrar]')) b.onclick = ()=>$dlg.close();
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -4095,6 +4305,7 @@ async function sincronizar(porQue){
     marcarSync('al-dia');
   }catch(e){
     if(e && e.sinRed) marcarSync('sin-red');
+    else if(e && e.dormido){ marcarSync('error'); avisarDormido(); }
     else if(e && e.sesion){
       // La sesión ya no vale. Se dice y se pide entrar otra vez, sin tocar el
       // espejo: lo que hay en pantalla sigue siendo bueno.
@@ -4165,8 +4376,65 @@ function aplicarDeLaNube(res){
   return n;
 }
 
+/* ── Cuando dos aparatos tocan la misma fórmula ──────────────────────────
+
+   Tocas una fórmula en el móvil sin cobertura. Mientras, la tocas también en
+   el PC. Al volver la señal, la del móvil subía encima y se llevaba por
+   delante la del PC sin decir nada.
+
+   Ahora la nube lo detecta antes de pisar nada (ver nube.js) y aparta esos
+   cambios. Aquí se enseñan y se decide uno por uno. No se elige por ti: las
+   dos versiones son trabajo tuyo y solo tú sabes cuál vale. */
+function pantallaChoques(){
+  const lista = nube.choques();
+  if(!lista.length) return brindis('No hay nada pendiente de decidir');
+  $dt.textContent = lista.length === 1
+    ? 'Un cambio que choca' : `${lista.length} cambios que chocan`;
+  $dc.innerHTML = `
+    <p style="margin-top:0">Estas fórmulas las tocaste en este aparato <b>sin
+      cobertura</b>, y mientras tanto también cambiaron en otro sitio.</p>
+    <p style="margin:0 0 16px;font-size:13.5px;color:var(--texto-2)">No se ha
+      pisado nada. Decide cuál se queda; lo que no elijas se pierde.</p>
+    <div class="pig-lista">${lista.map(c=>`
+      <div class="choque">
+        <div class="choque-nom">${esc(c.nombre || c.id)}
+          <small>La tuya, de ${esc(momento(new Date(c.mia).toISOString()))} ·
+            la de la nube, de ${esc(momento(c.suya))}</small></div>
+        <div class="pig-btns">
+          <button class="btn btn-fino" data-choque-nube="${esc(c.id)}">Quedarme con la de la nube</button>
+          <button class="btn btn-fino btn-1" data-choque-mia="${esc(c.id)}">Mandar la mía</button>
+        </div>
+      </div>`).join('')}</div>`;
+  $dp.innerHTML = `<button class="btn btn-1" data-cerrar>Cerrar</button>`;
+  $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
+  const resolver = async (id, quien)=>{
+    try{ await nube.resolverChoque(id, quien); }
+    catch(e){ return falloNube(e); }
+    await sincronizar('tras choque');
+    if(nube.choques().length) pantallaChoques(); else { $dlg.close(); brindis('Resuelto'); }
+  };
+  for(const b of $dc.querySelectorAll('[data-choque-mia]'))
+    b.onclick = ()=>resolver(b.dataset.choqueMia, 'mia');
+  for(const b of $dc.querySelectorAll('[data-choque-nube]'))
+    b.onclick = ()=>resolver(b.dataset.choqueNube, 'servidor');
+  if(!$dlg.open) $dlg.showModal();
+}
+
+function avisarChoques(n){
+  document.querySelector('.hay-choques')?.remove();
+  if(!n) return;
+  const el = document.createElement('div');
+  el.className = 'actualiza hay-choques';
+  el.innerHTML = `<span><b>${n} cambio${n===1?'':'s'}</b> que hiciste sin cobertura
+    ${n===1?'choca':'chocan'} con lo que hay en la nube</span>
+    <button type="button">Decidir</button>`;
+  el.querySelector('button').onclick = ()=>{ el.remove(); pantallaChoques(); };
+  document.body.appendChild(el);
+}
+
 if(MODO === 'nube'){
   marcarSync(nube.pendientes() ? 'pendiente' : 'al-dia');
+  avisarChoques(nube.choques().length);
   $piloto.onclick = ()=>{ marcarSync('subiendo'); sincronizar('a mano'); };
   sincronizar('arranque');
   setInterval(()=>{ if(!document.hidden) sincronizar('reloj'); }, 15000);
@@ -4175,6 +4443,7 @@ if(MODO === 'nube'){
   nube.escuchar((qué, dato)=>{
     if(qué === 'pendientes') marcarSync(dato ? 'pendiente' : 'al-dia');
     if(qué === 'rechazado')  brindis('El servidor ha rechazado un cambio: ' + dato.por);
+    if(qué === 'choques')    avisarChoques(dato);
   });
 }
 
@@ -4216,7 +4485,10 @@ document.getElementById('btn-menu').onclick = ()=>{
            Se suben solos en cuanto haya cobertura.`
         : 'Todo lo de este aparato está en la nube.'}
         ${ultimaSync?`<br><small style="color:var(--texto-3)">Al día hasta ${esc(momento(ultimaSync))}.</small>`:''}</p>
-      <button class="btn ${pend?'btn-marca':''}" id="op-sync">Sincronizar ahora</button></div>`:''}
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn ${pend?'btn-marca':''}" id="op-sync">Sincronizar ahora</button>
+        ${nube.choques().length?`<button class="btn btn-marca" id="op-choques">Decidir ${nube.choques().length} que chocan</button>`:''}
+      </div></div>`:''}
 
     ${puedeEditar?`<div class="campo"><span>Pigmentos</span>
       <p style="margin:0 0 10px;font-size:14px;color:var(--texto-2)">${(()=>{
@@ -4240,7 +4512,14 @@ document.getElementById('btn-menu').onclick = ()=>{
 
     <div class="campo"><span>${MODO==='nube'?'Copia de seguridad':'Tus cambios en este dispositivo'}</span>
       <p style="margin:0;font-size:14px;color:var(--texto-2)">${MODO==='nube'
-        ? 'Descarga de vez en cuando una copia del recetario entero. Es un archivo que se abre y se lee por sí solo, y sirve para volver atrás si algo se tuerce.'
+        ? `Es la única red de seguridad que tienes fuera de la nube: un archivo que
+           se abre y se lee por sí solo. ${(()=>{
+             const u = leerFecha(CLAVE_COPIA);
+             if(!u) return '<b>Todavía no has descargado ninguna.</b>';
+             const d = Math.floor((Date.now() - u) / DIA);
+             return d < 1 ? 'La última, hoy.'
+                  : `La última, hace <b>${d} día${d===1?'':'s'}</b>.`;
+           })()}`
         : (n
           ? `${n} cambio${n===1?'':'s'} guardado${n===1?'':'s'} solo en este navegador.`
           : 'Ninguno todavía.')}</p>
@@ -4253,7 +4532,7 @@ document.getElementById('btn-menu').onclick = ()=>{
     <div class="campo"><span>Datos</span>
       <p style="margin:0;font-size:14px;color:var(--texto-2)" class="num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas · ${DATOS.grupos_equivalencia.length} grupos de equivalencia</p>
       <p style="margin:6px 0 0;font-size:12.5px;color:var(--texto-3)">
-        Versión <b class="num">3a81d3c5</b>. Si acabas de subir uno nuevo y aquí sigue
+        Versión <b class="num">666f838c</b>. Si acabas de subir uno nuevo y aquí sigue
         el número de antes, cierra la app y vuelve a abrirla.</p>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -4269,6 +4548,7 @@ document.getElementById('btn-menu').onclick = ()=>{
   };
   document.getElementById('op-publicar')?.addEventListener('click', publicarCambios);
   document.getElementById('op-claves')?.addEventListener('click', cambiarClaves);
+  document.getElementById('op-choques')?.addEventListener('click', pantallaChoques);
   document.getElementById('op-sync')?.addEventListener('click', async e=>{
     e.target.disabled = true; e.target.textContent = 'Sincronizando…';
     await sincronizar('a mano');
@@ -4391,23 +4671,37 @@ function pantallaPigmentos(){
           <div class="pig-nom">${esc(m.nombre)}
             <small>${n} fórmula${n===1?'':'s'}${m.cambiado_el
               ? ` · cambiado el <b>${fecha(m.cambiado_el)}</b>` : ''}</small></div>
-          <button class="btn btn-fino ${m.cambiado_el?'':'btn-1'}" data-pig="${m.id}">
-            ${m.cambiado_el ? 'Quitar la marca' : 'Lo he cambiado'}</button>
+          <div class="pig-btns">
+            <button class="btn btn-fino" data-ver="${m.id}">Ver las ${n}</button>
+            <button class="btn btn-fino ${m.cambiado_el?'':'btn-1'}" data-pig="${m.id}">
+              ${m.cambiado_el ? 'Quitar la marca' : 'Lo he cambiado'}</button>
+          </div>
         </div>`).join('')}</div>`;
     $dp.innerHTML = `<button class="btn btn-1" data-cerrar>Cerrar</button>`;
     $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
+    for(const b of $dc.querySelectorAll('[data-ver]'))
+      b.onclick = ()=>verPigmento(b.dataset.ver);
     for(const b of $dc.querySelectorAll('[data-pig]')) b.onclick = ()=>{
       const m = materias.get(b.dataset.pig);
       if(!m) return;
       const quitar = !!m.cambiado_el;
       if(!anotarMateria(m, {cambiado_el: quitar ? null : new Date().toISOString()})) return;
       const n = cuantasLlevan(m.id);
-      brindis(quitar
-        ? `Marca quitada de ${m.nombre}`
-        : `${n} fórmula${n===1?'':'s'} con ${m.nombre} pasan a por revisar`);
       actualizar();
       if(seleccion) pintarFicha();
-      pintar();
+      if(quitar){ brindis(`Marca quitada de ${m.nombre}`); return pintar(); }
+      // Marcado el pigmento, lo siguiente que quieres es VERLAS. Antes te daba
+      // el número y ahí te dejaba, a buscarlas por tu cuenta.
+      $dt.textContent = 'Marcado ' + m.nombre;
+      $dc.innerHTML = `<p style="margin-top:0"><b class="num">${n}</b>
+        fórmula${n===1?'':'s'} que ${n===1?'lleva':'llevan'} <b>${esc(m.nombre)}</b>
+        ${n===1?'pasa':'pasan'} a <b>por revisar</b>.</p>
+        <p style="font-size:14px;color:var(--texto-2)">Las que ya estaban dadas por
+        buenas antes de hoy vuelven a la cola solas. No hay que acordarse de cuáles eran.</p>`;
+      $dp.innerHTML = `<button class="btn" id="pig-volver">Marcar otro</button>
+        <button class="btn btn-1" id="pig-ver">Ver las ${n}</button>`;
+      document.getElementById('pig-volver').onclick = pintar;
+      document.getElementById('pig-ver').onclick = ()=>verPigmento(m.id);
     };
   };
   pintar();
@@ -4881,7 +5175,49 @@ function contarCambios(c){
          (c.borradas||[]).length + (c.materias||[]).length;
 }
 
+/* ── La copia de seguridad, recordada ────────────────────────────────────
+
+   Desde que la nube es la verdad, es también el único sitio donde están las
+   860. El plan gratuito no da copias de verdad, así que la única red de
+   seguridad es este archivo... y "descárgatelo de vez en cuando" es una
+   instrucción que no cumple nadie.
+
+   Así que lo dice la app. A los 30 días, y se puede aplazar una semana. Solo
+   al editor: el taller no puede descargarlo, avisarle sería mandarle a hacer
+   algo que la app no le deja. */
+const CLAVE_COPIA = 'ultima-copia';
+const CLAVE_COPIA_LUEGO = 'copia-aplazada';
+const DIAS_COPIA = 30;
+const DIA = 86400000;
+
+const leerFecha = k => { try{ return +localStorage.getItem(k) || 0; }catch(_){ return 0; } };
+const ponerFecha = (k, v) => { try{ localStorage.setItem(k, String(v)); }catch(_){} };
+
+function avisarCopia(){
+  if(!puedeEditar || document.querySelector('.avisa-copia')) return;
+  const ultima = leerFecha(CLAVE_COPIA);
+  const luego  = leerFecha(CLAVE_COPIA_LUEGO);
+  if(Date.now() - luego < 7 * DIA) return;              // aplazado hace poco
+  const dias = ultima ? Math.floor((Date.now() - ultima) / DIA) : null;
+  if(ultima && dias < DIAS_COPIA) return;
+  const el = document.createElement('div');
+  el.className = 'actualiza avisa-copia';
+  el.innerHTML = `<span>${ultima
+      ? `Hace <b>${dias >= 60 ? Math.floor(dias/30) + ' meses' : dias + ' días'}</b> que no descargas copia del recetario`
+      : '<b>No has descargado nunca una copia</b> del recetario'}</span>
+    <button type="button" data-ya>Descargar</button>
+    <button type="button" data-tirar>Luego</button>`;
+  el.querySelector('[data-ya]').onclick = ()=>{ el.remove(); exportar(); };
+  el.querySelector('[data-tirar]').onclick = ()=>{
+    el.remove(); ponerFecha(CLAVE_COPIA_LUEGO, Date.now());
+  };
+  document.body.appendChild(el);
+}
+
 function exportar(){
+  ponerFecha(CLAVE_COPIA, Date.now());
+  ponerFecha(CLAVE_COPIA_LUEGO, 0);
+  document.querySelector('.avisa-copia')?.remove();
   // Se guarda el resultado ya mezclado —que es legible y sirve de archivo por
   // sí solo— y además, por comodidad, el resumen de qué cambió.
   const copia = {
@@ -5564,6 +5900,9 @@ function avisarPesajeAMedias(){
   document.body.appendChild(el);
 }
 avisarPesajeAMedias();
+// Y si hace un mes que no descarga copia, se lo dice. Solo al editor: el
+// taller no puede descargarla, avisarle sería mandarle a un botón que no tiene.
+setTimeout(avisarCopia, 1500);
 
 /* Una puerta para las pruebas automáticas. Sin esto, la sincronización solo
    se podría probar a ojo en dos aparatos, que es como se cuelan los fallos
@@ -5576,6 +5915,8 @@ avisarPesajeAMedias();
 window.__app = {
   get DATOS(){ return DATOS; }, porId, materias, busq, norm, nube, MODO,
   anotar, anotarMateria, empujar, guardar, reconstruir, actualizar, sincronizar,
+  verPigmento, pantallaChoques, avisarCopia, mantenerPantalla,
+  get filtroPigmento(){ return filtroPigmento; },
   estadoAct, porRevisar, materiasDe: ()=>materiasDe, cuantasLlevan,
   pantallaPigmentos, empezarRepaso,
   preparar, retomarPesaje, guardarPesaje, leerPesajeGuardado,

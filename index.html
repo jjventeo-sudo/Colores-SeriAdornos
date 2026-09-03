@@ -2850,8 +2850,7 @@ function verPigmento(id){
   filtroPigmento = id;
   soloPendientes = false;
   $q.value = '';
-  $dlg.close();
-  cerrarFicha();
+  cerrarTodo();
   actualizar();
   const n = filtradas.length;
   brindis(`${n} fórmula${n===1?'':'s'} con ${m.nombre}`);
@@ -2897,7 +2896,78 @@ function conContinuidad(origen, cambiar){
   }catch(_){ origen.style.viewTransitionName=''; cambiar(); }
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   EL BOTÓN "ATRÁS" DEL MÓVIL
+
+   Juanjo: «entro en una pintura y le doy atrás, y se me cierra la app en vez
+   de volver al listado».
+
+   Y es exactamente lo que tenía que pasar. Esta app es UNA sola página: abrir
+   una fórmula no es ir a otro sitio, es cambiar lo que se pinta. Como no se
+   tocaba el historial del navegador, para Android "atrás" solo podía
+   significar una cosa: salir. En una app instalada eso es cerrarla.
+
+   Se arregla apuntando cada capa que se abre —la ficha, un diálogo— como una
+   parada del historial. Así "atrás" cierra la de arriba y solo sale de la app
+   cuando ya no queda ninguna.
+
+   El cierre lo manda SIEMPRE el historial, nunca al revés: si se cierra desde
+   un botón, lo único que se hace es un history.back(), y el propio popstate se
+   encarga de cerrar. Haciéndolo por los dos lados se descuadraba la pila y el
+   "atrás" siguiente no hacía nada. */
+const capas = [];
+let volviendoAtras = false;
+let historialVa = true;   // en file:// algunos navegadores no dejan pushState
+
+function abrirCapa(tipo){
+  // includes, no "la de arriba": de cada tipo solo puede haber UNA (una ficha,
+  // un diálogo). Mirando solo la cima se colaba una capa de más en un sitio
+  // real: al guardar, el editor cierra el diálogo y acto seguido vuelve a
+  // abrir la ficha; como la vuelta atrás del diálogo aún no había llegado,
+  // 'ficha' no era la cima y se apilaba otra. Resultado: guardar te cerraba
+  // la ficha. Comprobado.
+  if(!historialVa || capas.includes(tipo)) return;
+  capas.push(tipo);
+  try{ history.pushState({capas: capas.length}, ''); }
+  catch(_){ historialVa = false; capas.pop(); }
+}
+
+function cerrarDeVerdad(tipo){
+  if(tipo === 'dlg') $dlg.close();
+  else if(tipo === 'ficha') cerrarFicha();
+}
+
+/** La capa se ha cerrado desde dentro (un botón, la ✕, Escape). */
+function cerrarCapa(tipo){
+  // Si venimos del propio historial, ya está contado: tocarlo otra vez
+  // retrocedería de más y se saldría de la app.
+  if(volviendoAtras || !historialVa) return;
+  const i = capas.lastIndexOf(tipo);
+  if(i < 0) return;
+  // Se retrocede hasta ella. Si tenía capas encima (cerrar la ficha con un
+  // diálogo abierto), se van también, que es lo que se espera.
+  history.go(-(capas.length - i));
+}
+
+/** Volver a la lista de golpe, cerrando lo que haya abierto. */
+function cerrarTodo(){
+  if(historialVa && capas.length) return history.go(-capas.length);
+  $dlg.close(); cerrarFicha();
+}
+
+addEventListener('popstate', e=>{
+  // Cuántas capas deberían quedar según el historial. Con history.go(-3) el
+  // navegador dispara UN solo popstate, así que hay que cerrar todas las que
+  // sobren de una vez y no solo la de arriba.
+  const quedan = (e.state && e.state.capas) || 0;
+  if(capas.length <= quedan) return;
+  volviendoAtras = true;
+  try{ while(capas.length > quedan) cerrarDeVerdad(capas.pop()); }
+  finally{ volviendoAtras = false; }
+});
+
 function abrir(id, origen){
+  abrirCapa('ficha');
   const cambiar = ()=>{
     seleccion = id;
     const f0 = porId.get(id);
@@ -2914,6 +2984,8 @@ function abrir(id, origen){
   conContinuidad(origen, cambiar);
 }
 function cerrarFicha(){
+  if(document.body.dataset.ficha !== 'on') return;
+  cerrarCapa('ficha');
   document.body.dataset.ficha='';
   seleccion = null;
   for(const el of $lista.querySelectorAll('.fila')) el.setAttribute('aria-current','false');
@@ -3195,7 +3267,7 @@ function pintarFicha(){
     $q.value = cli;
     soloPendientes = false;
     actualizar();
-    if(innerWidth <= 860) cerrarFicha();
+    if(innerWidth <= 860) cerrarTodo();
     brindis(`Colores de ${cli}`);
   });
   for(const b of $ficha.querySelectorAll('.multi [data-cant]'))
@@ -3919,6 +3991,17 @@ const $dlg = document.getElementById('dlg');
 const $dc = document.getElementById('dlg-cuerpo');
 const $dp = document.getElementById('dlg-pie');
 const $dt = document.getElementById('dlg-titulo');
+/* Se envuelve showModal en vez de ir tocando los quince sitios que lo llaman:
+   así ninguna pantalla nueva se queda sin su parada en el historial por
+   despiste. */
+const abrirModal = $dlg.showModal.bind($dlg);
+$dlg.showModal = function(){
+  if(!$dlg.open){ abrirCapa('dlg'); abrirModal(); }
+};
+// Se cierre como se cierre —la ✕, tocando fuera, Escape o el botón de atrás—
+// la parada del historial se consume aquí.
+$dlg.addEventListener('close', ()=>cerrarCapa('dlg'));
+
 $dlg.addEventListener('click', e=>{ if(e.target===$dlg) $dlg.close(); });
 /* Cerrando el diálogo se cierra también la pesada: hay que soltar el candado
    de la pantalla por todos los caminos, no solo por el botón de Terminado.
@@ -4214,7 +4297,7 @@ function borrar(f){
     // entera de que ya no está; si se quitara la fila, no habría nada que
     // contarle y la seguiría enseñando para siempre.
     empujar({...f, borrada:true});
-    reconstruir(); $dlg.close(); cerrarFicha(); actualizar(); brindis('Eliminada');
+    reconstruir(); cerrarTodo(); actualizar(); brindis('Eliminada');
   };
   $dlg.showModal();
 }
@@ -4532,7 +4615,7 @@ document.getElementById('btn-menu').onclick = ()=>{
     <div class="campo"><span>Datos</span>
       <p style="margin:0;font-size:14px;color:var(--texto-2)" class="num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas · ${DATOS.grupos_equivalencia.length} grupos de equivalencia</p>
       <p style="margin:6px 0 0;font-size:12.5px;color:var(--texto-3)">
-        Versión <b class="num">666f838c</b>. Si acabas de subir uno nuevo y aquí sigue
+        Versión <b class="num">50f8644c</b>. Si acabas de subir uno nuevo y aquí sigue
         el número de antes, cierra la app y vuelve a abrirla.</p>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -5917,6 +6000,7 @@ window.__app = {
   anotar, anotarMateria, empujar, guardar, reconstruir, actualizar, sincronizar,
   verPigmento, pantallaChoques, avisarCopia, mantenerPantalla,
   get filtroPigmento(){ return filtroPigmento; },
+  get capas(){ return capas.slice(); }, abrir, cerrarFicha, cerrarTodo,
   estadoAct, porRevisar, materiasDe: ()=>materiasDe, cuantasLlevan,
   pantallaPigmentos, empezarRepaso,
   preparar, retomarPesaje, guardarPesaje, leerPesajeGuardado,

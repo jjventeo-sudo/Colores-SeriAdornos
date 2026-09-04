@@ -951,7 +951,6 @@ body[data-rol="taller"] #btn-duplicar,
 body[data-rol="taller"] #btn-borrar,
 body[data-rol="taller"] #btn-etiqueta,
 body[data-rol="taller"] #pes-etiqueta,
-body[data-rol="taller"] #chip-repaso,
 body[data-rol="taller"] .rectificar,
 body[data-rol="taller"] .pendiente-caja,
 body[data-rol="taller"] .historial .btn{display:none !important}
@@ -1175,7 +1174,6 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
         <span id="contador"></span>
         <button id="chip-pigmento" class="chip chip-filtro" hidden></button>
         <button id="chip-pend" class="chip" hidden></button>
-        <button id="chip-repaso" class="chip" hidden></button>
       </div>
       <div class="lista" id="lista" role="listbox" aria-label="Fórmulas"></div>
     </section>
@@ -2827,12 +2825,14 @@ function actualizar(){
     cp.title = 'Quitar el filtro y ver todas';
   }
 
-  const sinAct = filtradas.filter(porRevisar).length;
-  const rep = document.getElementById('chip-repaso');
-  rep.hidden = !sinAct;
-  rep.textContent = `Repasar ${sinAct} por revisar`;
-  rep.title = 'Ir una a una marcando las que ya están con los pigmentos nuevos';
+/* Aquí vivía un chip permanente que ponía "Repasar 860 por revisar". Lo pidió
+   quitar Juanjo, y con razón: las 860 no son una lista de tareas, son el
+   estado de partida. Un aviso que sale todos los días diciendo lo mismo deja
+   de leerse a los dos días y solo estorba.
 
+   El repaso no se pierde: está en Opciones → Pigmentos, que es donde se va a
+   propósito, y se llega solo desde "Ver las N" al marcar un pigmento — que es
+   el único momento en que esa lista es una noticia y no un reproche. */
   document.getElementById('limpiar').classList.toggle('on', !!$q.value);
   pintarLista(true);
   // El muro enseña lo filtrado, así que se repinta con cada búsqueda. Solo
@@ -2855,7 +2855,6 @@ function verPigmento(id){
   const n = filtradas.length;
   brindis(`${n} fórmula${n===1?'':'s'} con ${m.nombre}`);
 }
-document.getElementById('chip-repaso').onclick = empezarRepaso;
 document.getElementById('chip-pend').onclick = ()=>{
   soloPendientes = !soloPendientes;
   if(soloPendientes) $q.value='';
@@ -4583,7 +4582,11 @@ document.getElementById('btn-menu').onclick = ()=>{
           : `Cuando cambies un pigmento, márcalo aquí y las fórmulas que lo lleven
              pasan solas a por revisar. Ahora mismo hay <b>${rev}</b> por revisar.`;
       })()}</p>
-      <button class="btn" id="op-pigmentos">He cambiado un pigmento</button></div>`:''}
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="op-pigmentos">He cambiado un pigmento</button>
+        ${DATOS.formulas.filter(porRevisar).length
+          ? `<button class="btn" id="op-repaso">Repasarlas una a una</button>` : ''}
+      </div></div>`:''}
 
     ${puedeEditar && MODO==='archivo'?`<div class="campo"><span>Publicar</span>
       <p style="margin:0 0 10px;font-size:14px;color:var(--texto-2)">${n
@@ -4615,13 +4618,18 @@ document.getElementById('btn-menu').onclick = ()=>{
     <div class="campo"><span>Datos</span>
       <p style="margin:0;font-size:14px;color:var(--texto-2)" class="num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas · ${DATOS.grupos_equivalencia.length} grupos de equivalencia</p>
       <p style="margin:6px 0 0;font-size:12.5px;color:var(--texto-3)">
-        Versión <b class="num">50f8644c</b>. Si acabas de subir uno nuevo y aquí sigue
+        Versión <b class="num">f0c89d7a</b>. Si acabas de subir uno nuevo y aquí sigue
         el número de antes, cierra la app y vuelve a abrirla.</p>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
       </div></div>`;
   document.getElementById('op-calibracion').onclick = explicarCalibracion;
   document.getElementById('op-pigmentos')?.addEventListener('click', pantallaPigmentos);
+  // OJO: NO se cierra el diálogo antes. Cerrar y volver a abrir el mismo
+  // diálogo en el mismo gesto descuadra el historial: la vuelta atrás del
+  // cierre llega DESPUÉS de haberlo reabierto y te lo cierra en las narices.
+  // El repaso repinta el diálogo que ya está abierto, y ya está.
+  document.getElementById('op-repaso')?.addEventListener('click', empezarRepaso);
   document.getElementById('op-tema').value = localStorage.getItem('tema')||'auto';
   document.getElementById('op-tema').onchange = e=>{
     const v = e.target.value;
@@ -6001,6 +6009,7 @@ window.__app = {
   verPigmento, pantallaChoques, avisarCopia, mantenerPantalla,
   get filtroPigmento(){ return filtroPigmento; },
   get capas(){ return capas.slice(); }, abrir, cerrarFicha, cerrarTodo,
+  get filtradas(){ return filtradas.slice(); },
   estadoAct, porRevisar, materiasDe: ()=>materiasDe, cuantasLlevan,
   pantallaPigmentos, empezarRepaso,
   preparar, retomarPesaje, guardarPesaje, leerPesajeGuardado,

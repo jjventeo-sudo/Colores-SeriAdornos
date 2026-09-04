@@ -384,7 +384,10 @@ button{background:none;border:0;cursor:pointer;padding:0}
    de verdad, y superponerle el falso lo ensucia. */
 .muestra.con-foto::after,.hero-muestra.con-foto::after,.muro-t i.con-foto::after{content:none}
 
-.hero-envoltura{display:flex; flex-direction:column; gap:8px; flex:0 0 auto; align-items:stretch}
+.hero-envoltura{display:flex; flex-direction:column; gap:7px; flex:0 0 auto; align-items:stretch}
+/* Los dos caminos (cámara y galería) dentro de un diálogo. */
+.foto-elige{display:flex; gap:8px; margin-top:14px}
+.foto-elige .foto-btn{flex:1 1 0; padding:11px 10px; font-size:14px}
 .foto-btn{
   display:inline-flex; align-items:center; justify-content:center; gap:6px;
   font:inherit; font-size:12.5px; font-weight:560; letter-spacing:-.005em;
@@ -3599,11 +3602,7 @@ function pintarFicha(){
           ? `<button class="foto-btn" id="foto-ver" title="Ver la muestra en grande">
                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>
                Muestra real</button>`
-          : (puedeFoto(f.id)
-            ? `<button class="foto-btn" id="foto-nueva" title="Guardar una muestra real de este color">
-                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg>
-                 Hacer foto</button>`
-            : '')}
+          : (puedeFoto(f.id) ? botonesFoto('foto') : '')}
       </div>
       <div class="hero-txt">
         <h2>${esc(f.nombre)}</h2>
@@ -3702,7 +3701,7 @@ function pintarFicha(){
 
   enlazarFotos($ficha);
   document.getElementById('volver')?.addEventListener('click', cerrarFicha);
-  document.getElementById('foto-nueva')?.addEventListener('click', ()=>hacerFoto(f));
+  enlazarBotonesFoto('foto', f);
   document.getElementById('foto-ver')?.addEventListener('click', ()=>verFoto(f));
   document.getElementById('sello-act')?.addEventListener('click', ()=>{
     const marcar = !estadoAct(f).aldia;
@@ -4758,30 +4757,65 @@ async function procesarFoto(file){
   };
 }
 
-/* El selector de archivo. Sin `capture`: con ese atributo, Android abre la
-   cámara y punto, y a veces la foto buena ya está hecha y está en la galería.
-   Sin él sale el menú de siempre, con cámara y galería. */
-let $fichero = null;
-function pedirArchivoFoto(){
+/* DOS CAMINOS PARA LA FOTO, y no es lo mismo:
+
+     · CÁMARA  -> `capture="environment"`: el móvil abre la cámara trasera
+                  directamente, sin pasar por el menú del sistema. Es el caso
+                  normal, con la goma recién hecha en la mano.
+     · GALERÍA -> sin `capture`: sale el selector de archivos de siempre, para
+                  cuando la foto ya está hecha.
+
+   Son DOS campos distintos, no uno al que se le pone y se le quita el
+   atributo: cambiar `capture` en caliente sobre un campo ya usado es de esas
+   cosas que funcionan en un móvil y en el siguiente no.
+
+   En el ordenador no se enseña lo de la cámara: los navegadores de escritorio
+   se saltan `capture` y abrirían el mismo selector de archivos, o sea un botón
+   que promete una cosa y hace otra. */
+const HAY_CAMARA = (()=>{
+  try{ return matchMedia('(pointer: coarse)').matches; }catch(_){ return false; }
+})();
+
+const campos = {};
+function pedirArchivoFoto(fuente){
   return new Promise(ok=>{
-    if(!$fichero){
-      $fichero = document.createElement('input');
-      $fichero.type = 'file'; $fichero.accept = 'image/*';
-      $fichero.hidden = true;
-      document.body.appendChild($fichero);
+    if(!campos[fuente]){
+      const c = document.createElement('input');
+      c.type = 'file'; c.accept = 'image/*'; c.hidden = true;
+      if(fuente === 'camara') c.setAttribute('capture', 'environment');
+      document.body.appendChild(c);
+      campos[fuente] = c;
     }
-    $fichero.value = '';
-    $fichero.onchange = ()=>ok($fichero.files && $fichero.files[0] || null);
-    $fichero.click();
+    const c = campos[fuente];
+    c.value = '';
+    c.onchange = ()=>ok(c.files && c.files[0] || null);
+    c.click();
   });
 }
 
-async function hacerFoto(f, alTerminar){
+const ICONO_CAM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg>`;
+const ICONO_GAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m4 17 4.5-4.5L12 16l3-2.5 5 3.5"/></svg>`;
+
+/** Los botones de hacer foto. En el móvil, dos; en el PC, uno. */
+function botonesFoto(pre, cambiar){
+  const gal = `<button class="foto-btn" id="${pre}-gal">${ICONO_GAL}
+      ${HAY_CAMARA ? 'Galería' : (cambiar ? 'Cambiar foto' : 'Hacer foto')}</button>`;
+  if(!HAY_CAMARA) return gal;
+  return `<button class="foto-btn" id="${pre}-cam">${ICONO_CAM} Cámara</button>` + gal;
+}
+function enlazarBotonesFoto(pre, f, alTerminar){
+  document.getElementById(pre + '-cam')
+    ?.addEventListener('click', ()=>hacerFoto(f, 'camara', alTerminar));
+  document.getElementById(pre + '-gal')
+    ?.addEventListener('click', ()=>hacerFoto(f, 'galeria', alTerminar));
+}
+
+async function hacerFoto(f, fuente, alTerminar){
   if(!puedeFoto(f.id))
     return brindis(tieneFoto(f.id)
       ? 'Esta ya tiene foto. Cambiarla solo puede el editor.'
       : SIN_PERMISO);
-  const file = await pedirArchivoFoto();
+  const file = await pedirArchivoFoto(fuente === 'camara' ? 'camara' : 'galeria');
   if(!file) return;
   brindis('Preparando la foto…');
   let r;
@@ -4789,6 +4823,7 @@ async function hacerFoto(f, alTerminar){
   catch(_){
     return brindis('No he podido leer esa foto. Hazla otra vez desde la cámara.');
   }
+  r.fuente = fuente;
   pantallaFoto(f, r, alTerminar);
 }
 
@@ -4818,14 +4853,15 @@ function pantallaFoto(f, r, alTerminar){
       ${r.recortada ? '<p>Recortada a la pieza.</p>' : ''}
       <p class="flojo">${r.an}×${r.al} · ${Math.round(r.blob.size/1024)} KB</p>
     </div>`;
-  $dp.innerHTML = `<button class="btn" id="foto-otra">Hacer otra</button>
+  $dp.innerHTML = `<button class="btn" id="foto-otra">${
+      r.fuente === 'camara' ? 'Repetir la foto' : 'Elegir otra'}</button>
     <button class="btn btn-1" id="foto-ok">${reemplaza?'Cambiar':'Guardar'}</button>`;
   $dlg.showModal();
   /* OJO: aquí NO se cierra el diálogo para volver a abrirlo. Cerrar y abrir en
      el mismo gesto descoloca la pila del botón de atrás —el `popstate` del
      cierre llega DESPUÉS de la apertura— y eso ya rompió el repaso una vez.
      Se repinta el que está abierto y ya está. */
-  document.getElementById('foto-otra').onclick = ()=>hacerFoto(f, alTerminar);
+  document.getElementById('foto-otra').onclick = ()=>hacerFoto(f, r.fuente, alTerminar);
   document.getElementById('foto-ok').onclick = async ()=>{
     const b = document.getElementById('foto-ok');
     b.disabled = true; b.textContent = 'Guardando…';
@@ -4849,15 +4885,15 @@ function pantallaFoto(f, r, alTerminar){
 function verFoto(f){
   $dt.textContent = f.nombre;
   $dc.innerHTML = `<div class="foto-mirar"><img alt="Muestra de ${esc(f.nombre)}"></div>
-    <p class="foto-notas flojo" style="margin-top:12px">Muestra real de la goma curada.</p>`;
+    <p class="foto-notas flojo" style="margin-top:12px">Muestra real de la goma curada.</p>
+    ${puedeEditar ? `<div class="foto-elige">${botonesFoto('cam', true)}</div>` : ''}`;
   $dp.innerHTML =
-    (puedeEditar ? `<button class="btn btn-peligro" id="foto-fuera">Quitar</button>
-       <button class="btn" id="foto-cambiar">Cambiar</button>` : '') +
+    (puedeEditar ? `<button class="btn btn-peligro" id="foto-fuera">Quitar</button>` : '') +
     `<button class="btn btn-1" data-cerrar>Cerrar</button>`;
   $dlg.showModal();
   nube.fotoUrl(f.id).then(u=>{ const i = $dc.querySelector('img'); if(i && u) i.src = u; });
   $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
-  document.getElementById('foto-cambiar')?.addEventListener('click', ()=>hacerFoto(f));
+  enlazarBotonesFoto('cam', f);
   document.getElementById('foto-fuera')?.addEventListener('click', async ()=>{
     const b = document.getElementById('foto-fuera');
     b.disabled = true;
@@ -4878,13 +4914,11 @@ function ofrecerFoto(f){
       <b>${esc(f.nombre)}</b> todavía no tiene muestra. Si le haces una foto
       sobre un folio blanco, queda guardada para siempre y la próxima vez se ve
       el color de verdad en vez del calculado.</p>`;
-  $dp.innerHTML = `<button class="btn" data-cerrar>Ahora no</button>
-    <button class="btn btn-1" id="ofr-foto">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg>
-      Hacer la foto</button>`;
+  $dc.innerHTML += `<div class="foto-elige">${botonesFoto('ofr')}</div>`;
+  $dp.innerHTML = `<button class="btn" data-cerrar>Ahora no</button>`;
   $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
   // Se repinta el diálogo abierto, no se cierra para volver a abrirlo.
-  document.getElementById('ofr-foto').onclick = ()=>hacerFoto(f);
+  enlazarBotonesFoto('ofr', f);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -5556,7 +5590,7 @@ document.getElementById('btn-menu').onclick = ()=>{
     <div class="campo"><span>Datos</span>
       <p style="margin:0;font-size:14px;color:var(--texto-2)" class="num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas · ${DATOS.grupos_equivalencia.length} grupos de equivalencia</p>
       <p style="margin:6px 0 0;font-size:12.5px;color:var(--texto-3)">
-        Versión <b class="num">ac0bdd95</b>. Si acabas de subir uno nuevo y aquí sigue
+        Versión <b class="num">f7d3ada8</b>. Si acabas de subir uno nuevo y aquí sigue
         el número de antes, cierra la app y vuelve a abrirla.</p>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

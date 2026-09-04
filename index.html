@@ -1734,7 +1734,22 @@ function crearNube({url, clave}){
       if([500, 502, 503, 504, 520, 521, 522, 540].includes(r.status)) err.dormido = true;
       throw err;
     }
-    return r.status === 204 ? null : r.json();
+    /* OJO: NO se llama a r.json() a pelo.
+
+       PostgREST devuelve el CUERPO VACÍO cuando se le pide
+       'Prefer: return=minimal' —que es lo que se manda al guardar—, y encima
+       lo hace con un 201, no con un 204. Llamando a .json() sobre eso salta
+       "Unexpected end of JSON input" y la app avisaba de un fallo... cuando la
+       fila ya estaba guardada. Susto y ningún dato perdido, que es de los
+       errores que peor sientan.
+
+       Y no lo cazó ninguna prueba porque mi Supabase de mentira contestaba
+       '[]', que sí es JSON. Un doble más blando que el original no prueba
+       nada: ya está corregido también ahí. */
+    if(r.status === 204) return null;
+    const txt = await r.text();
+    if(!txt) return null;
+    try{ return JSON.parse(txt); }catch(_){ return null; }
   }
 
   function guardarSesion(j){
@@ -4836,7 +4851,7 @@ document.getElementById('btn-menu').onclick = ()=>{
     <div class="campo"><span>Datos</span>
       <p style="margin:0;font-size:14px;color:var(--texto-2)" class="num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas · ${DATOS.grupos_equivalencia.length} grupos de equivalencia</p>
       <p style="margin:6px 0 0;font-size:12.5px;color:var(--texto-3)">
-        Versión <b class="num">8bac5f94</b>. Si acabas de subir uno nuevo y aquí sigue
+        Versión <b class="num">d13d67dc</b>. Si acabas de subir uno nuevo y aquí sigue
         el número de antes, cierra la app y vuelve a abrirla.</p>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

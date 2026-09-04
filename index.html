@@ -420,6 +420,65 @@ button{background:none;border:0;cursor:pointer;padding:0}
   border-radius:var(--r-m); display:block;
   box-shadow:var(--sombra-1);
 }
+/* ── EL RECORTE A MANO ───────────────────────────────────────────────────
+   La zona oscura de fuera se hace con una sombra enorme sobre la propia caja
+   en vez de con cuatro paneles: un solo elemento que mover, y ni un hueco de
+   un píxel entre las esquinas cuando se arrastra deprisa. */
+.foto-recorte{
+  position:relative; overflow:hidden;
+  display:flex; justify-content:center; align-items:center;
+  background:var(--cama-foto,#f2f2f3);
+  border:1px solid var(--linea); border-radius:var(--r-l);
+  touch-action:none;                /* si no, el móvil hace scroll al arrastrar */
+  user-select:none; -webkit-user-select:none;
+}
+/* Envuelve a la imagen y mide lo mismo que ella: es el sistema de
+   coordenadas del recorte. */
+.rec-lienzo{position:relative; line-height:0; max-width:100%}
+.rec-lienzo img{
+  display:block; max-width:100%; max-height:min(46vh, 380px);
+  width:auto; height:auto; pointer-events:none; -webkit-user-drag:none;
+}
+.rec-caja{
+  position:absolute; cursor:move;
+  outline:1.5px solid #fff; outline-offset:-1.5px;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.46);
+}
+/* Las líneas de tercios: ayudan a centrar la pieza sin pensarlo. */
+.rec-caja::before{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:
+    linear-gradient(to right,transparent 33.2%,rgba(255,255,255,.34) 33.2%,rgba(255,255,255,.34) 33.5%,transparent 33.5%,transparent 66.2%,rgba(255,255,255,.34) 66.2%,rgba(255,255,255,.34) 66.5%,transparent 66.5%),
+    linear-gradient(to bottom,transparent 33.2%,rgba(255,255,255,.34) 33.2%,rgba(255,255,255,.34) 33.5%,transparent 33.5%,transparent 66.2%,rgba(255,255,255,.34) 66.2%,rgba(255,255,255,.34) 66.5%,transparent 66.5%);
+}
+/* Tiradores generosos: con el dedo, y encima con guantes, 12 px no se cogen. */
+.rec-caja i{
+  position:absolute; width:30px; height:30px; cursor:grab;
+  background:transparent;
+}
+.rec-caja i::after{
+  content:""; position:absolute; width:15px; height:15px;
+  border:2.5px solid #fff; border-radius:2px;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));
+}
+.rec-caja i[data-tira="nw"]{left:-15px; top:-15px}
+.rec-caja i[data-tira="nw"]::after{right:0; bottom:0; border-right:0; border-bottom:0}
+.rec-caja i[data-tira="ne"]{right:-15px; top:-15px}
+.rec-caja i[data-tira="ne"]::after{left:0; bottom:0; border-left:0; border-bottom:0}
+.rec-caja i[data-tira="sw"]{left:-15px; bottom:-15px}
+.rec-caja i[data-tira="sw"]::after{right:0; top:0; border-right:0; border-top:0}
+.rec-caja i[data-tira="se"]{right:-15px; bottom:-15px}
+.rec-caja i[data-tira="se"]::after{left:0; top:0; border-left:0; border-top:0}
+
+/* La pista ocupa su propia línea y los dos botones se reparten la siguiente:
+   en un móvil, dejarlos fluir daba tres líneas descolgadas. */
+.rec-barra{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  margin-top:10px; font-size:13px; color:var(--texto-3);
+}
+.rec-barra #rec-pista{flex:1 1 100%; min-width:0}
+.rec-barra .foto-btn{flex:1 1 0; max-width:210px; padding:7px 10px; font-size:12.5px}
+
 .foto-notas{margin-top:12px; font-size:13.5px; color:var(--texto-2); line-height:1.5}
 .foto-notas p{margin:0 0 6px}
 .foto-notas .flojo{font-size:12.5px}
@@ -2352,7 +2411,21 @@ function crearNube({url, clave}){
   }
 
   async function quitarFoto(id){
-    await peticion(rutaFoto(id), {method: 'DELETE'});
+    try{
+      await peticion(rutaFoto(id), {method: 'DELETE'});
+    }catch(e){
+      /* Que en el servidor no esté NO es un fallo: es que ya estaba quitada, o
+         que nunca llegó a subir porque se hizo sin cobertura. Antes esto
+         reventaba y dejaba la foto puesta para siempre en el aparato, sin
+         forma humana de quitarla. Que es justo lo que pasaba.
+
+         Sin red sí se para: borrarla solo aquí la haría reaparecer en cuanto
+         se volviera a mirar el listado del servidor, y eso desconcierta más
+         que un aviso. */
+      const noEsta = e.status === 404 ||
+                     /not.?found|no such|does not exist/i.test(e.message || '');
+      if(!noEsta) throw e;
+    }
     olvidarFoto(id);
     await borrarDe('fotos', id);
     await borrarDe('cola', id);
@@ -4709,13 +4782,23 @@ async function aBlob(cv, calidad){
   return await new Promise(ok=>cv.toBlob(ok, 'image/jpeg', calidad));
 }
 
-/** De la foto del móvil a los ~100 KB que se guardan. */
-async function procesarFoto(file){
+/* PRIMER PASO: leer la foto y dejarla con el color ya corregido, a un tamaño
+   con el que se pueda trabajar.
+
+   Se queda en 1800 px de lado y no en los 4000 del móvil por una razón muy
+   concreta: este lienzo se guarda en memoria mientras recortas a mano, y
+   4000×3000 son 48 MB de píxeles. Un móvil de taller con la app abierta desde
+   por la mañana no tiene por qué aguantar eso. A 1800 son 10 MB, y como lo que
+   se acaba guardando son 900, sigue sobrando resolución hasta para recortar un
+   trozo pequeño. */
+const FOTO_TRABAJO = 1800;
+
+async function prepararFoto(file){
   let bmp;
   try{ bmp = await createImageBitmap(file, {imageOrientation: 'from-image'}); }
   catch(_){ bmp = await createImageBitmap(file); }
 
-  // 1. Copia pequeña para estudiarla.
+  // Copia pequeña, solo para estudiar la luz y buscar la pieza.
   const e = Math.min(1, FOTO_ANALISIS / Math.max(bmp.width, bmp.height));
   const ca = lienzo(bmp.width * e, bmp.height * e);
   const xa = ca.getContext('2d', {willReadFrequently: true});
@@ -4724,26 +4807,45 @@ async function procesarFoto(file){
 
   const f = factores(refBlanco(dat.data));
   if(f) aplicarFactores(dat.data, f);
-  /* El recorte solo se intenta si se ha encontrado el folio. Buscar la pieza es
-     buscar "lo que NO es papel blanco", y sin haber corregido antes la luz, el
-     propio papel amarillea lo bastante como para contar él mismo de pieza: se
-     acababa recortando la foto entera, o sea nada. Sin folio, no hay recorte. */
+  /* El recorte automático solo se intenta si se ha encontrado el folio. Buscar
+     la pieza es buscar "lo que NO es papel blanco", y sin corregir antes la
+     luz, el propio papel amarillea lo bastante como para contar él mismo de
+     pieza: se acababa recortando la foto entera, o sea nada. */
   const rec = f ? recorte(dat.data, ca.width, ca.height) : null;
 
-  // 2. La buena, ya recortada, desde el original a toda resolución.
-  const orig = rec
-    ? {x: rec.x/e, y: rec.y/e, an: rec.an/e, al: rec.al/e}
-    : {x: 0, y: 0, an: bmp.width, al: bmp.height};
-  const s = Math.min(1, FOTO_LADO / Math.max(orig.an, orig.al));
-  const cv = lienzo(orig.an * s, orig.al * s);
+  // El lienzo de trabajo: la foto entera, corregida, a tamaño manejable.
+  const s = Math.min(1, FOTO_TRABAJO / Math.max(bmp.width, bmp.height));
+  const cv = lienzo(bmp.width * s, bmp.height * s);
   const cx = cv.getContext('2d', {willReadFrequently: true});
-  cx.drawImage(bmp, orig.x, orig.y, orig.an, orig.al, 0, 0, cv.width, cv.height);
+  cx.drawImage(bmp, 0, 0, cv.width, cv.height);
   if(f){
     const d2 = cx.getImageData(0, 0, cv.width, cv.height);
     aplicarFactores(d2.data, f);
     cx.putImageData(d2, 0, 0);
   }
   bmp.close?.();
+
+  // La caja sugerida, en fracciones de 0 a 1: así vale igual para el lienzo y
+  // para la imagen en pantalla, que tienen tamaños distintos.
+  const caja = rec
+    ? {x: rec.x/ca.width, y: rec.y/ca.height, an: rec.an/ca.width, al: rec.al/ca.height}
+    : {x: 0, y: 0, an: 1, al: 1};
+
+  return {lienzo: cv, corregida: !!f, sugerida: !!rec, caja,
+          vista: await aBlob(cv, 0.85)};
+}
+
+/** SEGUNDO PASO: quedarse con el trozo elegido y comprimirlo a ~100 KB. */
+async function recortarFoto(base, caja){
+  const L = base.lienzo;
+  const px = {
+    x: Math.round(caja.x * L.width), y: Math.round(caja.y * L.height),
+    an: Math.max(8, Math.round(caja.an * L.width)),
+    al: Math.max(8, Math.round(caja.al * L.height)),
+  };
+  const s = Math.min(1, FOTO_LADO / Math.max(px.an, px.al));
+  const cv = lienzo(px.an * s, px.al * s);
+  cv.getContext('2d').drawImage(L, px.x, px.y, px.an, px.al, 0, 0, cv.width, cv.height);
 
   let blob = await aBlob(cv, 0.82);
   if(blob && blob.size > FOTO_PESO) blob = await aBlob(cv, 0.68);
@@ -4752,9 +4854,17 @@ async function procesarFoto(file){
 
   return {
     blob, url: URL.createObjectURL(blob),
-    corregida: !!f, recortada: !!rec,
+    corregida: base.corregida,
+    recortada: caja.an < 0.98 || caja.al < 0.98,
     an: cv.width, al: cv.height,
   };
+}
+
+/** Los dos pasos de una vez, con el recorte que propone la app. Es lo que usan
+    las pruebas y lo que se usaría si algún día se quitara el recorte a mano. */
+async function procesarFoto(file){
+  const base = await prepararFoto(file);
+  return await recortarFoto(base, base.caja);
 }
 
 /* DOS CAMINOS PARA LA FOTO, y no es lo mismo:
@@ -4818,13 +4928,13 @@ async function hacerFoto(f, fuente, alTerminar){
   const file = await pedirArchivoFoto(fuente === 'camara' ? 'camara' : 'galeria');
   if(!file) return;
   brindis('Preparando la foto…');
-  let r;
-  try{ r = await procesarFoto(file); }
+  let base;
+  try{ base = await prepararFoto(file); }
   catch(_){
     return brindis('No he podido leer esa foto. Hazla otra vez desde la cámara.');
   }
-  r.fuente = fuente;
-  pantallaFoto(f, r, alTerminar);
+  base.fuente = fuente;
+  pantallaFoto(f, base, alTerminar);
 }
 
 /* La dirección de la foto que se está revisando. Se suelta al pintar otra o al
@@ -4836,44 +4946,142 @@ function soltarPrevia(){
 }
 
 /** La revisión antes de guardar: se ve lo que va a quedar, no lo que salió. */
-function pantallaFoto(f, r, alTerminar){
-  soltarPrevia(); urlPrevia = r.url;
+function pantallaFoto(f, base, alTerminar){
+  soltarPrevia(); urlPrevia = URL.createObjectURL(base.vista);
   const reemplaza = tieneFoto(f.id);
+  // La caja se lleva SIEMPRE en fracciones de 0 a 1, nunca en píxeles: así
+  // vale igual para la imagen de la pantalla —que cambia de tamaño al girar
+  // el móvil— y para el lienzo de trabajo, que es mucho más grande.
+  const caja = {...base.caja};
+
   $dt.textContent = reemplaza ? 'Cambiar la foto' : 'Foto de ' + f.nombre;
   $dc.innerHTML = `
-    <div class="foto-mirar"><img src="${r.url}" alt="Muestra de ${esc(f.nombre)}"></div>
+    <div class="foto-recorte" id="rec-zona">
+      <!-- La caja va dentro de un envoltorio que mide EXACTAMENTE lo que la
+           imagen, no lo que el marco. Si la foto queda con bandas a los lados
+           —una foto apaisada en un marco cuadrado—, medir contra el marco
+           descuadra el recorte: lo que recortas y lo que se guarda dejan de
+           ser lo mismo, y eso no se ve hasta que guardas. -->
+      <div class="rec-lienzo">
+        <img id="rec-img" src="${urlPrevia}" alt="Muestra de ${esc(f.nombre)}" draggable="false">
+        <div class="rec-caja" id="rec-caja">
+          <i data-tira="nw"></i><i data-tira="ne"></i><i data-tira="sw"></i><i data-tira="se"></i>
+        </div>
+      </div>
+    </div>
+    <div class="rec-barra">
+      <span id="rec-pista">Arrastra las esquinas para dejar solo la muestra</span>
+      <button class="foto-btn" id="rec-todo">Toda la foto</button>
+      ${base.sugerida ? '<button class="foto-btn" id="rec-auto">Ajustar a la pieza</button>' : ''}
+    </div>
     <div class="foto-notas">
-      ${r.corregida
+      ${base.corregida
         ? `<p><b>Color corregido</b> con el folio blanco de la foto, para que se
              parezca a las demás aunque la luz del taller sea otra.</p>`
         : `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
            <span><b>No he encontrado fondo blanco.</b> La foto se guarda tal cual,
            pero el color no será comparable con el de las otras. Sale mejor
            poniendo la muestra sobre un folio.</span></div>`}
-      ${r.recortada ? '<p>Recortada a la pieza.</p>' : ''}
-      <p class="flojo">${r.an}×${r.al} · ${Math.round(r.blob.size/1024)} KB</p>
     </div>`;
   $dp.innerHTML = `<button class="btn" id="foto-otra">${
-      r.fuente === 'camara' ? 'Repetir la foto' : 'Elegir otra'}</button>
+      base.fuente === 'camara' ? 'Repetir la foto' : 'Elegir otra'}</button>
     <button class="btn btn-1" id="foto-ok">${reemplaza?'Cambiar':'Guardar'}</button>`;
   $dlg.showModal();
+
+  const $zona = document.getElementById('rec-zona');
+  const $img = document.getElementById('rec-img');
+  const $caja = document.getElementById('rec-caja');
+  const MINIMO = 0.06;                    // ni una caja de dos píxeles
+
+  function pintarCaja(){
+    $caja.style.left   = (caja.x * 100) + '%';
+    $caja.style.top    = (caja.y * 100) + '%';
+    $caja.style.width  = (caja.an * 100) + '%';
+    $caja.style.height = (caja.al * 100) + '%';
+  }
+  pintarCaja();
+
+  /* Arrastrar. Con eventos de puntero, que valen igual para el dedo y para el
+     ratón: en el taller se usa con el dedo y en el despacho con el ratón, y
+     duplicar esto en 'touch' y 'mouse' es la vía rápida a que uno de los dos
+     se quede a medias. */
+  let modo = null, tira = null, orig = null, desde = null;
+  const dentro = (v, min, max) => Math.min(max, Math.max(min, v));
+
+  function aFraccion(ev){
+    const c = $img.getBoundingClientRect();
+    return {x: (ev.clientX - c.left) / c.width, y: (ev.clientY - c.top) / c.height};
+  }
+
+  $zona.addEventListener('pointerdown', ev=>{
+    const t = ev.target.dataset && ev.target.dataset.tira;
+    if(t){ modo = 'estirar'; tira = t; }
+    else if(ev.target === $caja) modo = 'mover';
+    else return;
+    orig = {...caja};
+    desde = aFraccion(ev);
+    ev.target.setPointerCapture(ev.pointerId);
+    ev.preventDefault();
+  });
+
+  $zona.addEventListener('pointermove', ev=>{
+    if(!modo) return;
+    const p = aFraccion(ev);
+    const dx = p.x - desde.x, dy = p.y - desde.y;
+    if(modo === 'mover'){
+      caja.x = dentro(orig.x + dx, 0, 1 - orig.an);
+      caja.y = dentro(orig.y + dy, 0, 1 - orig.al);
+    }else{
+      // Cada esquina mueve dos bordes; los otros dos se quedan clavados.
+      let x0 = orig.x, y0 = orig.y, x1 = orig.x + orig.an, y1 = orig.y + orig.al;
+      if(tira[1] === 'w') x0 = dentro(x0 + dx, 0, x1 - MINIMO);
+      else                x1 = dentro(x1 + dx, x0 + MINIMO, 1);
+      if(tira[0] === 'n') y0 = dentro(y0 + dy, 0, y1 - MINIMO);
+      else                y1 = dentro(y1 + dy, y0 + MINIMO, 1);
+      caja.x = x0; caja.y = y0; caja.an = x1 - x0; caja.al = y1 - y0;
+    }
+    pintarCaja();
+    ev.preventDefault();
+  });
+
+  const soltar = ()=>{ modo = null; tira = null; };
+  $zona.addEventListener('pointerup', soltar);
+  $zona.addEventListener('pointercancel', soltar);
+
+  document.getElementById('rec-todo').onclick = ()=>{
+    Object.assign(caja, {x: 0, y: 0, an: 1, al: 1}); pintarCaja();
+  };
+  document.getElementById('rec-auto')?.addEventListener('click', ()=>{
+    Object.assign(caja, base.caja); pintarCaja();
+  });
+
   /* OJO: aquí NO se cierra el diálogo para volver a abrirlo. Cerrar y abrir en
      el mismo gesto descoloca la pila del botón de atrás —el `popstate` del
      cierre llega DESPUÉS de la apertura— y eso ya rompió el repaso una vez.
      Se repinta el que está abierto y ya está. */
-  document.getElementById('foto-otra').onclick = ()=>hacerFoto(f, r.fuente, alTerminar);
+  document.getElementById('foto-otra').onclick = ()=>hacerFoto(f, base.fuente, alTerminar);
   document.getElementById('foto-ok').onclick = async ()=>{
     const b = document.getElementById('foto-ok');
     b.disabled = true; b.textContent = 'Guardando…';
+    let r;
+    try{ r = await recortarFoto(base, caja); }
+    catch(_){
+      b.disabled = false; b.textContent = reemplaza ? 'Cambiar' : 'Guardar';
+      return brindis('No he podido preparar esa foto');
+    }
     try{
       const ida = await nube.guardarFoto(f.id, r.blob, reemplaza);
-      brindis(ida ? 'Foto guardada' : 'Sin cobertura: se subirá sola al volver');
+      brindis(ida
+        ? `Foto guardada · ${r.an}×${r.al} · ${Math.round(r.blob.size/1024)} KB`
+        : 'Sin cobertura: se subirá sola al volver');
     }catch(e){
+      URL.revokeObjectURL(r.url);
       b.disabled = false; b.textContent = reemplaza ? 'Cambiar' : 'Guardar';
       return brindis(e && e.yaExiste
         ? 'Alguien le ha puesto foto antes que tú. Recarga y míralo.'
         : 'No se ha podido guardar la foto: ' + (e.message || 'error'));
     }
+    URL.revokeObjectURL(r.url);
     soltarPrevia();
     $dlg.close();
     pintarFicha(); actualizar();
@@ -4898,7 +5106,14 @@ function verFoto(f){
     const b = document.getElementById('foto-fuera');
     b.disabled = true;
     try{ await nube.quitarFoto(f.id); brindis('Foto quitada'); }
-    catch(e){ b.disabled = false; return brindis('No se ha podido quitar: ' + (e.message||'error')); }
+    catch(e){
+      b.disabled = false;
+      return brindis(
+        e && e.sinRed ? 'Hace falta conexión para quitarla del servidor'
+        : e && e.status === 403
+          ? 'El servidor no te deja borrar fotos: falta la regla colores_fotos_quitar del SQL'
+          : 'No se ha podido quitar: ' + (e && e.message || 'error'));
+    }
     $dlg.close(); pintarFicha(); actualizar();
   });
 }
@@ -5590,7 +5805,7 @@ document.getElementById('btn-menu').onclick = ()=>{
     <div class="campo"><span>Datos</span>
       <p style="margin:0;font-size:14px;color:var(--texto-2)" class="num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas · ${DATOS.grupos_equivalencia.length} grupos de equivalencia</p>
       <p style="margin:6px 0 0;font-size:12.5px;color:var(--texto-3)">
-        Versión <b class="num">f7d3ada8</b>. Si acabas de subir uno nuevo y aquí sigue
+        Versión <b class="num">eca10b25</b>. Si acabas de subir uno nuevo y aquí sigue
         el número de antes, cierra la app y vuelve a abrirla.</p>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -6998,6 +7213,7 @@ window.__app = {
   pantallaPigmentos, empezarRepaso,
   preparar, retomarPesaje, guardarPesaje, leerPesajeGuardado,
   tieneFoto, puedeFoto, hacerFoto, verFoto, procesarFoto, HAY_FOTOS,
+  prepararFoto, recortarFoto, pantallaFoto,
   get pes(){ return pes; },
   get ultimaSync(){ return ultimaSync; },
   get estadoSync(){ return estadoSync; },

@@ -370,6 +370,57 @@ button{background:none;border:0;cursor:pointer;padding:0}
   content:""; position:absolute; inset:0;
   background:linear-gradient(118deg,rgba(255,255,255,.55) 8%,transparent 34%,transparent 62%,rgba(255,255,255,.34) 88%);
 }
+/* ── LA FOTO REAL ────────────────────────────────────────────────────────
+   Va DENTRO de la misma muestra de color, tapándola. Así, mientras se baja
+   —o si no llega a bajarse— lo que se ve debajo es el color calculado y no un
+   hueco gris. La transición es la de siempre: aparece, no parpadea. */
+.foto-real{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; display:block;
+  animation:asoma-foto calc(.34s * var(--ritmo)) var(--salida) both;
+}
+@keyframes asoma-foto{from{opacity:0}to{opacity:1}}
+/* Con foto no se pinta el barniz del metalizado: la foto YA lleva el brillo
+   de verdad, y superponerle el falso lo ensucia. */
+.muestra.con-foto::after,.hero-muestra.con-foto::after,.muro-t i.con-foto::after{content:none}
+
+.hero-envoltura{display:flex; flex-direction:column; gap:8px; flex:0 0 auto; align-items:stretch}
+.foto-btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  font:inherit; font-size:12.5px; font-weight:560; letter-spacing:-.005em;
+  padding:7px 10px; border-radius:var(--r-m); cursor:pointer;
+  color:var(--texto-2); background:var(--panel-2);
+  border:1px solid var(--linea);
+  transition:background calc(.16s * var(--ritmo)) var(--salida),
+             color calc(.16s * var(--ritmo)) var(--salida);
+}
+.foto-btn svg{width:14px;height:14px;flex:0 0 auto}
+.foto-btn:hover{background:var(--marca-suave); color:var(--marca); border-color:var(--marca)}
+.foto-btn:active{transform:translateY(1px)}
+
+/* La foto en grande. Cuadro claro y neutro: sobre un fondo de color, el ojo
+   juzga mal el tono, y aquí el tono es justamente lo que se viene a mirar. */
+.foto-mirar{
+  display:grid; place-items:center; background:var(--cama-foto,#f2f2f3);
+  border:1px solid var(--linea); border-radius:var(--r-l);
+  overflow:hidden; padding:10px;
+}
+/* En oscuro NO se pone el fondo blanco: deslumbra y, peor, el ojo juzga mal
+   un color rodeado de un contraste tan bestia. Gris medio, que es lo que se
+   usa para mirar color de toda la vida. */
+@media (prefers-color-scheme:dark){
+  :root:not([data-tema="claro"]){--cama-foto:#8a8a8c}
+}
+:root[data-tema="oscuro"]{--cama-foto:#8a8a8c}
+.foto-mirar img{
+  max-width:100%; max-height:min(52vh, 420px);
+  border-radius:var(--r-m); display:block;
+  box-shadow:var(--sombra-1);
+}
+.foto-notas{margin-top:12px; font-size:13.5px; color:var(--texto-2); line-height:1.5}
+.foto-notas p{margin:0 0 6px}
+.foto-notas .flojo{font-size:12.5px}
+
 .hero-txt{min-width:0; padding-top:6px}
 .hero-txt h2{font-size:29px; line-height:1.12; margin-bottom:11px; letter-spacing:-.024em; font-weight:660}
 .hero-meta{display:flex; flex-wrap:wrap; gap:6px; align-items:center}
@@ -1198,7 +1249,7 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 
   <div class="aviso-global" id="aviso-cal">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.2v.1"/></svg>
-    <span>Las muestras son <b>orientativas</b>: los colores base están estimados, no medidos.</span>
+    <span id="aviso-cal-txt">Las muestras son <b>orientativas</b>: los colores base están estimados, no medidos.</span>
     <button id="btn-explicar-cal">Cómo afinarlas</button>
     <button class="cerrar-aviso" id="btn-cerrar-aviso" aria-label="No volver a mostrar este aviso" title="No volver a mostrarlo">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -1697,13 +1748,14 @@ function crearNube({url, clave}){
   const avisar = (qué, dato) => { for(const f of oyentes) { try{ f(qué, dato); }catch(_){} } };
 
   // ── Lo básico de hablar con el servidor ──────────────────────────────
-  async function pedir(ruta, opciones = {}, reintento = true){
-    const {espera, ...init} = opciones;
-    const cab = {
-      'apikey': clave,
-      'Content-Type': 'application/json',
-      ...(init.headers || {}),
-    };
+  /* Devuelve la respuesta CRUDA. Existe aparte de pedir() porque las fotos no
+     son JSON: se suben como un archivo y se bajan como tal. Todo lo demás
+     —testigo caducado, sin red, proyecto dormido— es idéntico y no se puede
+     duplicar sin que a la larga se separen y una de las dos se quede coja. */
+  async function peticion(ruta, opciones = {}, reintento = true){
+    const {espera, json = true, ...init} = opciones;
+    const cab = {'apikey': clave, ...(init.headers || {})};
+    if(json && !cab['Content-Type']) cab['Content-Type'] = 'application/json';
     if(ses?.access) cab['Authorization'] = 'Bearer ' + ses.access;
 
     let r;
@@ -1718,13 +1770,13 @@ function crearNube({url, clave}){
     // 401 con sesión: casi siempre es el testigo caducado. Se renueva UNA vez
     // y se reintenta; si vuelve a fallar, es que la sesión ya no vale.
     if(r.status === 401 && ses?.refresh && reintento){
-      if(await renovar()) return pedir(ruta, opciones, false);
+      if(await renovar()) return peticion(ruta, opciones, false);
       salir();
       const err = new Error('sesión caducada'); err.sesion = true; throw err;
     }
     if(!r.ok){
       let detalle = '';
-      try{ detalle = (await r.json()).message || ''; }catch(_){}
+      try{ const j = await r.json(); detalle = j.message || j.error || ''; }catch(_){}
       const err = new Error(detalle || ('error ' + r.status));
       err.status = r.status;
       // Un proyecto gratuito de Supabase se PAUSA solo tras unos días sin
@@ -1732,8 +1784,17 @@ function crearNube({url, clave}){
       // ahí, pero la API deja de contestar como debe. Sin distinguirlo, la app
       // decía "sin conexión" y te mandaba a mirar el wifi, que no era.
       if([500, 502, 503, 504, 520, 521, 522, 540].includes(r.status)) err.dormido = true;
+      // Subir una foto donde ya hay otra: el taller no puede reemplazar, y el
+      // servidor lo dice de dos maneras según la versión. Se marca aquí para
+      // poder explicarlo en cristiano en vez de soltar el error en inglés.
+      if(r.status === 409 || /already exists/i.test(detalle)) err.yaExiste = true;
       throw err;
     }
+    return r;
+  }
+
+  async function pedir(ruta, opciones = {}){
+    const r = await peticion(ruta, opciones);
     /* OJO: NO se llama a r.json() a pelo.
 
        PostgREST devuelve el CUERPO VACÍO cuando se le pide
@@ -2101,6 +2162,227 @@ function crearNube({url, clave}){
     return d;
   }
 
+  /* ── LAS FOTOS ────────────────────────────────────────────────────────
+     Una muestra real de cada color, hecha sobre folio blanco.
+
+     Tres decisiones, con su porqué:
+
+     1. NO van dentro de la fila de la fórmula. Una foto son ~100 KB; 860
+        fórmulas serían 86 MB metidos en una base de datos que en el plan
+        gratuito tiene 500 MB, y encima viajarían enteras en cada
+        sincronización. Van al almacén de archivos, que para eso está, y da
+        1 GB.
+     2. El cubo es PRIVADO. Si fuera público, cualquiera con la dirección
+        vería `f-rojo-<cliente>.jpg` y ahí van nombres de clientes. La app
+        publicada en internet no lleva ni un nombre dentro justamente por eso;
+        no vamos a filtrarlos ahora por el nombre de un archivo.
+     3. Qué fórmulas tienen foto se sabe pidiendo el LISTADO del cubo, no
+        guardándolo en la fila. Porque el taller puede poner fotos y NO puede
+        escribir en colores_formulas: si el dato viviera ahí, la foto del
+        taller no se podría anotar en ninguna parte.
+
+     La copia local va en IndexedDB, no en localStorage: ahí no caben archivos
+     y además el espejo de las 860 fórmulas ya ocupa lo suyo. */
+  const CUBO = 'colores-fotos';
+  const CLAVE_FOTOS = 'seriadornos-nube-fotos';
+  const rutaFoto = id => `/storage/v1/object/${CUBO}/${encodeURIComponent(id)}.jpg`;
+
+  // ── El almacén local de archivos ──────────────────────────────────────
+  let bdp = null;
+  function bd(){
+    if(bdp) return bdp;
+    bdp = new Promise(ok=>{
+      let s;
+      // Sin IndexedDB (ventana privada de algún navegador, permisos) NO se cae
+      // nada: se pierde la caché, así que las fotos se bajan cada vez.
+      try{ s = indexedDB.open('seriadornos-fotos', 1); }catch(_){ return ok(null); }
+      s.onupgradeneeded = ()=>{
+        const d = s.result;
+        if(!d.objectStoreNames.contains('fotos')) d.createObjectStore('fotos');
+        if(!d.objectStoreNames.contains('cola'))  d.createObjectStore('cola');
+      };
+      s.onsuccess = ()=>ok(s.result);
+      s.onerror   = ()=>ok(null);
+      s.onblocked = ()=>ok(null);
+    });
+    return bdp;
+  }
+  function conAlmacen(nombre, modo, hacer){
+    return bd().then(d=>{
+      if(!d) return null;
+      return new Promise(ok=>{
+        let t;
+        try{ t = d.transaction(nombre, modo); }catch(_){ return ok(null); }
+        const p = hacer(t.objectStore(nombre));
+        t.oncomplete = ()=>ok(p && p.result !== undefined ? p.result : null);
+        t.onerror = t.onabort = ()=>ok(null);
+      });
+    }).catch(()=>null);
+  }
+  const guardarEn = (a, k, v) => conAlmacen(a, 'readwrite', s=>s.put(v, k));
+  const leerDe    = (a, k)    => conAlmacen(a, 'readonly',  s=>s.get(k));
+  const borrarDe  = (a, k)    => conAlmacen(a, 'readwrite', s=>s.delete(k));
+  const clavesDe  = (a)       => conAlmacen(a, 'readonly',  s=>s.getAllKeys()).then(x=>x||[]);
+
+  /* Qué fórmulas tienen foto, y de cuándo es cada una. El sello es la fecha
+     que da el servidor: si cambia, la copia local ya no vale y se vuelve a
+     bajar. Sin eso, reemplazar una foto no se vería nunca en el otro aparato. */
+  const fotos = () => leer(CLAVE_FOTOS, {});
+  function apuntarFoto(id, sello){
+    const m = fotos(); m[id] = sello; escribir(CLAVE_FOTOS, m);
+  }
+  function olvidarFoto(id){
+    const m = fotos(); delete m[id]; escribir(CLAVE_FOTOS, m);
+  }
+
+  /* Los ids con una subida EN VUELO ahora mismo. Sin esto, el listado que
+     baja la sincronización —que corre sola cada pocos segundos— podía llegar
+     hecho un momento ANTES de que terminara la subida y borrar del índice
+     local una foto que sí existía. Efecto: hacías la foto, se veía, y a los
+     dos segundos desaparecía sola de la pantalla.
+     Salió montando las capturas, no en la prueba. */
+  const subiendo = new Set();
+
+  async function refrescarFotos(){
+    const fuera = {};
+    for(let salto = 0; salto < 20000; salto += 1000){
+      const t = await pedir(`/storage/v1/object/list/${CUBO}`, {
+        method: 'POST',
+        body: JSON.stringify({prefix: '', limit: 1000, offset: salto,
+                              sortBy: {column: 'name', order: 'asc'}}),
+      });
+      if(!t?.length) break;
+      for(const o of t){
+        if(!o.name || !o.name.endsWith('.jpg')) continue;
+        fuera[o.name.slice(0, -4)] = o.updated_at || o.created_at || '';
+      }
+      if(t.length < 1000) break;
+    }
+    // Lo que está subiendo o esperando cobertura NO lo sabe todavía el
+    // servidor: se conserva tal cual, o desaparecería de la pantalla.
+    const mias = fotos();
+    const cola = await clavesDe('cola');
+    for(const id of new Set([...subiendo, ...cola]))
+      if(fuera[id] === undefined && mias[id] !== undefined) fuera[id] = mias[id];
+    escribir(CLAVE_FOTOS, fuera);
+    return fuera;
+  }
+
+  // ── Subir, bajar, borrar ──────────────────────────────────────────────
+  // Una foto tarda más que una fila de texto, sobre todo subiendo por el wifi
+  // de una nave: con los 12 s de siempre se daba por perdida y se encolaba una
+  // subida que en realidad iba bien.
+  const ESPERA_FOTO = 45000;
+
+  async function subirFoto(id, blob, reemplazar){
+    const r = await peticion(rutaFoto(id), {
+      method: 'POST', json: false, body: blob, espera: ESPERA_FOTO,
+      headers: {'Content-Type': 'image/jpeg', 'cache-control': '3600',
+                ...(reemplazar ? {'x-upsert': 'true'} : {})},
+    });
+    try{ await r.text(); }catch(_){}
+    return true;
+  }
+  async function bajarFoto(id){
+    const r = await peticion(rutaFoto(id), {json: false, espera: ESPERA_FOTO});
+    return await r.blob();
+  }
+
+  /* La dirección para pintarla. Se sirve de la copia local si el sello cuadra,
+     y si no hay red se sirve la copia vieja igual: mejor la foto del mes
+     pasado que un hueco gris. */
+  const vivas = new Map();          // id -> {sello, url}
+  async function fotoUrl(id){
+    const sello = fotos()[id];
+    if(sello === undefined) return null;
+    const v = vivas.get(id);
+    if(v && v.sello === sello) return v.url;
+
+    let blob = null;
+    const g = await leerDe('fotos', id);
+    if(g && g.sello === sello) blob = g.blob;
+    if(!blob){
+      try{
+        blob = await bajarFoto(id);
+        await guardarEn('fotos', id, {sello, blob});
+      }catch(e){
+        if(g && g.blob) blob = g.blob;      // sin red: vale la que había
+        else return null;
+      }
+    }
+    if(v) try{ URL.revokeObjectURL(v.url); }catch(_){}
+    const url = URL.createObjectURL(blob);
+    vivas.set(id, {sello, url});
+    return url;
+  }
+
+  /* Guardar una foto. Primero se deja en el aparato —para que se vea al
+     instante, con red o sin ella— y luego se sube. Sin cobertura queda en su
+     propia cola, que no puede ser la de texto porque en localStorage no cabe
+     un archivo. */
+  async function guardarFoto(id, blob, reemplazar){
+    const sello = new Date().toISOString();
+    await guardarEn('fotos', id, {sello, blob});
+    const v = vivas.get(id);
+    if(v) try{ URL.revokeObjectURL(v.url); }catch(_){}
+    vivas.set(id, {sello, url: URL.createObjectURL(blob)});
+    apuntarFoto(id, sello);
+    subiendo.add(id);
+    try{
+      await subirFoto(id, blob, reemplazar);
+      return true;
+    }catch(e){
+      if(e.sinRed){
+        await guardarEn('cola', id, {blob, reemplazar, cuando: Date.now()});
+        avisar('fotos-pendientes', (await clavesDe('cola')).length);
+        return false;
+      }
+      // Rechazo del servidor (el taller intentando reemplazar, por ejemplo):
+      // se deshace lo local para no enseñar una foto que allí no existe.
+      olvidarFoto(id);
+      await borrarDe('fotos', id);
+      const w = vivas.get(id);
+      if(w) try{ URL.revokeObjectURL(w.url); }catch(_){}
+      vivas.delete(id);
+      throw e;
+    }finally{ subiendo.delete(id); }
+  }
+
+  async function quitarFoto(id){
+    await peticion(rutaFoto(id), {method: 'DELETE'});
+    olvidarFoto(id);
+    await borrarDe('fotos', id);
+    await borrarDe('cola', id);
+    const v = vivas.get(id);
+    if(v) try{ URL.revokeObjectURL(v.url); }catch(_){}
+    vivas.delete(id);
+    return true;
+  }
+
+  const fotosPendientes = () => clavesDe('cola').then(x=>x.length);
+
+  async function vaciarColaFotos(){
+    const ids = await clavesDe('cola');
+    let idas = 0;
+    for(const id of ids){
+      const p = await leerDe('cola', id);
+      if(!p){ await borrarDe('cola', id); continue; }
+      subiendo.add(id);
+      try{
+        await subirFoto(id, p.blob, p.reemplazar);
+        await borrarDe('cola', id);
+        idas++;
+      }catch(e){
+        if(e.sinRed) break;               // se reintenta cuando vuelva
+        await borrarDe('cola', id);       // rechazada: insistir no la arregla
+        olvidarFoto(id);
+        avisar('rechazado', {tipo: 'foto', id, por: e.message});
+      }finally{ subiendo.delete(id); }
+    }
+    if(idas) avisar('fotos-pendientes', (await clavesDe('cola')).length);
+    return idas;
+  }
+
   return {
     get sesion(){ return ses ? {email: ses.email, rol} : null; },
     get rol(){ return rol; },
@@ -2109,6 +2391,8 @@ function crearNube({url, clave}){
     pendientes, vaciarCola,
     leerEspejo, guardarEspejo, borrarEspejo, montarDatos,
     choques, resolverChoque,
+    fotos, refrescarFotos, fotoUrl, guardarFoto, quitarFoto,
+    fotosPendientes, vaciarColaFotos,
     escuchar(f){ oyentes.add(f); return ()=>oyentes.delete(f); },
   };
 }
@@ -2705,6 +2989,65 @@ for(const f of DATOS.formulas){
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   LA FOTO DE VERDAD
+
+   El color que calcula el motor es una aproximación: acierta en siete de cada
+   diez, y con los metalizados y los flúor no acierta ni puede. Una foto de la
+   goma curada no es una aproximación, es lo que es.
+
+   Por eso, donde hay foto, MANDA LA FOTO: en la ficha, en el listado y en el
+   muro. El color calculado se queda para las que todavía no la tienen.
+
+   Solo funciona con la app conectada. Meter 860 fotos dentro del archivo
+   suelto lo dejaría en 90 MB y ese archivo existe justamente para poder
+   abrirlo de cualquier manera.
+   ═══════════════════════════════════════════════════════════════════ */
+const HAY_FOTOS = MODO === 'nube';
+const tieneFoto  = id => HAY_FOTOS && nube.fotos()[id] !== undefined;
+// El taller puede poner la que falta; reemplazar y borrar, solo el editor. No
+// es un capricho: es exactamente lo que deja hacer el servidor, y enseñar un
+// botón que va a devolver "prohibido" es engañar a quien lo pulsa.
+const puedeFoto  = id => HAY_FOTOS && (puedeEditar || !tieneFoto(id));
+
+/* Las fotos se bajan SOLO cuando se van a ver.
+
+   Con 860 fotos son ~86 MB: bajarlas todas al abrir se comería de una sentada
+   el wifi de la nave y buena parte de los 5 GB de descarga que da el plan
+   gratuito al mes. Así, cada aparato acaba teniendo guardadas las que mira, y
+   a partir de la segunda vez salen del propio móvil. */
+let ojoFotos = null;
+function mirarFoto(el){
+  if(!HAY_FOTOS || !el) return;
+  if(!ojoFotos){
+    ojoFotos = new IntersectionObserver(es=>{
+      for(const e of es) if(e.isIntersecting){
+        ojoFotos.unobserve(e.target);
+        ponerFoto(e.target);
+      }
+    }, {rootMargin: '300px'});
+  }
+  ojoFotos.observe(el);
+}
+async function ponerFoto(el){
+  const id = el.dataset.foto;
+  if(!id || el.querySelector('img')) return;
+  let url = null;
+  try{ url = await nube.fotoUrl(id); }catch(_){ return; }
+  if(!url || !el.isConnected || el.dataset.foto !== id) return;
+  const img = document.createElement('img');
+  img.className = 'foto-real'; img.alt = ''; img.decoding = 'async'; img.src = url;
+  el.appendChild(img);
+  el.classList.add('con-foto');
+}
+/** Engancha todas las muestras de un trozo de pantalla recién pintado. */
+function enlazarFotos(raiz){
+  if(!HAY_FOTOS) return;
+  for(const el of (raiz || document).querySelectorAll('[data-foto]')) mirarFoto(el);
+}
+/** El trozo que se le añade a una muestra para que pueda llevar foto. */
+const marcaFoto = id => tieneFoto(id) ? ` data-foto="${id}"` : '';
+
 function color(f){
   if(!cacheColor.has(f.id)) cacheColor.set(f.id, colorDeFormula(f.id, indice));
   return cacheColor.get(f.id);
@@ -2851,13 +3194,14 @@ function pintarLista(reinicia=true){
     // cuánta purpurina lleva y cuál se elige al preparar).
     const pend = c.avisos.some(a=>a.tipo==='pendiente'||a.tipo==='incompleta');
     b.innerHTML =
-      `<div class="muestra${c.metalizado?' metal':''}" style="background:${c.hex}"></div>`+
+      `<div class="muestra${c.metalizado?' metal':''}" style="background:${c.hex}"${marcaFoto(f.id)}></div>`+
       `<div class="fila-txt"><div class="fila-nombre">${resaltar(f.nombre,txt)}</div></div>`+
       (estadoAct(f).aldia?`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--verde)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>`:'')+
       (pend?`<span class="pin" title="Tiene algo pendiente de revisar"></span>`:'');
     frag.appendChild(b);
   }
   $lista.appendChild(frag);
+  enlazarFotos($lista);
   pintadas = hasta;
   if(pintadas < filtradas.length) observarFinal();
 }
@@ -2877,6 +3221,18 @@ function actualizar(){
   filtradas = filtrar($q.value);
   document.getElementById('contador').innerHTML =
     `<b>${filtradas.length}</b> de ${DATOS.formulas.length} fórmulas`;
+
+  /* El cartel de arriba decía "las muestras son orientativas" a secas. En
+     cuanto hay una foto real deja de ser verdad para esas, y un aviso que
+     miente a medias es peor que ninguno: se matiza solo. */
+  if(HAY_FOTOS){
+    const conFoto = Object.keys(nube.fotos()).length;
+    const $t = document.getElementById('aviso-cal-txt');
+    if($t) $t.innerHTML = conFoto
+      ? `<b>${conFoto}</b> ${conFoto === 1 ? 'color tiene' : 'colores tienen'} muestra real.
+         El resto son <b>orientativos</b>: los colores base están estimados, no medidos.`
+      : 'Las muestras son <b>orientativas</b>: los colores base están estimados, no medidos.';
+  }
   const nPend = DATOS.formulas.filter(tienePendiente).length;
   const chip = document.getElementById('chip-pend');
   chip.hidden = !nPend && !soloPendientes;
@@ -3079,12 +3435,13 @@ function muroDeColores(){
       ${v.map((x,k)=>{ const c = color(x);
         return `<button class="muro-t" data-ir="${x.id}" title="${esc(x.nombre)}"
                         style="--t:${Math.min(k*9, 260)}ms">
-          <i class="${c.metalizado?'metal':''}" style="background:${c.hex}"></i>
+          <i class="${c.metalizado?'metal':''}" style="background:${c.hex}"${marcaFoto(x.id)}></i>
           <span>${esc(x.nombre)}</span></button>`; }).join('')}
     </div>
     ${filtradas.length > MURO_TOPE
       ? `<p class="muro-mas">Se ven los ${MURO_TOPE} primeros. Escribe en el buscador para acotar.</p>` : ''}
   </div>`;
+  enlazarFotos($ficha);
   for(const b of $ficha.querySelectorAll('[data-ir]'))
     b.onclick = ()=>abrir(b.dataset.ir, b.querySelector('i'));
 }
@@ -3236,7 +3593,18 @@ function pintarFicha(){
     </button>
 
     <div class="hero">
-      <div class="hero-muestra${c.metalizado?' metal':''}" style="background:${c.hex}"></div>
+      <div class="hero-envoltura">
+        <div class="hero-muestra${c.metalizado?' metal':''}" style="background:${c.hex}"${marcaFoto(f.id)}></div>
+        ${tieneFoto(f.id)
+          ? `<button class="foto-btn" id="foto-ver" title="Ver la muestra en grande">
+               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+               Muestra real</button>`
+          : (puedeFoto(f.id)
+            ? `<button class="foto-btn" id="foto-nueva" title="Guardar una muestra real de este color">
+                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg>
+                 Hacer foto</button>`
+            : '')}
+      </div>
       <div class="hero-txt">
         <h2>${esc(f.nombre)}</h2>
         <div class="hero-meta">
@@ -3247,7 +3615,14 @@ function pintarFicha(){
       </div>
     </div>
 
-    ${c.avisos.filter(a=>!(f.solo_referencia && (a.tipo==='sin-datos'||a.tipo==='vacia'))).map(a=>`<div class="aviso ${a.tipo==='pendiente'?'':'info'}">
+    ${c.avisos
+        .filter(a=>!(f.solo_referencia && (a.tipo==='sin-datos'||a.tipo==='vacia')))
+        /* Con foto real sobran los peros de la simulación: "el brillo no se
+           puede simular", "el flúor sale más vivo", "faltan muestras de alguna
+           materia prima". Todo eso habla del color CALCULADO, y aquí ya no se
+           está enseñando el calculado. Dejarlos sería mentir al revés. */
+        .filter(a=>!(tieneFoto(f.id) && ['brillo','fluor','sin-calibrar'].includes(a.tipo)))
+        .map(a=>`<div class="aviso ${a.tipo==='pendiente'?'':'info'}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
         <span>${esc(a.texto)}</span></div>`).join('')}
 
@@ -3325,7 +3700,10 @@ function pintarFicha(){
   ultimosGramos = lote ? lote.cantidades.slice() : f.ingredientes.map(i=>i.cantidad);
   ultimosGramos.total = lote ? lote.total : 0;
 
+  enlazarFotos($ficha);
   document.getElementById('volver')?.addEventListener('click', cerrarFicha);
+  document.getElementById('foto-nueva')?.addEventListener('click', ()=>hacerFoto(f));
+  document.getElementById('foto-ver')?.addEventListener('click', ()=>verFoto(f));
   document.getElementById('sello-act')?.addEventListener('click', ()=>{
     const marcar = !estadoAct(f).aldia;
     if(anotar(f, {actualizada_pigmentos: marcar,
@@ -3977,7 +4355,17 @@ function pintarPesaje(){
   document.getElementById('pes-etiqueta').onclick = ()=>
     etiqueta(f, p.filas.map(x=>x.objetivo), p.total, pes.ing.map(i=>i.nombre));
   document.getElementById('pes-fin').onclick = ()=>{
-    if(hechas===p.filas.length) apuntarPreparacion(f, p.total);
+    if(hechas===p.filas.length){
+      apuntarPreparacion(f, p.total);
+      // Con la goma recién hecha delante es cuando se puede hacer la foto. Se
+      // ofrece REPINTANDO el diálogo que ya está abierto, sin cerrarlo y
+      // volverlo a abrir: cerrar y abrir en el mismo gesto descuadra la pila
+      // del botón de atrás del móvil (ya pasó con el repaso).
+      if(HAY_FOTOS && !tieneFoto(f.id) && puedeFoto(f.id)){
+        pes = null;
+        return ofrecerFoto(f);
+      }
+    }
     else if(pes.hechos.size){
       // Cerrar con el bote a medias NO tira el trabajo: se guarda y se dice.
       guardarPesaje(); pes=null; $dlg.close();
@@ -4205,6 +4593,298 @@ function apuntarPreparacion(f, gramos){
     nube.guardarPreparacion(e).catch(err=>falloNube(err));
   brindis('Apuntado: ' + fmt(gramos) + ' g de ' + f.nombre);
   pintarFicha(); actualizar();
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   HACER LA FOTO
+
+   La foto sale del móvil, y un móvil miente dos veces:
+
+   1. AJUSTA EL COLOR SOLO. La misma goma sale amarillenta bajo el fluorescente
+      de la nave y azulada al lado de la ventana. Como la muestra se hace sobre
+      folio blanco, ese folio dice cuánto está mintiendo: se mira lo que el
+      móvil llama "blanco" y se corrige todo lo demás en la misma proporción.
+      Es el método de siempre (von Kries), y aquí sale gratis porque la
+      referencia ya está en la foto.
+   2. HACE FOTOS DE 4 MB. A 860 fórmulas serían 3,4 GB y el plan gratuito da
+      1 GB. Recortada a la pieza y guardada a 900 px se queda en unos 100 KB
+      sin que se note a la vista.
+
+   Las correcciones van TOPADAS a propósito. Si la foto no tiene folio blanco
+   —o está hecha en penumbra— corregir a ciegas la destroza; con tope, lo peor
+   que pasa es que se quede casi como estaba, y se avisa.
+   ═══════════════════════════════════════════════════════════════════ */
+const FOTO_LADO = 900;         // lado mayor de lo que se guarda
+const FOTO_ANALISIS = 700;     // a este tamaño se estudia: sobra y es rápido
+const FOTO_PESO = 420000;      // por encima de esto se vuelve a comprimir
+
+function lienzo(an, al){
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(an)); c.height = Math.max(1, Math.round(al));
+  return c;
+}
+
+/** Lo que el móvil llama blanco en esta foto, o null si no hay nada blanco. */
+function refBlanco(px){
+  const lum = [];
+  for(let i = 0; i < px.length; i += 4)
+    lum.push(0.299*px[i] + 0.587*px[i+1] + 0.114*px[i+2]);
+  const orden = lum.slice().sort((a,b)=>a-b);
+  const alto = orden[Math.floor(orden.length * 0.90)] || 0;
+  const corte = Math.max(alto * 0.92, 150);
+  let r = 0, g = 0, b = 0, n = 0;
+  for(let i = 0, k = 0; i < px.length; i += 4, k++){
+    if(lum[k] < corte) continue;
+    /* Y que sea gris. OJO a cómo se mide: en PROPORCIÓN, no en puntos.
+
+       Un folio blanco bajo una bombilla cálida es (255,235,188): son 67 puntos
+       de diferencia entre el rojo y el azul, y sin embargo es papel blanco. Una
+       goma amarilla clara, (240,220,60), son 180 puntos. Midiendo por puntos
+       había que poner el listón tan alto que colaba el amarillo, o tan bajo que
+       se caía el folio de la foto de verdad —y entonces no se corregía nada,
+       que es lo que pasaba—. En proporción son 0,26 y 0,75: no se parecen. */
+    const mx = Math.max(px[i], px[i+1], px[i+2]);
+    const mn = Math.min(px[i], px[i+1], px[i+2]);
+    if(mx <= 0 || (mx - mn) / mx > 0.34) continue;
+    r += px[i]; g += px[i+1]; b += px[i+2]; n++;
+  }
+  // Menos del 1,5% de la foto: no hay folio, no hay referencia.
+  if(n < (px.length / 4) * 0.015) return null;
+  return {r: r/n, g: g/n, b: b/n, cuantos: n};
+}
+
+const tope = (v, min, max) => Math.min(max, Math.max(min, v));
+
+/** Cuánto hay que multiplicar cada canal. Separa el brillo del tono para
+    poder topar cada cosa por su lado. */
+function factores(ref){
+  if(!ref) return null;
+  const media = (ref.r + ref.g + ref.b) / 3;
+  if(media < 40) return null;                      // foto casi negra
+  const luz = tope(243 / media, 0.7, 1.6);         // exposición
+  return {
+    r: tope(media / ref.r, 0.82, 1.22) * luz,
+    g: tope(media / ref.g, 0.82, 1.22) * luz,
+    b: tope(media / ref.b, 0.82, 1.22) * luz,
+  };
+}
+
+function aplicarFactores(px, f){
+  for(let i = 0; i < px.length; i += 4){
+    px[i]   = Math.min(255, px[i]   * f.r);
+    px[i+1] = Math.min(255, px[i+1] * f.g);
+    px[i+2] = Math.min(255, px[i+2] * f.b);
+  }
+}
+
+/** Dónde está la pieza dentro del folio. Devuelve null si no se ve claro. */
+function recorte(px, an, al){
+  const filas = new Int32Array(al), cols = new Int32Array(an);
+  for(let y = 0, i = 0; y < al; y++) for(let x = 0; x < an; x++, i += 4){
+    const mx = Math.max(px[i], px[i+1], px[i+2]);
+    const mn = Math.min(px[i], px[i+1], px[i+2]);
+    const lum = 0.299*px[i] + 0.587*px[i+1] + 0.114*px[i+2];
+    if(lum < 225 || mx - mn > 26){ filas[y]++; cols[x]++; }
+  }
+  const borde = (v, largo, ancho) => {
+    const min = Math.max(2, ancho * 0.03);
+    let a = 0, b = largo - 1;
+    while(a < largo && v[a] < min) a++;
+    while(b > a && v[b] < min) b--;
+    return [a, b];
+  };
+  const [y0, y1] = borde(filas, al, an);
+  const [x0, x1] = borde(cols, an, al);
+  const anc = x1 - x0, alt = y1 - y0;
+  // Ni una mota de polvo ni el folio entero: en los dos casos, mejor no tocar.
+  if(anc < an*0.08 || alt < al*0.08 || (anc > an*0.97 && alt > al*0.97)) return null;
+  const mx = anc * 0.05, my = alt * 0.05;
+  return {
+    x: Math.max(0, x0 - mx), y: Math.max(0, y0 - my),
+    an: Math.min(an, x1 + mx) - Math.max(0, x0 - mx),
+    al: Math.min(al, y1 + my) - Math.max(0, y0 - my),
+  };
+}
+
+async function aBlob(cv, calidad){
+  return await new Promise(ok=>cv.toBlob(ok, 'image/jpeg', calidad));
+}
+
+/** De la foto del móvil a los ~100 KB que se guardan. */
+async function procesarFoto(file){
+  let bmp;
+  try{ bmp = await createImageBitmap(file, {imageOrientation: 'from-image'}); }
+  catch(_){ bmp = await createImageBitmap(file); }
+
+  // 1. Copia pequeña para estudiarla.
+  const e = Math.min(1, FOTO_ANALISIS / Math.max(bmp.width, bmp.height));
+  const ca = lienzo(bmp.width * e, bmp.height * e);
+  const xa = ca.getContext('2d', {willReadFrequently: true});
+  xa.drawImage(bmp, 0, 0, ca.width, ca.height);
+  const dat = xa.getImageData(0, 0, ca.width, ca.height);
+
+  const f = factores(refBlanco(dat.data));
+  if(f) aplicarFactores(dat.data, f);
+  /* El recorte solo se intenta si se ha encontrado el folio. Buscar la pieza es
+     buscar "lo que NO es papel blanco", y sin haber corregido antes la luz, el
+     propio papel amarillea lo bastante como para contar él mismo de pieza: se
+     acababa recortando la foto entera, o sea nada. Sin folio, no hay recorte. */
+  const rec = f ? recorte(dat.data, ca.width, ca.height) : null;
+
+  // 2. La buena, ya recortada, desde el original a toda resolución.
+  const orig = rec
+    ? {x: rec.x/e, y: rec.y/e, an: rec.an/e, al: rec.al/e}
+    : {x: 0, y: 0, an: bmp.width, al: bmp.height};
+  const s = Math.min(1, FOTO_LADO / Math.max(orig.an, orig.al));
+  const cv = lienzo(orig.an * s, orig.al * s);
+  const cx = cv.getContext('2d', {willReadFrequently: true});
+  cx.drawImage(bmp, orig.x, orig.y, orig.an, orig.al, 0, 0, cv.width, cv.height);
+  if(f){
+    const d2 = cx.getImageData(0, 0, cv.width, cv.height);
+    aplicarFactores(d2.data, f);
+    cx.putImageData(d2, 0, 0);
+  }
+  bmp.close?.();
+
+  let blob = await aBlob(cv, 0.82);
+  if(blob && blob.size > FOTO_PESO) blob = await aBlob(cv, 0.68);
+  if(blob && blob.size > FOTO_PESO * 1.7) blob = await aBlob(cv, 0.55);
+  if(!blob) throw new Error('no se ha podido comprimir');
+
+  return {
+    blob, url: URL.createObjectURL(blob),
+    corregida: !!f, recortada: !!rec,
+    an: cv.width, al: cv.height,
+  };
+}
+
+/* El selector de archivo. Sin `capture`: con ese atributo, Android abre la
+   cámara y punto, y a veces la foto buena ya está hecha y está en la galería.
+   Sin él sale el menú de siempre, con cámara y galería. */
+let $fichero = null;
+function pedirArchivoFoto(){
+  return new Promise(ok=>{
+    if(!$fichero){
+      $fichero = document.createElement('input');
+      $fichero.type = 'file'; $fichero.accept = 'image/*';
+      $fichero.hidden = true;
+      document.body.appendChild($fichero);
+    }
+    $fichero.value = '';
+    $fichero.onchange = ()=>ok($fichero.files && $fichero.files[0] || null);
+    $fichero.click();
+  });
+}
+
+async function hacerFoto(f, alTerminar){
+  if(!puedeFoto(f.id))
+    return brindis(tieneFoto(f.id)
+      ? 'Esta ya tiene foto. Cambiarla solo puede el editor.'
+      : SIN_PERMISO);
+  const file = await pedirArchivoFoto();
+  if(!file) return;
+  brindis('Preparando la foto…');
+  let r;
+  try{ r = await procesarFoto(file); }
+  catch(_){
+    return brindis('No he podido leer esa foto. Hazla otra vez desde la cámara.');
+  }
+  pantallaFoto(f, r, alTerminar);
+}
+
+/* La dirección de la foto que se está revisando. Se suelta al pintar otra o al
+   guardar; si no, cada foto repetida deja unos cientos de KB colgados. */
+let urlPrevia = null;
+function soltarPrevia(){
+  if(urlPrevia) try{ URL.revokeObjectURL(urlPrevia); }catch(_){}
+  urlPrevia = null;
+}
+
+/** La revisión antes de guardar: se ve lo que va a quedar, no lo que salió. */
+function pantallaFoto(f, r, alTerminar){
+  soltarPrevia(); urlPrevia = r.url;
+  const reemplaza = tieneFoto(f.id);
+  $dt.textContent = reemplaza ? 'Cambiar la foto' : 'Foto de ' + f.nombre;
+  $dc.innerHTML = `
+    <div class="foto-mirar"><img src="${r.url}" alt="Muestra de ${esc(f.nombre)}"></div>
+    <div class="foto-notas">
+      ${r.corregida
+        ? `<p><b>Color corregido</b> con el folio blanco de la foto, para que se
+             parezca a las demás aunque la luz del taller sea otra.</p>`
+        : `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+           <span><b>No he encontrado fondo blanco.</b> La foto se guarda tal cual,
+           pero el color no será comparable con el de las otras. Sale mejor
+           poniendo la muestra sobre un folio.</span></div>`}
+      ${r.recortada ? '<p>Recortada a la pieza.</p>' : ''}
+      <p class="flojo">${r.an}×${r.al} · ${Math.round(r.blob.size/1024)} KB</p>
+    </div>`;
+  $dp.innerHTML = `<button class="btn" id="foto-otra">Hacer otra</button>
+    <button class="btn btn-1" id="foto-ok">${reemplaza?'Cambiar':'Guardar'}</button>`;
+  $dlg.showModal();
+  /* OJO: aquí NO se cierra el diálogo para volver a abrirlo. Cerrar y abrir en
+     el mismo gesto descoloca la pila del botón de atrás —el `popstate` del
+     cierre llega DESPUÉS de la apertura— y eso ya rompió el repaso una vez.
+     Se repinta el que está abierto y ya está. */
+  document.getElementById('foto-otra').onclick = ()=>hacerFoto(f, alTerminar);
+  document.getElementById('foto-ok').onclick = async ()=>{
+    const b = document.getElementById('foto-ok');
+    b.disabled = true; b.textContent = 'Guardando…';
+    try{
+      const ida = await nube.guardarFoto(f.id, r.blob, reemplaza);
+      brindis(ida ? 'Foto guardada' : 'Sin cobertura: se subirá sola al volver');
+    }catch(e){
+      b.disabled = false; b.textContent = reemplaza ? 'Cambiar' : 'Guardar';
+      return brindis(e && e.yaExiste
+        ? 'Alguien le ha puesto foto antes que tú. Recarga y míralo.'
+        : 'No se ha podido guardar la foto: ' + (e.message || 'error'));
+    }
+    soltarPrevia();
+    $dlg.close();
+    pintarFicha(); actualizar();
+    alTerminar?.();
+  };
+}
+
+/** Verla en grande, y quitarla si eres el editor. */
+function verFoto(f){
+  $dt.textContent = f.nombre;
+  $dc.innerHTML = `<div class="foto-mirar"><img alt="Muestra de ${esc(f.nombre)}"></div>
+    <p class="foto-notas flojo" style="margin-top:12px">Muestra real de la goma curada.</p>`;
+  $dp.innerHTML =
+    (puedeEditar ? `<button class="btn btn-peligro" id="foto-fuera">Quitar</button>
+       <button class="btn" id="foto-cambiar">Cambiar</button>` : '') +
+    `<button class="btn btn-1" data-cerrar>Cerrar</button>`;
+  $dlg.showModal();
+  nube.fotoUrl(f.id).then(u=>{ const i = $dc.querySelector('img'); if(i && u) i.src = u; });
+  $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
+  document.getElementById('foto-cambiar')?.addEventListener('click', ()=>hacerFoto(f));
+  document.getElementById('foto-fuera')?.addEventListener('click', async ()=>{
+    const b = document.getElementById('foto-fuera');
+    b.disabled = true;
+    try{ await nube.quitarFoto(f.id); brindis('Foto quitada'); }
+    catch(e){ b.disabled = false; return brindis('No se ha podido quitar: ' + (e.message||'error')); }
+    $dlg.close(); pintarFicha(); actualizar();
+  });
+}
+
+/* Al terminar un bote, si ese color no tiene muestra todavía, se ofrece
+   hacerla: es EL momento, con la goma recién hecha en la mano. Solo se pide
+   una vez por color, y nunca si ya la tiene: el aviso que sale siempre acaba
+   siendo un aviso que nadie lee. */
+function ofrecerFoto(f){
+  $dt.textContent = 'Bote apuntado';
+  $dc.innerHTML = `<p style="margin:0 0 4px">Ya está apuntado en el cuaderno.</p>
+    <p style="margin:0 0 14px;color:var(--texto-2);font-size:14px">
+      <b>${esc(f.nombre)}</b> todavía no tiene muestra. Si le haces una foto
+      sobre un folio blanco, queda guardada para siempre y la próxima vez se ve
+      el color de verdad en vez del calculado.</p>`;
+  $dp.innerHTML = `<button class="btn" data-cerrar>Ahora no</button>
+    <button class="btn btn-1" id="ofr-foto">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg>
+      Hacer la foto</button>`;
+  $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
+  // Se repinta el diálogo abierto, no se cierra para volver a abrirlo.
+  document.getElementById('ofr-foto').onclick = ()=>hacerFoto(f);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -4590,6 +5270,7 @@ function marcarSync(estado){
 }
 
 let sincronizando = false;
+let ultimaListaFotos = 0;
 async function sincronizar(porQue){
   if(MODO !== 'nube' || sincronizando) return;
   sincronizando = true;
@@ -4598,14 +5279,38 @@ async function sincronizar(porQue){
     // si se baja antes de subir, lo que hay en la cola podría quedar tapado
     // por una versión más vieja del servidor.
     if(nube.pendientes()){ marcarSync('subiendo'); await nube.vaciarCola(); }
+    // Las fotos que se hicieron sin cobertura. Van aparte de la cola de texto
+    // porque en localStorage no cabe un archivo: viven en IndexedDB.
+    await nube.vaciarColaFotos().catch(()=>0);
     const res = await nube.bajar(ultimaSync);
     const n = aplicarDeLaNube(res);
     ultimaSync = res.hasta || ultimaSync;
+    /* El listado del cubo NO se pide en cada vuelta. La sincronización corre
+       cada 15 segundos, y ese listado son los 860 nombres con su fecha: unos
+       100 KB. Pedirlo siempre serían 24 MB a la hora por aparato, y el plan
+       gratuito da 5 GB de descarga AL MES. Cada tres minutos sobra: una foto
+       hecha en el móvil tarda como mucho eso en verse en el PC.
+
+       Las fotos en sí tampoco se bajan aquí: cada una se baja la primera vez
+       que se mira, y a partir de ahí sale del propio aparato. */
+    let fotosNuevas = false;
+    if(Date.now() - ultimaListaFotos > 180000){
+      const antes = JSON.stringify(nube.fotos());
+      const lista = await nube.refrescarFotos().catch(()=>null);
+      if(lista){
+        ultimaListaFotos = Date.now();
+        fotosNuevas = JSON.stringify(lista) !== antes;
+      }
+    }
     if(n){
       reconstruir(); actualizar();
       if(document.body.dataset.ficha === 'on' && seleccion) pintarFicha();
       brindis(n === 1 ? 'Una fórmula actualizada desde la nube'
                       : `${n} cambios recibidos`);
+    }
+    else if(fotosNuevas){
+      actualizar();
+      if(document.body.dataset.ficha === 'on' && seleccion) pintarFicha();
     }
     nube.guardarEspejo(DATOS, ultimaSync, ROL);
     marcarSync('al-dia');
@@ -4851,7 +5556,7 @@ document.getElementById('btn-menu').onclick = ()=>{
     <div class="campo"><span>Datos</span>
       <p style="margin:0;font-size:14px;color:var(--texto-2)" class="num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas · ${DATOS.grupos_equivalencia.length} grupos de equivalencia</p>
       <p style="margin:6px 0 0;font-size:12.5px;color:var(--texto-3)">
-        Versión <b class="num">d13d67dc</b>. Si acabas de subir uno nuevo y aquí sigue
+        Versión <b class="num">ac0bdd95</b>. Si acabas de subir uno nuevo y aquí sigue
         el número de antes, cierra la app y vuelve a abrirla.</p>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -6258,6 +6963,7 @@ window.__app = {
   estadoAct, porRevisar, materiasDe: ()=>materiasDe, cuantasLlevan,
   pantallaPigmentos, empezarRepaso,
   preparar, retomarPesaje, guardarPesaje, leerPesajeGuardado,
+  tieneFoto, puedeFoto, hacerFoto, verFoto, procesarFoto, HAY_FOTOS,
   get pes(){ return pes; },
   get ultimaSync(){ return ultimaSync; },
   get estadoSync(){ return estadoSync; },

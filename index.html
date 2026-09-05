@@ -420,6 +420,63 @@ button{background:none;border:0;cursor:pointer;padding:0}
   border-radius:var(--r-m); display:block;
   box-shadow:var(--sombra-1);
 }
+
+/* ── EL VISOR DE FOTOS ───────────────────────────────────────────────
+   Fondo casi negro y neutro a propósito, también en modo claro: una foto de
+   goma de color rodeada de blanco se juzga mal, y aquí se viene justamente a
+   mirar la pieza. */
+.visor{
+  position:fixed; inset:0; z-index:120; display:flex; flex-direction:column;
+  background:rgba(9,10,11,.965);
+  animation:visor-entra calc(.2s * var(--ritmo)) var(--salida) both;
+}
+@keyframes visor-entra{from{opacity:0}to{opacity:1}}
+.visor-barra{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+  color:#f2f3f4; flex:0 0 auto;
+}
+.visor-barra span{
+  font-size:14.5px; font-weight:600; letter-spacing:-.01em;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+#visor-x{
+  width:38px;height:38px;flex:0 0 auto;border-radius:var(--r-m); cursor:pointer;
+  background:rgba(255,255,255,.1); border:0; color:#f2f3f4;
+  display:grid; place-items:center;
+}
+#visor-x svg{width:19px;height:19px}
+#visor-x:hover{background:rgba(255,255,255,.2)}
+.visor-marco{
+  flex:1 1 auto; min-height:0; display:grid; place-items:center;
+  overflow:hidden; padding:0 10px; cursor:zoom-in;
+}
+/* El tamaño lo pone JavaScript, no el CSS.
+   Con `max-width:100%` la foto solo se ENCOGE si no cabe: una foto de 900 px
+   en una pantalla de 1400 se quedaba en 900 y se veía pequeña en mitad de un
+   marco negro, que es justo lo contrario de "verla en grande". Calculando el
+   encaje a mano también crece hasta llenar el hueco, sin deformarse. */
+.visor-marco img{display:block; border-radius:6px; -webkit-user-drag:none}
+/* Ampliada: el doble de grande y el marco se convierte en una ventana por la
+   que se arrastra. Con el dedo y con el ratón, sin librerías. */
+.visor-marco.mas{
+  overflow:auto; place-items:start; cursor:grab; padding:0;
+  -webkit-overflow-scrolling:touch;
+}
+.visor-marco.mas img{border-radius:0}
+.visor-pie{
+  flex:0 0 auto; text-align:center; color:rgba(242,243,244,.6); font-size:12.5px;
+  padding:10px 14px calc(14px + env(safe-area-inset-bottom));
+}
+
+/* La foto de la ficha se puede pulsar cuando la hay. */
+.s-foto.con-foto, .hero-muestra.con-foto{cursor:zoom-in}
+.s-foto.con-foto::after{
+  content:""; position:absolute; right:8px; top:8px; width:26px; height:26px;
+  border-radius:99px; background:rgba(0,0,0,.42) center/13px no-repeat
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:3;
+}
 /* ── EL RECORTE A MANO ───────────────────────────────────────────────────
    La zona oscura de fuera se hace con una sombra enorme sobre la propia caja
    en vez de con cuatro paneles: un solo elemento que mover, y ni un hueco de
@@ -1720,6 +1777,22 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
       <div class="ficha" id="ficha"></div>
     </section>
   </div>
+</div>
+
+<!-- El visor: una foto a pantalla completa y ENTERA, sin recortar. En la ficha
+     las fotos van recortadas al hueco para que la pantalla no sea una columna
+     de fotos, pero de un molde hay que poder ver las cavidades. -->
+<div class="visor" id="visor" hidden>
+  <div class="visor-barra">
+    <span id="visor-tit"></span>
+    <button id="visor-x" aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="visor-marco" id="visor-marco">
+    <img id="visor-img" alt="" draggable="false">
+  </div>
+  <div class="visor-pie" id="visor-pie"></div>
 </div>
 
 <dialog id="dlg"><div class="hoja">
@@ -3955,6 +4028,7 @@ function abrirCapa(tipo){
 function cerrarDeVerdad(tipo){
   if(tipo === 'dlg') $dlg.close();
   else if(tipo === 'ficha') cerrarFicha();
+  else if(tipo === 'visor') cerrarVisorDeVerdad();
 }
 
 /** La capa se ha cerrado desde dentro (un botón, la ✕, Escape). */
@@ -4302,6 +4376,12 @@ function pintarFicha(){
   document.getElementById('volver')?.addEventListener('click', cerrarFicha);
   enlazarBotonesFoto('foto', f);
   document.getElementById('foto-ver')?.addEventListener('click', ()=>verFoto(f));
+  // Y la propia muestra: si tiene foto, pulsarla la abre a pantalla completa.
+  // El botón de al lado sigue llevando al diálogo, que es donde se cambia y
+  // se quita; son dos cosas distintas y conviene que lo parezcan.
+  if(tieneFoto(f.id))
+    $ficha.querySelector('.hero-muestra')?.addEventListener('click',
+      ()=>verFotoGrande(f.id, f.nombre));
   document.getElementById('sello-act')?.addEventListener('click', ()=>{
     const marcar = !estadoAct(f).aldia;
     const antesSello = fotoDe(f);
@@ -5813,6 +5893,86 @@ async function hacerFoto(f, fuente, alTerminar){
   pantallaFoto(f, base, alTerminar);
 }
 
+/* ── EL VISOR: la foto entera, a pantalla completa ────────────────────
+   En la ficha las fotos van recortadas al hueco para que la pantalla no sea
+   una columna de fotos. Aquí se ve ENTERA, y con un toque se amplía al doble y
+   se arrastra: de un molde hay que poder mirarle las cavidades. */
+const $visor = document.getElementById('visor');
+const $visorImg = document.getElementById('visor-img');
+const $visorMarco = document.getElementById('visor-marco');
+let urlVisor = null;
+
+async function verFotoGrande(idFoto, titulo){
+  if(!tieneFoto(idFoto)) return;
+  document.getElementById('visor-tit').textContent = titulo || '';
+  document.getElementById('visor-pie').textContent = 'Toca la foto para ampliarla';
+  $visorMarco.classList.remove('mas');
+  $visorImg.removeAttribute('src');
+  $visor.hidden = false;
+  abrirCapa('visor');
+  let url = null;
+  try{ url = await nube.fotoUrl(idFoto); }catch(_){}
+  if(!url){
+    document.getElementById('visor-pie').textContent = 'No se ha podido cargar la foto';
+    return;
+  }
+  // Si mientras se bajaba se cerró el visor, no se pinta nada.
+  if($visor.hidden) return;
+  urlVisor = url;
+  $visorImg.src = url;
+}
+
+/* El encaje: la foto entera, lo más grande que quepa, sin deformarse. */
+let visorAn = 0, visorAl = 0;
+function ajustarVisor(){
+  const m = $visorMarco.getBoundingClientRect();
+  const r = ($visorImg.naturalWidth || 0) / ($visorImg.naturalHeight || 1);
+  if(!r || !m.width || !m.height) return;
+  const cabeAn = Math.max(40, m.width - 16), cabeAl = Math.max(40, m.height - 8);
+  let an = cabeAn, al = an / r;
+  if(al > cabeAl){ al = cabeAl; an = al * r; }
+  visorAn = an; visorAl = al;
+  aplicarZoomVisor();
+}
+function aplicarZoomVisor(){
+  const k = $visorMarco.classList.contains('mas') ? 2 : 1;
+  $visorImg.style.width = (visorAn * k) + 'px';
+  $visorImg.style.height = (visorAl * k) + 'px';
+}
+$visorImg.addEventListener('load', ajustarVisor);
+addEventListener('resize', ()=>{ if(!$visor.hidden) ajustarVisor(); });
+
+function cerrarVisorDeVerdad(){
+  $visor.hidden = true;
+  $visorMarco.classList.remove('mas');
+  $visorImg.removeAttribute('src');
+  urlVisor = null;
+}
+function cerrarVisor(){
+  if($visor.hidden) return;
+  cerrarCapa('visor');
+  cerrarVisorDeVerdad();
+}
+document.getElementById('visor-x').onclick = cerrarVisor;
+// Tocar la foto la amplía; tocar el fondo cierra. Son dos gestos distintos y
+// tienen que estar claros: si todo cerrara, ampliar sería imposible con el dedo.
+$visorMarco.onclick = e=>{
+  if(e.target === $visorImg){
+    const mas = $visorMarco.classList.toggle('mas');
+    aplicarZoomVisor();
+    document.getElementById('visor-pie').textContent =
+      mas ? 'Arrastra para moverte · toca para reducir' : 'Toca la foto para ampliarla';
+    if(mas){
+      // Centrada al ampliar, que si no aparece por la esquina de arriba.
+      $visorMarco.scrollLeft = ($visorMarco.scrollWidth - $visorMarco.clientWidth) / 2;
+      $visorMarco.scrollTop  = ($visorMarco.scrollHeight - $visorMarco.clientHeight) / 2;
+    }
+  }else cerrarVisor();
+};
+addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && !$visor.hidden){ e.preventDefault(); cerrarVisor(); }
+});
+
 /* La dirección de la foto que se está revisando. Se suelta al pintar otra o al
    guardar; si no, cada foto repetida deja unos cientos de KB colgados. */
 let urlPrevia = null;
@@ -5973,14 +6133,18 @@ function pantallaFoto(f, base, alTerminar){
 /** Verla en grande, y quitarla si eres el editor. */
 function verFoto(f){
   $dt.textContent = f.nombre;
-  $dc.innerHTML = `<div class="foto-mirar"><img alt="Muestra de ${esc(f.nombre)}"></div>
-    <p class="foto-notas flojo" style="margin-top:12px">Muestra real de la goma curada.</p>
+  $dc.innerHTML = `<div class="foto-mirar" id="ver-grande" style="cursor:zoom-in">
+      <img alt="Muestra de ${esc(f.nombre)}"></div>
+    <p class="foto-notas flojo" style="margin-top:12px">Muestra real de la goma curada.
+      Tócala para verla entera.</p>
     ${puedeEditar ? `<div class="foto-elige">${botonesFoto('cam', true)}</div>` : ''}`;
   $dp.innerHTML =
     (puedeEditar ? `<button class="btn btn-peligro" id="foto-fuera">Quitar</button>` : '') +
     `<button class="btn btn-1" data-cerrar>Cerrar</button>`;
   $dlg.showModal();
   nube.fotoUrl(f.id).then(u=>{ const i = $dc.querySelector('img'); if(i && u) i.src = u; });
+  document.getElementById('ver-grande')?.addEventListener('click',
+    ()=>verFotoGrande(f.id, f.nombre));
   $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
   enlazarBotonesFoto('cam', f);
   document.getElementById('foto-fuera')?.addEventListener('click', async ()=>{
@@ -6731,7 +6895,7 @@ document.getElementById('btn-menu').onclick = ()=>{
     <div class="campo"><span>Datos</span>
       <p style="margin:0;font-size:14px;color:var(--texto-2)" class="num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas · ${DATOS.grupos_equivalencia.length} grupos de equivalencia</p>
       <p style="margin:6px 0 0;font-size:12.5px;color:var(--texto-3)">
-        Versión <b class="num">b59eb54c</b>. Si acabas de subir uno nuevo y aquí sigue
+        Versión <b class="num">3873748d</b>. Si acabas de subir uno nuevo y aquí sigue
         el número de antes, cierra la app y vuelve a abrirla.</p>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -8214,12 +8378,19 @@ function coloresDeSello(s){
   return out;
 }
 
-/** Las tandas de horneado: qué colores entraron antes de cada horneado. */
+/** Las tandas de horneado: qué colores entraron antes de cada horneado.
+
+    OJO con el VULCANIZADO: también cierra tanda. Es un horneado, solo que más
+    largo. Al principio lo trataba aparte y el resultado era que los colores
+    inyectados justo antes de vulcanizar salían marcados como "inyectados y sin
+    hornear después", que es falso: sí se hornearon, en el vulcanizado. */
 function tandasDe(s){
+  const pasos = s.pasos || [];
+  const ultimoVul = pasos.map(p => p.tipo).lastIndexOf('vulcanizar');
   const tandas = [];
   let acumulado = [];
   let vulcanizado = null;
-  for(const p of (s.pasos || [])){
+  pasos.forEach((p, i)=>{
     const t = tipoPaso(p.tipo);
     if(t.color && p.ref){
       if(!acumulado.some(c => c.ref === p.ref))
@@ -8229,10 +8400,15 @@ function tandasDe(s){
       tandas.push({colores: acumulado, segundos: p.segundos});
       acumulado = [];
     }
-    else if(p.tipo === 'vulcanizar') vulcanizado = p.segundos;
-  }
-  // Colores inyectados que no llegaron a hornearse: se enseñan igual, porque
-  // callarlo sería esconder un hueco en la receta.
+    else if(p.tipo === 'vulcanizar'){
+      tandas.push({colores: acumulado, segundos: p.segundos,
+                   vul: true, ultimo: i === ultimoVul});
+      acumulado = [];
+      vulcanizado = p.segundos;
+    }
+  });
+  // Colores inyectados que no llegaron a hornearse NI a vulcanizarse: eso sí
+  // es un hueco de verdad en la receta y se dice.
   if(acumulado.length) tandas.push({colores: acumulado, segundos: null, sinHornear: true});
   return {tandas, vulcanizado};
 }
@@ -8421,15 +8597,17 @@ function panelMolde(s){
 
 function panelPasos(s){
   const pasos = s.pasos || [];
+  const ultimoVul = pasos.map(p => p.tipo).lastIndexOf('vulcanizar');
   return `<div class="s-panel" data-panel="2">
     ${pasos.length ? pasos.map((p, i)=>{
       const t = tipoPaso(p.tipo);
       const hito = p.tipo === 'vulcanizar';
+      const nombreHito = i === ultimoVul ? 'Vulcanizado final' : 'Vulcanizado';
       return `<div class="s-paso${hito ? ' hito' : ''}">
         <div class="s-paso-n">${i+1}</div>
         <div class="s-paso-q">${t.color && p.ref
           ? `<i style="background:${colorHexDe(p.ref)}"></i>${esc(t.t)} ${esc(p.nombre || '')}`
-          : esc(hito ? 'Vulcanizado final' : t.t)}</div>
+          : esc(hito ? nombreHito : t.t)}</div>
         ${p.segundos != null && p.segundos !== ''
           ? `<div class="s-paso-s">${fmt(p.segundos)}<em>s</em></div>` : ''}
       </div>`;
@@ -8473,22 +8651,21 @@ function panelParametros(s){
         <span class="s-nota">${tandas.length} ${tandas.length===1?'tanda':'tandas'} · salen de los pasos</span>
       </div>
       <div class="s-bloque-cuerpo">
-        ${tandas.length ? tandas.map((t, i)=>`<div class="s-grupo">
+        ${tandas.length ? tandas.map((t, i)=>`<div class="s-grupo${t.vul ? ' vulca' : ''}">
           <div class="s-grupo-top">
             <div class="s-grupo-cols">${t.colores.length
               ? t.colores.map(c=>`<span class="s-chip"><i style="background:${colorHexDe(c.ref)}"></i>${esc(c.nombre)}</span>`).join('<span class="s-mas">+</span>')
-              : '<span class="flojo">Sin colores antes de este horneado</span>'}</div>
+              : '<span class="flojo">Sin colores nuevos en esta tanda</span>'}</div>
             <div class="s-grupo-t">${t.segundos != null
               ? `${fmt(t.segundos)}<em>s</em>` : '<span class="flojo">—</span>'}</div>
           </div>
-          ${t.sinHornear ? '<div class="s-grupo-pie avisa">Inyectados y sin hornear después</div>'
-            : `<div class="s-grupo-pie">${i === 0 ? 'Primera tanda' : 'Tanda ' + (i+1)}</div>`}
+          <div class="s-grupo-pie${t.sinHornear ? ' avisa' : ''}">${
+            t.sinHornear ? 'Inyectados y sin hornear después'
+            : t.vul ? (t.ultimo ? 'Vulcanizado final' : 'Vulcanizado')
+            : (i === 0 ? 'Primera tanda' : 'Tanda ' + (i+1))}</div>
         </div>`).join('') : '<p class="s-nada">No hay horneados en los pasos.</p>'}
       </div>
     </div>
-    ${vulcanizado != null ? `<div class="s-final">
-      <span class="q">Vulcanizado final</span>
-      <span class="v">${fmt(vulcanizado)}<em>s</em></span></div>` : ''}
   </div>`;
 }
 
@@ -8553,6 +8730,11 @@ function pintarFichaSello(){
 
   enlazarFotos($ficha);
   document.getElementById('volver-s').onclick = cerrarFicha;
+  for(const el of $ficha.querySelectorAll('.s-foto[data-foto]'))
+    el.onclick = ()=>{
+      const cual = el.dataset.foto.endsWith('-molde') ? 'molde' : 'sello';
+      verFotoGrande(el.dataset.foto, s.nombre + ' · ' + cual);
+    };
   $ficha.querySelector('[data-cli-s]')?.addEventListener('click', e=>{
     $q.value = e.currentTarget.dataset.cliS;
     actualizar();
@@ -8966,11 +9148,13 @@ async function hojaSello(s){
   brindis('Preparando la hoja…');
   const [fs, fm] = await Promise.all([dataDe('sello'), dataDe('molde')]);
 
+  const ultimoVulHoja = (s.pasos || []).map(p => p.tipo).lastIndexOf('vulcanizar');
   const paso = (p, i)=>{
     const t = tipoPaso(p.tipo);
     const q = t.color && p.ref
       ? `<i style="background:${colorHexDe(p.ref)}"></i>${t.t} ${esc(p.nombre||'')}`
-      : esc(p.tipo === 'vulcanizar' ? 'Vulcanizado final' : t.t);
+      : esc(p.tipo === 'vulcanizar'
+          ? (i === ultimoVulHoja ? 'Vulcanizado final' : 'Vulcanizado') : t.t);
     const v = p.segundos != null && p.segundos !== '' ? `${fmt(p.segundos)} s` : '';
     return `<div class="hp"><span class="n">${String(i+1).padStart(2,'0')}</span>
       <span class="q">${q}</span><span class="v">${v}</span></div>`;
@@ -9063,10 +9247,10 @@ async function hojaSello(s){
           || '<div class="r"><span>—</span></div>'}
       </div>` : ''}
       <div class="par"><h3>Horneados</h3>
-        ${tandas.map(t=>`<div class="r"><b>${t.colores.map(c=>esc(c.nombre)).join(' + ') || '—'}</b>
+        ${tandas.map(t=>`<div class="r"><b>${t.colores.map(c=>esc(c.nombre)).join(' + ') || '—'}${
+            t.vul ? ' <em>(vulcanizado)</em>' : ''}</b>
           <span>${t.segundos != null ? fmt(t.segundos) + ' s' : 'sin hornear'}</span></div>`).join('')
           || '<div class="r"><span>—</span></div>'}
-        ${vulcanizado != null ? `<div class="r"><b>Vulcanizado final</b><span>${fmt(vulcanizado)} s</span></div>` : ''}
       </div>
     </div>
   </div>
@@ -9108,7 +9292,12 @@ function actualizarSellos(){
 function pintarSolapas(){
   const $s = document.getElementById('solapas');
   if(!$s) return;
-  $s.hidden = !HAY_SELLOS;
+  /* Sin sellos (el archivo suelto) el selector no se ESCONDE: se quita del
+     todo. Escondido seguía estando en el documento, y cualquier búsqueda por
+     ".seg" lo encontraba antes que las pestañas de verdad. Ya se comió una
+     prueba de las de imprimir. */
+  if(!HAY_SELLOS){ $s.remove(); return; }
+  $s.hidden = false;      // en el marcado nace oculto, hasta saber si hay sellos
   for(const b of $s.querySelectorAll('[data-sec]'))
     b.setAttribute('aria-pressed', String(b.dataset.sec === SECCION));
   document.body.dataset.seccion = SECCION;
@@ -9163,7 +9352,7 @@ window.__app = {
   pantallaPigmentos, empezarRepaso,
   preparar, retomarPesaje, guardarPesaje, leerPesajeGuardado,
   tieneFoto, puedeFoto, hacerFoto, verFoto, procesarFoto, HAY_FOTOS,
-  prepararFoto, recortarFoto, pantallaFoto,
+  prepararFoto, recortarFoto, pantallaFoto, verFotoGrande, cerrarVisor,
   get SECCION(){ return SECCION; }, cambiarSeccion, HAY_SELLOS,
   get SELLOS(){ return DATOS.sellos.slice(); }, porIdS,
   abrirSello, editarSello, borrarSello, guardarSello, hojaSello,

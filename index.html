@@ -597,6 +597,40 @@ button{background:none;border:0;cursor:pointer;padding:0}
 .hist-g{font-size:15px; font-weight:680; flex:0 0 auto}
 .hist-g em{font-style:normal; font-size:11px; font-weight:500; color:var(--texto-3); margin-left:2px}
 
+/* La fila del historial lleva DOS cosas que se pulsan: ir al color y deshacer.
+   Por eso es un contenedor con dos botones dentro y no un botón grande: un
+   botón dentro de otro botón no es HTML válido y los navegadores lo arreglan
+   por su cuenta, cada uno a su manera. */
+.hist-fila{gap:4px}
+/* text-align: antes .hist-ir compartía elemento con .hist y heredaba de ella
+   el alineado a la izquierda. Ahora es un <button> suelto, y los botones vienen
+   centrados de fábrica: sin esto, el nombre sale centrado en mitad de la fila. */
+.hist-fila .hist-ir{
+  flex:1 1 auto; min-width:0; width:auto; text-align:left;
+  display:flex; align-items:center; gap:11px;
+}
+.hist-muerta{cursor:default; opacity:.72}
+.hist-desh{
+  flex:0 0 auto; width:36px; height:36px; display:grid; place-items:center;
+  border:1px solid var(--linea); border-radius:var(--r-m); cursor:pointer;
+  background:transparent; color:var(--texto-3);
+  transition:background-color .14s var(--salida), color .14s var(--salida),
+             border-color .14s var(--salida);
+}
+.hist-desh svg{width:16px;height:16px}
+.hist-desh:hover{background:var(--marca-suave); color:var(--marca); border-color:var(--marca)}
+.hist-desh:active{scale:.94}
+/* Las pestañas del historial, con su cuenta. */
+.seg-hist{margin-bottom:2px}
+.seg-hist em{
+  font-style:normal; font-size:11px; font-weight:600; opacity:.62;
+  margin-left:3px; font-variant-numeric:tabular-nums;
+}
+@media (max-width:420px){
+  .seg-hist button{padding-left:8px; padding-right:8px; font-size:12.5px}
+  .seg-hist em{display:none}
+}
+
 .pig-btns{display:flex; gap:6px; flex:0 0 auto}
 .pig .btn{flex:0 0 auto}
 @media (max-width:520px){
@@ -2007,17 +2041,18 @@ function crearNube({url, clave}){
 
   /** Todo lo que ha cambiado desde `desde`. `desde` nulo = todo. */
   async function bajar(desde){
-    const [formulas, materias, ajustes, preparaciones] = await Promise.all([
+    const [formulas, materias, ajustes, preparaciones, registro] = await Promise.all([
       bajarTabla('colores_formulas', desde),
       bajarTabla('colores_materias', desde),
       bajarTabla('colores_ajustes', desde),
       bajarTabla('colores_preparaciones', desde),
+      bajarTabla('colores_registro', desde),
     ]);
     apuntarTocadas(formulas);
-    const fechas = [...formulas, ...materias, ...ajustes, ...preparaciones]
+    const fechas = [...formulas, ...materias, ...ajustes, ...preparaciones, ...registro]
                      .map(f => f.tocada).filter(Boolean);
     return {
-      formulas, materias, ajustes, preparaciones,
+      formulas, materias, ajustes, preparaciones, registro,
       // El corte para la próxima vez sale de los DATOS, no del reloj de este
       // aparato: si el móvil va atrasado, con el reloj local se perdería todo
       // lo escrito en ese hueco y nadie se enteraría.
@@ -2059,6 +2094,36 @@ function crearNube({url, clave}){
       if(e.sinRed){ encolar('prep', p); return false; }
       throw e;
     }
+  }
+
+  /* Una línea del registro. Nunca se manda con merge-duplicates: si por lo que
+     sea se reintenta con el mismo id, que el servidor lo rechace por duplicado
+     en vez de sobrescribir en silencio la línea que ya había. En una tabla que
+     nadie puede corregir, sobrescribir sería la única forma de colarse. */
+  async function guardarRegistro(e){
+    try{
+      await pedir('/rest/v1/colores_registro', {
+        method: 'POST',
+        headers: {'Prefer': 'return=minimal'},
+        body: JSON.stringify([e]),
+      });
+      return true;
+    }catch(err){
+      if(err.sinRed){ encolar('registro', e); return false; }
+      // Duplicado: ya estaba apuntado. No es un fallo, es un reintento.
+      if(err.status === 409) return true;
+      throw err;
+    }
+  }
+
+  /* Las líneas más viejas que la copia local, para "ver más antiguas".
+     Necesita conexión: lo viejo no está en el aparato a propósito, que si no
+     el espejo local crecería sin fin. */
+  async function masRegistro(antesDe, cuantas = 200){
+    const q = `/rest/v1/colores_registro?select=*` +
+              (antesDe ? `&cuando=lt.${encodeURIComponent(antesDe)}` : '') +
+              `&order=cuando.desc&limit=${cuantas}`;
+    return (await pedir(q)) || [];
   }
 
   /** La primera vez: se suben las 860 enteras. */
@@ -2160,6 +2225,7 @@ function crearNube({url, clave}){
         }
         else if(tipo === 'materia') await subirMaterias([obj]);
         else if(tipo === 'prep') await subirPreps([obj]);
+        else if(tipo === 'registro') await guardarRegistro(obj);
         else await subirAjustes([obj]);
         delete cola[k]; idas++;
       }catch(e){
@@ -2232,6 +2298,7 @@ function crearNube({url, clave}){
       else if(a.clave === 'grupos_equivalencia') d.grupos_equivalencia = a.datos;
     }
     d.historial = res.preparaciones || [];
+    d.registro = res.registro || [];
     if(!Array.isArray(d.grupos_equivalencia)) d.grupos_equivalencia = [];
     return d;
   }
@@ -2476,6 +2543,7 @@ function crearNube({url, clave}){
     get rol(){ return rol; },
     entrar, salir, arrancar,
     bajar, sembrar, guardarFormula, guardarMateria, subirAjustes, guardarPreparacion,
+    guardarRegistro, masRegistro,
     pendientes, vaciarCola,
     leerEspejo, guardarEspejo, borrarEspejo, montarDatos,
     choques, resolverChoque,
@@ -3028,9 +3096,11 @@ indicesListos = true;
    lo lleven vuelven a la cola sin que tengas que acordarte de nada.
    ═══════════════════════════════════════════════════════════════════ */
 let materiasDe = new Map();     // fórmula -> Set de materias primas, ya resueltas
+let formulasDe = new Map();     // fórmula -> Set de fórmulas que lleva dentro
 
 function calcularMateriasDe(){
   materiasDe = new Map();
+  formulasDe = new Map();
   const enCurso = new Set();
   const de = id=>{
     if(materiasDe.has(id)) return materiasDe.get(id);
@@ -3038,18 +3108,24 @@ function calcularMateriasDe(){
     enCurso.add(id);
     const f = porId.get(id);
     const out = new Set();
+    const hijas = new Set();
     if(f) for(const i of f.ingredientes){
       if(i.tipo === 'materia') out.add(i.ref);
-      else if(i.tipo === 'formula') for(const m of de(i.ref)) out.add(m);
+      else if(i.tipo === 'formula'){
+        hijas.add(i.ref);
+        for(const m of de(i.ref)) out.add(m);
+        for(const n of (formulasDe.get(i.ref) || [])) hijas.add(n);
+      }
     }
     enCurso.delete(id);
     materiasDe.set(id, out);
+    formulasDe.set(id, hijas);
     return out;
   };
   for(const f of DATOS.formulas) de(f.id);
 }
 
-/** {aldia, motivo:'nunca'|'pigmento'|null, cambiados:[materias]} */
+/** {aldia, motivo:'nunca'|'pigmento'|'anidada'|null, cambiados, tocadas} */
 function estadoAct(f){
   const cambiados = [];
   for(const id of (materiasDe.get(f.id) || [])){
@@ -3058,9 +3134,42 @@ function estadoAct(f){
        (!f.fecha_actualizacion || m.cambiado_el > f.fecha_actualizacion))
       cambiados.push(m);
   }
-  if(!f.actualizada_pigmentos) return {aldia: false, motivo: 'nunca', cambiados};
-  if(cambiados.length) return {aldia: false, motivo: 'pigmento', cambiados};
-  return {aldia: true, motivo: null, cambiados: []};
+  /* Y las fórmulas que lleva DENTRO.
+
+     Esto faltaba, y era un agujero de verdad: hay una base que está metida
+     dentro de 45 fórmulas. Si le cambiabas la receta, esas 45 cambiaban de
+     color y seguían con el ✓ verde de "al día". La app te decía que estaban
+     bien cuando ya no lo estaban.
+
+     Se resuelve comparando fechas, no marcando nada: si una fórmula que va
+     dentro se tocó DESPUÉS de que dieras esta por buena, esta hay que volver
+     a mirarla. Sin escribir 45 filas cada vez que tocas una base —que sería
+     una tormenta de sincronización—, funciona hacia atrás con lo que ya hay
+     guardado, y no se puede desincronizar porque no se guarda nada.
+
+     OJO a QUÉ fecha se compara. `fecha_actualizacion` vale para dos cosas —se
+     pone al editar Y al darla por buena— y usarla aquí tenía un efecto que
+     salió en las pruebas: repasando el recetario de arriba abajo, al marcar
+     una base como buena descolocabas a las 45 que la llevan, así que un repaso
+     completo no llegaba nunca a cero. Y no tiene sentido: que alguien
+     CONFIRME una fórmula no cambia su color; solo lo cambia tocarle la receta.
+     De ahí `receta_tocada`, que se pone únicamente al cambiar ingredientes.
+
+     Para las fórmulas de antes de esto no hay `receta_tocada`, así que no
+     disparan la cascada: de una fecha vieja no hay forma de saber si vino de
+     un cambio o de una confirmación, y avisar de más en 860 fórmulas sería
+     enseñar un aviso que nadie va a leer. De aquí en adelante es exacto. */
+  const tocadas = [];
+  for(const id of (formulasDe.get(f.id) || [])){
+    const h = porId.get(id);
+    if(h && h.receta_tocada && f.fecha_actualizacion &&
+       h.receta_tocada > f.fecha_actualizacion)
+      tocadas.push(h);
+  }
+  if(!f.actualizada_pigmentos) return {aldia: false, motivo: 'nunca', cambiados, tocadas};
+  if(cambiados.length) return {aldia: false, motivo: 'pigmento', cambiados, tocadas};
+  if(tocadas.length)   return {aldia: false, motivo: 'anidada', cambiados, tocadas};
+  return {aldia: true, motivo: null, cambiados: [], tocadas: []};
 }
 const porRevisar = f => !estadoAct(f).aldia;
 
@@ -3565,10 +3674,11 @@ function haceCuanto(iso){
    hay que hacer 860 veces estaba escondida detrás de un scroll. */
 function selloActualizacion(f){
   const e = estadoAct(f);
-  const cls = e.aldia ? 'etiqueta ok' : e.motivo === 'pigmento' ? 'etiqueta avisa' : 'etiqueta';
+  const avisa = e.motivo === 'pigmento' || e.motivo === 'anidada';
+  const cls = e.aldia ? 'etiqueta ok' : avisa ? 'etiqueta avisa' : 'etiqueta';
   const icono = e.aldia
     ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>'
-    : e.motivo === 'pigmento'
+    : avisa
       ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>'
       : '';
   const txt = e.aldia
@@ -3576,7 +3686,10 @@ function selloActualizacion(f){
     : e.motivo === 'pigmento'
       ? `Por revisar: cambió ${e.cambiados.slice(0,2).map(m=>esc(m.nombre)).join(' y ')}${
           e.cambiados.length > 2 ? ` y ${e.cambiados.length - 2} más` : ''}`
-      : 'Sin actualizar';
+      : e.motivo === 'anidada'
+        ? `Por revisar: cambió ${e.tocadas.slice(0,2).map(h=>esc(h.nombre)).join(' y ')}${
+            e.tocadas.length > 2 ? ` y ${e.tocadas.length - 2} más` : ''}`
+        : 'Sin actualizar';
   // Al taller se le enseña, pero no se le deja tocar: el sello es un sello.
   if(!puedeEditar) return `<span class="${cls}">${icono}${txt}</span>` +
     (e.aldia && f.fecha_actualizacion ? `<span class="etiqueta">${fecha(f.fecha_actualizacion)}</span>` : '');
@@ -3790,9 +3903,12 @@ function pintarFicha(){
   document.getElementById('foto-ver')?.addEventListener('click', ()=>verFoto(f));
   document.getElementById('sello-act')?.addEventListener('click', ()=>{
     const marcar = !estadoAct(f).aldia;
+    const antesSello = fotoDe(f);
     if(anotar(f, {actualizada_pigmentos: marcar,
-                  fecha_actualizacion: marcar ? new Date().toISOString() : null}))
+                  fecha_actualizacion: marcar ? new Date().toISOString() : null})){
+      apuntar(marcar ? 'marcada' : 'desmarcada', f, {antes: antesSello});
       brindis(marcar ? 'Marcada con los pigmentos nuevos' : 'Marca quitada');
+    }
     pintarFicha(); actualizar();
   });
   $ficha.querySelector('[data-cliente]')?.addEventListener('click', e=>{
@@ -4134,6 +4250,13 @@ function explicaActualizacion(f){
     ${e.cambiados.length === 1 ? 'cambió' : 'cambiaron'}
     ${e.cambiados.map(m=>`<b>${esc(m.nombre)}</b> (${fecha(m.cambiado_el)})`).join(', ')}.
     Hay que volver a mirarla.</p>`;
+  if(e.motivo === 'anidada') return `<p class="estado-act avisa">Estaba dada por buena${
+    f.fecha_actualizacion ? ' el ' + fecha(f.fecha_actualizacion) : ''}, pero después
+    ${e.tocadas.length === 1 ? 'se tocó la receta de' : 'se tocaron las recetas de'}
+    ${e.tocadas.slice(0,3).map(h=>`<b>${esc(h.nombre)}</b> (${fecha(h.receta_tocada)})`).join(', ')}${
+      e.tocadas.length > 3 ? ` y ${e.tocadas.length - 3} más` : ''}, que
+    ${e.tocadas.length === 1 ? 'va' : 'van'} dentro de esta. Su color ha cambiado,
+    así que el de esta también.</p>`;
   return `<p class="estado-act">Todavía con las cantidades antiguas: nadie la ha
     dado por buena con los pigmentos de ahora.</p>`;
 }
@@ -4555,72 +4678,291 @@ const quienDe = e => e.papel === 'taller' ? 'Taller' : 'Juanjo';
 
 let topeHist = 60;      // se enseña de poco en poco: son cientos de líneas
 
+/* ═══════════════════════════════════════════════════════════════════
+   EL HISTORIAL
+
+   Una sola lista con todo lo que ha pasado, y pestañas encima para acotar.
+   No tres historiales separados: cuando algo está mal no sabes de antemano en
+   qué apartado mirar, lo que quieres es "¿qué pasó el martes por la tarde?", y
+   eso solo lo contesta una lista única en orden.
+
+   Bebe de DOS sitios y se juntan aquí:
+     · REGISTRO   -> lo que se cambió (crear, tocar, renombrar, borrar, fotos)
+     · HISTORIAL  -> los botes preparados, que ya tenían su propia tabla
+
+   Y no es solo para mirar: donde se puede, hay botón de deshacer. Un registro
+   sin eso es un museo; tú lo abres cuando algo ha salido mal.
+   ═══════════════════════════════════════════════════════════════════ */
+const PESTANAS = [
+  {k: 'todo',    t: 'Todo'},
+  {k: 'formula', t: 'Fórmulas'},
+  {k: 'bote',    t: 'Botes'},
+  {k: 'foto',    t: 'Fotos'},
+];
+const FAMILIA = {
+  creada: 'formula', cambiada: 'formula', renombrada: 'formula',
+  borrada: 'formula', restaurada: 'formula', marcada: 'formula',
+  desmarcada: 'formula', pigmento: 'formula', 'pigmento-quitado': 'formula',
+  'foto-puesta': 'foto', 'foto-cambiada': 'foto', 'foto-quitada': 'foto',
+  bote: 'bote',
+};
+// Lo que se puede devolver a como estaba. Las fotos no: el archivo de antes ya
+// no existe en ninguna parte, y un botón que promete y no cumple es peor que
+// no tener botón. Un bote preparado tampoco se "deshace": se preparó.
+const SE_DESHACE = new Set(['cambiada', 'renombrada', 'restaurada',
+                            'borrada', 'marcada', 'desmarcada']);
+
+let pestanaHist = 'todo';
+let viejasHist = [];          // lo que se ha traído de la nube al pedir más
+
+function textoDe(e){
+  const d = e.detalle || {};
+  switch(e.que){
+    case 'creada':     return 'Creada';
+    case 'cambiada':   return 'Receta cambiada' + (d.motivo ? ' · ' + d.motivo : '');
+    case 'renombrada': return 'Renombrada' + (d.nombreAntes ? ', antes «' + d.nombreAntes + '»' : '');
+    case 'borrada':    return 'Eliminada';
+    case 'restaurada': return 'Vuelta a una versión anterior' + (d.motivo ? ' · ' + d.motivo : '');
+    case 'marcada':    return 'Dada por buena con los pigmentos nuevos';
+    case 'desmarcada': return 'Quitada la marca de pigmentos nuevos';
+    case 'foto-puesta':   return 'Foto puesta' + (d.kb ? ` · ${d.an}×${d.al} · ${d.kb} KB` : '');
+    case 'foto-cambiada': return 'Foto cambiada' + (d.kb ? ` · ${d.an}×${d.al} · ${d.kb} KB` : '');
+    case 'foto-quitada':  return 'Foto quitada';
+    case 'pigmento':   return `Pigmento cambiado · ${d.afectadas || 0} fórmula${
+                              d.afectadas === 1 ? '' : 's'} a revisar`;
+    case 'pigmento-quitado': return 'Quitada la marca del pigmento';
+    case 'bote':       return 'Bote preparado';
+    default:           return e.que;
+  }
+}
+
+/** Junta las dos fuentes en una sola lista, de lo más nuevo a lo más viejo. */
+function lineasHist(){
+  const botes = HISTORIAL.map(e=>({
+    id: e.id, que: 'bote', formula: e.formula, nombre: e.nombre,
+    cuando: e.cuando, papel: e.papel, gramos: e.gramos,
+  }));
+  const todo = [...REGISTRO, ...viejasHist, ...botes];
+  // Sin repetir: al pedir más antiguas a la nube pueden volver algunas que ya
+  // estaban en la copia local.
+  const vistos = new Set();
+  const limpio = [];
+  for(const e of todo){
+    if(!e || !e.id || vistos.has(e.id)) continue;
+    vistos.add(e.id); limpio.push(e);
+  }
+  limpio.sort((a,b)=> String(b.cuando).localeCompare(String(a.cuando)));
+  return limpio;
+}
+
 function pantallaHistorial(){
   const pintar = ()=>{
-    // Del más nuevo al más viejo: lo que interesa es lo de hoy.
-    const todo = HISTORIAL.slice().reverse();
-    const trozo = todo.slice(0, topeHist);
-    $dt.textContent = 'Lo que se ha preparado';
+    $dt.textContent = 'Historial';
+    const todas = lineasHist();
+    const lista = pestanaHist === 'todo'
+      ? todas
+      : todas.filter(e => FAMILIA[e.que] === pestanaHist);
+    const trozo = lista.slice(0, topeHist);
 
-    if(!todo.length){
-      $dc.innerHTML = `<div class="rep-fin" style="padding:26px 0">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.6v14.8M8.6 19.4h6.8M4.4 8h15.2"/><path d="M4.4 8 2.2 12.9a2.4 2.4 0 0 0 4.4 0L4.4 8Z"/><path d="M19.6 8l-2.2 4.9a2.4 2.4 0 0 0 4.4 0L19.6 8Z"/></svg>
-        <b>Todavía no hay nada apuntado</b>
-        <p>Cada vez que alguien termine un pesaje, quedará aquí el color, los
-          gramos y el día. No hay que apuntar nada a mano.</p></div>`;
-      $dp.innerHTML = `<button class="btn btn-1" data-cerrar>Cerrar</button>`;
-      $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
+    const seg = `<div class="seg seg-hist" role="tablist">${PESTANAS.map(p=>{
+      const n = p.k === 'todo' ? todas.length
+                : todas.filter(e=>FAMILIA[e.que] === p.k).length;
+      return `<button data-pes="${p.k}" aria-pressed="${pestanaHist===p.k}">${p.t}${
+        n ? ` <em>${n}</em>` : ''}</button>`;
+    }).join('')}</div>`;
+
+    if(!lista.length){
+      $dc.innerHTML = seg + `<div class="rep-fin" style="padding:22px 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4.6l3 1.8"/><circle cx="12" cy="12" r="9"/></svg>
+        <b>Nada apuntado todavía${pestanaHist === 'todo' ? '' : ' en este apartado'}</b>
+        <p>Aquí queda todo lo que se hace: colores nuevos, recetas tocadas,
+          fotos y botes preparados, con quién lo hizo y qué día.</p></div>`;
+      enlazarHist(pintar);
       return;
     }
 
-    // Se agrupa por día, que es como se mira un cuaderno.
     let dia = null;
     const filas = [];
     for(const e of trozo){
       const d = diaDe(e.cuando);
       if(d !== dia){
         dia = d;
-        const delDia = todo.filter(x=>diaDe(x.cuando) === d);
-        const kg = delDia.reduce((t,x)=>t + (+x.gramos||0), 0);
+        const delDia = lista.filter(x=>diaDe(x.cuando) === d);
+        const kg = delDia.reduce((t,x)=>t + (+x.gramos || 0), 0);
         filas.push(`<div class="hist-dia"><span>${esc(d)}</span>
-          <small>${delDia.length} bote${delDia.length===1?'':'s'} · ${
-            kg >= 1000 ? (kg/1000).toFixed(1).replace('.',',') + ' kg' : fmt(kg) + ' g'}</small></div>`);
+          <small>${delDia.length} ${delDia.length===1?'cosa':'cosas'}${
+            kg ? ' · ' + (kg >= 1000 ? (kg/1000).toFixed(1).replace('.',',') + ' kg'
+                                     : fmt(kg) + ' g') : ''}</small></div>`);
       }
-      const f = porId.get(e.formula);
-      const hex = f ? color(f).hex : null;
-      // La FILA entera es el botón, no el nombre: diez nombres subrayados
-      // seguidos hacen ruido, y con las manos sucias se agradece un blanco
-      // grande donde dar. Las de fórmulas borradas no llevan a ningún sitio.
-      filas.push(f
-        ? `<button class="hist hist-ir" data-ir-h="${esc(e.formula)}">
-             <div class="hist-color" style="background:${hex}"></div>
-             <div class="hist-nom">${esc(e.nombre)}
-               <small>${esc(horaDe(e.cuando))} · ${esc(quienDe(e))}</small></div>
-             <div class="hist-g num">${fmt(e.gramos)}<em>g</em></div>
-             <svg class="hist-mas-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
-           </button>`
-        : `<div class="hist">
-             <div class="hist-color" style="background:repeating-linear-gradient(45deg,var(--linea),var(--linea) 5px,var(--panel-2) 5px,var(--panel-2) 10px)"></div>
-             <div class="hist-nom">${esc(e.nombre)} <small>${esc(horaDe(e.cuando))} · ${
-               esc(quienDe(e))} · esta fórmula ya no existe</small></div>
-             <div class="hist-g num">${fmt(e.gramos)}<em>g</em></div>
-           </div>`);
+      filas.push(filaHist(e));
     }
-    $dc.innerHTML = `<div class="hist-lista">${filas.join('')}</div>` +
-      (todo.length > topeHist
+
+    const masLocales = lista.length > topeHist;
+    $dc.innerHTML = seg + `<div class="hist-lista">${filas.join('')}</div>` +
+      (masLocales
         ? `<button class="btn" id="hist-mas" style="margin-top:14px;width:100%">
-             Ver más (quedan ${todo.length - topeHist})</button>` : '');
+             Ver más (quedan ${lista.length - topeHist})</button>`
+        : (MODO === 'nube'
+          ? `<button class="btn" id="hist-nube" style="margin-top:14px;width:100%">
+               Buscar más antiguas en la nube</button>
+             <p class="flojo" style="font-size:12.5px;margin:8px 2px 0">
+               En el aparato se guardan las ${TOPE_REGISTRO} últimas. Lo más
+               viejo sigue en la nube y hace falta conexión para verlo.</p>` : ''));
+    enlazarHist(pintar);
+  };
+
+  function enlazarHist(pintar){
     $dp.innerHTML = `<button class="btn btn-1" data-cerrar>Cerrar</button>`;
     $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
+    for(const b of $dc.querySelectorAll('[data-pes]'))
+      b.onclick = ()=>{ pestanaHist = b.dataset.pes; topeHist = 60; pintar(); };
     document.getElementById('hist-mas')?.addEventListener('click', ()=>{
       topeHist += 100; pintar();
     });
+    document.getElementById('hist-nube')?.addEventListener('click', async e=>{
+      const b = e.currentTarget;
+      b.disabled = true; b.textContent = 'Buscando…';
+      const masViejo = lineasHist().reduce(
+        (m, x)=> (!m || String(x.cuando) < m) ? String(x.cuando) : m, null);
+      try{
+        const mas = await nube.masRegistro(masViejo, 200);
+        if(!mas.length) brindis('No hay nada más antiguo');
+        else{
+          // A propósito NO se guardan en el aparato: son para mirar ahora. Si
+          // se metieran en la copia local, empujarían fuera a las recientes,
+          // que son las que hacen falta sin cobertura.
+          viejasHist = viejasHist.concat(mas);
+          topeHist += mas.length;
+          brindis(`${mas.length} líneas más antiguas`);
+        }
+      }catch(err){
+        brindis(err && err.sinRed ? 'Hace falta conexión para ver lo más antiguo'
+                                  : 'No se ha podido: ' + (err.message || 'error'));
+      }
+      pintar();
+    });
     for(const b of $dc.querySelectorAll('[data-ir-h]'))
       b.onclick = ()=>{ const id = b.dataset.irH; cerrarTodo(); setTimeout(()=>abrir(id), 60); };
-  };
+    for(const b of $dc.querySelectorAll('[data-desh]'))
+      b.onclick = ()=>confirmarDeshacer(b.dataset.desh, pintar);
+  }
+
+  pestanaHist = 'todo';
   topeHist = 60;
+  viejasHist = [];
   pintar();
   if(!$dlg.open) $dlg.showModal();
+}
+
+function filaHist(e){
+  const f = e.formula ? porId.get(e.formula) : null;
+  const rayas = 'repeating-linear-gradient(45deg,var(--linea),var(--linea) 5px,var(--panel-2) 5px,var(--panel-2) 10px)';
+  // Un pigmento NO es una fórmula borrada: pintarle las rayas de "ya no
+  // existe" haría pensar que se ha perdido algo. Se le pone su color.
+  const esPig = e.que === 'pigmento' || e.que === 'pigmento-quitado';
+  const mp = esPig ? materias.get((e.detalle || {}).materia) : null;
+  const chip = f
+    ? `<div class="hist-color" style="background:${color(f).hex}"${marcaFoto(f.id)}></div>`
+    : esPig
+      ? `<div class="hist-color" style="background:${mp && mp.hex_referencia || 'var(--panel-2)'}"></div>`
+      : `<div class="hist-color" style="background:${rayas}" title="Ya no existe"></div>`;
+  const derecha = e.que === 'bote'
+    ? `<div class="hist-g num">${fmt(e.gramos)}<em>g</em></div>`
+    : '';
+  const puedeDeshacer = puedeEditar && SE_DESHACE.has(e.que) &&
+                        (e.que === 'borrada' ? !!(e.detalle && e.detalle.completa)
+                                             : !!(f && e.detalle && e.detalle.antes));
+  const dentro =
+    `${chip}<div class="hist-nom">${esc(e.nombre || '—')}
+       <small>${esc(horaDe(e.cuando))} · ${esc(quienDe(e))} · ${esc(textoDe(e))}${
+         !f && e.formula && !esPig ? ' · ya no existe' : ''}</small></div>${derecha}`;
+
+  return `<div class="hist hist-fila">` +
+    (f ? `<button class="hist-ir" data-ir-h="${esc(e.formula)}">${dentro}
+            <svg class="hist-mas-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+          </button>`
+       : `<div class="hist-ir hist-muerta">${dentro}</div>`) +
+    (puedeDeshacer
+      ? `<button class="hist-desh" data-desh="${esc(e.id)}" title="Deshacer esto"
+                 aria-label="Deshacer: ${esc(textoDe(e))}">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h11a5 5 0 0 1 0 10H8"/><path d="m7 4-4 4 4 4"/></svg>
+         </button>` : '') +
+    `</div>`;
+}
+
+/* Deshacer SIEMPRE pregunta. Esto se usa con el móvil en la mano y las manos
+   sucias, y un toque sin querer que devuelva una fórmula a como estaba hace
+   más daño que el fallo que venías a arreglar. */
+function confirmarDeshacer(id, volver){
+  const e = lineasHist().find(x=>x.id === id);
+  if(!e) return;
+  $dt.textContent = 'Deshacer';
+  const d = e.detalle || {};
+  $dc.innerHTML = `<p style="margin:0 0 12px">Se va a deshacer esto:</p>
+    <div class="hist-lista" style="margin-bottom:14px">${filaHist(e)}</div>
+    <p style="margin:0;font-size:14px;color:var(--texto-2)">
+      ${e.que === 'borrada'
+        ? `<b>${esc(e.nombre)}</b> vuelve al recetario tal y como estaba.`
+        : `<b>${esc(e.nombre)}</b> vuelve a como estaba antes de este cambio.`}
+      No se borra nada del historial: deshacer también deja su línea.</p>`;
+  $dp.innerHTML = `<button class="btn" id="desh-no">Cancelar</button>
+    <button class="btn btn-1" id="desh-si">Deshacer</button>`;
+  document.getElementById('desh-no').onclick = ()=>{ volver(); };
+  document.getElementById('desh-si').onclick = ()=>{
+    const r = deshacer(e);
+    brindis(r || 'Deshecho');
+    volver();
+  };
+}
+
+/** Devuelve un aviso si algo impide deshacer; nada si ha ido bien. */
+function deshacer(e){
+  if(!puedeEditar) return SIN_PERMISO;
+  const d = e.detalle || {};
+
+  if(e.que === 'borrada'){
+    if(!d.completa) return 'De esta no guardé copia entera';
+    if(porId.get(d.completa.id)) return 'Esa fórmula ya está en el recetario';
+    const f = {...d.completa, ingredientes: (d.completa.ingredientes || []).slice(),
+               historial: (d.completa.historial || []).slice()};
+    f.total = Math.round(f.ingredientes.reduce((s,i)=>s+i.cantidad,0)*10000)/10000;
+    DATOS.formulas.push(f); porId.set(f.id, f);
+    busq.push({f, n: norm(f.nombre), ing: norm(f.ingredientes.map(i=>i.nombre).join(' '))});
+    DATOS.formulas.sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+    cambios.borradas = cambios.borradas.filter(x=>x !== f.id);
+    cambios.nuevas.push(f);
+    guardar();
+    empujar(f);
+    apuntar('restaurada', f, {motivo: 'Recuperada del historial'});
+    reconstruir(); actualizar();
+    return `${f.nombre} está otra vez en el recetario`;
+  }
+
+  const f = porId.get(e.formula);
+  if(!f) return 'Esa fórmula ya no existe';
+  if(!d.antes) return 'De esto no guardé cómo estaba antes';
+  const a = d.antes;
+  const hist = (f.historial || []).slice();
+  hist.push({fecha: new Date().toISOString(),
+             texto: 'Deshecho desde el historial',
+             nombre: f.nombre, ingredientes: f.ingredientes});
+  apuntar('restaurada', f, {antes: fotoDe(f), motivo: 'Deshecho desde el historial'});
+  anotar(f, {
+    nombre: a.nombre || f.nombre,
+    ingredientes: (a.ingredientes || f.ingredientes).slice(),
+    historial: hist,
+    actualizada_pigmentos: !!a.actualizada_pigmentos,
+    fecha_actualizacion: a.fecha_actualizacion || null,
+    receta_tocada: new Date().toISOString(),
+    total: Math.round((a.ingredientes || f.ingredientes)
+             .reduce((s,i)=>s+i.cantidad,0)*10000)/10000,
+  });
+  const b = busq.find(x=>x.f.id === f.id);
+  if(b){ b.n = norm(f.nombre); b.ing = norm(f.ingredientes.map(i=>i.nombre).join(' ')); }
+  DATOS.formulas.sort((x,y)=>x.nombre.localeCompare(y.nombre,'es'));
+  reconstruir(); actualizar();
+  if(seleccion === f.id) pintarFicha();
+  return `${f.nombre} ha vuelto a como estaba`;
 }
 
 const CLAVE_HISTORIAL = 'historial-preparaciones';
@@ -4660,6 +5002,79 @@ function fundirHistorial(entradas){
 }
 
 const prepsDe = id => HISTORIAL.filter(e=>e.formula === id);
+
+/* ═══════════════════════════════════════════════════════════════════
+   EL REGISTRO: quién hizo qué y cuándo
+
+   Va aparte del historial que cada fórmula lleva dentro, y no es duplicar por
+   duplicar. Aquel historial VIVE DENTRO de la fórmula, así que al borrarla se
+   va con ella —y borrar una fórmula es justo cuando hace falta un registro—.
+   Aquí se copia el nombre y, en los borrados y los cambios, la versión de
+   antes: para poder deshacer aunque la fórmula ya no exista en ningún sitio.
+
+   Los BOTES no se apuntan aquí: siguen en su propia tabla, que ya funciona y
+   guarda los gramos. La pantalla junta las dos al pintarlas. Tener dos sitios
+   no es bonito, pero mover mil apuntes que ya están bien para que quede
+   ordenado sería arriesgar datos buenos a cambio de nada.
+
+   Y una regla que es la que da sentido a todo esto: EN EL SERVIDOR NADIE PUEDE
+   CORREGIR NI BORRAR el registro. Ni el taller, ni el editor. Si algo se
+   apuntó mal, se apunta encima una línea que lo corrige. Un cuaderno que se
+   puede reescribir no sirve para comprobar nada.
+   ═══════════════════════════════════════════════════════════════════ */
+const CLAVE_REGISTRO = 'registro-cambios';
+const TOPE_REGISTRO = 1000;      // lo viejo se queda en la nube, no en el móvil
+let REGISTRO = leerRegistroLocal();
+if(DATOS.registro){ fundirRegistro(DATOS.registro); delete DATOS.registro; }
+
+function leerRegistroLocal(){
+  try{ const r = JSON.parse(localStorage.getItem(CLAVE_REGISTRO) || '[]');
+       return Array.isArray(r) ? r : []; }catch(_){ return []; }
+}
+function guardarRegistroLocal(){
+  try{ localStorage.setItem(CLAVE_REGISTRO,
+         JSON.stringify(REGISTRO.slice(-TOPE_REGISTRO))); }catch(_){}
+}
+function fundirRegistro(entradas){
+  if(!entradas?.length) return 0;
+  const hay = new Set(REGISTRO.map(x=>x.id));
+  let n = 0;
+  for(const e of entradas){
+    if(!e || !e.id || hay.has(e.id)) continue;
+    hay.add(e.id); REGISTRO.push(e); n++;
+  }
+  if(n){
+    REGISTRO.sort((a,b)=> String(a.cuando).localeCompare(String(b.cuando)));
+    if(REGISTRO.length > TOPE_REGISTRO) REGISTRO = REGISTRO.slice(-TOPE_REGISTRO);
+    guardarRegistroLocal();
+  }
+  return n;
+}
+
+/* Apuntar una línea. Nunca revienta hacia fuera: si el registro fallara y eso
+   impidiera borrar una fórmula, el remedio sería peor que la enfermedad. */
+function apuntar(que, f, detalle){
+  try{
+    const e = {
+      id: 'r-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8),
+      que,
+      formula: f ? f.id : null,
+      nombre: f ? f.nombre : '',
+      detalle: detalle || null,
+      cuando: new Date().toISOString(),
+      papel: ROL,
+    };
+    REGISTRO.push(e);
+    guardarRegistroLocal();
+    if(MODO === 'nube') nube.guardarRegistro(e).catch(err=>falloNube(err));
+    return e;
+  }catch(_){ return null; }
+}
+
+/** Lo justo para poder devolver una fórmula a como estaba. */
+const fotoDe = f => ({nombre: f.nombre, ingredientes: f.ingredientes,
+                      actualizada_pigmentos: !!f.actualizada_pigmentos,
+                      fecha_actualizacion: f.fecha_actualizacion || null});
 
 function apuntarPreparacion(f, gramos){
   try{ localStorage.removeItem(CLAVE_PESAJE); }catch(_){}
@@ -5083,6 +5498,9 @@ function pantallaFoto(f, base, alTerminar){
     }
     try{
       const ida = await nube.guardarFoto(f.id, r.blob, reemplaza);
+      apuntar(reemplaza ? 'foto-cambiada' : 'foto-puesta', f,
+              {kb: Math.round(r.blob.size/1024), an: r.an, al: r.al,
+               corregida: r.corregida});
       brindis(ida
         ? `Foto guardada · ${r.an}×${r.al} · ${Math.round(r.blob.size/1024)} KB`
         : 'Sin cobertura: se subirá sola al volver');
@@ -5117,7 +5535,7 @@ function verFoto(f){
   document.getElementById('foto-fuera')?.addEventListener('click', async ()=>{
     const b = document.getElementById('foto-fuera');
     b.disabled = true;
-    try{ await nube.quitarFoto(f.id); brindis('Foto quitada'); }
+    try{ await nube.quitarFoto(f.id); apuntar('foto-quitada', f); brindis('Foto quitada'); }
     catch(e){
       b.disabled = false;
       return brindis(
@@ -5372,8 +5790,16 @@ function editar(f, esNueva=false, alSalir=null){
       notas: document.getElementById('ed-notas').value.trim(),
       total: Math.round(ings.reduce((s,i)=>s+i.cantidad,0)*10000)/10000,
       fecha_actualizacion: new Date().toISOString(),
+      // Solo se pone al TOCAR LA RECETA, nunca al dar por buena una fórmula.
+      // Es lo que hace que cambiar una base descoloque a las que la llevan
+      // dentro, sin que confirmarla las descoloque también.
+      receta_tocada: new Date().toISOString(),
     };
     const renombrada = !esNueva && nombre !== f.nombre;
+    // La versión de ANTES, para el registro. Hay que cogerla aquí, antes de
+    // que anotar() la pise: después ya no hay de dónde sacarla.
+    const antes = esNueva ? null : fotoDe(f);
+    const motivo = esNueva ? '' : document.getElementById('ed-motivo').value.trim();
     let ok;
     if(esNueva){
       Object.assign(f, parche);
@@ -5392,6 +5818,8 @@ function editar(f, esNueva=false, alSalir=null){
     // a corregir esa copia en todas las que la llevan dentro: si no, la
     // etiqueta del bote y el PDF impreso siguen diciendo el nombre viejo, y
     // buscar por el nuevo no las encuentra. Comprobado.
+    apuntar(esNueva ? 'creada' : (renombrada ? 'renombrada' : 'cambiada'), f,
+            esNueva ? null : {antes, motivo, nombreAntes: antes.nombre});
     if(renombrada) propagarNombre(f, nombre);
     // Y la lista va en orden alfabético: si no se reordena, la fórmula
     // renombrada se queda donde estaba y los separadores de letra salen A, Z, A.
@@ -5452,6 +5880,16 @@ function borrar(f){
     // OJO al orden: primero se saca de DATOS y DESPUÉS se guarda. Al revés,
     // en modo nube el espejo se grababa con la fórmula todavía dentro y
     // reaparecía al abrir la app.
+    /* La fórmula ENTERA al registro antes de tirarla. Su historial interno se
+       va con ella, así que si esto no se guarda aquí no queda copia en ninguna
+       parte y el borrado es irreversible. */
+    apuntar('borrada', f, {antes: fotoDe(f), completa: {
+      id: f.id, nombre: f.nombre, ingredientes: f.ingredientes,
+      notas: f.notas || '', equivalencia: f.equivalencia || null,
+      actualizada_pigmentos: !!f.actualizada_pigmentos,
+      fecha_actualizacion: f.fecha_actualizacion || null,
+      historial: f.historial || [],
+    }});
     cambios.borradas.push(f.id);
     DATOS.formulas = DATOS.formulas.filter(x=>x.id!==f.id);
     porId.delete(f.id);
@@ -5472,7 +5910,9 @@ function restaurar(f, k){
   const hist = f.historial.slice();
   hist.push({fecha:new Date().toISOString(), texto:`Restaurada la versión del ${fecha(h.fecha)}`,
              nombre:f.nombre, ingredientes:f.ingredientes});
+  apuntar('restaurada', f, {antes: fotoDe(f), motivo: `Versión del ${fecha(h.fecha)}`});
   anotar(f, {ingredientes:h.ingredientes, nombre:h.nombre||f.nombre, historial:hist,
+             receta_tocada:new Date().toISOString(),
              total:Math.round(h.ingredientes.reduce((s,i)=>s+i.cantidad,0)*10000)/10000});
   objetivo = Math.round(h.ingredientes.reduce((s,i)=>s+i.cantidad,0));
   objetivoTocado = false;
@@ -5633,6 +6073,7 @@ function aplicarDeLaNube(res){
     n++;
   }
   const nuevasPreps = fundirHistorial(res.preparaciones || []);
+  fundirRegistro(res.registro || []);
   if(nuevasPreps) n += nuevasPreps;
   for(const a of res.ajustes){
     if(a.clave === 'grupos_equivalencia' && Array.isArray(a.datos)){
@@ -5817,7 +6258,7 @@ document.getElementById('btn-menu').onclick = ()=>{
     <div class="campo"><span>Datos</span>
       <p style="margin:0;font-size:14px;color:var(--texto-2)" class="num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas · ${DATOS.grupos_equivalencia.length} grupos de equivalencia</p>
       <p style="margin:6px 0 0;font-size:12.5px;color:var(--texto-3)">
-        Versión <b class="num">92492ff8</b>. Si acabas de subir uno nuevo y aquí sigue
+        Versión <b class="num">fd4d8393</b>. Si acabas de subir uno nuevo y aquí sigue
         el número de antes, cierra la app y vuelve a abrirla.</p>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -5978,6 +6419,11 @@ function pantallaPigmentos(){
       const quitar = !!m.cambiado_el;
       if(!anotarMateria(m, {cambiado_el: quitar ? null : new Date().toISOString()})) return;
       const n = cuantasLlevan(m.id);
+      // Marcar un pigmento manda 45 fórmulas a revisión de golpe. Es de las
+      // cosas que más quieres poder rastrear si un día algo no cuadra.
+      apuntar(quitar ? 'pigmento-quitado' : 'pigmento',
+              {id: null, nombre: m.nombre},
+              {materia: m.id, afectadas: n});
       actualizar();
       if(seleccion) pintarFicha();
       if(quitar){ brindis(`Marca quitada de ${m.nombre}`); return pintar(); }
@@ -7221,6 +7667,8 @@ window.__app = {
   get filtradas(){ return filtradas.slice(); },
   get HISTORIAL(){ return HISTORIAL.slice(); },
   apuntarPreparacion, pantallaHistorial, fundirHistorial,
+  get REGISTRO(){ return REGISTRO.slice(); }, apuntar, fundirRegistro, deshacer,
+  lineasHist, textoDe,
   estadoAct, porRevisar, materiasDe: ()=>materiasDe, cuantasLlevan,
   pantallaPigmentos, empezarRepaso,
   preparar, retomarPesaje, guardarPesaje, leerPesajeGuardado,

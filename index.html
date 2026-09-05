@@ -1817,7 +1817,19 @@ function crearNube({url, clave}){
   async function peticion(ruta, opciones = {}, reintento = true){
     const {espera, json = true, ...init} = opciones;
     const cab = {'apikey': clave, ...(init.headers || {})};
-    if(json && !cab['Content-Type']) cab['Content-Type'] = 'application/json';
+    /* La cabecera de JSON SOLO si hay algo que mandar.
+
+       Esto no es una sutileza: el almacén de archivos de Supabase corre sobre
+       Fastify, y Fastify rechaza con un 400 —"Body cannot be empty when
+       content-type is set to 'application/json'"— cualquier petición que diga
+       que trae JSON y venga vacía. El único sitio donde pasaba era el DELETE
+       de una foto, y por eso se podía poner y cambiar una foto pero NO
+       quitarla: no era cosa de permisos, la petición no llegaba a mirarse.
+
+       Otra vez lo mismo: mi Supabase de mentira no miraba la cabecera, así que
+       era más blanda que la de verdad y la prueba pasaba. Ya la mira. */
+    const hayCuerpo = init.body !== undefined && init.body !== null;
+    if(json && hayCuerpo && !cab['Content-Type']) cab['Content-Type'] = 'application/json';
     if(ses?.access) cab['Authorization'] = 'Bearer ' + ses.access;
 
     let r;
@@ -5805,7 +5817,7 @@ document.getElementById('btn-menu').onclick = ()=>{
     <div class="campo"><span>Datos</span>
       <p style="margin:0;font-size:14px;color:var(--texto-2)" class="num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas · ${DATOS.grupos_equivalencia.length} grupos de equivalencia</p>
       <p style="margin:6px 0 0;font-size:12.5px;color:var(--texto-3)">
-        Versión <b class="num">eca10b25</b>. Si acabas de subir uno nuevo y aquí sigue
+        Versión <b class="num">92492ff8</b>. Si acabas de subir uno nuevo y aquí sigue
         el número de antes, cierra la app y vuelve a abrirla.</p>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

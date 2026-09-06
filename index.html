@@ -2490,13 +2490,18 @@ function crearNube({url, clave}){
 
   /** Todo lo que ha cambiado desde `desde`. `desde` nulo = todo. */
   async function bajar(desde){
+    /* Los sellos son del editor. Al taller el servidor no se los mandaría de
+       todas formas —la política de lectura los tapa—, pero pedirlos sería una
+       petición de más cada 15 segundos por aparato para recibir una lista
+       vacía. Se ahorra preguntando. Quien decide sigue siendo el servidor:
+       esta línea es para no gastar, no para proteger. */
     const [formulas, materias, ajustes, preparaciones, registro, sellos] = await Promise.all([
       bajarTabla('colores_formulas', desde),
       bajarTabla('colores_materias', desde),
       bajarTabla('colores_ajustes', desde),
       bajarTabla('colores_preparaciones', desde),
       bajarTabla('colores_registro', desde),
-      bajarTabla('colores_sellos', desde),
+      rol === 'editor' ? bajarTabla('colores_sellos', desde) : Promise.resolve([]),
     ]);
     apuntarTocadas(formulas);
     const fechas = [...formulas, ...materias, ...ajustes, ...preparaciones,
@@ -3329,6 +3334,21 @@ async function abrirNube(){
       throw e;
     }
   }
+  /* El aparato que cambia de manos.
+
+     El espejo es la última foto de la nube guardada EN ESTE APARATO. Si el PC
+     de la oficina se usó como editor y luego alguien entra en él como taller,
+     el servidor ya no le manda sellos... pero los de la última vez siguen
+     guardados aquí dentro. Así que se tiran al entrar, no al sincronizar: si
+     se esperara a la primera sincronización, entre medias habría un rato con
+     los sellos delante. Y se vuelve a guardar limpio, para que no reaparezcan
+     la próxima vez que se abra sin cobertura. */
+  if(s.rol !== 'editor' && espejo.datos &&
+     ((espejo.datos.sellos || []).length || (espejo.datos.agujas || []).length)){
+    espejo.datos.sellos = [];
+    espejo.datos.agujas = [];
+    nube.guardarEspejo(espejo.datos, espejo.hasta, s.rol);
+  }
   return {texto: JSON.stringify(espejo.datos), rol: s.rol, K: null,
           hasta: espejo.hasta, email: s.email};
 }
@@ -3387,7 +3407,14 @@ let filtradas = [];
    actualizar() antes de llegar allí, y una variable `let` tocada antes de su
    declaración no vale null: revienta con "Cannot access before
    initialization" y la app se queda en blanco. Ya pasó con los pigmentos. */
-const HAY_SELLOS = MODO === 'nube';
+/* Los sellos son del editor. El taller ve colores y solo colores.
+
+   Esto de aquí NO es la cerradura, es el picaporte: quien manda de verdad son
+   las políticas del servidor, que a un taller no le mandan ni un sello, ni sus
+   fotos, ni los apuntes de sello del registro, ni la lista de agujas. Si
+   alguien borrase esta línea, el taller vería una pestaña de sellos VACÍA,
+   porque no hay nada que enseñar. Está para que no vea una sección muerta. */
+const HAY_SELLOS = MODO === 'nube' && puedeEditar;
 if(!Array.isArray(DATOS.sellos)) DATOS.sellos = [];
 let porIdS = new Map(DATOS.sellos.map(s => [s.id, s]));
 let SECCION = 'colores';          // 'colores' | 'sellos'
@@ -5620,7 +5647,21 @@ if(DATOS.registro){ fundirRegistro(DATOS.registro); delete DATOS.registro; }
 
 function leerRegistroLocal(){
   try{ const r = JSON.parse(localStorage.getItem(CLAVE_REGISTRO) || '[]');
-       return Array.isArray(r) ? r : []; }catch(_){ return []; }
+       if(!Array.isArray(r)) return [];
+       /* Mismo caso que el espejo: un aparato que fue del editor tiene los
+          apuntes de sello guardados aquí, con el nombre del sello dentro y
+          —los de borrado— con la ficha entera. Se tiran al leer, y el primer
+          guardado los quita también del aparato. */
+       if(!puedeEditar){
+         const limpio = r.filter(e => !String(e.que || '').startsWith('sello-'));
+         // Se reescribe AQUÍ y no en el primer guardado normal: puede que el
+         // taller no apunte nada en toda la semana, y hasta entonces seguirían
+         // en el aparato.
+         if(limpio.length !== r.length)
+           try{ localStorage.setItem(CLAVE_REGISTRO, JSON.stringify(limpio)); }catch(_){}
+         return limpio;
+       }
+       return r; }catch(_){ return []; }
 }
 function guardarRegistroLocal(){
   try{ localStorage.setItem(CLAVE_REGISTRO,
@@ -6957,7 +6998,7 @@ document.getElementById('btn-menu').onclick = ()=>{
     <div class="campo"><span>Datos</span>
       <p style="margin:0;font-size:14px;color:var(--texto-2)" class="num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas · ${DATOS.grupos_equivalencia.length} grupos de equivalencia</p>
       <p style="margin:6px 0 0;font-size:12.5px;color:var(--texto-3)">
-        Versión <b class="num">8bd8fce4</b>. Si acabas de subir uno nuevo y aquí sigue
+        Versión <b class="num">98cb554f</b>. Si acabas de subir uno nuevo y aquí sigue
         el número de antes, cierra la app y vuelve a abrirla.</p>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

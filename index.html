@@ -1493,6 +1493,9 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 }
 .s-rotulo em{font-style:normal; font-size:10px; letter-spacing:.03em; text-transform:none; opacity:.9}
 .s-nada{font-size:14px; color:var(--texto-3); margin:10px 0; line-height:1.5}
+/* Una aguja apuntada que no está en la lista NO es lo mismo que "sin aguja":
+   se marca en ámbar para que se vea que falta un dato, no que no lo lleva. */
+.falta-aguja{color:var(--ambar); font-weight:600}
 .s-notas{font-size:14px; color:var(--texto-2); white-space:pre-wrap; margin:4px 0 0}
 .s-datos{display:grid; grid-template-columns:1fr 1fr; gap:0 18px; margin:14px 0 0}
 .s-datos .dato{padding:10px 0; border-bottom:1px solid var(--linea)}
@@ -6895,7 +6898,7 @@ document.getElementById('btn-menu').onclick = ()=>{
     <div class="campo"><span>Datos</span>
       <p style="margin:0;font-size:14px;color:var(--texto-2)" class="num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas · ${DATOS.grupos_equivalencia.length} grupos de equivalencia</p>
       <p style="margin:6px 0 0;font-size:12.5px;color:var(--texto-3)">
-        Versión <b class="num">3873748d</b>. Si acabas de subir uno nuevo y aquí sigue
+        Versión <b class="num">3e5ef3be</b>. Si acabas de subir uno nuevo y aquí sigue
         el número de antes, cierra la app y vuelve a abrirla.</p>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -8632,9 +8635,15 @@ function panelParametros(s){
       <div class="s-bloque-cuerpo">
         ${pars.length ? pars.map(p=>{
           const a = aguja(p.aguja);
+          /* Tres estados, no dos. "Sin aguja" y "la aguja no está en la lista"
+             son cosas distintas y confundirlas escondió un fallo de verdad: el
+             móvil no recibía las agujas nuevas y ponía "Sin aguja" tan
+             tranquilo, como si el paso no llevara ninguna. */
           return fila(p, a
             ? `<span class="punta" style="background:${esc(a.color||'#8a8f95')}"></span>${esc(a.nombre)}`
-            : '<span class="flojo">Sin aguja</span>');
+            : p.aguja
+              ? '<span class="falta-aguja">Aguja no encontrada</span>'
+              : '<span class="flojo">Sin aguja</span>');
         }).join('') : '<p class="s-nada">No hay inyecciones apuntadas.</p>'}
       </div>
     </div>
@@ -8933,6 +8942,7 @@ function filaPasoEditor(p, i, s){
   if(p.segundos != null && p.segundos !== '') trozos.push(`${fmt(p.segundos)} s`);
   if(t.robot && s.robot){
     if(a) trozos.push(a.nombre);
+    else if(p.aguja) trozos.push('aguja no encontrada');
     if(p.bar != null && p.bar !== '') trozos.push(`${fmt(p.bar)} bar`);
   }
   return `<div class="ed-paso">
@@ -9238,7 +9248,8 @@ async function hojaSello(s){
       ${s.robot ? `<h2>Parámetros del robot</h2>
       <div class="par"><h3>Agujas</h3>
         ${pars.map(p=>{ const a = aguja(p.aguja);
-          return `<div class="r"><b>${esc(p.nombre)}</b><span>${a?esc(a.nombre):'—'}</span></div>`;
+          return `<div class="r"><b>${esc(p.nombre)}</b><span>${
+            a ? esc(a.nombre) : (p.aguja ? 'no encontrada' : '—')}</span></div>`;
         }).join('') || '<div class="r"><span>—</span></div>'}
       </div>
       <div class="par"><h3>Presiones</h3>
@@ -9357,7 +9368,7 @@ window.__app = {
   get SELLOS(){ return DATOS.sellos.slice(); }, porIdS,
   abrirSello, editarSello, borrarSello, guardarSello, hojaSello,
   coloresDeSello, tandasDe, parametrosDe, pantallaAgujas,
-  get AGUJAS(){ return AGUJAS; }, TIPOS_PASO,
+  get AGUJAS(){ return AGUJAS; }, TIPOS_PASO, guardarAgujas,
   get pes(){ return pes; },
   get ultimaSync(){ return ultimaSync; },
   get estadoSync(){ return estadoSync; },

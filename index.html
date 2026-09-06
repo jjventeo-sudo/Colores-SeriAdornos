@@ -1453,11 +1453,175 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 
 /* ── Cabecera de la ficha ────────────────────────────────────────── */
 .s-titulo{margin:2px 0 14px}
-.s-titulo h2{font-size:27px; line-height:1.12; margin:0 0 7px; letter-spacing:-.024em; font-weight:660}
-.s-cli{display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:13.5px; color:var(--texto-2)}
+.s-titulo h2{font-size:27px; line-height:1.12; margin:0 0 8px; letter-spacing:-.024em; font-weight:660}
+
+/* La fila del cliente: una sola cosa pulsable, con su número pegado. Nada de
+   rojo de marca aquí — el rojo es para la acción, y la acción de esta
+   pantalla no es el cliente. */
+.s-cliente{
+  display:flex; align-items:center; gap:9px; width:100%;
+  background:var(--panel-2); border:1px solid var(--linea); border-radius:var(--r-m);
+  padding:9px 11px; font:inherit; color:var(--texto); text-align:left;
+  cursor:pointer; transition:background .15s var(--salida), border-color .15s;
+}
+.s-cliente:hover{background:var(--tinta-suave); border-color:var(--linea-fuerte)}
+.s-cliente.vacio-cli{
+  cursor:default; color:var(--texto-3); font-size:13.5px; margin:0;
+}
+.s-cliente.vacio-cli:hover{background:var(--panel-2); border-color:var(--linea)}
+.s-cli-nom{
+  font-weight:600; font-size:14.5px; letter-spacing:-.008em; min-width:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.s-cli-num{
+  font-variant-numeric:tabular-nums; font-size:12.5px; font-weight:640;
+  color:var(--texto-2); background:var(--tinta-suave); border-radius:var(--r-s);
+  padding:2px 8px; flex:none; letter-spacing:.01em;
+}
+.s-cliente:hover .s-cli-num{background:var(--panel)}
+.s-cli-ir{width:15px; height:15px; margin-left:auto; flex:none; color:var(--texto-3)}
+
+/* Y debajo, en gris, lo que describe la pieza. */
+.s-meta{
+  display:flex; flex-wrap:wrap; gap:6px; align-items:center;
+  margin-top:8px; font-size:12.5px; color:var(--texto-3);
+}
+.s-meta .sep{opacity:.55}
+.s-meta .s-robot{
+  color:var(--verde); font-weight:600; display:inline-flex; align-items:center; gap:5px;
+}
+.s-meta .s-robot::before{
+  content:""; width:6px; height:6px; border-radius:50%; background:var(--verde);
+}
+.s-meta .s-piloto{color:var(--ambar); font-weight:600}
+
+/* El cliente, encima de sus sellos: quién es, con qué número, y cuánto le
+   hacemos. Pulsándolo se pasa a sus colores. */
+.chip-cliente{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  max-width:100%; text-align:left;
+}
+.chip-cliente b{font-weight:640; letter-spacing:-.006em}
+.chip-cli-mas{color:var(--texto-3); font-weight:450; font-size:12px}
+
+/* ── Opciones: una lista de ajustes, no una pared de párrafos ─────── */
+.aj-titulo{
+  font-size:10.5px; font-weight:700; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--texto-3); margin:20px 0 7px 3px;
+}
+.aj-grupo{
+  background:var(--panel); border:1px solid var(--linea); border-radius:var(--r-l);
+  overflow:hidden; box-shadow:var(--sombra-1);
+}
+.aj{
+  display:flex; align-items:center; gap:12px; width:100%; text-align:left;
+  padding:13px 14px; border:0; border-bottom:1px solid var(--linea);
+  background:none; font:inherit; color:var(--texto); cursor:pointer;
+  transition:background .13s var(--salida);
+}
+.aj:last-child{border-bottom:0}
+.aj:hover{background:var(--panel-2)}
+.aj-select{cursor:default}
+.aj-select:hover{background:none}
+.aj-et{font-size:14.5px; font-weight:560; letter-spacing:-.006em; flex:0 0 auto}
+.aj-val{
+  margin-left:auto; display:flex; align-items:center; gap:9px; min-width:0;
+  font-size:12.5px; color:var(--texto-3); text-align:right;
+}
+.aj-val > span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.aj-val svg{width:15px; height:15px; flex:none}
+.aj-val .aj-avisa{color:var(--ambar); font-weight:600}
+.aj-val .aj-bien{color:var(--verde); font-weight:600}
+.aj-val .aj-flojo{opacity:.7}
+.aj-select select{
+  margin-left:auto; font:inherit; font-size:13px; color:var(--texto-2);
+  border:1px solid var(--linea); background:var(--panel-2);
+  border-radius:var(--r-s); padding:5px 9px; max-width:60%;
+}
+.op-p{margin:0 0 11px; font-size:14.5px; color:var(--texto-2); line-height:1.55}
+.op-p.flojo{font-size:13px; color:var(--texto-3)}
+.op-p b{color:var(--texto)}
+.op-botones{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
+.pig-repaso{
+  display:flex; align-items:center; gap:11px; flex-wrap:wrap;
+  background:var(--ambar-suave); border:1px solid var(--linea);
+  border-radius:var(--r-m); padding:10px 13px; margin-bottom:14px;
+  font-size:13.5px; color:var(--texto-2);
+}
+.pig-repaso span{flex:1 1 auto}
+.pig-repaso b{color:var(--texto)}
+
+/* ── Papelera ────────────────────────────────────────────────────── */
+.pap-cab{
+  display:flex; align-items:center; gap:10px; margin:0 0 11px;
+  font-size:13.5px; color:var(--texto-2);
+}
+.pap-cab span{flex:1 1 auto}
+.pap-vaciar{
+  flex:none; border:0; background:none; font:inherit; font-size:13px; font-weight:600;
+  color:var(--marca); cursor:pointer; padding:5px 3px; border-radius:var(--r-s);
+}
+.pap-vaciar:hover{text-decoration:underline}
+.pap-fila{
+  display:flex; align-items:center; gap:11px; padding:11px 13px;
+  border-bottom:1px solid var(--linea);
+}
+.pap-fila:last-child{border-bottom:0}
+.pap-cuadro{
+  width:22px; height:22px; border-radius:6px; flex:none;
+  background:var(--tinta-suave); border:1px dashed var(--linea-fuerte);
+}
+.pap-cuadro.sello{border-style:solid; border-radius:var(--r-s)}
+.pap-txt{flex:1 1 auto; min-width:0}
+.pap-nom{
+  font-size:14px; font-weight:600; letter-spacing:-.006em;
+  display:flex; align-items:center; gap:7px; flex-wrap:wrap;
+}
+.pap-tipo{
+  font-size:9.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--texto-3); border:1px solid var(--linea); border-radius:99px; padding:1px 7px;
+}
+.pap-sub{font-size:11.5px; color:var(--texto-3); margin-top:2px}
+.pap-quedan{color:var(--ambar); font-weight:600}
+.pap-rest{flex:none; padding:7px 12px; font-size:13px}
+
+/* ── Clientes ────────────────────────────────────────────────────── */
+.cli-fila{
+  display:flex; align-items:center; gap:11px; padding:10px 13px;
+  border-bottom:1px solid var(--linea);
+}
+.cli-fila:last-child{border-bottom:0}
+.cli-txt{flex:1 1 auto; min-width:0}
+.cli-nom{font-size:14px; font-weight:600; letter-spacing:-.006em}
+.cli-sub{font-size:11.5px; color:var(--texto-3); margin-top:1px}
+.cli-num-ed{
+  flex:none; width:96px; text-align:right; font:inherit; font-size:13.5px;
+  font-weight:640; font-variant-numeric:tabular-nums; color:var(--texto);
+  border:1px solid var(--linea); background:var(--panel-2);
+  border-radius:var(--r-s); padding:7px 9px;
+}
+.cli-num-ed:focus{outline:2px solid var(--marca); outline-offset:-1px; background:var(--panel)}
 
 /* ── Las pestañas y el carrusel ──────────────────────────────────── */
-.s-pestanas{margin-bottom:14px}
+/* Subrayadas, no en píldoras dentro de una caja: encerradas, "Parámetros" se
+   salía por los lados en un móvil estrecho. Así caben holgadas, la zona que
+   pisa el dedo es más alta y se ahorran 16 px de alto donde todo va justo. */
+.s-pestanas{
+  display:flex; gap:2px; margin:0 0 14px;
+  border-bottom:1px solid var(--linea); background:none; border-radius:0; padding:0;
+}
+.s-pestanas button{
+  flex:1; border:0; background:none; font:inherit; font-size:13.5px; font-weight:600;
+  color:var(--texto-3); padding:11px 2px 10px; cursor:pointer;
+  border-bottom:2px solid transparent; margin-bottom:-1px;
+  transition:color .16s var(--salida), border-color .16s var(--salida);
+  border-radius:0; box-shadow:none;
+}
+.s-pestanas button:hover{color:var(--texto-2)}
+.s-pestanas button[aria-pressed="true"]{
+  color:var(--texto); border-bottom-color:var(--tinta); background:none; box-shadow:none;
+}
+.s-pestanas button:focus-visible{outline:2px solid var(--marca); outline-offset:-3px; border-radius:5px}
 /* Se deslizan de verdad, con el anclaje del propio navegador: sale más suave
    que cualquier invento a base de eventos táctiles y no se pelea con el
    desplazamiento vertical de la página. */
@@ -1573,27 +1737,68 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 }
 .s-nota{font-size:10.5px; color:var(--texto-3); letter-spacing:.02em; text-align:right}
 .s-bloque-cuerpo{padding:3px 13px 9px}
-.s-par-fila{
-  display:flex; align-items:center; gap:10px; padding:10px 0;
-  border-bottom:1px solid var(--linea);
+/* Un epígrafe, no una cabecera con caja: el título de una tabla no necesita
+   fondo propio para saberse que es un título. */
+.s-epigrafe{
+  display:flex; align-items:baseline; gap:9px; margin:18px 0 8px;
+  font-size:10.5px; font-weight:700; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--texto-2);
 }
-.s-par-fila:last-child{border-bottom:0}
-.s-par-nom{flex:1 1 auto; min-width:0; font-size:14.5px; font-weight:560; color:var(--texto)}
-.s-par-nom small{display:block; font-size:11.5px; font-weight:450; color:var(--texto-3)}
-.s-par-val{
-  flex:0 0 auto; font-size:14.5px; font-weight:640; color:var(--texto);
-  font-variant-numeric:tabular-nums; display:flex; align-items:center; gap:7px;
+.s-epigrafe span{
+  margin-left:auto; letter-spacing:.02em; text-transform:none;
+  font-size:11.5px; font-weight:450; color:var(--texto-3);
 }
-.s-par-val em{font-style:normal; font-size:11.5px; font-weight:500; color:var(--texto-3)}
+.s-panel > .s-epigrafe:first-child{margin-top:2px}
+.s-tabla{
+  background:var(--panel); border:1px solid var(--linea); border-radius:var(--r-l);
+  box-shadow:var(--sombra-1); overflow:hidden;
+}
+.s-tabla > .s-nada{padding:12px 13px; margin:0}
+.s-notas{padding:12px 13px}
+.s-notas p{margin:0; font-size:14px; line-height:1.5; color:var(--texto)}
+.s-notas p.flojo{font-size:13.5px}
+
+/* UNA fila por inyección: color, parte, aguja, presión y segundos juntos. */
+.s-iny{
+  display:grid; grid-template-columns:20px 22px 1fr; gap:5px 10px;
+  align-items:center; padding:10px 13px; border-bottom:1px solid var(--linea);
+}
+.s-iny:last-child{border-bottom:0}
+.s-iny-n{
+  font-size:11.5px; font-weight:640; color:var(--texto-3); text-align:center;
+  font-variant-numeric:tabular-nums;
+}
+.s-iny-nom{
+  font-size:14.5px; font-weight:560; color:var(--texto); min-width:0;
+  display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+}
+.s-iny-datos{
+  grid-column:3 / -1; display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  font-size:12.5px; color:var(--texto-2);
+}
+.s-iny-datos .d{display:inline-flex; align-items:center; gap:5px; white-space:nowrap}
+.s-iny-datos b{font-weight:640; color:var(--texto); font-variant-numeric:tabular-nums}
+.s-iny-datos .sep{color:var(--linea-fuerte)}
 .muestra.s{width:22px;height:22px;border-radius:6px}
 .punta{
   width:13px;height:13px;border-radius:99px;display:inline-block; flex:0 0 auto;
   outline:1px solid var(--contorno); outline-offset:-1px;
 }
-.s-grupo{padding:11px 0; border-bottom:1px solid var(--linea)}
-.s-grupo:last-child{border-bottom:0}
-.s-grupo-top{display:flex; align-items:center; justify-content:space-between; gap:10px}
-.s-grupo-cols{display:flex; align-items:center; gap:6px; flex-wrap:wrap; min-width:0}
+.s-tanda{padding:10px 13px; border-bottom:1px solid var(--linea)}
+.s-tanda:last-child{border-bottom:0}
+.s-tanda-top{display:flex; align-items:center; justify-content:space-between; gap:10px}
+.s-tanda-et{font-size:13px; font-weight:640; color:var(--texto-2)}
+.s-tanda-t{
+  flex:0 0 auto; font-size:16.5px; font-weight:700; color:var(--texto);
+  font-variant-numeric:tabular-nums;
+}
+.s-tanda-t em{font-style:normal; font-size:11px; font-weight:500; color:var(--texto-3); margin-left:2px}
+.s-tanda-cols{display:flex; align-items:center; gap:6px; flex-wrap:wrap; min-width:0; margin-top:7px}
+.s-tanda-cols.flojo{font-size:12.5px}
+/* El vulcanizado cierra la ficha: es el último horneado y el más largo. */
+.s-tanda.vulca{background:var(--tinta-suave)}
+.s-tanda.vulca .s-tanda-et{color:var(--texto); font-weight:700}
+.s-tanda.avisa .s-tanda-et{color:var(--ambar)}
 .s-chip{
   display:inline-flex; align-items:center; gap:6px; padding:3px 9px 3px 4px;
   border-radius:99px; background:var(--panel-2); border:1px solid var(--linea);
@@ -1608,14 +1813,6 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
   background:var(--panel-2); border:1px solid var(--linea);
   border-radius:99px; padding:1px 7px; white-space:nowrap;
 }
-.s-mas{color:var(--texto-3); font-size:13px; font-weight:600}
-.s-grupo-t{
-  flex:0 0 auto; font-size:16.5px; font-weight:700; color:var(--texto);
-  font-variant-numeric:tabular-nums;
-}
-.s-grupo-t em{font-style:normal; font-size:11px; font-weight:500; color:var(--texto-3); margin-left:2px}
-.s-grupo-pie{font-size:11.5px; color:var(--texto-3); margin-top:4px}
-.s-grupo-pie.avisa{color:var(--ambar); font-weight:560}
 .s-final{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
   padding:13px 15px; background:var(--tinta); color:var(--tinta-txt);
@@ -2769,6 +2966,8 @@ function crearNube({url, clave}){
       if(a.clave === 'modelo') d.modelo = a.datos;
       else if(a.clave === 'grupos_equivalencia') d.grupos_equivalencia = a.datos;
       else if(a.clave === 'agujas') d.agujas = a.datos;
+      else if(a.clave === 'clientes') d.clientes = a.datos;
+      else if(a.clave === 'papelera_hasta') d.papelera_hasta = a.datos;
     }
     d.historial = res.preparaciones || [];
     d.registro = res.registro || [];
@@ -3422,6 +3621,11 @@ let selloSel = null;
 let pestanaSello = 0;
 let filtradosS = [];
 let AGUJAS = Array.isArray(DATOS.agujas) ? DATOS.agujas : [];
+/* Arriba con el resto del estado, y no junto a sus funciones: la primera
+   pintada llama a actualizar() antes de llegar allí, y una variable `let`
+   tocada antes de su declaración no vale null — revienta con "Cannot access
+   before initialization" y la app se queda en blanco. Ya pasó dos veces. */
+let CLIENTES = Array.isArray(DATOS.clientes) ? DATOS.clientes : [];
 
 function leerCambios(){
   // En modo nube no hay "cambios pendientes de publicar": lo que se guarda va
@@ -5343,7 +5547,7 @@ function lineasHist(){
   return limpio;
 }
 
-function pantallaHistorial(){
+function pantallaHistorial(volver){
   const pintar = ()=>{
     $dt.textContent = 'Historial';
     const todas = lineasHist();
@@ -5400,8 +5604,7 @@ function pantallaHistorial(){
   };
 
   function enlazarHist(pintar){
-    $dp.innerHTML = `<button class="btn btn-1" data-cerrar>Cerrar</button>`;
-    $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
+    pieVolver(volver);
     for(const b of $dc.querySelectorAll('[data-pes]'))
       b.onclick = ()=>{ pestanaHist = b.dataset.pes; topeHist = 60; pintar(); };
     document.getElementById('hist-mas')?.addEventListener('click', ()=>{
@@ -5515,6 +5718,111 @@ function confirmarDeshacer(id, volver){
 }
 
 /** Devuelve un aviso si algo impide deshacer; nada si ha ido bien. */
+/* ── LA PAPELERA ──────────────────────────────────────────────────────
+   Recuperar algo borrado ya se podía, pero desde el historial: había que
+   saber que estaba ahí, encontrar la línea entre todo lo demás y entender qué
+   significa "deshacer". Una papelera es la lista de lo que has borrado y un
+   botón de Restaurar: no hay nada que entender.
+
+   NO es una tabla nueva. Es una VISTA sobre el registro, que ya guarda, al
+   borrar, una copia entera de lo borrado para poder devolverlo. Duplicar eso
+   en otro sitio sería crear dos verdades que se pueden desincronizar.
+
+   Y por eso "Vaciar" no borra nada del registro: el registro es de SOLO
+   AÑADIR en el servidor, a propósito, para que nadie pueda reescribir lo que
+   pasó. Vaciar guarda una FECHA DE CORTE: lo borrado antes de esa fecha deja
+   de salir en la papelera. El apunte sigue en el historial, que es donde tiene
+   que estar. Y la fecha se sincroniza, así que vaciar en el PC vacía también
+   en el móvil. */
+const DIAS_PAPELERA = 30;
+let papeleraHasta = DATOS.papelera_hasta || '';
+
+function papelera(){
+  if(!puedeEditar) return [];
+  const corte = Date.now() - DIAS_PAPELERA * DIA;
+  const fuera = new Set();
+  const out = [];
+  for(const e of lineasHist()){
+    if(e.que !== 'borrada' && e.que !== 'sello-borrado') continue;
+    const completa = (e.detalle || {}).completa;
+    if(!completa || !completa.id) continue;      // sin copia entera no hay qué devolver
+    if(papeleraHasta && e.cuando <= papeleraHasta) continue;   // vaciada
+    const esSello = e.que === 'sello-borrado';
+    // Si ya volvió —restaurada, o creada otra vez con el mismo id— no está
+    // borrada, y enseñarla sería mentir.
+    if(esSello ? porIdS.has(completa.id) : porId.has(completa.id)) continue;
+    const clave = (esSello ? 's:' : 'f:') + completa.id;
+    if(fuera.has(clave)) continue;               // solo el borrado más reciente
+    fuera.add(clave);
+    const t = new Date(e.cuando).getTime();
+    if(!(t > corte)) continue;                   // más de 30 días: ya no se enseña
+    out.push({...e, esSello, completa,
+              dias: Math.max(0, DIAS_PAPELERA - Math.floor((Date.now() - t) / DIA))});
+  }
+  return out;   // lineasHist() ya viene de lo más reciente a lo más viejo
+}
+
+function guardarPapeleraHasta(){
+  DATOS.papelera_hasta = papeleraHasta;
+  if(MODO === 'nube'){
+    nube.subirAjustes([{clave:'papelera_hasta', datos: papeleraHasta}]).catch(e=>falloNube(e));
+    nube.guardarEspejo(DATOS, ultimaSync, ROL);
+  }else{
+    try{ localStorage.setItem('papelera-hasta', papeleraHasta); }catch(_){}
+  }
+}
+if(MODO !== 'nube'){
+  try{ papeleraHasta = localStorage.getItem('papelera-hasta') || papeleraHasta; }catch(_){}
+}
+
+function pantallaPapelera(volver){
+  const pintar = ()=>{
+    const cosas = papelera();
+    $dt.textContent = 'Papelera';
+    $dc.innerHTML = `
+      <div class="pap-cab">
+        <span>Lo borrado se guarda <b>${DIAS_PAPELERA} días</b> y luego se va solo.</span>
+        ${cosas.length ? '<button class="pap-vaciar" id="pap-vaciar">Vaciar</button>' : ''}
+      </div>
+      ${cosas.length ? `<div class="s-tabla">${cosas.map((c, i)=>`
+        <div class="pap-fila">
+          ${/* Una fórmula borrada ya no está en el índice, así que su color no
+                se puede calcular: el motor tira del índice para desarrollar los
+                ingredientes. Se enseña un hueco neutro en vez de inventarse un
+                color o reventar. */''}
+          <span class="pap-cuadro${c.esSello ? ' sello' : ''}"></span>
+          <div class="pap-txt">
+            <div class="pap-nom">${esc(c.nombre || c.completa.nombre || '?')}
+              <span class="pap-tipo">${c.esSello ? 'Sello' : 'Color'}</span></div>
+            <div class="pap-sub">${esc(haceCuanto(c.cuando))}${
+              c.papel ? ' · ' + esc(c.papel === 'editor' ? 'editor' : 'taller') : ''
+            } · <span class="pap-quedan">${c.dias === 0 ? 'se va hoy'
+              : `${c.dias === 1 ? 'queda 1 día' : 'quedan ' + c.dias + ' días'}`}</span></div>
+          </div>
+          <button class="btn pap-rest" data-rest="${i}">Restaurar</button>
+        </div>`).join('')}</div>`
+        : `<p class="s-nada">No has borrado nada en los últimos ${DIAS_PAPELERA} días.</p>`}`;
+    pieVolver(volver);
+
+    for(const b of $dc.querySelectorAll('[data-rest]'))
+      b.onclick = ()=>{
+        const c = cosas[+b.dataset.rest];
+        brindis(deshacer(c) || 'Restaurado');
+        pintar();
+      };
+    document.getElementById('pap-vaciar')?.addEventListener('click', ()=>{
+      if(!confirm(`Se vacía la papelera: ${cosas.length} cosa${cosas.length===1?'':'s'} que ya no
+se podrá${cosas.length===1?'':'n'} restaurar de un toque. El apunte de que se borraron sigue en el historial. ¿Seguro?`)) return;
+      papeleraHasta = new Date().toISOString();
+      guardarPapeleraHasta();
+      brindis('Papelera vaciada');
+      pintar();
+    });
+    if(!$dlg.open) $dlg.showModal();
+  };
+  pintar();
+}
+
 function deshacer(e){
   if(!puedeEditar) return SIN_PERMISO;
   const d = e.detalle || {};
@@ -6810,8 +7118,17 @@ function aplicarDeLaNube(res){
   }
   if((res.sellos || []).length)
     DATOS.sellos.sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
-  for(const a of (res.ajustes || [])) if(a.clave === 'agujas' && Array.isArray(a.datos)){
-    AGUJAS.length = 0; AGUJAS.push(...a.datos); DATOS.agujas = AGUJAS;
+  /* Las listas se vacían y se rellenan EN SITIO, no se reasignan: hay código
+     que guarda una referencia al array (las pruebas, sin ir más lejos) y
+     reasignarlo lo dejaría mirando a una copia vieja. */
+  for(const a of (res.ajustes || [])){
+    if(a.clave === 'agujas' && Array.isArray(a.datos)){
+      AGUJAS.length = 0; AGUJAS.push(...a.datos); DATOS.agujas = AGUJAS; n++;
+    }else if(a.clave === 'clientes' && Array.isArray(a.datos)){
+      CLIENTES.length = 0; CLIENTES.push(...a.datos); DATOS.clientes = CLIENTES; n++;
+    }else if(a.clave === 'papelera_hasta' && typeof a.datos === 'string'){
+      papeleraHasta = a.datos; DATOS.papelera_hasta = papeleraHasta; n++;
+    }
   }
   if(nuevasPreps) n += nuevasPreps;
   for(const a of res.ajustes){
@@ -6906,127 +7223,164 @@ if(MODO === 'nube'){
    ═══════════════════════════════════════════════════════════════════ */
 document.getElementById('btn-nuevo').onclick =
   ()=>SECCION === 'sellos' ? editarSello(null) : nueva();
-document.getElementById('btn-menu').onclick = ()=>{
+/* ═══════════════════════════════════════════════════════════════════
+   OPCIONES
+
+   Esto era una pared: diez apartados, cada uno con su título, su párrafo de
+   explicación y sus botones, todo en el mismo desplazamiento. Para llegar a
+   "Copia de seguridad" había que leerse —o saltarse— cinco párrafos.
+
+   Y lo peor: la información que de verdad se busca al abrir Opciones —¿está
+   sincronizado?, ¿cuántas quedan por revisar?, ¿cuándo bajé la última copia?—
+   estaba dentro de esos párrafos, en mitad de una frase.
+
+   Ahora cada ajuste es UNA LÍNEA con su estado a la derecha, y la explicación
+   se ha mudado a la pantalla de dentro, que es donde hace falta: se lee la
+   primera vez y no se vuelve a tropezar con ella. No se ha quitado ninguna
+   función; solo han cambiado de sitio.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/** Una línea de ajuste: nombre a la izquierda, estado a la derecha. */
+function filaAjuste(id, etiqueta, valor, clase){
+  return `<button class="aj" id="${id}">
+    <span class="aj-et">${etiqueta}</span>
+    <span class="aj-val">${valor ? `<span class="${clase || ''}">${valor}</span>` : ''}
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+    </span></button>`;
+}
+const grupoAjustes = (titulo, filas) => filas.filter(Boolean).length
+  ? `${titulo ? `<p class="aj-titulo">${titulo}</p>` : ''}
+     <div class="aj-grupo">${filas.filter(Boolean).join('')}</div>` : '';
+
+/** El pie de una pantalla de dentro: se vuelve a Opciones, no se cierra. */
+function pieVolver(volver, texto){
+  $dp.innerHTML = `<button class="btn btn-1" id="op-volver">${
+    volver ? (texto || 'Volver a Opciones') : 'Cerrar'}</button>`;
+  document.getElementById('op-volver').onclick = ()=>{ if(volver) volver(); else $dlg.close(); };
+}
+
+function abrirOpciones(){
   const n = Object.keys(cambios.formulas).length + cambios.nuevas.length + cambios.borradas.length;
   const pend = MODO === 'nube' ? nube.pendientes() : 0;
+  const porRev = DATOS.formulas.filter(porRevisar).length;
+  const enPapelera = papelera().length;
+  const choques = MODO === 'nube' ? nube.choques().length : 0;
+  const diasCopia = (()=>{
+    const u = leerFecha(CLAVE_COPIA);
+    if(!u) return null;
+    return Math.floor((Date.now() - u) / DIA);
+  })();
+
   $dt.textContent = 'Opciones';
   $dc.innerHTML = `
-    <label class="campo"><span>Aspecto</span>
-      <select id="op-tema">
-        <option value="auto">Como el sistema</option>
-        <option value="claro">Siempre claro</option>
-        <option value="oscuro">Siempre oscuro</option>
-      </select></label>
-    <div class="campo"><span>${MODO==='nube'?'Cuenta':'Sesión'}</span>
-      <p style="margin:0 0 10px;font-size:14px;color:var(--texto-2)">
-        <span class="sello-rol">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${puedeEditar
-            ? '<path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4z"/>'
-            : '<path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/>'}</svg>
-          ${puedeEditar ? 'Editor' : 'Solo consulta'}</span>
-        ${puedeEditar
-          ? 'Puedes editar, crear, borrar e imprimir.'
-          : 'Puedes buscar, ver fórmulas y prepararlas. No puedes editar ni imprimir.'}</p>
-      ${MODO==='nube'?`<p style="margin:0 0 10px;font-size:13px;color:var(--texto-3)">
-        Has entrado como <b>${esc(sesion.email||'')}</b>.</p>`:''}
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn" id="op-salir">Cerrar sesión en este dispositivo</button>
-        ${puedeEditar && MODO==='archivo'?`<button class="btn" id="op-claves">Cambiar contraseñas</button>`:''}
-      </div></div>
-
-    ${MODO==='nube'?`<div class="campo"><span>Sincronización</span>
-      <p style="margin:0 0 10px;font-size:14px;color:var(--texto-2)">${pend
-        ? `<b>${pend} cambio${pend===1?'':'s'}</b> esperando a que vuelva la conexión.
-           Se suben solos en cuanto haya cobertura.`
-        : 'Todo lo de este aparato está en la nube.'}
-        ${ultimaSync?`<br><small style="color:var(--texto-3)">Al día hasta ${esc(momento(ultimaSync))}.</small>`:''}</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn ${pend?'btn-marca':''}" id="op-sync">Sincronizar ahora</button>
-        ${nube.choques().length?`<button class="btn btn-marca" id="op-choques">Decidir ${nube.choques().length} que chocan</button>`:''}
-      </div></div>`:''}
-
-    ${puedeEditar?`<div class="campo"><span>Pigmentos</span>
-      <p style="margin:0 0 10px;font-size:14px;color:var(--texto-2)">${(()=>{
-        const rev = DATOS.formulas.filter(porRevisar).length;
-        const cam = DATOS.materias_primas.filter(m=>m.cambiado_el).length;
-        return cam
-          ? `Tienes <b>${cam} pigmento${cam===1?'':'s'}</b> marcado${cam===1?'':'s'} como cambiado${cam===1?'':'s'}
-             y <b>${rev}</b> fórmula${rev===1?'':'s'} por revisar.`
-          : `Cuando cambies un pigmento, márcalo aquí y las fórmulas que lo lleven
-             pasan solas a por revisar. Ahora mismo hay <b>${rev}</b> por revisar.`;
-      })()}</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn" id="op-pigmentos">He cambiado un pigmento</button>
-        ${DATOS.formulas.filter(porRevisar).length
-          ? `<button class="btn" id="op-repaso">Repasarlas una a una</button>` : ''}
-      </div></div>`:''}
-
-    ${puedeEditar && MODO==='archivo'?`<div class="campo"><span>Publicar</span>
-      <p style="margin:0 0 10px;font-size:14px;color:var(--texto-2)">${n
-        ? `Tienes <b>${n} cambio${n===1?'':'s'}</b> guardado${n===1?'':'s'} <b>solo en este aparato</b>.
-           Los móviles del taller no los ven hasta que publiques.`
-        : 'Todo lo que hay en este aparato está ya publicado.'}</p>
-      <button class="btn ${n?'btn-marca':''}" id="op-publicar"${n?'':' disabled'}>
-        ${n?`Publicar ${n} cambio${n===1?'':'s'}`:'Nada que publicar'}</button></div>`:''}
-
-    <div class="campo"><span>Historial</span>
-      <p style="margin:0 0 10px;font-size:14px;color:var(--texto-2)">${HISTORIAL.length
-        ? `<b>${HISTORIAL.length}</b> bote${HISTORIAL.length===1?'':'s'} apuntado${HISTORIAL.length===1?'':'s'}${
-            HISTORIAL.length ? `, el último ${haceCuanto(HISTORIAL[HISTORIAL.length-1].cuando)}` : ''}.`
-        : 'Cada pesaje terminado queda apuntado aquí solo, con el color, los gramos y el día.'}</p>
-      <button class="btn" id="op-historial">Ver lo que se ha preparado</button></div>
-
-    <div class="campo"><span>${MODO==='nube'?'Copia de seguridad':'Tus cambios en este dispositivo'}</span>
-      <p style="margin:0;font-size:14px;color:var(--texto-2)">${MODO==='nube'
-        ? `Es la única red de seguridad que tienes fuera de la nube: un archivo que
-           se abre y se lee por sí solo. ${(()=>{
-             const u = leerFecha(CLAVE_COPIA);
-             if(!u) return '<b>Todavía no has descargado ninguna.</b>';
-             const d = Math.floor((Date.now() - u) / DIA);
-             return d < 1 ? 'La última, hoy.'
-                  : `La última, hace <b>${d} día${d===1?'':'s'}</b>.`;
-           })()}`
-        : (n
-          ? `${n} cambio${n===1?'':'s'} guardado${n===1?'':'s'} solo en este navegador.`
-          : 'Ninguno todavía.')}</p>
-      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-        ${puedeEditar?`<button class="btn" id="op-exportar">Descargar copia</button>
-        <button class="btn" id="op-importar">Restaurar una copia</button>`:''}
-        ${n?`<button class="btn btn-peligro" id="op-deshacer">Deshacer todos mis cambios</button>`:''}
+    <div class="aj-grupo">
+      <div class="aj aj-select">
+        <span class="aj-et">Aspecto</span>
+        <select id="op-tema" aria-label="Aspecto">
+          <option value="auto">Como el sistema</option>
+          <option value="claro">Siempre claro</option>
+          <option value="oscuro">Siempre oscuro</option>
+        </select>
       </div>
-      <input type="file" id="op-archivo" accept="application/json,.json" hidden></div>
-    <div class="campo"><span>Datos</span>
-      <p style="margin:0;font-size:14px;color:var(--texto-2)" class="num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas · ${DATOS.grupos_equivalencia.length} grupos de equivalencia</p>
-      <p style="margin:6px 0 0;font-size:12.5px;color:var(--texto-3)">
-        Versión <b class="num">98cb554f</b>. Si acabas de subir uno nuevo y aquí sigue
-        el número de antes, cierra la app y vuelve a abrirla.</p>
-      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-        <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
-      </div></div>`;
-  document.getElementById('op-calibracion').onclick = explicarCalibracion;
-  document.getElementById('op-pigmentos')?.addEventListener('click', pantallaPigmentos);
-  document.getElementById('op-historial').onclick = pantallaHistorial;
-  // OJO: NO se cierra el diálogo antes. Cerrar y volver a abrir el mismo
-  // diálogo en el mismo gesto descuadra el historial: la vuelta atrás del
-  // cierre llega DESPUÉS de haberlo reabierto y te lo cierra en las narices.
-  // El repaso repinta el diálogo que ya está abierto, y ya está.
-  document.getElementById('op-repaso')?.addEventListener('click', empezarRepaso);
-  document.getElementById('op-tema').value = localStorage.getItem('tema')||'auto';
+      ${filaAjuste('op-cuenta', MODO === 'nube' ? 'Cuenta' : 'Sesión',
+        (MODO === 'nube' && sesion.email ? esc(sesion.email) + ' · ' : '') +
+        (puedeEditar ? 'Editor' : 'Solo consulta'))}
+      ${MODO === 'nube' ? filaAjuste('op-sync-ir', 'Sincronización',
+        choques ? `${choques} chocan` :
+        pend ? `${pend} sin subir` :
+        estadoSync === 'sin-red' ? 'Sin conexión' : 'Al día',
+        choques || pend ? 'aj-avisa' : estadoSync === 'sin-red' ? 'aj-avisa' : 'aj-bien') : ''}
+    </div>
+
+    ${grupoAjustes('El recetario', [
+      puedeEditar ? filaAjuste('op-pigmentos-ir', 'Pigmentos',
+        porRev ? `${porRev} por revisar` : 'Todas al día',
+        porRev ? 'aj-avisa' : 'aj-bien') : '',
+      filaAjuste('op-historial-ir', 'Historial', 'Todo lo que ha pasado'),
+      puedeEditar ? filaAjuste('op-papelera', 'Papelera',
+        enPapelera ? `${enPapelera} ${enPapelera === 1 ? 'cosa' : 'cosas'}` : 'Vacía',
+        enPapelera ? '' : 'aj-flojo') : '',
+    ])}
+
+    ${HAY_SELLOS ? grupoAjustes('Los sellos', [
+      filaAjuste('op-clientes', 'Clientes', String(clientesDeSellos().length)),
+      filaAjuste('op-agujas', 'Agujas', String(AGUJAS.length)),
+    ]) : ''}
+
+    ${grupoAjustes('Mantenimiento', [
+      puedeEditar && MODO === 'archivo' ? filaAjuste('op-publicar-ir', 'Publicar cambios',
+        n ? `${n} sin publicar` : 'Nada pendiente', n ? 'aj-avisa' : 'aj-flojo') : '',
+      filaAjuste('op-copia', MODO === 'nube' ? 'Copia de seguridad' : 'Tus cambios en este aparato',
+        MODO === 'nube'
+          ? (diasCopia === null ? 'Nunca descargada'
+             : diasCopia < 1 ? 'Descargada hoy' : `Hace ${diasCopia} ${diasCopia === 1 ? 'día' : 'días'}`)
+          : (n ? `${n} sin publicar` : 'Ninguno'),
+        MODO === 'nube' && (diasCopia === null || diasCopia > 30) ? 'aj-avisa' : ''),
+      filaAjuste('op-datos', 'Datos y versión', `${DATOS.formulas.length} fórmulas`),
+    ])}
+
+    <input type="file" id="op-archivo" accept="application/json,.json" hidden>`;
+
+  document.getElementById('op-tema').value = localStorage.getItem('tema') || 'auto';
   document.getElementById('op-tema').onchange = e=>{
     const v = e.target.value;
-    try{ localStorage.setItem('tema',v); }catch(_){}
-    if(v==='auto') delete document.documentElement.dataset.tema;
+    try{ localStorage.setItem('tema', v); }catch(_){}
+    if(v === 'auto') delete document.documentElement.dataset.tema;
     else document.documentElement.dataset.tema = v;
   };
-  document.getElementById('op-publicar')?.addEventListener('click', publicarCambios);
+  const ir = (id, f) => document.getElementById(id)?.addEventListener('click', f);
+  ir('op-cuenta',       ()=>pantallaCuenta(abrirOpciones));
+  ir('op-sync-ir',      ()=>pantallaSync(abrirOpciones));
+  ir('op-pigmentos-ir', ()=>pantallaPigmentos(abrirOpciones));
+  ir('op-historial-ir', ()=>pantallaHistorial(abrirOpciones));
+  ir('op-papelera',     ()=>pantallaPapelera(abrirOpciones));
+  ir('op-clientes',     ()=>pantallaClientes(abrirOpciones));
+  ir('op-agujas',       ()=>pantallaAgujas(abrirOpciones));
+  ir('op-publicar-ir',  publicarCambios);
+  ir('op-copia',        ()=>pantallaCopia(abrirOpciones));
+  ir('op-datos',        ()=>pantallaDatos(abrirOpciones));
+
+  // El campo de archivo vive en la pantalla de arriba y no en la de dentro:
+  // restaurar una copia repinta media app, y si el campo estuviera dentro de
+  // la pantalla que se repinta, el evento de "archivo elegido" llegaría a un
+  // elemento que ya no existe.
+  document.getElementById('op-archivo').onchange = e=>{
+    const f = e.target.files && e.target.files[0];
+    // Se limpia para que elegir DOS VECES el mismo archivo vuelva a funcionar:
+    // si no, el navegador no dispara el evento la segunda vez.
+    e.target.value = '';
+    if(f) importar(f);
+  };
+
+  // OJO: NO se cierra el diálogo antes de abrir otra pantalla. Cerrar y volver
+  // a abrir el mismo diálogo en el mismo gesto descuadra el historial de la
+  // vuelta atrás: el cierre llega DESPUÉS de haberlo reabierto y te lo cierra
+  // en las narices. Se repinta el diálogo que ya está abierto, y ya está.
+  $dp.innerHTML = `<button class="btn btn-1" data-cerrar>Cerrar</button>`;
+  $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
+  if(!$dlg.open) $dlg.showModal();
+}
+document.getElementById('btn-menu').onclick = abrirOpciones;
+
+/* ── Cuenta ──────────────────────────────────────────────────────── */
+function pantallaCuenta(volver){
+  $dt.textContent = MODO === 'nube' ? 'Cuenta' : 'Sesión';
+  $dc.innerHTML = `
+    <p class="op-p"><span class="sello-rol">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${puedeEditar
+        ? '<path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4z"/>'
+        : '<path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/>'}</svg>
+      ${puedeEditar ? 'Editor' : 'Solo consulta'}</span>
+      ${puedeEditar
+        ? 'Puedes editar, crear, borrar e imprimir.'
+        : 'Puedes buscar, ver fórmulas y prepararlas. No puedes editar ni imprimir.'}</p>
+    ${MODO === 'nube' ? `<p class="op-p flojo">Has entrado como <b>${esc(sesion.email || '')}</b>.</p>` : ''}
+    <div class="op-botones">
+      <button class="btn" id="op-salir">Cerrar sesión en este dispositivo</button>
+      ${puedeEditar && MODO === 'archivo' ? `<button class="btn" id="op-claves">Cambiar contraseñas</button>` : ''}
+    </div>`;
+  pieVolver(volver);
   document.getElementById('op-claves')?.addEventListener('click', cambiarClaves);
-  document.getElementById('op-choques')?.addEventListener('click', pantallaChoques);
-  document.getElementById('op-sync')?.addEventListener('click', async e=>{
-    e.target.disabled = true; e.target.textContent = 'Sincronizando…';
-    await sincronizar('a mano');
-    e.target.disabled = false; e.target.textContent = 'Sincronizar ahora';
-    brindis(estadoSync === 'al-dia' ? 'Al día' : (TEXTO_SYNC[estadoSync] || 'Hecho'));
-  });
   document.getElementById('op-salir').onclick = ()=>{
     if(MODO === 'nube'){
       // Si queda algo por subir, cerrar sesión lo tira: la cola se manda con
@@ -7043,24 +7397,83 @@ document.getElementById('btn-menu').onclick = ()=>{
     try{ localStorage.removeItem(CLAVE_SESION); }catch(_){}
     location.reload();
   };
+  if(!$dlg.open) $dlg.showModal();
+}
+
+/* ── Sincronización ──────────────────────────────────────────────── */
+function pantallaSync(volver){
+  const pend = nube.pendientes();
+  const ch = nube.choques().length;
+  $dt.textContent = 'Sincronización';
+  $dc.innerHTML = `
+    <p class="op-p">${pend
+      ? `<b>${pend} cambio${pend===1?'':'s'}</b> esperando a que vuelva la conexión.
+         Se suben solos en cuanto haya cobertura.`
+      : 'Todo lo de este aparato está en la nube.'}</p>
+    ${ultimaSync ? `<p class="op-p flojo">Al día hasta ${esc(momento(ultimaSync))}.</p>` : ''}
+    <div class="op-botones">
+      <button class="btn ${pend?'btn-marca':''}" id="op-sync">Sincronizar ahora</button>
+      ${ch ? `<button class="btn btn-marca" id="op-choques">Decidir ${ch} que chocan</button>` : ''}
+    </div>`;
+  pieVolver(volver);
+  document.getElementById('op-choques')?.addEventListener('click', pantallaChoques);
+  document.getElementById('op-sync').onclick = async e=>{
+    e.target.disabled = true; e.target.textContent = 'Sincronizando…';
+    await sincronizar('a mano');
+    e.target.disabled = false; e.target.textContent = 'Sincronizar ahora';
+    brindis(estadoSync === 'al-dia' ? 'Al día' : (TEXTO_SYNC[estadoSync] || 'Hecho'));
+    pantallaSync(volver);
+  };
+  if(!$dlg.open) $dlg.showModal();
+}
+
+/* ── Copia de seguridad ──────────────────────────────────────────── */
+function pantallaCopia(volver){
+  const n = Object.keys(cambios.formulas).length + cambios.nuevas.length + cambios.borradas.length;
+  $dt.textContent = MODO === 'nube' ? 'Copia de seguridad' : 'Tus cambios en este aparato';
+  $dc.innerHTML = `
+    <p class="op-p">${MODO === 'nube'
+      ? `Es la única red de seguridad fuera de la nube: un archivo que se abre y
+         se lee por sí solo, sin depender de nada. ${(()=>{
+           const u = leerFecha(CLAVE_COPIA);
+           if(!u) return '<b>Todavía no has descargado ninguna.</b>';
+           const d = Math.floor((Date.now() - u) / DIA);
+           return d < 1 ? 'La última, hoy.' : `La última, hace <b>${d} día${d===1?'':'s'}</b>.`;
+         })()}`
+      : (n ? `${n} cambio${n===1?'':'s'} guardado${n===1?'':'s'} solo en este navegador.`
+           : 'Ninguno todavía.')}</p>
+    <div class="op-botones">
+      ${puedeEditar ? `<button class="btn" id="op-exportar">Descargar copia</button>
+      <button class="btn" id="op-importar">Restaurar una copia</button>` : ''}
+      ${n ? `<button class="btn btn-peligro" id="op-deshacer">Deshacer todos mis cambios</button>` : ''}
+    </div>`;
+  pieVolver(volver);
   document.getElementById('op-exportar')?.addEventListener('click', exportar);
   document.getElementById('op-importar')?.addEventListener('click',
     ()=>document.getElementById('op-archivo').click());
-  document.getElementById('op-archivo').onchange = e=>{
-    const f = e.target.files && e.target.files[0];
-    // Se limpia el campo para que elegir DOS VECES el mismo archivo vuelva a
-    // funcionar: si no, el navegador no dispara el evento la segunda vez.
-    e.target.value = '';
-    if(f) importar(f);
-  };
   document.getElementById('op-deshacer')?.addEventListener('click', ()=>{
     if(!confirm('Se pierden todos los cambios hechos desde la app en este dispositivo. ¿Seguro?')) return;
     localStorage.removeItem(CLAVE); location.reload();
   });
-  $dp.innerHTML = `<button class="btn btn-1" data-cerrar>Cerrar</button>`;
-  $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
-  $dlg.showModal();
-};
+  if(!$dlg.open) $dlg.showModal();
+}
+
+/* ── Datos y versión ─────────────────────────────────────────────── */
+function pantallaDatos(volver){
+  $dt.textContent = 'Datos y versión';
+  $dc.innerHTML = `
+    <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
+      ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
+      HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
+    <p class="op-p flojo">Versión <b class="num">288871fe</b>. Si acabas de subir una nueva y aquí
+      sigue el número de antes, cierra la app y vuelve a abrirla.</p>
+    <div class="op-botones">
+      <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
+    </div>`;
+  pieVolver(volver);
+  document.getElementById('op-calibracion').onclick = explicarCalibracion;
+  if(!$dlg.open) $dlg.showModal();
+}
 function explicarCalibracion(){
   $dt.textContent = 'Por qué las muestras son orientativas';
   $dc.innerHTML = `
@@ -7122,7 +7535,7 @@ function cuantasLlevan(idMateria){
   return n;
 }
 
-function pantallaPigmentos(){
+function pantallaPigmentos(volver){
   if(!puedeEditar) return brindis(SIN_PERMISO);
   const pintar = ()=>{
     const lista = DATOS.materias_primas
@@ -7134,8 +7547,16 @@ function pantallaPigmentos(){
       <p style="margin:0 0 4px">Marca el pigmento que has cambiado. Las fórmulas que
         lo llevan —también las que lo llevan dentro de otra fórmula— pasan solas
         a <b>por revisar</b>.</p>
-      <p style="margin:0 0 16px;font-size:13.5px;color:var(--texto-2)">No se toca
+      <p style="margin:0 0 14px;font-size:13.5px;color:var(--texto-2)">No se toca
         ninguna receta: solo se apunta la fecha, para saber cuáles hay que volver a mirar.</p>
+      ${/* El repaso vivía suelto en la pantalla de Opciones. Su sitio es este:
+            se llega desde "hay N por revisar", que es el único momento en que
+            esa lista es una noticia y no un reproche. */''}
+      ${(()=>{ const rev = DATOS.formulas.filter(porRevisar).length;
+        return rev ? `<div class="pig-repaso">
+          <span><b>${rev}</b> fórmula${rev===1?'':'s'} por revisar.</span>
+          <button class="btn btn-fino btn-1" id="op-repaso">Repasarlas una a una</button>
+        </div>` : ''; })()}
       <div class="pig-lista">${lista.map(({m, n})=>`
         <div class="pig">
           <div class="pig-color" style="background:${m.hex_referencia
@@ -7149,8 +7570,8 @@ function pantallaPigmentos(){
               ${m.cambiado_el ? 'Quitar la marca' : 'Lo he cambiado'}</button>
           </div>
         </div>`).join('')}</div>`;
-    $dp.innerHTML = `<button class="btn btn-1" data-cerrar>Cerrar</button>`;
-    $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
+    pieVolver(volver);
+    document.getElementById('op-repaso')?.addEventListener('click', empezarRepaso);
     for(const b of $dc.querySelectorAll('[data-ver]'))
       b.onclick = ()=>verPigmento(b.dataset.ver);
     for(const b of $dc.querySelectorAll('[data-pig]')) b.onclick = ()=>{
@@ -8459,6 +8880,60 @@ function guardarAgujas(){
   if(MODO === 'nube') nube.guardarEspejo(DATOS, ultimaSync, ROL);
 }
 
+/* ── LOS CLIENTES ─────────────────────────────────────────────────────
+   El número de cliente NO se guarda en cada sello, y no es un detalle: si
+   estuviera en la ficha habría que escribirlo en cada una, y el día que se
+   teclee mal en la tercera de seis, esa sola diría otro número y no habría
+   forma de saber cuál es el bueno. Se escribe UNA vez por cliente.
+
+   El enganche es el nombre que ya escribes en la ficha —no hay que migrar
+   nada ni tocar los sellos que ya existen—, comparado normalizado para que
+   "Marcas del Sur, S.L." y "MARCAS DEL SUR SL" sean el mismo. Un cliente sin
+   número no estorba: simplemente no se enseña ninguno.
+
+   (CLIENTES se declara arriba, con el resto del estado, por lo de la TDZ.) */
+function clienteDatos(nombre){
+  const t = norm(nombre || '');
+  if(!t) return null;
+  return CLIENTES.find(c => norm(c.nombre) === t) || null;
+}
+const numeroDe = s => (clienteDatos(clienteS(s)) || {}).numero || '';
+
+function guardarClientes(){
+  DATOS.clientes = CLIENTES;
+  if(MODO === 'nube')
+    nube.subirAjustes([{clave:'clientes', datos: CLIENTES}]).catch(e=>falloNube(e));
+  if(MODO === 'nube') nube.guardarEspejo(DATOS, ultimaSync, ROL);
+  reconstruir();
+}
+
+/** Los clientes que salen de los sellos, con lo que se sepa de cada uno.
+    La lista NO es lo que manda: manda lo que hay escrito en los sellos. Así
+    un cliente no se puede quedar huérfano ni desaparecer de la app porque
+    alguien lo borre del listado. */
+function clientesDeSellos(){
+  const m = new Map();
+  for(const s of DATOS.sellos){
+    const n = clienteS(s);
+    if(!n) continue;
+    const k = norm(n);
+    if(!m.has(k)) m.set(k, {nombre: n, clave: k, sellos: 0});
+    m.get(k).sellos++;
+  }
+  for(const c of CLIENTES){
+    const k = norm(c.nombre);
+    if(!m.has(k)) m.set(k, {nombre: c.nombre, clave: k, sellos: 0});
+    m.get(k).numero = c.numero || '';
+  }
+  return [...m.values()].sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+}
+
+/** Cuántos colores llevan ese cliente entre paréntesis en el nombre. */
+const coloresDeCliente = nombre => {
+  const t = norm(nombre);
+  return DATOS.formulas.filter(f => norm(clienteDe(f.nombre) || '') === t).length;
+};
+
 /* ── LO QUE SE CALCULA A PARTIR DE LOS PASOS ──────────────────────────
    Ni los colores ni las tandas se guardan: se sacan de aquí cada vez. Así no
    pueden quedarse desfasados respecto a los pasos, que es lo que pasaría si
@@ -8532,7 +9007,7 @@ function parametrosDe(s){
     if(p.tipo !== 'inyectar' || !p.ref) return;
     out.push({ref: p.ref, nombre: p.nombre || (porId.get(p.ref)?.nombre) || '?',
               parte: p.parte || '', paso: i + 1,
-              aguja: p.aguja || null, bar: p.bar ?? null});
+              aguja: p.aguja || null, bar: p.bar ?? null, segundos: p.segundos ?? null});
   });
   return out;
 }
@@ -8577,7 +9052,11 @@ function filtrarSellos(txt){
   if(!t) return DATOS.sellos.slice();
   const palabras = t.split(' ').filter(Boolean);
   return DATOS.sellos.filter(s=>{
-    const heno = norm([s.nombre, s.cliente || '', (s.molde && s.molde.numero) || '',
+    // El número del cliente entra en el pajar: escribir 4021 tiene que traer
+    // sus sellos igual que escribir su nombre. Sale del listado de clientes,
+    // no del sello, así que no hay nada guardado que pueda ir desfasado.
+    const heno = norm([s.nombre, s.cliente || '', numeroDe(s),
+      (s.molde && s.molde.numero) || '',
       coloresDeSello(s).map(c=>c.nombre).join(' ')].join(' '));
     return palabras.every(p => heno.includes(p));
   });
@@ -8733,65 +9212,113 @@ function panelPasos(s){
   </div>`;
 }
 
+/* ── PARÁMETROS ───────────────────────────────────────────────────────
+   Aquí había tres bloques —Agujas, Presiones y Horneados— y cada inyección
+   salía en los tres, con el mismo color, la misma parte y el mismo "Paso N".
+   Para leer la presión de la bandera había que buscar la misma fila por
+   segunda vez en otro sitio de la pantalla.
+
+   Una inyección es UNA fila: su color, su parte, su aguja, su presión y sus
+   segundos juntos. Es como se hace en la máquina y es como se lee.
+
+   Los horneados siguen aparte, y ahí sí tiene sentido: no describen una
+   inyección, dicen qué se mete al horno junto. */
 function panelParametros(s){
-  const {tandas, vulcanizado} = tandasDe(s);
+  const {tandas} = tandasDe(s);
   const pars = parametrosDe(s);
-  const fila = (p, dcho) => `<div class="s-par-fila">
-    <span class="muestra s" style="background:${colorHexDe(p.ref)}"></span>
-    <div class="s-par-nom">${esc(p.nombre)}${
-      p.parte ? ` <em class="s-parte">${esc(p.parte)}</em>` : ''}
-      <small>Paso ${p.paso}</small></div>
-    <div class="s-par-val">${dcho}</div></div>`;
+
+  const dato = (v, u) => v != null && v !== ''
+    ? `<span class="d"><b>${fmt(v)}</b> ${u}</span>` : '';
+
+  const inyeccion = p => {
+    const a = aguja(p.aguja);
+    /* Tres estados, no dos. "Sin aguja" y "la aguja no está en la lista" son
+       cosas distintas, y confundirlas escondió un fallo de verdad: el móvil no
+       recibía las agujas nuevas y ponía "Sin aguja" tan tranquilo, como si el
+       paso no llevara ninguna. */
+    const ag = a
+      ? `<span class="d"><span class="punta" style="background:${esc(a.color||'#8a8f95')}"></span>${esc(a.nombre)}</span>`
+      : p.aguja
+        ? '<span class="d falta-aguja">Aguja no encontrada</span>'
+        : '<span class="d flojo">Sin aguja</span>';
+    const trozos = [ag, dato(p.bar, 'bar'), dato(p.segundos, 's')].filter(Boolean);
+    return `<div class="s-iny">
+      <span class="s-iny-n">${p.paso}</span>
+      <span class="muestra s" style="background:${colorHexDe(p.ref)}"></span>
+      <span class="s-iny-nom">${esc(p.nombre)}${
+        p.parte ? ` <em class="s-parte">${esc(p.parte)}</em>` : ''}</span>
+      <span class="s-iny-datos">${trozos.join('<span class="sep">|</span>')}</span>
+    </div>`;
+  };
+
   return `<div class="s-panel" data-panel="3">
     ${!s.robot ? `<p class="s-nada">Este sello está guardado como hecho <b>a mano</b>.
       Los parámetros del robot solo salen en los de robot.</p>` : `
-    <div class="s-bloque">
-      <div class="s-bloque-cab"><h4>Agujas</h4></div>
-      <div class="s-bloque-cuerpo">
-        ${pars.length ? pars.map(p=>{
-          const a = aguja(p.aguja);
-          /* Tres estados, no dos. "Sin aguja" y "la aguja no está en la lista"
-             son cosas distintas y confundirlas escondió un fallo de verdad: el
-             móvil no recibía las agujas nuevas y ponía "Sin aguja" tan
-             tranquilo, como si el paso no llevara ninguna. */
-          return fila(p, a
-            ? `<span class="punta" style="background:${esc(a.color||'#8a8f95')}"></span>${esc(a.nombre)}`
-            : p.aguja
-              ? '<span class="falta-aguja">Aguja no encontrada</span>'
-              : '<span class="flojo">Sin aguja</span>');
-        }).join('') : '<p class="s-nada">No hay inyecciones apuntadas.</p>'}
-      </div>
-    </div>
-    <div class="s-bloque">
-      <div class="s-bloque-cab"><h4>Presiones</h4></div>
-      <div class="s-bloque-cuerpo">
-        ${pars.length ? pars.map(p=>fila(p, p.bar != null && p.bar !== ''
-          ? `${fmt(p.bar)} <em>bar</em>` : '<span class="flojo">—</span>')).join('')
-          : '<p class="s-nada">No hay inyecciones apuntadas.</p>'}
-      </div>
+    <p class="s-epigrafe">Inyecciones
+      <span>${pars.length} · en orden de paso</span></p>
+    <div class="s-tabla">
+      ${pars.length ? pars.map(inyeccion).join('')
+        : '<p class="s-nada">No hay inyecciones apuntadas.</p>'}
     </div>`}
-    <div class="s-bloque">
-      <div class="s-bloque-cab"><h4>Horneados</h4>
-        <span class="s-nota">${tandas.length} ${tandas.length===1?'tanda':'tandas'} · salen de los pasos</span>
-      </div>
-      <div class="s-bloque-cuerpo">
-        ${tandas.length ? tandas.map((t, i)=>`<div class="s-grupo${t.vul ? ' vulca' : ''}">
-          <div class="s-grupo-top">
-            <div class="s-grupo-cols">${t.colores.length
-              ? t.colores.map(c=>`<span class="s-chip"><i style="background:${colorHexDe(c.ref)}"></i>${esc(c.nombre)}${
-                  c.parte ? `<em>${esc(c.parte)}</em>` : ''}</span>`).join('<span class="s-mas">+</span>')
-              : '<span class="flojo">Sin colores nuevos en esta tanda</span>'}</div>
-            <div class="s-grupo-t">${t.segundos != null
-              ? `${fmt(t.segundos)}<em>s</em>` : '<span class="flojo">—</span>'}</div>
+
+    <p class="s-epigrafe">Horneados <span>salen de los pasos</span></p>
+    <div class="s-tabla">
+      ${tandas.length ? tandas.map((t, i)=>`
+        <div class="s-tanda${t.vul ? ' vulca' : ''}${t.sinHornear ? ' avisa' : ''}">
+          <div class="s-tanda-top">
+            <span class="s-tanda-et">${
+              t.sinHornear ? 'Sin hornear después'
+              : t.vul ? (t.ultimo ? 'Vulcanizado final' : 'Vulcanizado')
+              : (i === 0 ? '1ª tanda' : (i+1) + 'ª tanda')}</span>
+            <span class="s-tanda-t">${t.segundos != null
+              ? `${fmt(t.segundos)}<em>s</em>` : '<span class="flojo">—</span>'}</span>
           </div>
-          <div class="s-grupo-pie${t.sinHornear ? ' avisa' : ''}">${
-            t.sinHornear ? 'Inyectados y sin hornear después'
-            : t.vul ? (t.ultimo ? 'Vulcanizado final' : 'Vulcanizado')
-            : (i === 0 ? 'Primera tanda' : 'Tanda ' + (i+1))}</div>
+          ${t.colores.length ? `<div class="s-tanda-cols">${
+            /* Cada inyección, aunque el color se repita: si el blanco entra dos
+               veces —bandera y letras— tienen que salir las dos. Juntarlas
+               escondía media tanda. */
+            t.colores.map(c=>`<span class="s-chip"><i style="background:${colorHexDe(c.ref)}"></i>${esc(c.nombre)}${
+              c.parte ? `<em>${esc(c.parte)}</em>` : ''}</span>`).join('')
+          }</div>` : '<div class="s-tanda-cols flojo">Sin colores nuevos en esta tanda</div>'}
         </div>`).join('') : '<p class="s-nada">No hay horneados en los pasos.</p>'}
-      </div>
+    </div>
+
+    <p class="s-epigrafe">Notas a mano</p>
+    <div class="s-tabla s-notas">
+      ${(s.notas || '').trim()
+        ? `<p>${esc(s.notas).replace(/\n/g, '<br>')}</p>`
+        : `<p class="flojo">Sin notas.${puedeEditar ? ' Se escriben al editar la ficha.' : ''}</p>`}
     </div>
   </div>`;
+}
+
+/* La identidad del sello: quién lo pide y con qué número, en UNA fila que se
+   pulsa entera; y debajo, en gris, lo que describe la pieza.
+
+   Antes el cliente iba en rojo de marca. En el resto de la app ese rojo
+   significa "lo importante de esta pantalla", y aquí lo importante es el
+   sello, no el cliente. Y "Molde EGM 796" y "Robot" pesaban igual siendo
+   cosas distintas: uno es un número que se busca, el otro un estado. */
+function cabeceraCliente(s){
+  const nom = clienteS(s);
+  const num = numeroDe(s);
+  const molde = s.molde && s.molde.numero;
+  const piezas = s.molde && s.molde.sellos;
+  return `
+    ${nom
+      ? `<button class="s-cliente" data-cli-s="${esc(nom)}">
+           <span class="s-cli-nom">${esc(nom)}</span>
+           ${num ? `<span class="s-cli-num">Nº ${esc(num)}</span>` : ''}
+           <svg class="s-cli-ir" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+         </button>`
+      : '<p class="s-cliente vacio-cli">Sin cliente</p>'}
+    <div class="s-meta">
+      ${molde ? `<span>Molde ${esc(molde)}</span>` : '<span class="flojo">Sin molde</span>'}
+      ${piezas ? `<span class="sep">·</span><span>${piezas} ${piezas === 1 ? 'sello' : 'sellos'}</span>` : ''}
+      <span class="sep">·</span>
+      ${s.robot ? '<span class="s-robot">Robot</span>' : '<span>A mano</span>'}
+      ${s.tipo === 'piloto' ? '<span class="sep">·</span><span class="s-piloto">Piloto</span>' : ''}
+    </div>`;
 }
 
 function pintarFichaSello(){
@@ -8807,14 +9334,7 @@ function pintarFichaSello(){
     </button>
     <div class="s-titulo">
       <h2>${esc(s.nombre)}</h2>
-      <div class="s-cli">${clienteS(s)
-        ? `<button class="enlace-cliente" data-cli-s="${esc(clienteS(s))}">${esc(clienteS(s))}
-             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>`
-        : '<span class="flojo">Sin cliente</span>'}
-        ${s.molde && s.molde.numero ? `<span class="etiqueta">Molde ${esc(s.molde.numero)}</span>` : ''}
-        ${s.robot ? '<span class="etiqueta info">Robot</span>' : '<span class="etiqueta">A mano</span>'}
-        ${s.tipo === 'piloto' ? '<span class="etiqueta avisa">Piloto</span>' : ''}
-      </div>
+      ${cabeceraCliente(s)}
     </div>`;
 
   const acciones = `<div class="acciones-ficha">
@@ -9254,6 +9774,60 @@ function editarPaso(s, i, volver, esNuevo){
 }
 
 /* ── LAS AGUJAS ──────────────────────────────────────────────────── */
+/* ── LOS CLIENTES ─────────────────────────────────────────────────────
+   La lista sale de los sellos, no al revés: aquí solo se le pone el número a
+   cada uno. Así un cliente no puede quedarse huérfano ni desaparecer de la app
+   porque alguien lo borre de este listado. */
+function pantallaClientes(volver){
+  const pintar = ()=>{
+    const lista = clientesDeSellos();
+    const conNum = lista.filter(c=>c.numero).length;
+    $dt.textContent = 'Clientes';
+    $dc.innerHTML = `
+      <p class="op-p flojo">Salen solos de los sellos. El número se escribe
+        <b>una vez por cliente</b> y aparece en todas sus fichas; buscarlo en el
+        buscador trae sus sellos igual que buscar el nombre.
+        ${lista.length ? `<br>${conNum} de ${lista.length} con número.` : ''}</p>
+      ${lista.length ? `<div class="s-tabla">${lista.map((c, i)=>`
+        <div class="cli-fila">
+          <div class="cli-txt">
+            <div class="cli-nom">${esc(c.nombre)}</div>
+            <div class="cli-sub">${c.sellos
+              ? `${c.sellos} sello${c.sellos===1?'':'s'}` : '<span class="flojo">sin sellos</span>'}${
+              (()=>{ const n = coloresDeCliente(c.nombre);
+                     return n ? ` · ${n} color${n===1?'':'es'}` : ''; })()}</div>
+          </div>
+          ${puedeEditar
+            ? `<input class="cli-num-ed" data-cli="${i}" value="${esc(c.numero || '')}"
+                      placeholder="Nº" inputmode="numeric" autocomplete="off"
+                      aria-label="Número de ${esc(c.nombre)}">`
+            : (c.numero ? `<span class="s-cli-num">Nº ${esc(c.numero)}</span>` : '')}
+        </div>`).join('')}</div>`
+        : '<p class="s-nada">Todavía no hay ningún cliente escrito en los sellos.</p>'}`;
+    pieVolver(volver);
+
+    for(const inp of $dc.querySelectorAll('[data-cli]')){
+      const c = lista[+inp.dataset.cli];
+      // Al salir del campo, no en cada tecla: escribir "4021" son cuatro
+      // guardados y cuatro subidas a la nube si se hace en cada pulsación.
+      inp.onchange = ()=>{
+        const num = inp.value.trim();
+        const k = norm(c.nombre);
+        const ya = CLIENTES.find(x => norm(x.nombre) === k);
+        if(ya){ ya.numero = num; if(!num && !ya.notas) CLIENTES.splice(CLIENTES.indexOf(ya), 1); }
+        else if(num) CLIENTES.push({nombre: c.nombre, numero: num});
+        else return;
+        guardarClientes();
+        actualizar();
+        if(SECCION === 'sellos' && selloSel) pintarFichaSello();
+        brindis(num ? `${c.nombre} · Nº ${num}` : `${c.nombre} se queda sin número`);
+      };
+    }
+    if(!$dlg.open) $dlg.showModal();
+  };
+  pintar();
+}
+
 function pantallaAgujas(volver){
   const pintar = ()=>{
     $dt.textContent = 'Agujas';
@@ -9487,7 +10061,37 @@ function actualizarSellos(){
   document.getElementById('contador').innerHTML =
     `<b>${filtradosS.length}</b> de ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}`;
   document.getElementById('chip-pend').hidden = true;
-  document.getElementById('chip-pigmento').hidden = true;
+
+  /* Al pulsar el cliente en una ficha, el buscador se queda con su nombre y la
+     lista enseña sus sellos. Aquí se le pone encima quién es: su número, sus
+     sellos y sus colores. Es la ficha de cliente sin ser una pantalla aparte
+     —una pulsación menos— y sin un botón de volver más que mantener. */
+  const chip = document.getElementById('chip-pigmento');
+  // Por nombre O POR NÚMERO: si buscar "4021" trae sus sellos pero no dice de
+  // quién son, el número sirve para filtrar y para nada más.
+  const busca = norm($q.value);
+  const cli = busca
+    ? clientesDeSellos().find(c => norm(c.nombre) === busca || norm(c.numero || '') === busca)
+    : null;
+  if(cli){
+    const nc = coloresDeCliente(cli.nombre);
+    chip.hidden = false;
+    chip.className = 'chip chip-cliente';
+    chip.innerHTML = `<b>${esc(cli.nombre)}</b>${
+      cli.numero ? `<span class="s-cli-num">Nº ${esc(cli.numero)}</span>` : ''}
+      <span class="chip-cli-mas">${cli.sellos} sello${cli.sellos===1?'':'s'}${
+        nc ? ` · ${nc} color${nc===1?'':'es'}` : ''}</span>`;
+    chip.title = nc ? 'Ver sus colores' : 'Este cliente no tiene colores';
+    chip.onclick = ()=>{
+      if(!nc) return brindis('Este cliente no tiene colores');
+      SECCION = 'colores'; pintarSolapas(); cerrarTodo(); actualizar();
+    };
+  }else{
+    chip.hidden = true;
+    chip.className = 'chip chip-filtro';
+    chip.onclick = ()=>{ filtroPigmento = null; actualizar(); };
+  }
+
   const av = document.getElementById('aviso-cal');
   if(av) av.hidden = true;                 // ese aviso habla de colores
   document.getElementById('limpiar').classList.toggle('on', !!$q.value);
@@ -9565,6 +10169,8 @@ window.__app = {
   abrirSello, editarSello, borrarSello, guardarSello, hojaSello,
   coloresDeSello, tandasDe, parametrosDe, pantallaAgujas,
   get AGUJAS(){ return AGUJAS; }, TIPOS_PASO, guardarAgujas,
+  get CLIENTES(){ return CLIENTES; }, clientesDeSellos, numeroDe, guardarClientes,
+  papelera, pantallaPapelera, pantallaClientes, abrirOpciones,
   get pes(){ return pes; },
   get ultimaSync(){ return ultimaSync; },
   get estadoSync(){ return estadoSync; },

@@ -3761,11 +3761,32 @@ function colorDeVersion(f, ingredientes){
 const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'')
                    .toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();
 
-const busq = DATOS.formulas.map(f=>({
-  f,
-  n: norm(f.nombre),
-  ing: norm(f.ingredientes.map(i=>i.nombre).join(' ')),
-}));
+/* El índice del buscador: nombre y lista de ingredientes ya normalizados,
+   para no rehacer ese trabajo en cada tecla sobre las 860.
+
+   Se rehace ENTERO desde reconstruir(), y no se mantiene a mano en cada sitio
+   que toca una fórmula. Antes se hacía al revés: trece fragmentos repartidos
+   por el archivo repitiendo el mismo conjuro —al crear, al renombrar, al
+   borrar, al recibir de la nube, al restaurar una copia, al deshacer...—.
+   Funcionaba, pero el día que alguien añada una fórmula desde un sitio nuevo y
+   se olvide del conjuro, el síntoma es que el color existe, sale en la lista,
+   y al escribir su nombre no aparece. Sin error, sin aviso, y sin que ninguna
+   prueba lo cace: el índice no se mira, se usa.
+
+   Rehacerlo entero cuesta 1,8 ms sobre las 860 (medido), y reconstruir() ya
+   rehace los otros cuatro índices. No compensa la fragilidad para ahorrar eso.
+
+   Se vacía y se rellena EN SITIO en vez de reasignarlo: hay referencias vivas
+   al array (las pruebas, sin ir más lejos) y reasignar las dejaría mirando a
+   una copia vieja. */
+const busq = [];
+function indexarBusqueda(){
+  busq.length = 0;
+  for(const f of DATOS.formulas)
+    busq.push({f, n: norm(f.nombre),
+               ing: norm((f.ingredientes || []).map(i=>i.nombre).join(' '))});
+}
+indexarBusqueda();
 
 const tienePendiente = f => f.ingredientes.some(i=>i.tipo==='sin_resolver');
 let soloPendientes = false;
@@ -3902,7 +3923,36 @@ const obs = new IntersectionObserver(es=>{
   if(es.some(e=>e.isIntersecting)){ obs.disconnect(); centinela?.remove(); pintarLista(false); }
 },{root:$lista, rootMargin:'400px'});
 
-function actualizar(){
+/* ── Por qué el muro se pinta con retraso ────────────────────────────────
+   Medido sobre las 860: repintar la pantalla entera al escribir costaba 58 ms
+   por tecla, y 56 de esos 58 eran el MURO (las ~240 muestras de la derecha).
+   El filtro y las 80 filas de la lista son 1,6 ms.
+
+   En este ordenador no se nota; en el móvil del taller son 150-250 ms por
+   tecla, o sea escribir "lezna" y ver las letras llegar tarde. Así que se
+   separan las dos cosas: la lista responde a cada tecla —es gratis— y el muro
+   espera a que levantes el dedo. Nadie mira el muro mientras teclea.
+
+   `actualizar()` sigue siendo síncrona para todo lo demás (un clic en un chip,
+   abrir una ficha, la sincronización): ahí no hay ráfaga que amortiguar y que
+   el muro tardase sería un parpadeo raro. Solo el buscador pide el retraso. */
+const ESPERA_MURO = 120;
+let relojMuro = null;
+function muroYa(){
+  clearTimeout(relojMuro); relojMuro = null;
+  if(!seleccion) muroDeColores();
+}
+function muroLuego(){
+  clearTimeout(relojMuro);
+  relojMuro = setTimeout(()=>{
+    relojMuro = null;
+    // Guardas: en los 120 ms de espera te puede dar tiempo a abrir una ficha o
+    // a cambiar a sellos, y el muro se pintaría encima de lo que estés viendo.
+    if(!seleccion && SECCION === 'colores') muroDeColores();
+  }, ESPERA_MURO);
+}
+
+function actualizar(tarde = false){
   // En la solapa de sellos manda otro listado entero. Se reutiliza el mismo
   // hueco de pantalla: así el botón de atrás del móvil, el abrir y cerrar
   // ficha y el resto del andamiaje valen igual para las dos cosas.
@@ -3950,10 +4000,13 @@ function actualizar(){
   pintarLista(true);
   // El muro enseña lo filtrado, así que se repinta con cada búsqueda. Solo
   // cuando no hay ficha abierta: si la hay, manda la ficha.
-  if(!seleccion) muroDeColores();
+  if(tarde) muroLuego(); else muroYa();
 }
 
-$q.addEventListener('input', ()=>{ soloPendientes=false; filtroPigmento=null; actualizar(); });
+$q.addEventListener('input', ()=>{
+  soloPendientes=false; filtroPigmento=null;
+  actualizar(true);   // el muro, cuando pare de escribir
+});
 document.getElementById('chip-pigmento').onclick = ()=>{ filtroPigmento=null; actualizar(); };
 
 /** Enseñar en la lista todas las fórmulas que llevan este pigmento. */
@@ -5468,7 +5521,6 @@ function deshacer(e){
                historial: (d.completa.historial || []).slice()};
     f.total = Math.round(f.ingredientes.reduce((s,i)=>s+i.cantidad,0)*10000)/10000;
     DATOS.formulas.push(f); porId.set(f.id, f);
-    busq.push({f, n: norm(f.nombre), ing: norm(f.ingredientes.map(i=>i.nombre).join(' '))});
     DATOS.formulas.sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
     cambios.borradas = cambios.borradas.filter(x=>x !== f.id);
     cambios.nuevas.push(f);
@@ -5498,8 +5550,6 @@ function deshacer(e){
     total: Math.round((a.ingredientes || f.ingredientes)
              .reduce((s,i)=>s+i.cantidad,0)*10000)/10000,
   });
-  const b = busq.find(x=>x.f.id === f.id);
-  if(b){ b.n = norm(f.nombre); b.ing = norm(f.ingredientes.map(i=>i.nombre).join(' ')); }
   DATOS.formulas.sort((x,y)=>x.nombre.localeCompare(y.nombre,'es'));
   reconstruir(); actualizar();
   if(seleccion === f.id) pintarFicha();
@@ -6443,13 +6493,10 @@ function editar(f, esNueva=false, alSalir=null){
       Object.assign(f, parche);
       cambios.nuevas.push(f);
       DATOS.formulas.push(f); porId.set(f.id,f);
-      busq.push({f, n:norm(f.nombre), ing:norm(ings.map(i=>i.nombre).join(' '))});
       ok = guardar();
       empujar(f);
     }else{
       ok = anotar(f, parche);
-      const e = busq.find(x=>x.f.id===f.id);
-      if(e){ e.n = norm(nombre); e.ing = norm(ings.map(i=>i.nombre).join(' ')); }
     }
     // Cada ingrediente guarda una COPIA del nombre de la fórmula a la que
     // apunta, para poder enseñarlo sin resolver nada. Al renombrar hay que ir
@@ -6484,8 +6531,6 @@ function propagarNombre(f, nombre){
     });
     if(!tocada) continue;
     anotar(pa, {ingredientes: ings});
-    const e = busq.find(x=>x.f.id === pa.id);
-    if(e) e.ing = norm(ings.map(i=>i.nombre).join(' '));
   }
   if(padres.length) brindis(`Nombre corregido en ${padres.length} fórmula${padres.length===1?'':'s'} que la llevan dentro`);
 }
@@ -6531,7 +6576,6 @@ function borrar(f){
     cambios.borradas.push(f.id);
     DATOS.formulas = DATOS.formulas.filter(x=>x.id!==f.id);
     porId.delete(f.id);
-    const k = busq.findIndex(x=>x.f.id===f.id); if(k>=0) busq.splice(k,1);
     guardar();
     // En la nube no se borra de verdad: se marca. Así el móvil del taller se
     // entera de que ya no está; si se quitara la fila, no habría nada que
@@ -6560,6 +6604,7 @@ function reconstruir(){
   indice = crearIndice(DATOS);
   cacheColor.clear();
   calcularMateriasDe();
+  indexarBusqueda();
   usadaPor.clear();
   for(const f of DATOS.formulas)
     for(const i of f.ingredientes)
@@ -6677,7 +6722,6 @@ function aplicarDeLaNube(res){
       if(!viejo) continue;
       DATOS.formulas = DATOS.formulas.filter(x => x.id !== fila.id);
       porId.delete(fila.id);
-      const k = busq.findIndex(x => x.f.id === fila.id); if(k >= 0) busq.splice(k, 1);
       if(seleccion && seleccion.id === fila.id){ seleccion = null; cerrarFicha(); }
       n++;
       continue;
@@ -6691,16 +6735,11 @@ function aplicarDeLaNube(res){
       if(JSON.stringify(viejo) === JSON.stringify(nuevo)) continue;
       for(const k of Object.keys(viejo)) if(!(k in nuevo)) delete viejo[k];
       Object.assign(viejo, nuevo);
-      const e = busq.find(x => x.f.id === fila.id);
-      if(e){ e.n = norm(viejo.nombre);
-             e.ing = norm(viejo.ingredientes.map(i => i.nombre).join(' ')); }
       cacheColor.delete(fila.id);
       n++;
     }else{
       DATOS.formulas.push(nuevo);
       porId.set(nuevo.id, nuevo);
-      busq.push({f: nuevo, n: norm(nuevo.nombre),
-                 ing: norm(nuevo.ingredientes.map(i => i.nombre).join(' '))});
       n++;
     }
   }
@@ -6918,7 +6957,7 @@ document.getElementById('btn-menu').onclick = ()=>{
     <div class="campo"><span>Datos</span>
       <p style="margin:0;font-size:14px;color:var(--texto-2)" class="num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas · ${DATOS.grupos_equivalencia.length} grupos de equivalencia</p>
       <p style="margin:6px 0 0;font-size:12.5px;color:var(--texto-3)">
-        Versión <b class="num">4ff98ada</b>. Si acabas de subir uno nuevo y aquí sigue
+        Versión <b class="num">8bd8fce4</b>. Si acabas de subir uno nuevo y aquí sigue
         el número de antes, cierra la app y vuelve a abrirla.</p>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -7700,10 +7739,7 @@ function importar(archivoFile){
           if(it.nueva && !f){
             f = it.nueva;
             DATOS.formulas.push(f); porId.set(f.id, f);
-            busq.push({f, n:norm(f.nombre), ing:norm((f.ingredientes||[]).map(i=>i.nombre).join(' '))});
-          }else if(f && it.parche){ Object.assign(f, it.parche); cacheColor.delete(f.id);
-            const e2 = busq.find(x=>x.f.id===f.id);
-            if(e2){ e2.n = norm(f.nombre); e2.ing = norm(f.ingredientes.map(i=>i.nombre).join(' ')); } }
+          }else if(f && it.parche){ Object.assign(f, it.parche); cacheColor.delete(f.id); }
           if(!f) continue;
           try{ await nube.guardarFormula(f); }catch(_){ fallos++; }
           hechas++;
@@ -7717,7 +7753,6 @@ function importar(archivoFile){
           const f = porId.get(id); if(!f) continue;
           DATOS.formulas = DATOS.formulas.filter(x=>x.id!==id);
           porId.delete(id);
-          const k = busq.findIndex(x=>x.f.id===id); if(k>=0) busq.splice(k,1);
           try{ await nube.guardarFormula({...f, borrada:true}); }catch(_){ fallos++; }
         }
         DATOS.formulas.sort((a,b2)=>a.nombre.localeCompare(b2.nombre,'es'));
@@ -9535,15 +9570,12 @@ if(MODO === 'nube' && puedeEditar && !sesion.vacia){
         const f = porId.get(id);
         if(!f) continue;
         Object.assign(f, parche); cacheColor.delete(id);
-        const e = busq.find(x=>x.f.id===id);
-        if(e){ e.n = norm(f.nombre); e.ing = norm(f.ingredientes.map(i=>i.nombre).join(' ')); }
         try{ await nube.guardarFormula(f); subidos++; }catch(_){ fallos++; }
         b.textContent = `Subiendo… ${subidos}`;
       }
       for(const f of (viejo.nuevas||[])){
         if(!porId.get(f.id)){
           DATOS.formulas.push(f); porId.set(f.id, f);
-          busq.push({f, n:norm(f.nombre), ing:norm((f.ingredientes||[]).map(i=>i.nombre).join(' '))});
         }
         try{ await nube.guardarFormula(f); subidos++; }catch(_){ fallos++; }
       }
@@ -9551,7 +9583,6 @@ if(MODO === 'nube' && puedeEditar && !sesion.vacia){
         const f = porId.get(id); if(!f) continue;
         DATOS.formulas = DATOS.formulas.filter(x=>x.id!==id);
         porId.delete(id);
-        const k = busq.findIndex(x=>x.f.id===id); if(k>=0) busq.splice(k,1);
         try{ await nube.guardarFormula({...f, borrada:true}); subidos++; }catch(_){ fallos++; }
       }
       DATOS.formulas.sort((a,b2)=>a.nombre.localeCompare(b2.nombre,'es'));

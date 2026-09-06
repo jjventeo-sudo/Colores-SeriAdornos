@@ -7,7 +7,7 @@
 
    VERSION cambia con cada construcción, así que una app nueva se instala sola
    y la anterior se borra. */
-const VERSION = 'colores-4ff98ada';
+const VERSION = 'colores-8bd8fce4';
 const FICHEROS = ['./', './index.html', './manifest.webmanifest',
                   './icono-192.png', './icono-512.png'];
 

@@ -1950,6 +1950,51 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
    caída al final sin explicación. */
 .sin-medida{color:var(--ambar); font-weight:560}
 
+/* ── El programa del robot ───────────────────────────────────────── */
+.s-prog-cab{
+  display:flex; align-items:center; gap:10px; padding:11px 13px;
+  border-bottom:1px solid var(--linea);
+}
+.s-prog-robot{font-size:14.5px; font-weight:640; letter-spacing:-.008em}
+.s-prog-cupo{
+  margin-left:auto; flex:none; font-size:12.5px; font-weight:640;
+  font-variant-numeric:tabular-nums; color:var(--texto-2);
+  background:var(--tinta-suave); border-radius:var(--r-s); padding:3px 9px;
+}
+.s-prog-cupo.no-cabe{background:var(--ambar-suave); color:var(--ambar)}
+.s-prog-aviso{
+  display:flex; gap:9px; align-items:flex-start; padding:10px 13px;
+  background:var(--ambar-suave); border-bottom:1px solid var(--linea);
+  font-size:13px; color:var(--texto-2); line-height:1.45;
+}
+.s-prog-aviso svg{width:16px; height:16px; flex:none; color:var(--ambar); margin-top:1px}
+.s-prog-aviso b{color:var(--texto)}
+.s-arch{
+  display:flex; align-items:center; gap:9px; padding:10px 13px;
+  border-bottom:1px solid var(--linea);
+}
+.s-arch:last-child{border-bottom:0}
+.s-arch svg{width:16px; height:16px; flex:none; color:var(--texto-3)}
+.s-arch-n{
+  font-size:14px; font-weight:560; min-width:0; overflow-wrap:anywhere;
+  font-variant-numeric:tabular-nums;
+}
+/* En el editor: nombre y "para qué es" en la misma fila. */
+.ed-archivo{display:flex; align-items:center; gap:8px; margin-bottom:8px}
+.ed-arch-n{flex:2 1 0; min-width:0}
+.ed-arch-p{flex:1 1 0; min-width:0}
+.ed-archivo input{
+  font:inherit; font-size:14px; color:var(--texto); padding:9px 11px;
+  border:1px solid var(--linea-fuerte); background:var(--panel);
+  border-radius:var(--r-m);
+}
+.ed-archivo input:focus{outline:2px solid var(--marca); outline-offset:-1px}
+@media (max-width:520px){
+  .ed-archivo{flex-wrap:wrap}
+  .ed-arch-n{flex:1 1 100%}
+  .ed-arch-p{flex:1 1 0}
+}
+
 @media (max-width:900px){
   .s-ancho{grid-template-columns:1fr}
 }
@@ -2993,6 +3038,7 @@ function crearNube({url, clave}){
       else if(a.clave === 'grupos_equivalencia') d.grupos_equivalencia = a.datos;
       else if(a.clave === 'agujas') d.agujas = a.datos;
       else if(a.clave === 'clientes') d.clientes = a.datos;
+      else if(a.clave === 'robots') d.robots = a.datos;
       else if(a.clave === 'papelera_hasta') d.papelera_hasta = a.datos;
     }
     d.historial = res.preparaciones || [];
@@ -3652,6 +3698,13 @@ let AGUJAS = Array.isArray(DATOS.agujas) ? DATOS.agujas : [];
    tocada antes de su declaración no vale null — revienta con "Cannot access
    before initialization" y la app se queda en blanco. Ya pasó dos veces. */
 let CLIENTES = Array.isArray(DATOS.clientes) ? DATOS.clientes : [];
+/* Los robots: cada uno con cuántos inyectores tiene.
+
+   NO vienen escritos en el código, y no es pereza: uno de ellos lleva por
+   nombre el de un cliente de verdad, y la versión web se cuelga en internet.
+   El comprobador de construir.py caza nombres COMPLETOS de fórmula, así que
+   ese no lo pillaría. Se dan de alta desde la app una vez, como las agujas. */
+let ROBOTS = Array.isArray(DATOS.robots) ? DATOS.robots : [];
 
 function leerCambios(){
   // En modo nube no hay "cambios pendientes de publicar": lo que se guarda va
@@ -7152,6 +7205,8 @@ function aplicarDeLaNube(res){
       AGUJAS.length = 0; AGUJAS.push(...a.datos); DATOS.agujas = AGUJAS; n++;
     }else if(a.clave === 'clientes' && Array.isArray(a.datos)){
       CLIENTES.length = 0; CLIENTES.push(...a.datos); DATOS.clientes = CLIENTES; n++;
+    }else if(a.clave === 'robots' && Array.isArray(a.datos)){
+      ROBOTS.length = 0; ROBOTS.push(...a.datos); DATOS.robots = ROBOTS; n++;
     }else if(a.clave === 'papelera_hasta' && typeof a.datos === 'string'){
       papeleraHasta = a.datos; DATOS.papelera_hasta = papeleraHasta; n++;
     }
@@ -7331,6 +7386,11 @@ function abrirOpciones(){
     ${HAY_SELLOS ? grupoAjustes('Los sellos', [
       filaAjuste('op-clientes', 'Clientes', String(clientesDeSellos().length)),
       filaAjuste('op-agujas', 'Agujas', String(AGUJAS.length)),
+      filaAjuste('op-robots', 'Robots', ROBOTS.length
+        ? ROBOTS.map(r=>r.inyectores).filter(Boolean).length === ROBOTS.length
+          ? String(ROBOTS.length) : `${ROBOTS.length} · falta algún dato`
+        : 'Sin dar de alta',
+        ROBOTS.length ? '' : 'aj-avisa'),
     ]) : ''}
 
     ${grupoAjustes('Mantenimiento', [
@@ -7362,6 +7422,7 @@ function abrirOpciones(){
   ir('op-papelera',     ()=>pantallaPapelera(abrirOpciones));
   ir('op-clientes',     ()=>pantallaClientes(abrirOpciones));
   ir('op-agujas',       ()=>pantallaAgujas(abrirOpciones));
+  ir('op-robots',       ()=>pantallaRobots(abrirOpciones));
   ir('op-publicar-ir',  publicarCambios);
   ir('op-copia',        ()=>pantallaCopia(abrirOpciones));
   ir('op-datos',        ()=>pantallaDatos(abrirOpciones));
@@ -7491,7 +7552,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">7315603e</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">15532c11</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -9081,8 +9142,12 @@ function filtrarSellos(txt){
     // El número del cliente entra en el pajar: escribir 4021 tiene que traer
     // sus sellos igual que escribir su nombre. Sale del listado de clientes,
     // no del sello, así que no hay nada guardado que pueda ir desfasado.
+    // El robot y los nombres de archivo también entran en el pajar: "¿en qué
+    // sello estaba el programa que se llama X?" es una pregunta de taller.
     const heno = norm([s.nombre, s.cliente || '', numeroDe(s),
       (s.molde && s.molde.numero) || '',
+      robot(s.robot_id)?.nombre || '',
+      archivosDe(s).map(f=>f.nombre + ' ' + (f.para||'')).join(' '),
       coloresDeSello(s).map(c=>c.nombre).join(' ')].join(' '));
     return palabras.every(p => heno.includes(p));
   });
@@ -9277,9 +9342,41 @@ function panelParametros(s){
     </div>`;
   };
 
+  /* El programa: en qué robot está y con qué archivos. Va ARRIBA del todo,
+     antes de las inyecciones, porque es lo primero que hace falta: sin saber
+     en qué máquina está el programa, los bares y los segundos no sirven. */
+  const cabe = cabeEnRobot(s);
+  const r = robot(s.robot_id);
+  const archivos = archivosDe(s);
+  const programa = !s.robot ? '' : `
+    <p class="s-epigrafe">Programa${r && r.inyectores
+      ? `<span>colores inyectados / inyectores</span>` : ''}</p>
+    <div class="s-tabla">
+      <div class="s-prog-cab">
+        <span class="s-prog-robot">${r
+          ? esc(r.nombre)
+          : '<span class="flojo">Sin robot apuntado</span>'}</span>
+        ${cabe ? `<span class="s-prog-cupo${cabe.cabe ? '' : ' no-cabe'}">${
+          cabe.colores} de ${cabe.inyectores}</span>` : ''}
+      </div>
+      ${cabe && !cabe.cabe ? `<div class="s-prog-aviso">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+        <span>Inyecta <b>${cabe.colores} colores</b> y ${esc(cabe.robot.nombre)} tiene
+          <b>${cabe.inyectores} inyectores</b>. O no cabe, o hay que cambiar de color
+          a mitad.</span></div>` : ''}
+      ${archivos.length
+        ? archivos.map(f=>`<div class="s-arch">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+            <span class="s-arch-n">${esc(f.nombre)}</span>
+            ${f.para ? `<em class="s-parte">${esc(f.para)}</em>` : ''}
+          </div>`).join('')
+        : '<p class="s-nada" style="padding:11px 13px;margin:0">Sin archivos apuntados.</p>'}
+    </div>`;
+
   return `<div class="s-panel" data-panel="3">
     ${!s.robot ? `<p class="s-nada">Este sello está guardado como hecho <b>a mano</b>.
       Los parámetros del robot solo salen en los de robot.</p>` : `
+    ${programa}
     <p class="s-epigrafe">Inyecciones
       <span>${pars.length} · en orden de paso</span></p>
     <div class="s-tabla">
@@ -9342,7 +9439,9 @@ function cabeceraCliente(s){
       ${molde ? `<span>Molde ${esc(molde)}</span>` : '<span class="flojo">Sin molde</span>'}
       ${piezas ? `<span class="sep">·</span><span>${piezas} ${piezas === 1 ? 'sello' : 'sellos'}</span>` : ''}
       <span class="sep">·</span>
-      ${s.robot ? '<span class="s-robot">Robot</span>' : '<span>A mano</span>'}
+      ${s.robot
+        ? `<span class="s-robot">${esc(robot(s.robot_id)?.nombre || 'Robot')}</span>`
+        : '<span>A mano</span>'}
       ${s.tipo === 'piloto' ? '<span class="sep">·</span><span class="s-piloto">Piloto</span>' : ''}
     </div>`;
 }
@@ -9530,6 +9629,29 @@ function editarSello(base, duplicar){
           <button data-robot="0" aria-pressed="${!s.robot}">A mano</button>
         </div>
       </div>
+
+      ${/* El programa del robot. Solo tiene sentido si el sello se hace en
+            robot, así que la sección aparece y desaparece con el interruptor
+            de arriba en vez de estar siempre puesta pidiendo datos que no
+            existen. */''}
+      <div id="ed-s-programa" ${s.robot ? '' : 'hidden'}>
+        <div class="s-rotulo"><span>Programa del robot</span></div>
+        <label class="campo"><span>¿En qué robot está?</span>
+          <select id="ed-s-robot">
+            <option value="">Sin apuntar</option>
+            ${robotsOrdenados().map(r=>`<option value="${esc(r.id)}"${
+              r.id === s.robot_id ? ' selected' : ''}>${esc(r.nombre)}${
+              r.inyectores ? ` · ${r.inyectores} inyectores` : ''}</option>`).join('')}
+          </select></label>
+        ${ROBOTS.length ? '' : `<p class="s-nada" style="margin:4px 0 10px">
+          Todavía no hay robots dados de alta.
+          <button class="btn btn-fino" id="ed-s-robots-ir">Darlos de alta</button></p>`}
+        <div class="ed-archivos" id="ed-archivos"></div>
+        <button class="btn-anadir" id="ed-add-archivo" style="margin-bottom:14px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Añadir archivo</button>
+      </div>
+
       <label class="campo"><span>Notas</span>
         <textarea id="ed-s-notas" placeholder="Lo que haga falta recordar">${esc(s.notas||'')}</textarea></label>
 
@@ -9550,6 +9672,51 @@ function editarSello(base, duplicar){
       b.onclick = ()=>{ recoger(); s.tipo = b.dataset.tipo; pintar(); };
     for(const b of $dc.querySelectorAll('[data-robot]'))
       b.onclick = ()=>{ recoger(); s.robot = b.dataset.robot === '1'; pintar(); };
+    /* Los archivos del programa. Se repintan solos aquí dentro en vez de
+       repintar el editor entero: repintarlo perdería el foco y lo escrito a
+       medias en los demás campos. */
+    const pintarArchivos = ()=>{
+      const $a = document.getElementById('ed-archivos');
+      if(!$a) return;
+      const lista = s.archivos || [];
+      $a.innerHTML = lista.length ? lista.map((f, i)=>`
+        <div class="ed-archivo">
+          <input class="ed-arch-n" data-arch-n="${i}" value="${esc(f.nombre || '')}"
+                 placeholder="Nombre del archivo" autocomplete="off"
+                 aria-label="Nombre del archivo ${i+1}">
+          <input class="ed-arch-p" data-arch-p="${i}" value="${esc(f.para || '')}"
+                 placeholder="para qué es" autocomplete="off" list="ed-arch-partes"
+                 aria-label="Para qué es el archivo ${i+1}">
+          <button class="aguja-x" data-arch-x="${i}" aria-label="Quitar archivo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>`).join('') + `<datalist id="ed-arch-partes">${
+          // Las mismas partes que ya usas en las inyecciones: si el archivo es
+          // el de la bandera, que se escriba igual que la inyección de la
+          // bandera y no "banderas" o "bander".
+          partesUsadas(s).map(p=>`<option value="${esc(p)}">`).join('')}
+          <option value="completo"></datalist>`
+        : '<p class="s-nada" style="margin:2px 0 8px">Sin archivos apuntados.</p>';
+      for(const inp of $a.querySelectorAll('[data-arch-n]'))
+        inp.oninput = ()=>{ s.archivos[+inp.dataset.archN].nombre = inp.value; };
+      for(const inp of $a.querySelectorAll('[data-arch-p]'))
+        inp.oninput = ()=>{ s.archivos[+inp.dataset.archP].para = inp.value; };
+      for(const b of $a.querySelectorAll('[data-arch-x]'))
+        b.onclick = ()=>{ s.archivos.splice(+b.dataset.archX, 1); pintarArchivos(); };
+    };
+    pintarArchivos();
+    document.getElementById('ed-add-archivo')?.addEventListener('click', ()=>{
+      if(!Array.isArray(s.archivos)) s.archivos = [];
+      s.archivos.push({nombre:'', para:''});
+      pintarArchivos();
+      $dc.querySelector('.ed-archivo:last-of-type .ed-arch-n')?.focus();
+    });
+    document.getElementById('ed-s-robots-ir')?.addEventListener('click', ()=>{
+      recoger();
+      // Se vuelve al editor con lo escrito intacto.
+      pantallaRobots(()=>{ $dt.textContent = ''; pintar(); });
+    });
+
     document.getElementById('ed-add-paso').onclick = ()=>{ recoger(); elegirTipoPaso(s, pintar); };
     for(const b of $dc.querySelectorAll('[data-paso-ed]'))
       b.onclick = ()=>{ recoger(); editarPaso(s, +b.dataset.pasoEd, pintar); };
@@ -9603,6 +9770,20 @@ function editarSello(base, duplicar){
     s.molde.largo = n('ed-s-largo');
     s.molde.ancho = n('ed-s-ancho');
     s.notas = v('ed-s-notas');
+    // El robot solo si el sello se hace en robot: si se pasa a "a mano", el
+    // programa deja de tener sentido y guardarlo sería dejar un dato muerto
+    // que luego contradice a la ficha.
+    if(s.robot){
+      const r = document.getElementById('ed-s-robot');
+      if(r) s.robot_id = r.value || null;
+      s.archivos = (s.archivos || [])
+        .map(f=>({nombre: (f.nombre||'').trim(), para: (f.para||'').trim()}))
+        .filter(f=>f.nombre);
+      if(!s.archivos.length) delete s.archivos;
+    }else{
+      delete s.robot_id;
+      delete s.archivos;
+    }
   }
 
   pintar();
@@ -9859,6 +10040,157 @@ function pantallaClientes(volver){
 
 /** Cuántos sellos usan esta aguja. */
 const sellosConAguja = id => DATOS.sellos.filter(s=>(s.pasos||[]).some(p=>p.aguja === id)).length;
+
+/* ── LOS ROBOTS ───────────────────────────────────────────────────────
+   Mismo planteamiento que las agujas: el sello guarda el ID del robot, no su
+   nombre ni sus inyectores. Si un día le cambias el nombre a uno o le montan
+   inyectores, se corrige aquí y todos sus sellos lo enseñan al día. */
+const robot = id => ROBOTS.find(r => r.id === id) || null;
+const sellosEnRobot = id => DATOS.sellos.filter(s => s.robot_id === id).length;
+const robotsOrdenados = () =>
+  ROBOTS.slice().sort((a, b)=>String(a.nombre).localeCompare(String(b.nombre), 'es'));
+
+function guardarRobots(){
+  DATOS.robots = ROBOTS;
+  if(MODO === 'nube'){
+    nube.subirAjustes([{clave:'robots', datos: ROBOTS}]).catch(e=>falloNube(e));
+    nube.guardarEspejo(DATOS, ultimaSync, ROL);
+  }
+}
+
+/** Los archivos del programa, ya limpios. */
+const archivosDe = s => (s.archivos || []).filter(a => a && (a.nombre || '').trim());
+
+/* ¿Cabe el sello en su robot?
+
+   Dos decisiones, y las dos cambian el número:
+
+   1. Se cuentan COLORES DISTINTOS, no inyecciones. Un inyector lleva un color,
+      y el mismo color inyectado dos veces —bandera y letras— sale del mismo
+      inyector. Contar inyecciones daría avisos falsos justo en los sellos más
+      trabajados, que son los que más repiten color.
+
+   2. Solo cuentan los colores que se INYECTAN. El engomado también es un
+      color del sello y sale en la lista de colores, pero no entra por un
+      inyector, así que sumarlo aquí sería inflar la cuenta y avisar de que no
+      cabe un sello que cabe. */
+function coloresInyectados(s){
+  const vistos = new Set();
+  for(const p of (s.pasos || []))
+    if(p.tipo === 'inyectar' && p.ref) vistos.add(p.ref);
+  return vistos.size;
+}
+function cabeEnRobot(s){
+  const r = robot(s.robot_id);
+  if(!r || !r.inyectores) return null;              // sin robot o sin dato, no se opina
+  const colores = coloresInyectados(s);
+  return {robot: r, colores, inyectores: r.inyectores, cabe: colores <= r.inyectores};
+}
+
+function pantallaRobots(volver){
+  let editando = null;
+
+  const formulario = (r, cual) => `
+    <div class="ag-form" data-form="${cual}">
+      <div class="ed-rejilla">
+        <label class="campo ancho"><span>Nombre del robot</span>
+          <input id="rb-nombre" value="${esc(r.nombre || '')}"
+                 placeholder="Robot 1" autocomplete="off"></label>
+        <label class="campo"><span>Inyectores</span>
+          <input id="rb-iny" type="number" inputmode="numeric" min="1" step="1"
+                 value="${r.inyectores ?? ''}" autocomplete="off"></label>
+      </div>
+      <div class="ag-form-btns">
+        ${cual === 'nuevo'
+          ? `<button class="btn btn-1" id="rb-add" style="width:100%">Añadir robot</button>`
+          : `<button class="btn" id="rb-cancelar">Cancelar</button>
+             <button class="btn btn-1" id="rb-guardar">Guardar cambios</button>`}
+      </div>
+    </div>`;
+
+  const pintar = ()=>{
+    $dt.textContent = 'Robots';
+    $dc.innerHTML = `
+      <p style="margin:0 0 14px;font-size:13.5px;color:var(--texto-2);line-height:1.5">
+        Cada sello dice en qué robot está su programa. Los inyectores sirven para
+        avisarte si un sello lleva más colores de los que caben.
+        ${puedeEditar ? '<br>Pulsa uno para corregirlo: <b>los sellos que lo usan se actualizan solos</b>.' : ''}</p>
+      ${ROBOTS.length ? `<div class="agujas-lista">${robotsOrdenados().map(r=>{
+        if(editando === r.id) return formulario(r, r.id);
+        const n = sellosEnRobot(r.id);
+        return `<div class="aguja-fila${puedeEditar ? ' editable' : ''}"${
+          puedeEditar ? ` data-rb-ed="${esc(r.id)}" role="button" tabindex="0"` : ''}>
+          <div class="aguja-nom">${esc(r.nombre)}
+            <small>${r.inyectores
+              ? `<b>${r.inyectores}</b> inyectores`
+              : '<span class="sin-medida">sin inyectores apuntados</span>'}${
+              n ? ` · ${n} sello${n===1?'':'s'}` : ''}</small></div>
+          ${puedeEditar ? `<span class="aguja-lapiz" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4z"/></svg>
+          </span>
+          <button class="aguja-x" data-rb-fuera="${esc(r.id)}" aria-label="Quitar ${esc(r.nombre)}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>` : ''}
+        </div>`;
+      }).join('')}</div>`
+        : '<p class="s-nada">Todavía no hay ningún robot dado de alta.</p>'}
+      ${puedeEditar && editando === null
+        ? `<div class="aguja-nueva">${formulario({}, 'nuevo')}</div>` : ''}`;
+    pieVolver(volver);
+
+    const leerForm = ()=>{
+      const nombre = (document.getElementById('rb-nombre').value || '').trim();
+      const iny = parseInt(String(document.getElementById('rb-iny').value), 10);
+      return {nombre, inyectores: isFinite(iny) && iny > 0 ? iny : null};
+    };
+
+    for(const el of $dc.querySelectorAll('[data-rb-ed]')){
+      const abrir = e=>{
+        if(e.target.closest('.aguja-x')) return;
+        editando = el.dataset.rbEd; pintar();
+        document.getElementById('rb-nombre')?.focus();
+      };
+      el.onclick = abrir;
+      el.onkeydown = e=>{ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); abrir(e); } };
+    }
+    document.getElementById('rb-cancelar')?.addEventListener('click', ()=>{
+      editando = null; pintar();
+    });
+    document.getElementById('rb-guardar')?.addEventListener('click', ()=>{
+      const d = leerForm();
+      if(!d.nombre) return brindis('Ponle un nombre al robot');
+      // Los campos, NUNCA el id: los sellos guardan el id.
+      const r = ROBOTS.find(x => x.id === editando);
+      if(!r){ editando = null; return pintar(); }
+      const n = sellosEnRobot(r.id);
+      Object.assign(r, d);
+      guardarRobots();
+      editando = null; pintar();
+      if(SECCION === 'sellos' && selloSel) pintarFichaSello();
+      brindis(n ? `Corregido · ${n} sello${n===1?'':'s'} al día` : 'Robot corregido');
+    });
+    for(const b of $dc.querySelectorAll('[data-rb-fuera]'))
+      b.onclick = e=>{
+        e.stopPropagation();
+        const k = ROBOTS.findIndex(x => x.id === b.dataset.rbFuera);
+        if(k < 0) return;
+        const n = sellosEnRobot(ROBOTS[k].id);
+        if(n) return brindis(
+          `No se puede quitar: lo usan ${n} sello${n===1?'':'s'}. Púlsalo para corregirlo.`);
+        ROBOTS.splice(k, 1);
+        guardarRobots(); pintar();
+      };
+    document.getElementById('rb-add')?.addEventListener('click', ()=>{
+      const d = leerForm();
+      if(!d.nombre) return brindis('Ponle un nombre al robot');
+      ROBOTS.push({id: 'rb-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,5), ...d});
+      guardarRobots(); pintar();
+      brindis('Robot añadido');
+    });
+    if(!$dlg.open) $dlg.showModal();
+  };
+  pintar();
+}
 
 /* ── El orden de las agujas ───────────────────────────────────────────
    Juanjo pidió poder mover cada aguja de sitio para tenerlas siempre por
@@ -10134,8 +10466,12 @@ async function hojaSello(s){
       <div><dt>Sellos por molde</dt><dd>${m.sellos ? fmt(m.sellos) : '—'}</dd></div>
       <div><dt>Medidas</dt><dd>${m.largo && m.ancho ? `${fmt(m.largo)} × ${fmt(m.ancho)} mm` : '—'}</dd></div>
       <div><dt>Tipo</dt><dd>${s.tipo === 'piloto' ? 'Piloto' : 'Molde'}</dd></div>
-      <div><dt>Fabricación</dt><dd>${s.robot ? 'Robot' : 'A mano'}</dd></div>
-      <div><dt>Colores</dt><dd>${coloresDeSello(s).length}</dd></div>
+      <div><dt>Fabricación</dt><dd>${s.robot
+        ? esc(robot(s.robot_id)?.nombre || 'Robot') : 'A mano'}</dd></div>
+      <div><dt>Colores</dt><dd>${coloresDeSello(s).length}${(()=>{
+        const c = cabeEnRobot(s);
+        return c ? ` · ${c.colores} inyectados de ${c.inyectores}` : '';
+      })()}</dd></div>
     </dl>
   </div>
   <div class="cols">
@@ -10145,6 +10481,10 @@ async function hojaSello(s){
     </div>
     <div>
       ${s.robot ? `<h2>Parámetros del robot</h2>
+      ${archivosDe(s).length ? `<div class="par"><h3>Archivos del programa</h3>
+        ${archivosDe(s).map(f=>`<div class="r"><b>${esc(f.nombre)}</b><span>${
+          f.para ? esc(f.para) : '—'}</span></div>`).join('')}
+      </div>` : ''}
       <div class="par"><h3>Agujas</h3>
         ${pars.map(p=>{ const a = aguja(p.aguja);
           return `<div class="r"><b>${esc(p.nombre)}${
@@ -10302,6 +10642,8 @@ window.__app = {
   coloresDeSello, tandasDe, parametrosDe, pantallaAgujas,
   get AGUJAS(){ return AGUJAS; }, TIPOS_PASO, guardarAgujas,
   get CLIENTES(){ return CLIENTES; }, clientesDeSellos, numeroDe, guardarClientes,
+  get ROBOTS(){ return ROBOTS; }, guardarRobots, pantallaRobots, robot,
+  cabeEnRobot, archivosDe, agujasOrdenadas,
   papelera, pantallaPapelera, pantallaClientes, abrirOpciones,
   get pes(){ return pes; },
   get ultimaSync(){ return ultimaSync; },

@@ -1920,9 +1920,32 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 .aguja-x svg{width:14px;height:14px}
 .aguja-x:hover{border-color:var(--rojo); color:var(--rojo)}
 .aguja-nueva{border-top:1px solid var(--linea-fuerte); padding-top:15px}
-.aguja-nueva input[type="color"]{
+.ag-form input[type="color"]{
   padding:3px; height:42px; cursor:pointer;
 }
+/* Una fila que se puede corregir tiene que PARECER que se puede pulsar. */
+.aguja-fila.editable{
+  cursor:pointer; margin:0 -9px; padding-left:9px; padding-right:9px;
+  border-radius:var(--r-m); transition:background .13s var(--salida);
+}
+.aguja-fila.editable:hover{background:var(--panel-2)}
+.aguja-fila.editable:focus-visible{outline:2px solid var(--marca); outline-offset:-2px}
+.aguja-lapiz{
+  width:26px; height:26px; flex:0 0 auto; display:grid; place-items:center;
+  color:var(--texto-3); opacity:0; transition:opacity .13s var(--salida);
+}
+.aguja-fila.editable:hover .aguja-lapiz,
+.aguja-fila.editable:focus-visible .aguja-lapiz{opacity:1}
+.aguja-lapiz svg{width:15px; height:15px}
+/* En pantalla táctil no hay "pasar por encima": el lápiz se queda puesto. */
+@media (pointer:coarse){ .aguja-lapiz{opacity:1} }
+/* La fila abierta para corregir: se distingue de la lista. */
+.ag-form{
+  background:var(--panel-2); border:1px solid var(--linea-fuerte);
+  border-radius:var(--r-l); padding:13px; margin:6px 0;
+}
+.ag-form-btns{display:flex; gap:8px}
+.ag-form-btns .btn{flex:1}
 
 @media (max-width:900px){
   .s-ancho{grid-template-columns:1fr}
@@ -7465,7 +7488,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">288871fe</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">894606bd</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -9828,67 +9851,143 @@ function pantallaClientes(volver){
   pintar();
 }
 
+/** Cuántos sellos usan esta aguja. */
+const sellosConAguja = id => DATOS.sellos.filter(s=>(s.pasos||[]).some(p=>p.aguja === id)).length;
+
 function pantallaAgujas(volver){
+  // Qué fila está abierta para editar. null = ninguna, 'nueva' = el formulario
+  // de dar de alta.
+  let editando = null;
+
+  /* El formulario, uno solo, que sirve para alta y para edición. Tener dos
+     copias del mismo formulario acabaría con uno de los dos desactualizado el
+     día que se añada un campo. */
+  const formulario = (a, cual) => `
+    <div class="ag-form" data-form="${cual}">
+      <div class="ed-rejilla">
+        <label class="campo ancho"><span>Nombre</span>
+          <input id="ag-nombre" value="${esc(a.nombre || '')}"
+                 placeholder="Cónica 0,84 azul" autocomplete="off"></label>
+        <label class="campo"><span>Medida (mm)</span>
+          <input id="ag-medida" type="number" inputmode="decimal" min="0" step="0.01"
+                 value="${a.medida ?? ''}" autocomplete="off"></label>
+        <label class="campo"><span>Color de la punta</span>
+          <input id="ag-color" type="color" value="${esc(a.color || '#2f66c4')}"></label>
+      </div>
+      <div class="seg" role="tablist" style="margin-bottom:10px">
+        <button data-ag-tipo="conica" aria-pressed="${(a.tipo || 'conica') !== 'metal'}">Cónica de plástico</button>
+        <button data-ag-tipo="metal" aria-pressed="${a.tipo === 'metal'}">Metal</button>
+      </div>
+      <div class="ag-form-btns">
+        ${cual === 'nueva'
+          ? `<button class="btn btn-1" id="ag-add" style="width:100%">Añadir aguja</button>`
+          : `<button class="btn" id="ag-cancelar">Cancelar</button>
+             <button class="btn btn-1" id="ag-guardar">Guardar cambios</button>`}
+      </div>
+    </div>`;
+
   const pintar = ()=>{
     $dt.textContent = 'Agujas';
     $dc.innerHTML = `
       <p style="margin:0 0 14px;font-size:13.5px;color:var(--texto-2);line-height:1.5">
         Tu lista. Se dan de alta aquí una vez y luego se eligen de un desplegable en
-        cada inyección, así no acaban escritas de cuatro maneras distintas.</p>
-      ${AGUJAS.length ? `<div class="agujas-lista">${AGUJAS.map((a,i)=>`
-        <div class="aguja-fila">
+        cada inyección, así no acaban escritas de cuatro maneras distintas.
+        ${puedeEditar ? '<br>Pulsa una para corregirla: <b>los sellos que la usan se actualizan solos</b>.' : ''}</p>
+      ${AGUJAS.length ? `<div class="agujas-lista">${AGUJAS.map((a,i)=>{
+        if(editando === i) return formulario(a, i);
+        const usada = sellosConAguja(a.id);
+        return `<div class="aguja-fila${puedeEditar ? ' editable' : ''}"${
+          puedeEditar ? ` data-aguja-ed="${i}" role="button" tabindex="0"` : ''}>
           <span class="punta" style="background:${esc(a.color||'#8a8f95')}"></span>
           <div class="aguja-nom">${esc(a.nombre)}
             <small>${esc(a.tipo === 'metal' ? 'Metal' : 'Cónica de plástico')}${
-              a.medida ? ' · ' + esc(a.medida) + ' mm' : ''}</small></div>
-          ${puedeEditar ? `<button class="aguja-x" data-aguja-fuera="${i}" aria-label="Quitar">
+              a.medida ? ' · ' + esc(fmt(a.medida)) + ' mm' : ''}${
+              usada ? ` · <b>${usada}</b> sello${usada===1?'':'s'}` : ''}</small></div>
+          ${puedeEditar ? `<span class="aguja-lapiz" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4z"/></svg>
+          </span>
+          <button class="aguja-x" data-aguja-fuera="${i}" aria-label="Quitar ${esc(a.nombre)}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>` : ''}
-        </div>`).join('')}</div>`
+        </div>`;
+      }).join('')}</div>`
         : '<p class="s-nada">Todavía no hay ninguna aguja dada de alta.</p>'}
-      ${puedeEditar ? `<div class="aguja-nueva">
-        <div class="ed-rejilla">
-          <label class="campo ancho"><span>Nombre</span>
-            <input id="ag-nombre" placeholder="Cónica 0,84 azul" autocomplete="off"></label>
-          <label class="campo"><span>Medida (mm)</span>
-            <input id="ag-medida" type="number" inputmode="decimal" min="0" step="0.01" autocomplete="off"></label>
-          <label class="campo"><span>Color de la punta</span>
-            <input id="ag-color" type="color" value="#2f66c4"></label>
-        </div>
-        <div class="seg" role="tablist" style="margin-bottom:10px">
-          <button data-ag-tipo="conica" aria-pressed="true">Cónica de plástico</button>
-          <button data-ag-tipo="metal" aria-pressed="false">Metal</button>
-        </div>
-        <button class="btn btn-1" id="ag-add" style="width:100%">Añadir aguja</button>
-      </div>` : ''}`;
+      ${puedeEditar && editando === null
+        ? `<div class="aguja-nueva">${formulario({}, 'nueva')}</div>` : ''}`;
     $dp.innerHTML = `<button class="btn btn-1" id="ag-volver">${volver ? 'Volver' : 'Cerrar'}</button>`;
     document.getElementById('ag-volver').onclick = ()=>{ if(volver) volver(); else $dlg.close(); };
 
-    let tipoAg = 'conica';
+    // El tipo elegido en el formulario que esté abierto.
+    let tipoAg = editando === null || editando === 'nueva'
+      ? 'conica' : (AGUJAS[editando]?.tipo || 'conica');
     for(const b of $dc.querySelectorAll('[data-ag-tipo]'))
       b.onclick = ()=>{
         tipoAg = b.dataset.agTipo;
         for(const o of $dc.querySelectorAll('[data-ag-tipo]'))
           o.setAttribute('aria-pressed', String(o === b));
       };
+
+    const leerForm = ()=>{
+      const nombre = (document.getElementById('ag-nombre').value || '').trim();
+      const med = parseFloat(String(document.getElementById('ag-medida').value).replace(',','.'));
+      return {nombre, tipo: tipoAg,
+              medida: isFinite(med) ? med : null,
+              color: document.getElementById('ag-color').value || '#8a8f95'};
+    };
+
+    // Abrir una fila para editarla.
+    for(const el of $dc.querySelectorAll('[data-aguja-ed]')){
+      const abrir = e=>{
+        if(e.target.closest('.aguja-x')) return;     // la X es otra cosa
+        editando = +el.dataset.agujaEd; pintar();
+        document.getElementById('ag-nombre')?.focus();
+      };
+      el.onclick = abrir;
+      el.onkeydown = e=>{ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); abrir(e); } };
+    }
+    document.getElementById('ag-cancelar')?.addEventListener('click', ()=>{
+      editando = null; pintar();
+    });
+    document.getElementById('ag-guardar')?.addEventListener('click', ()=>{
+      const d = leerForm();
+      if(!d.nombre) return brindis('Ponle un nombre a la aguja');
+      /* Se cambian los CAMPOS y NUNCA el id.
+         Es toda la clave de que esto funcione: los pasos de los sellos guardan
+         el id de la aguja, no sus medidas. Cambiando los campos, los sellos que
+         la usan enseñan lo nuevo en cuanto se repintan, sin tocar ni un sello y
+         sin nada que migrar. Si aquí se generara un id nuevo, cada sello se
+         quedaría apuntando a una aguja que ya no existe. */
+      const a = AGUJAS[editando];
+      const usada = sellosConAguja(a.id);
+      Object.assign(a, d);
+      guardarAgujas();
+      editando = null; pintar();
+      // Y lo que ya está pintado por detrás, al día.
+      if(SECCION === 'sellos' && selloSel) pintarFichaSello();
+      brindis(usada
+        ? `Corregida · ${usada} sello${usada===1?'':'s'} al día`
+        : 'Aguja corregida');
+    });
+
     for(const b of $dc.querySelectorAll('[data-aguja-fuera]'))
-      b.onclick = ()=>{
+      b.onclick = e=>{
+        e.stopPropagation();
         const a = AGUJAS[+b.dataset.agujaFuera];
         // Si está en uso, se avisa: quitarla dejaría pasos señalando a nada.
-        const usada = DATOS.sellos.filter(s=>(s.pasos||[]).some(p=>p.aguja === a.id)).length;
-        if(usada) return brindis(`No se puede: la usan ${usada} sello${usada===1?'':'s'}`);
+        // Corregirla sí se puede, y es lo que casi siempre se quiere.
+        const usada = sellosConAguja(a.id);
+        if(usada) return brindis(
+          `No se puede quitar: la usan ${usada} sello${usada===1?'':'s'}. Púlsala para corregirla.`);
         AGUJAS.splice(+b.dataset.agujaFuera, 1);
         guardarAgujas(); pintar();
       };
+
     document.getElementById('ag-add')?.addEventListener('click', ()=>{
-      const nombre = (document.getElementById('ag-nombre').value || '').trim();
-      if(!nombre) return brindis('Ponle un nombre a la aguja');
-      const med = parseFloat(String(document.getElementById('ag-medida').value).replace(',','.'));
+      const d = leerForm();
+      if(!d.nombre) return brindis('Ponle un nombre a la aguja');
       AGUJAS.push({
         id: 'ag-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,5),
-        nombre, tipo: tipoAg,
-        medida: isFinite(med) ? med : null,
-        color: document.getElementById('ag-color').value || '#8a8f95',
+        ...d,
       });
       guardarAgujas(); pintar();
       brindis('Aguja añadida');

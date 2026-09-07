@@ -1946,6 +1946,9 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 }
 .ag-form-btns{display:flex; gap:8px}
 .ag-form-btns .btn{flex:1}
+/* Sin medida no se puede colocar por tamaño: se dice, en vez de dejarla
+   caída al final sin explicación. */
+.sin-medida{color:var(--ambar); font-weight:560}
 
 @media (max-width:900px){
   .s-ancho{grid-template-columns:1fr}
@@ -7488,7 +7491,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">894606bd</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">7315603e</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -9728,7 +9731,10 @@ function editarPaso(s, i, volver, esNuevo){
     + (conRobot ? `<label class="campo"><span>Aguja</span>
         <select id="p-aguja">
           <option value="">Sin aguja</option>
-          ${AGUJAS.map(a=>`<option value="${esc(a.id)}"${a.id===p.aguja?' selected':''}>${esc(a.nombre)}</option>`).join('')}
+          ${/* Ordenadas por medida, igual que la pantalla de agujas: eligiendo
+                 aguja en mitad de una ficha, el desplegable tiene que estar en el
+                 mismo orden que la lista o se elige la de al lado. */''}
+          ${agujasOrdenadas().map(a=>`<option value="${esc(a.id)}"${a.id===p.aguja?' selected':''}>${esc(a.nombre)}</option>`).join('')}
         </select></label>
       <label class="campo"><span>Presión (bar)</span>
         <input id="p-bar" type="number" inputmode="decimal" min="0" step="0.1"
@@ -9854,6 +9860,26 @@ function pantallaClientes(volver){
 /** Cuántos sellos usan esta aguja. */
 const sellosConAguja = id => DATOS.sellos.filter(s=>(s.pasos||[]).some(p=>p.aguja === id)).length;
 
+/* ── El orden de las agujas ───────────────────────────────────────────
+   Juanjo pidió poder mover cada aguja de sitio para tenerlas siempre por
+   tamaño. Pero la aguja YA guarda su medida, así que el orden por tamaño no
+   hay que mantenerlo: se calcula. Colocarlas a mano daría el mismo resultado
+   una vez y se rompería a la siguiente, porque la aguja nueva caería al final
+   y habría que volver a arrastrarla.
+
+   Se ordena al PINTAR, no se reordena lo guardado: así no hay un "orden"
+   escrito en ningún sitio que pueda contradecir a las medidas, ni nada que
+   migrar. Las que no tienen medida no se pueden colocar por tamaño, así que
+   van al final; a igual medida, por nombre, para que el orden no baile entre
+   dos aparatos. */
+function agujasOrdenadas(){
+  return AGUJAS.slice().sort((a, b)=>{
+    const ma = a.medida == null || a.medida === '' ? Infinity : +a.medida;
+    const mb = b.medida == null || b.medida === '' ? Infinity : +b.medida;
+    return ma - mb || String(a.nombre).localeCompare(String(b.nombre), 'es');
+  });
+}
+
 function pantallaAgujas(volver){
   // Qué fila está abierta para editar. null = ninguna, 'nueva' = el formulario
   // de dar de alta.
@@ -9892,21 +9918,25 @@ function pantallaAgujas(volver){
       <p style="margin:0 0 14px;font-size:13.5px;color:var(--texto-2);line-height:1.5">
         Tu lista. Se dan de alta aquí una vez y luego se eligen de un desplegable en
         cada inyección, así no acaban escritas de cuatro maneras distintas.
-        ${puedeEditar ? '<br>Pulsa una para corregirla: <b>los sellos que la usan se actualizan solos</b>.' : ''}</p>
-      ${AGUJAS.length ? `<div class="agujas-lista">${AGUJAS.map((a,i)=>{
-        if(editando === i) return formulario(a, i);
+        ${puedeEditar ? `<br>Van <b>ordenadas por medida</b> ellas solas: al corregir una,
+          se coloca donde le toca. Pulsa una para corregirla —
+          <b>los sellos que la usan se actualizan solos</b>.` : ''}</p>
+      ${AGUJAS.length ? `<div class="agujas-lista">${agujasOrdenadas().map(a=>{
+        // Por id y no por posición en el array: lo que se pinta va ordenado por
+        // medida, así que la posición de la fila ya no es la del array.
+        if(editando === a.id) return formulario(a, a.id);
         const usada = sellosConAguja(a.id);
         return `<div class="aguja-fila${puedeEditar ? ' editable' : ''}"${
-          puedeEditar ? ` data-aguja-ed="${i}" role="button" tabindex="0"` : ''}>
+          puedeEditar ? ` data-aguja-ed="${esc(a.id)}" role="button" tabindex="0"` : ''}>
           <span class="punta" style="background:${esc(a.color||'#8a8f95')}"></span>
           <div class="aguja-nom">${esc(a.nombre)}
             <small>${esc(a.tipo === 'metal' ? 'Metal' : 'Cónica de plástico')}${
-              a.medida ? ' · ' + esc(fmt(a.medida)) + ' mm' : ''}${
+              a.medida ? ' · ' + esc(fmt(a.medida)) + ' mm' : ' · <span class="sin-medida">sin medida</span>'}${
               usada ? ` · <b>${usada}</b> sello${usada===1?'':'s'}` : ''}</small></div>
           ${puedeEditar ? `<span class="aguja-lapiz" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4z"/></svg>
           </span>
-          <button class="aguja-x" data-aguja-fuera="${i}" aria-label="Quitar ${esc(a.nombre)}">
+          <button class="aguja-x" data-aguja-fuera="${esc(a.id)}" aria-label="Quitar ${esc(a.nombre)}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>` : ''}
         </div>`;
@@ -9919,7 +9949,7 @@ function pantallaAgujas(volver){
 
     // El tipo elegido en el formulario que esté abierto.
     let tipoAg = editando === null || editando === 'nueva'
-      ? 'conica' : (AGUJAS[editando]?.tipo || 'conica');
+      ? 'conica' : (AGUJAS.find(x => x.id === editando)?.tipo || 'conica');
     for(const b of $dc.querySelectorAll('[data-ag-tipo]'))
       b.onclick = ()=>{
         tipoAg = b.dataset.agTipo;
@@ -9939,7 +9969,7 @@ function pantallaAgujas(volver){
     for(const el of $dc.querySelectorAll('[data-aguja-ed]')){
       const abrir = e=>{
         if(e.target.closest('.aguja-x')) return;     // la X es otra cosa
-        editando = +el.dataset.agujaEd; pintar();
+        editando = el.dataset.agujaEd; pintar();
         document.getElementById('ag-nombre')?.focus();
       };
       el.onclick = abrir;
@@ -9957,7 +9987,8 @@ function pantallaAgujas(volver){
          la usan enseñan lo nuevo en cuanto se repintan, sin tocar ni un sello y
          sin nada que migrar. Si aquí se generara un id nuevo, cada sello se
          quedaría apuntando a una aguja que ya no existe. */
-      const a = AGUJAS[editando];
+      const a = AGUJAS.find(x => x.id === editando);
+      if(!a){ editando = null; return pintar(); }
       const usada = sellosConAguja(a.id);
       Object.assign(a, d);
       guardarAgujas();
@@ -9972,13 +10003,15 @@ function pantallaAgujas(volver){
     for(const b of $dc.querySelectorAll('[data-aguja-fuera]'))
       b.onclick = e=>{
         e.stopPropagation();
-        const a = AGUJAS[+b.dataset.agujaFuera];
+        const k = AGUJAS.findIndex(x => x.id === b.dataset.agujaFuera);
+        if(k < 0) return;
+        const a = AGUJAS[k];
         // Si está en uso, se avisa: quitarla dejaría pasos señalando a nada.
         // Corregirla sí se puede, y es lo que casi siempre se quiere.
         const usada = sellosConAguja(a.id);
         if(usada) return brindis(
           `No se puede quitar: la usan ${usada} sello${usada===1?'':'s'}. Púlsala para corregirla.`);
-        AGUJAS.splice(+b.dataset.agujaFuera, 1);
+        AGUJAS.splice(k, 1);
         guardarAgujas(); pintar();
       };
 

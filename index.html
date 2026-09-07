@@ -4422,6 +4422,16 @@ function conContinuidad(origen, cambiar){
    encarga de cerrar. Haciéndolo por los dos lados se descuadraba la pila y el
    "atrás" siguiente no hacía nada. */
 const capas = [];
+/* Al arrancar, la parada actual del historial se deja LIMPIA.
+
+   Si la app se recarga con un diálogo abierto —sembrar la nube el primer día,
+   cerrar sesión, restaurar una copia: todas recargan—, el navegador conserva
+   la parada de ese diálogo como parada actual, con su cuenta de capas dentro.
+   La app arranca con cero capas pero el historial dice que hay una, y a
+   partir de ahí CADA vuelta atrás se queda una capa corta: guardar un sello
+   no abría su ficha, y el botón de atrás cerraba lo que no tocaba. Se
+   arrastraba toda la sesión. */
+try{ if(history.state && history.state.capas) history.replaceState(null, ''); }catch(_){}
 let volviendoAtras = false;
 let historialVa = true;   // en file:// algunos navegadores no dejan pushState
 
@@ -4462,16 +4472,42 @@ function cerrarTodo(){
   $dlg.close(); cerrarFicha();
 }
 
+let trasVolver = null;    // qué hacer cuando TERMINE la vuelta atrás en curso
 addEventListener('popstate', e=>{
   // Cuántas capas deberían quedar según el historial. Con history.go(-3) el
   // navegador dispara UN solo popstate, así que hay que cerrar todas las que
   // sobren de una vez y no solo la de arriba.
   const quedan = (e.state && e.state.capas) || 0;
-  if(capas.length <= quedan) return;
-  volviendoAtras = true;
-  try{ while(capas.length > quedan) cerrarDeVerdad(capas.pop()); }
-  finally{ volviendoAtras = false; }
+  if(capas.length > quedan){
+    volviendoAtras = true;
+    try{ while(capas.length > quedan) cerrarDeVerdad(capas.pop()); }
+    finally{ volviendoAtras = false; }
+  }
+  const f = trasVolver; trasVolver = null;
+  if(f) f();
 });
+
+/* Cerrar el diálogo Y DESPUÉS hacer algo —abrir una ficha, casi siempre.
+
+   Esto era un fallo viejo, de los de "siempre ha sido así": al guardar, el
+   editor cerraba el diálogo y acto seguido abría la ficha. Pero cerrar el
+   diálogo es un history.go(-1), y el navegador lo aplica un instante DESPUÉS:
+   la ficha se abría, empujaba su parada en el historial, y entonces llegaba
+   la vuelta atrás pendiente y se la llevaba. Resultado: guardabas un color
+   nuevo y aterrizabas en la lista, no en su ficha. Y en los sellos, además,
+   se quedaba una capa fantasma que descolocaba el botón de atrás.
+
+   Aquí se espera a que la vuelta atrás haya llegado, y solo entonces se abre
+   lo siguiente. Sin historial (una WebView rara, o el archivo abierto a pelo)
+   no hay nada que esperar y se hace en el acto. */
+function cerrarDlgYLuego(f){
+  if(!$dlg.open || !historialVa || !capas.includes('dlg')){
+    if($dlg.open) $dlg.close();
+    return f();
+  }
+  trasVolver = f;
+  $dlg.close();   // -> close -> cerrarCapa('dlg') -> history.go -> popstate -> f()
+}
 
 function abrir(id, origen){
   abrirCapa('ficha');
@@ -6751,6 +6787,10 @@ $dlg.addEventListener('close', ()=>{
   const q = escribiendoEnDlg;
   if(!q) return;
   escribiendoEnDlg = null;
+  // El temporizador pendiente se para AQUÍ. Si no, dispara después de cerrar,
+  // encuentra los campos todavía en el documento —nadie los ha quitado— y
+  // escribe un borrador de un sello que acaba de guardarse de verdad.
+  q.parar && q.parar();
   // Solo se avisa si hay algo que valga la pena: cerrar un formulario en
   // blanco no tiene por qué decir nada.
   if(leerBorradores()[q.id]){
@@ -7000,7 +7040,7 @@ function editar(f, esNueva=false, alSalir=null){
 
     reconstruir();
     if(alSalir){ if(ok) brindis('Guardado'); actualizar(); return alSalir(true, f); }
-    $dlg.close(); if(ok) brindis('Guardado'); abrir(f.id); actualizar();
+    cerrarDlgYLuego(()=>{ if(ok) brindis('Guardado'); abrir(f.id); actualizar(); });
   };
   if(!$dlg.open) $dlg.showModal();
 }
@@ -7611,7 +7651,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">4a25d974</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">44a3e724</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -9176,9 +9216,18 @@ const objFoto = (s, cual) => ({
 // ── Guardar ──────────────────────────────────────────────────────────
 function guardarSello(s, que, detalle){
   s.tocado = new Date().toISOString();
-  if(!porIdS.has(s.id)){
-    porIdS.set(s.id, s);
+  /* El objeto que se guarda pasa a ser EL objeto, siempre, y no solo cuando
+     es nuevo. Esto era un fallo de verdad: abrías el editor, mientras tanto la
+     sincronización traía ese mismo sello desde otro aparato —y al traerlo lo
+     SUSTITUYE por un objeto nuevo—, y al guardar tus cambios se escribían en
+     el objeto viejo, que ya no estaba en la lista. Subían al servidor pero no
+     a lo que tenías delante: parecía que "tardaba en salir reflejado" hasta
+     que la siguiente sincronización te lo devolvía desde la nube. */
+  const viejo = porIdS.get(s.id);
+  if(viejo !== s){
+    DATOS.sellos = DATOS.sellos.filter(x => x.id !== s.id);
     DATOS.sellos.push(s);
+    porIdS.set(s.id, s);
   }
   DATOS.sellos.sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
   if(MODO === 'nube'){
@@ -9843,9 +9892,9 @@ function editarSello(base, duplicar, seguirId){
           <option value="completo"></datalist>`
         : '<p class="s-nada" style="margin:2px 0 8px">Sin archivos apuntados.</p>';
       for(const inp of $a.querySelectorAll('[data-arch-n]'))
-        inp.oninput = ()=>{ s.archivos[+inp.dataset.archN].nombre = inp.value; };
+        inp.oninput = ()=>{ const f = (s.archivos||[])[+inp.dataset.archN]; if(f) f.nombre = inp.value; };
       for(const inp of $a.querySelectorAll('[data-arch-p]'))
-        inp.oninput = ()=>{ s.archivos[+inp.dataset.archP].para = inp.value; };
+        inp.oninput = ()=>{ const f = (s.archivos||[])[+inp.dataset.archP]; if(f) f.para = inp.value; };
       for(const b of $a.querySelectorAll('[data-arch-x]'))
         b.onclick = ()=>{ s.archivos.splice(+b.dataset.archX, 1); pintarArchivos(); };
     };
@@ -9864,8 +9913,11 @@ function editarSello(base, duplicar, seguirId){
 
     // Al escribir, y también en cada cambio de estructura (añadir un paso,
     // moverlo, poner un archivo): todo pasa por pintar().
-    escribiendoEnDlg = {guardar: apuntarBorrador, id: s.id};
-    if(recoger() && (s.nombre || s.cliente || s.pasos.length)) guardarBorrador(s, esNuevo);
+    escribiendoEnDlg = {guardar: apuntarBorrador, id: s.id,
+                        parar: ()=>{ clearTimeout(relojBorrador); relojBorrador = null; }};
+    // En cada repintado se apunta también: añadir un paso o un archivo no
+    // dispara "input", pero es un cambio que hay que conservar.
+    apuntarBorrador();
 
     document.getElementById('ed-s-tirar')?.addEventListener('click', ()=>{
       if(!confirm('Se tira lo que tenías a medias y se empieza de cero. ¿Seguro?')) return;
@@ -9902,12 +9954,19 @@ function editarSello(base, duplicar, seguirId){
     enlazarArrastre(s, pintar);
 
     document.getElementById('ed-s-guardar').onclick = ()=>{
-      recoger();
+      clearTimeout(relojBorrador); relojBorrador = null;
+      recoger(); limpiar();
       if(!s.nombre) return brindis('Ponle un nombre al sello');
       const repe = DATOS.sellos.find(x => x.id !== s.id && norm(x.nombre) === norm(s.nombre));
       if(repe) return brindis(`Ya existe un sello "${repe.nombre}"`);
       const antes = esNuevo ? null : JSON.parse(JSON.stringify(base));
-      if(!esNuevo) Object.assign(base, s);
+      if(!esNuevo){
+        // Object.assign copia claves pero NUNCA las borra. Al pasar un sello a
+        // "a mano" se quitan robot_id y archivos de la copia de trabajo... y en
+        // el sello guardado seguían. Se quita primero lo que ya no está.
+        for(const k of Object.keys(base)) if(!(k in s)) delete base[k];
+        Object.assign(base, s);
+      }
       guardarSello(esNuevo ? s : base,
                    esNuevo ? 'sello-creado' : 'sello-cambiado',
                    esNuevo ? null : {antes});
@@ -9917,10 +9976,7 @@ function editarSello(base, duplicar, seguirId){
       tirarBorrador(s.id);
       escribiendoEnDlg = null;
       selloSel = (esNuevo ? s : base).id;
-      $dlg.close();
-      actualizar();
-      abrirSello(selloSel);
-      brindis('Guardado');
+      cerrarDlgYLuego(()=>{ actualizar(); abrirSello(selloSel); brindis('Guardado'); });
     };
   };
 
@@ -9939,12 +9995,28 @@ function editarSello(base, duplicar, seguirId){
     s.molde.largo = n('ed-s-largo');
     s.molde.ancho = n('ed-s-ancho');
     s.notas = v('ed-s-notas');
+    const r = document.getElementById('ed-s-robot');
+    if(r) s.robot_id = r.value || null;
+    /* Y NADA MÁS. recoger() LEE, no limpia.
+
+       Esto era un fallo de verdad, contado por Juanjo: aquí se quitaban los
+       archivos sin nombre, que parecía lo natural... hasta que el borrador
+       automático empezó a llamar a recoger() cada 400 ms. Escribías primero
+       "para qué es", te lo pensabas, y al ir a escribir el nombre la fila ya
+       no existía por debajo: lo tecleado no iba a ningún sitio y el sello se
+       guardaba sin archivo. Dos intentos y dos guardados para que saliera.
+
+       Todo lo que quita, ordena o normaliza va en limpiar(), que solo corre al
+       guardar de verdad. Lo que corre mientras se escribe no puede tirar nada. */
+    return true;
+  }
+
+  /** Lo que se hace SOLO al guardar: quitar lo vacío y lo que no aplica. */
+  function limpiar(){
     // El robot solo si el sello se hace en robot: si se pasa a "a mano", el
     // programa deja de tener sentido y guardarlo sería dejar un dato muerto
     // que luego contradice a la ficha.
     if(s.robot){
-      const r = document.getElementById('ed-s-robot');
-      if(r) s.robot_id = r.value || null;
       s.archivos = (s.archivos || [])
         .map(f=>({nombre: (f.nombre||'').trim(), para: (f.para||'').trim()}))
         .filter(f=>f.nombre);
@@ -9953,7 +10025,6 @@ function editarSello(base, duplicar, seguirId){
       delete s.robot_id;
       delete s.archivos;
     }
-    return true;
   }
 
   /* Lo escrito se guarda según se escribe, con un respiro: guardar en cada
@@ -9961,13 +10032,20 @@ function editarSello(base, duplicar, seguirId){
      en pasar cualquier cosa de las que antes se lo llevaban todo— y no se
      nota. */
   let relojBorrador = null;
+  const huella = x => JSON.stringify(x);
+  const huellaBase = huella(base ? {...JSON.parse(JSON.stringify(base)), pasos: base.pasos || [], molde: base.molde || {}} : null);
   function apuntarBorrador(){
     clearTimeout(relojBorrador);
     relojBorrador = setTimeout(()=>{
+      relojBorrador = null;
+      if(!recoger()) return;
       // Un formulario totalmente en blanco no se guarda: si no, abrir "Nuevo
       // sello" y cerrarlo dejaría un borrador vacío molestando en la lista.
-      if(recoger() && (s.nombre || s.cliente || s.pasos.length || s.molde.numero))
-        guardarBorrador(s, esNuevo);
+      if(!(s.nombre || s.cliente || s.pasos.length || s.molde.numero)) return;
+      // Y un sello que ya existe, SOLO si de verdad ha cambiado algo: abrirlo
+      // para mirar y cerrarlo no puede dejar un "recuperado" fantasma.
+      if(!esNuevo && huella(s) === huellaBase){ tirarBorrador(s.id); return; }
+      guardarBorrador(s, esNuevo);
     }, 400);
   }
 

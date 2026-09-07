@@ -1504,6 +1504,32 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 .chip-cliente b{font-weight:640; letter-spacing:-.006em}
 .chip-cli-mas{color:var(--texto-3); font-weight:450; font-size:12px}
 
+/* ── Un sello a medias, arriba de la lista ───────────────────────── */
+.fila-medias{
+  background:var(--ambar-suave);
+  border-bottom:1px solid var(--linea) !important;
+}
+.fila-medias:hover{background:var(--ambar-suave); filter:brightness(.98)}
+.medias-ic{
+  width:34px; height:34px; flex:0 0 auto; border-radius:var(--r-m);
+  display:grid; place-items:center; color:var(--ambar);
+  background:var(--panel); border:1px dashed var(--ambar);
+}
+.medias-ic svg{width:16px; height:16px}
+.fila-medias .fila-sub{color:var(--ambar); font-weight:560}
+.medias-seguir{
+  margin-left:auto; flex:none; font-size:12.5px; font-weight:640; color:var(--ambar);
+}
+/* El aviso de "esto se ha recuperado", dentro del editor. */
+.ed-recuperado{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  background:var(--ambar-suave); border:1px solid var(--linea);
+  border-radius:var(--r-m); padding:10px 13px; margin:0 0 14px;
+  font-size:13.5px; color:var(--texto-2);
+}
+.ed-recuperado svg{width:17px; height:17px; flex:none; color:var(--ambar)}
+.ed-recuperado span{flex:1 1 auto; min-width:0}
+
 /* ── Opciones: una lista de ajustes, no una pared de párrafos ─────── */
 .aj-titulo{
   font-size:10.5px; font-weight:700; letter-spacing:.13em; text-transform:uppercase;
@@ -4340,6 +4366,9 @@ document.getElementById('limpiar').onclick = ()=>{ $q.value=''; actualizar(); $q
 $lista.addEventListener('click', e=>{
   const b = e.target.closest('.fila');
   if(!b) return;
+  // Un sello a medias no tiene ficha que abrir: se sigue escribiendo. El
+  // editor lo recupera solo, porque el borrador va guardado con su mismo id.
+  if(b.dataset.medias) return editarSello(null, false, b.dataset.medias);
   if(SECCION === 'sellos') return abrirSello(b.dataset.id);
   abrir(b.dataset.id, b.querySelector('.muestra'));
 });
@@ -6700,7 +6729,37 @@ $dlg.showModal = function(){
 // la parada del historial se consume aquí.
 $dlg.addEventListener('close', ()=>cerrarCapa('dlg'));
 
-$dlg.addEventListener('click', e=>{ if(e.target===$dlg) $dlg.close(); });
+/* Un formulario a medias no se cierra de un manotazo.
+
+   Tocar fuera del recuadro cerraba el diálogo, y en un móvil eso es un dedo
+   que resbala: adiós a la ficha entera. Para las pantallas de leer sigue
+   valiendo —es cómodo—, pero cuando hay algo escrito a medias no. */
+let escribiendoEnDlg = null;   // la pone el editor mientras está abierto
+$dlg.addEventListener('click', e=>{
+  if(e.target !== $dlg) return;
+  if(escribiendoEnDlg) return brindis('Toca Cancelar o Guardar');
+  $dlg.close();
+});
+/* Y lo que se escriba dentro del diálogo se va guardando. Un solo oyente aquí
+   arriba en vez de uno por campo: los campos se repintan a cada rato y habría
+   que volver a engancharlos cada vez. */
+$dc.addEventListener('input', ()=>{ if(escribiendoEnDlg) escribiendoEnDlg.guardar(); });
+/* Se cierre como se cierre —Escape, atrás, la ✕ o Cancelar— se suelta el
+   enganche. Si no, escribir en CUALQUIER otra pantalla seguiría llamando al
+   guardado del editor, que leería los campos vacíos y borraría el borrador. */
+$dlg.addEventListener('close', ()=>{
+  const q = escribiendoEnDlg;
+  if(!q) return;
+  escribiendoEnDlg = null;
+  // Solo se avisa si hay algo que valga la pena: cerrar un formulario en
+  // blanco no tiene por qué decir nada.
+  if(leerBorradores()[q.id]){
+    brindis('Se queda guardado a medias en este aparato');
+    // Y la lista se repinta para que aparezca ahí arriba. Sin esto el aviso
+    // sería una promesa que no se ve cumplir hasta el siguiente refresco.
+    if(SECCION === 'sellos') actualizar();
+  }
+});
 /* Cerrando el diálogo se cierra también la pesada: hay que soltar el candado
    de la pantalla por todos los caminos, no solo por el botón de Terminado.
    Con Escape, tocando fuera o con la flecha de atrás del móvil también. */
@@ -7552,7 +7611,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">15532c11</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">4a25d974</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -9156,6 +9215,23 @@ function filtrarSellos(txt){
 function pintarListaSellos(){
   $lista.innerHTML = '';
   const frag = document.createDocumentFragment();
+
+  /* Los sellos que se quedaron a medias y todavía no existen, arriba del todo.
+     Guardarlos y no enseñarlos sería la mitad del arreglo: te salvaría de
+     perderlo, pero no te enterarías de que está ahí y lo volverías a escribir
+     igual. */
+  for(const b of borradoresNuevos()){
+    const el = document.createElement('button');
+    el.className = 'fila fila-medias'; el.type = 'button';
+    el.dataset.medias = b.id;
+    el.innerHTML =
+      `<div class="medias-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div>` +
+      `<div class="fila-txt"><div class="fila-nombre">${
+        esc(b.s.nombre || 'Sello sin nombre todavía')}</div>` +
+      `<div class="fila-sub">A medias · ${esc(haceCuanto(new Date(b.cuando).toISOString()))}</div></div>` +
+      `<span class="medias-seguir">Seguir</span>`;
+    frag.appendChild(el);
+  }
   for(const s of filtradosS){
     const b = document.createElement('button');
     b.className = 'fila fila-sello'; b.dataset.id = s.id; b.type = 'button'; b.role = 'option';
@@ -9578,12 +9654,63 @@ function borrarSello(s){
 }
 
 /* ── EL EDITOR ───────────────────────────────────────────────────── */
-function editarSello(base, duplicar){
+/* ── SELLOS A MEDIAS ──────────────────────────────────────────────────
+   Meter una ficha son doce campos y diez pasos. Antes, cualquier tropiezo
+   —Escape, el botón de atrás del móvil, un toque fuera del recuadro, quedarse
+   sin batería, que el navegador recargue la app— lo tiraba TODO y había que
+   empezar de cero. Y sin avisar: la pantalla simplemente se cerraba.
+
+   Ahora lo que se escribe se va guardando en el aparato según se escribe. Al
+   volver a abrir el editor, sale como lo dejaste, con un aviso de que se ha
+   recuperado y un botón para tirarlo si no lo quieres.
+
+   Se guarda EN ESTE APARATO y no en la nube, a propósito: una ficha a medias
+   no es un dato bueno todavía —le faltan campos, puede tener errores— y
+   mandarla al servidor la enseñaría en los demás aparatos y podría chocar con
+   ediciones de verdad. Si empiezas una ficha en el PC, la sigues en el PC. */
+const CLAVE_BORRADORES = 'sellos-a-medias';
+const TOPE_BORRADORES = 8;
+
+function leerBorradores(){
+  try{
+    const b = JSON.parse(localStorage.getItem(CLAVE_BORRADORES) || '{}');
+    return (b && typeof b === 'object' && !Array.isArray(b)) ? b : {};
+  }catch(_){ return {}; }
+}
+function escribirBorradores(b){
+  try{ localStorage.setItem(CLAVE_BORRADORES, JSON.stringify(b)); }catch(_){}
+}
+function guardarBorrador(s, esNuevo){
+  const b = leerBorradores();
+  b[s.id] = {s: JSON.parse(JSON.stringify(s)), esNuevo: !!esNuevo, cuando: Date.now()};
+  // Si se acumulan, se tiran los más viejos: un borrador de hace tres meses no
+  // lo va a retomar nadie y ocupa sitio en un almacén que es pequeño.
+  const ids = Object.keys(b).sort((x, y)=> b[y].cuando - b[x].cuando);
+  for(const id of ids.slice(TOPE_BORRADORES)) delete b[id];
+  escribirBorradores(b);
+}
+function tirarBorrador(id){
+  const b = leerBorradores();
+  if(!(id in b)) return;
+  delete b[id]; escribirBorradores(b);
+}
+/** Los de sellos que todavía NO existen: los que se perderían del todo. */
+function borradoresNuevos(){
+  const b = leerBorradores();
+  return Object.entries(b)
+    .filter(([id, x]) => x && x.esNuevo && !porIdS.has(id))
+    .map(([id, x]) => ({id, ...x}))
+    .sort((a, b2)=> b2.cuando - a.cuando);
+}
+
+function editarSello(base, duplicar, seguirId){
   if(!puedeEditar) return brindis(SIN_PERMISO);
   const esNuevo = !base || duplicar;
   const s = base
     ? JSON.parse(JSON.stringify(base))
-    : {id:'s-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6),
+    // `seguirId`: se retoma un sello a medias. Se reusa SU id para que el
+    // borrador que hay guardado sea el suyo y se recupere abajo.
+    : {id: seguirId || ('s-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6)),
        nombre:'', cliente:'', molde:{}, tipo:'molde', robot:true, notas:'', pasos:[]};
   if(duplicar){
     s.id = 's-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6);
@@ -9593,11 +9720,29 @@ function editarSello(base, duplicar){
   if(!s.pasos) s.pasos = [];
   if(!s.molde) s.molde = {};
 
+  /* ¿Había algo a medias de este mismo sello? Se recupera sin preguntar —como
+     hace cualquier editor de texto— pero SE DICE, con un botón al lado para
+     tirarlo. Recuperar en silencio sería peor que perderlo: creerías que la
+     ficha guardada es así. */
+  let recuperado = null;
+  const guardado = leerBorradores()[s.id];
+  if(guardado && guardado.s){
+    Object.assign(s, guardado.s);
+    if(!s.pasos) s.pasos = [];
+    if(!s.molde) s.molde = {};
+    recuperado = guardado.cuando;
+  }
+
   const clientes = [...new Set(DATOS.sellos.map(x=>clienteS(x)).filter(Boolean))].sort();
 
   const pintar = ()=>{
     $dt.textContent = esNuevo ? (duplicar ? 'Nuevo a partir de otro' : 'Nuevo sello') : 'Editar sello';
     $dc.innerHTML = `
+      ${recuperado ? `<div class="ed-recuperado">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        <span>Recuperado como lo dejaste ${esc(haceCuanto(new Date(recuperado).toISOString()))}.</span>
+        <button class="btn btn-fino" id="ed-s-tirar">Empezar de cero</button>
+      </div>` : ''}
       <div class="ed-rejilla">
         <label class="campo ancho"><span>Nombre del sello</span>
           <input id="ed-s-nombre" value="${esc(s.nombre)}" autocomplete="off"
@@ -9717,6 +9862,21 @@ function editarSello(base, duplicar){
       pantallaRobots(()=>{ $dt.textContent = ''; pintar(); });
     });
 
+    // Al escribir, y también en cada cambio de estructura (añadir un paso,
+    // moverlo, poner un archivo): todo pasa por pintar().
+    escribiendoEnDlg = {guardar: apuntarBorrador, id: s.id};
+    if(recoger() && (s.nombre || s.cliente || s.pasos.length)) guardarBorrador(s, esNuevo);
+
+    document.getElementById('ed-s-tirar')?.addEventListener('click', ()=>{
+      if(!confirm('Se tira lo que tenías a medias y se empieza de cero. ¿Seguro?')) return;
+      tirarBorrador(s.id);
+      escribiendoEnDlg = null;
+      $dlg.close();
+      // Y se vuelve a abrir limpio: para un sello que ya existía, con lo que
+      // hay guardado; para uno nuevo, en blanco.
+      setTimeout(()=>editarSello(base, duplicar), 60);   // sin seguirId: en blanco
+    });
+
     document.getElementById('ed-add-paso').onclick = ()=>{ recoger(); elegirTipoPaso(s, pintar); };
     for(const b of $dc.querySelectorAll('[data-paso-ed]'))
       b.onclick = ()=>{ recoger(); editarPaso(s, +b.dataset.pasoEd, pintar); };
@@ -9751,6 +9911,11 @@ function editarSello(base, duplicar){
       guardarSello(esNuevo ? s : base,
                    esNuevo ? 'sello-creado' : 'sello-cambiado',
                    esNuevo ? null : {antes});
+      // Ya está guardado de verdad: el borrador sobra, y dejarlo haría que la
+      // próxima vez que abrieras esta ficha te saliera "recuperado" sin que
+      // hubiera nada que recuperar.
+      tirarBorrador(s.id);
+      escribiendoEnDlg = null;
       selloSel = (esNuevo ? s : base).id;
       $dlg.close();
       actualizar();
@@ -9760,6 +9925,10 @@ function editarSello(base, duplicar){
   };
 
   function recoger(){
+    /* Si los campos no están puestos —porque encima hay una pantalla de las de
+       dentro, como la de elegir paso— NO se recoge nada. Sin esta guarda, cada
+       casilla se leería como vacía y se llevaría por delante lo escrito. */
+    if(!document.getElementById('ed-s-nombre')) return false;
     const v = id => (document.getElementById(id)?.value ?? '').trim();
     const n = id => { const x = parseFloat(String(v(id)).replace(',','.'));
                       return isFinite(x) ? x : null; };
@@ -9784,6 +9953,22 @@ function editarSello(base, duplicar){
       delete s.robot_id;
       delete s.archivos;
     }
+    return true;
+  }
+
+  /* Lo escrito se guarda según se escribe, con un respiro: guardar en cada
+     tecla serían cien escrituras por campo. 400 ms es de sobra —lo que tarda
+     en pasar cualquier cosa de las que antes se lo llevaban todo— y no se
+     nota. */
+  let relojBorrador = null;
+  function apuntarBorrador(){
+    clearTimeout(relojBorrador);
+    relojBorrador = setTimeout(()=>{
+      // Un formulario totalmente en blanco no se guarda: si no, abrir "Nuevo
+      // sello" y cerrarlo dejaría un borrador vacío molestando en la lista.
+      if(recoger() && (s.nombre || s.cliente || s.pasos.length || s.molde.numero))
+        guardarBorrador(s, esNuevo);
+    }, 400);
   }
 
   pintar();
@@ -10642,6 +10827,7 @@ window.__app = {
   coloresDeSello, tandasDe, parametrosDe, pantallaAgujas,
   get AGUJAS(){ return AGUJAS; }, TIPOS_PASO, guardarAgujas,
   get CLIENTES(){ return CLIENTES; }, clientesDeSellos, numeroDe, guardarClientes,
+  leerBorradores, borradoresNuevos, tirarBorrador,
   get ROBOTS(){ return ROBOTS; }, guardarRobots, pantallaRobots, robot,
   cabeEnRobot, archivosDe, agujasOrdenadas,
   papelera, pantallaPapelera, pantallaClientes, abrirOpciones,

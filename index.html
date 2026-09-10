@@ -3333,7 +3333,7 @@ function crearNube({url, clave}){
 /* La dirección de la nube y su clave pública. Se rellenan al construir.
    Si van a null, la app funciona como siempre: con los datos dentro del
    archivo y una contraseña para abrirlos. */
-const CONFIG_NUBE = {"url": "https://vbfksahwmtqzqfpjtpks.supabase.co", "clave": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiZmtzYWh3bXRxenFmcGp0cGtzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5MDc4NjIsImV4cCI6MjEwMjQ4Mzg2Mn0.pgRVvlc8fQSVt74WcvKU9-TD9M-0RZ17BKUxem1UDXk"};
+const CONFIG_NUBE = {"url": "http://127.0.0.1:8917", "clave": "clave-anonima-de-prueba"};
 
 /* ═══════════════════════════════════════════════════════════════════
    ESTADO
@@ -7661,7 +7661,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">1337d76b</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">09ae8443</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -10715,20 +10715,14 @@ async function hojaSello(s){
   .par .r i{font-style:normal;font-weight:500;color:#8a8f95}
   .hp .q .pt{font-weight:500;color:#5c6167;font-size:12.5px}
   .par .r span{font-variant-numeric:tabular-nums;color:#3f4348;white-space:nowrap}
-  /* El hueco para escribir a mano. Va con líneas de verdad: si no, cada uno
-     escribe donde puede y luego no se entiende. */
-  .apuntes{margin-top:6mm;border:1px solid #15171a;border-radius:4px;padding:3mm 4mm}
-  .apuntes h2{margin-bottom:2mm}
-  .ap-rejilla{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3mm 6mm;margin-bottom:3mm}
-  .ap-c{border-bottom:1px solid #8a8f95;padding-bottom:6mm;position:relative}
-  .ap-c b{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8a8f95}
-  .ap-lineas div{border-bottom:1px solid #c9c7c2;height:7mm}
+  .cab .cli b{font-weight:600;color:#15171a;margin-left:2mm}
   .pie{margin-top:5mm;padding-top:2mm;border-top:1px solid #d3d0c9;
        display:flex;justify-content:space-between;font-size:9px;color:#8a8f95}
 </style></head><body>
   <div class="cab">
     <div><h1>${esc(s.nombre)}</h1>
-      <div class="cli">${esc(clienteS(s) || 'Sin cliente')}</div></div>
+      <div class="cli">${esc(clienteS(s) || 'Sin cliente')}${
+        numeroDe(s) ? `<b>Nº ${esc(numeroDe(s))}</b>` : ''}</div></div>
     <div class="mk">Colores<br>SeriAdornos</div>
   </div>
   <div class="arriba">
@@ -10779,16 +10773,6 @@ async function hojaSello(s){
           || '<div class="r"><span>—</span></div>'}
       </div>
     </div>
-  </div>
-
-  <div class="apuntes">
-    <h2>Para apuntar a mano</h2>
-    <div class="ap-rejilla">
-      <div class="ap-c"><b>Fecha</b></div>
-      <div class="ap-c"><b>Quién</b></div>
-      <div class="ap-c"><b>Piezas salidas</b></div>
-    </div>
-    <div class="ap-lineas"><div></div><div></div><div></div></div>
   </div>
 
   <div class="pie">

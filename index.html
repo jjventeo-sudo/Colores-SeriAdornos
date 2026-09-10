@@ -1400,6 +1400,21 @@ dialog[open] .hoja{animation:entra .2s var(--salida)}
 .interruptor-txt{font-size:14.5px; font-weight:530}
 .interruptor-txt small{display:block; font-weight:450; font-size:12.5px; color:var(--texto-3)}
 
+/* Un apartado plegable: la cabecera es la línea que se pulsa, con la
+   flecha que gira al abrir. Sin librerías: <details> del navegador. */
+.plegable{margin-top:18px; border-top:1px solid var(--linea)}
+.plegable summary{
+  list-style:none; cursor:pointer; display:flex; align-items:center; gap:8px;
+  padding:14px 0 12px; user-select:none; -webkit-user-select:none;
+}
+.plegable summary::-webkit-details-marker{display:none}
+.plegable summary .ceja{flex:0 0 auto}
+.plegable summary b{font-size:14px; font-weight:600; color:var(--texto)}
+.plegable summary em{font-style:normal; font-size:12.5px; color:var(--texto-3); flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.plegable summary svg{width:18px; height:18px; flex:0 0 auto; color:var(--texto-3); transition:rotate .2s var(--salida)}
+.plegable[open] summary svg{rotate:180deg}
+.plegable summary:hover b{text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--linea-fuerte)}
+
 /* Idea 13: historial VISUAL. Guardar la fórmula de antes no sirve de nada si
    para saber qué cambió hay que restaurarla y mirar. Aquí cada cambio enseña
    el color de antes y el de después, uno al lado del otro. */
@@ -5080,6 +5095,11 @@ function barraProporcion(f, total){
 
 // Idea 9: para saber QUÉ número se ha movido hay que acordarse del anterior.
 let ultimosGramos = null;
+/* El historial de la ficha nace plegado: con cuatro o cinco cambios era
+   media pantalla de "Restaurar" debajo de las notas. Se recuerda si lo has
+   abierto, para que un repintado (restaurar, marcar) no te lo vuelva a
+   cerrar en la cara. */
+let histAbierto = null;
 
 function pintarFicha(){
   if(SECCION === 'sellos') return pintarFichaSello();
@@ -5197,8 +5217,15 @@ function pintarFicha(){
       <div class="tarjeta-cuerpo">
         ${explicaActualizacion(f)}
         ${f.notas ? `<p style="margin:6px 0 0;font-size:14px;color:var(--texto-2);white-space:pre-wrap">${esc(f.notas)}</p>`:''}
-        ${(f.historial&&f.historial.length) ? `<h3 style="font-size:11.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--texto-3);font-weight:700;margin:20px 0 2px">Historial</h3>
-          <ul class="historial">${historialVisual(f)}</ul>`:''}
+        ${(f.historial&&f.historial.length) ? `
+          <details class="plegable" id="hist-plegable"${histAbierto === f.id ? ' open' : ''}>
+            <summary><span class="ceja">Historial</span>
+              <b>${f.historial.length} cambio${f.historial.length===1?'':'s'}</b>
+              <em>· último ${esc(haceCuanto(f.historial[f.historial.length-1].fecha))}</em>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <ul class="historial">${historialVisual(f)}</ul>
+          </details>`:''}
       </div></div>
     </div>
 
@@ -5231,6 +5258,9 @@ function pintarFicha(){
     $ficha.querySelector('.hero-muestra')?.addEventListener('click',
       ()=>verFotoGrande(f.id, f.nombre));
   document.getElementById('btn-comparar')?.addEventListener('click', ()=>compararColores(f));
+  document.getElementById('hist-plegable')?.addEventListener('toggle', e=>{
+    histAbierto = e.target.open ? f.id : null;
+  });
   document.getElementById('sello-act')?.addEventListener('click', ()=>{
     const marcar = !estadoAct(f).aldia;
     const antesSello = fotoDe(f);
@@ -8190,7 +8220,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">39a52679</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">86cced5c</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

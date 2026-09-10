@@ -3333,7 +3333,7 @@ function crearNube({url, clave}){
 /* La dirección de la nube y su clave pública. Se rellenan al construir.
    Si van a null, la app funciona como siempre: con los datos dentro del
    archivo y una contraseña para abrirlos. */
-const CONFIG_NUBE = {"url": "http://127.0.0.1:8917", "clave": "clave-anonima-de-prueba"};
+const CONFIG_NUBE = {"url": "https://vbfksahwmtqzqfpjtpks.supabase.co", "clave": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiZmtzYWh3bXRxenFmcGp0cGtzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5MDc4NjIsImV4cCI6MjEwMjQ4Mzg2Mn0.pgRVvlc8fQSVt74WcvKU9-TD9M-0RZ17BKUxem1UDXk"};
 
 /* ═══════════════════════════════════════════════════════════════════
    ESTADO
@@ -7661,7 +7661,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">09ae8443</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">ec3599ca</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

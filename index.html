@@ -4467,8 +4467,17 @@ function cerrarCapa(tipo){
 }
 
 /** Volver a la lista de golpe, cerrando lo que haya abierto. */
+let volviendoTodo = false;   // hay un history.go(-N) en vuelo
 function cerrarTodo(){
-  if(historialVa && capas.length) return history.go(-capas.length);
+  if(historialVa && capas.length){
+    /* Si ya hay una vuelta en vuelo, la segunda llamada NO retrocede otra
+       vez: las capas siguen contadas hasta que llegue el popstate, y un
+       segundo go(-N) se saldría de la app entera. Pasaba llamándolo dos
+       veces en el mismo instante (cambiar de sección con una ficha abierta). */
+    if(volviendoTodo) return;
+    volviendoTodo = true;
+    return history.go(-capas.length);
+  }
   $dlg.close(); cerrarFicha();
 }
 
@@ -4478,6 +4487,7 @@ addEventListener('popstate', e=>{
   // navegador dispara UN solo popstate, así que hay que cerrar todas las que
   // sobren de una vez y no solo la de arriba.
   const quedan = (e.state && e.state.capas) || 0;
+  volviendoTodo = false;
   if(capas.length > quedan){
     volviendoAtras = true;
     try{ while(capas.length > quedan) cerrarDeVerdad(capas.pop()); }
@@ -7651,7 +7661,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">44a3e724</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">1337d76b</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -10871,6 +10881,75 @@ function cambiarSeccion(sec){
 for(const b of document.querySelectorAll('#solapas [data-sec]'))
   b.onclick = ()=>cambiarSeccion(b.dataset.sec);
 pintarSolapas();
+
+/* ── Deslizar entre Colores y Sellos, con el dedo ─────────────────────
+   Un gesto horizontal sobre la lista cambia de sección: hacia la izquierda
+   pasa a Sellos, hacia la derecha vuelve a Colores. Es lo que el dedo espera
+   de dos solapas puestas una al lado de la otra.
+
+   Con tres cosas con las que NO se puede pelear, y por eso las guardas:
+
+   · Las pestañas de la ficha del sello ya se deslizan. Con una ficha abierta
+     el gesto es de ellas, no de esto: aquí solo cuenta la lista.
+   · El borde de la pantalla es del navegador (atrás / adelante en Android e
+     iOS). Un toque que empiece a menos de 28 px del borde se ignora.
+   · La lista se desplaza en vertical. Solo cuenta un gesto claramente
+     horizontal —el doble de ancho que de alto, y de al menos 70 px— y rápido:
+     un arrastre lento es alguien pensando, no un gesto.
+
+   Y solo con pantalla táctil y con sellos disponibles: en el PC no hay dedo,
+   y para el taller no hay segunda sección a la que ir. */
+(function(){
+  if(!HAY_SELLOS || !matchMedia('(pointer: coarse)').matches) return;
+  const zona = document.querySelector('.cuerpo');
+  if(!zona) return;
+  const BORDE = 28, MINIMO = 70, MAX_MS = 700;
+  let x0 = null, y0 = 0, t0 = 0;
+
+  zona.addEventListener('touchstart', e=>{
+    x0 = null;
+    if(e.touches.length !== 1) return;
+    if(document.body.dataset.ficha === 'on' || $dlg.open) return;
+    const t = e.touches[0];
+    if(t.clientX < BORDE || t.clientX > innerWidth - BORDE) return;
+    x0 = t.clientX; y0 = t.clientY; t0 = Date.now();
+  }, {passive: true});
+
+  zona.addEventListener('touchend', e=>{
+    if(x0 === null) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - x0, dy = t.clientY - y0;
+    x0 = null;
+    if(Date.now() - t0 > MAX_MS) return;
+    if(Math.abs(dx) < MINIMO || Math.abs(dx) < Math.abs(dy) * 2) return;
+    deslizarSeccion(dx < 0 ? 'sellos' : 'colores');
+  }, {passive: true});
+})();
+
+/* El cambio con animación: la lista se va por donde empuja el dedo y la
+   nueva entra por el otro lado. Corto —160 ms— para que acompañe al gesto y
+   no lo retrase. Sin movimiento si el sistema lo pide. */
+function deslizarSeccion(sec){
+  if(sec === SECCION) return;
+  const col = document.querySelector('.columna-lista');
+  const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!col || quieto){ cambiarSeccion(sec); return; }
+  const dir = sec === 'sellos' ? -1 : 1;
+  col.style.transition = 'transform .16s var(--salida), opacity .16s var(--salida)';
+  col.style.transform = `translateX(${dir * 28}px)`;
+  col.style.opacity = '0';
+  setTimeout(()=>{
+    cambiarSeccion(sec);
+    col.style.transition = 'none';
+    col.style.transform = `translateX(${-dir * 28}px)`;
+    // Un fotograma para que el salto no se anime, y luego entra.
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      col.style.transition = 'transform .2s var(--salida), opacity .2s var(--salida)';
+      col.style.transform = ''; col.style.opacity = '';
+      setTimeout(()=>{ col.style.transition = ''; }, 220);
+    }));
+  }, 160);
+}
 /* Al cruzar el ancho en el que la ficha cambia de forma (cuatro pestañas o dos
    columnas) hay que repintarla: si no, te quedas con la disposición del tamaño
    anterior hasta que toques algo. */
@@ -10899,7 +10978,7 @@ window.__app = {
   preparar, retomarPesaje, guardarPesaje, leerPesajeGuardado,
   tieneFoto, puedeFoto, hacerFoto, verFoto, procesarFoto, HAY_FOTOS,
   prepararFoto, recortarFoto, pantallaFoto, verFotoGrande, cerrarVisor,
-  get SECCION(){ return SECCION; }, cambiarSeccion, HAY_SELLOS,
+  get SECCION(){ return SECCION; }, cambiarSeccion, deslizarSeccion, HAY_SELLOS,
   get SELLOS(){ return DATOS.sellos.slice(); }, porIdS,
   abrirSello, editarSello, borrarSello, guardarSello, hojaSello,
   coloresDeSello, tandasDe, parametrosDe, pantallaAgujas,

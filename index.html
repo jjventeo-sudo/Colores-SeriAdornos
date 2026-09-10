@@ -7661,7 +7661,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">ec3599ca</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">b23a5925</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -10690,7 +10690,9 @@ async function hojaSello(s){
   .arriba{display:grid;grid-template-columns:52mm 52mm 1fr;gap:6mm;margin-bottom:6mm}
   .fo{height:38mm;border:1px solid #d3d0c9;border-radius:4px;overflow:hidden;background:#faf9f7;
       display:flex;align-items:center;justify-content:center}
-  .fo img{width:100%;height:100%;object-fit:cover;display:block}
+  /* La foto entera, sin recortar: en el papel hace falta ver el sello completo,
+     aunque quede margen. Con "cover" se ampliaba y cortaba los bordes. */
+  .fo img{width:100%;height:100%;object-fit:contain;display:block}
   .fo span{font-size:10px;color:#8a8f95}
   dl{display:grid;grid-template-columns:1fr 1fr;gap:1px 5mm;margin:0;align-content:start}
   dt{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8a8f95;margin:0}

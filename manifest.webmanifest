@@ -1,7 +1,7 @@
 {
- "name": "Colores SeriAdornos",
- "short_name": "Colores",
- "description": "Fórmulas de color de goma de SeriAdornos.",
+ "name": "Goma · SeriAdornos",
+ "short_name": "Goma",
+ "description": "Colores y sellos de la sección de goma de SeriAdornos.",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",

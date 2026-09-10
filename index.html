@@ -1257,9 +1257,13 @@ button{background:none;border:0;cursor:pointer;padding:0}
   .marca h1{min-width:0; flex:0 1 auto}
   .cabecera{gap:10px}
   /* Los botones de la ficha: "Preparar" grande y los demás debajo. */
+  /* El principal ocupa su fila; los demás van de dos en dos, y los de texto
+     largo ("Nuevo a partir de este") se llevan la fila entera antes que
+     pisarse con el de al lado. */
   .acciones-ficha{display:flex; flex-wrap:wrap; gap:10px; margin-top:18px}
-  .acciones-ficha .btn{flex:1 1 0; min-width:0; height:56px; font-size:16px}
-  .acciones-ficha #btn-preparar{flex:1 1 100%; height:60px; font-size:17px}
+  .acciones-ficha .btn{flex:1 1 calc(50% - 5px); min-width:0; height:56px; font-size:16px; padding:0 14px}
+  .acciones-ficha #btn-preparar,.acciones-ficha #s-imprimir{flex:1 1 100%; height:60px; font-size:17px}
+  .acciones-ficha #s-duplicar{flex:1 1 100%; order:2}   /* al final, con la fila para él */
 }
 @media (max-width:359px){
   .marca h1{font-size:26px}
@@ -8186,7 +8190,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">3fcdfd76</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">39a52679</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

@@ -1215,8 +1215,20 @@ button{background:none;border:0;cursor:pointer;padding:0}
 .vacio p{margin:0; max-width:34ch; font-size:14px}
 .vacio b{color:var(--texto); font-weight:600; display:block; font-size:16px; margin-bottom:2px}
 
-/* ── Barra inferior (solo móvil) ─────────────────────────────────── */
+/* ── Volver y anterior/siguiente ────────────────────────────────── */
 .volver{display:none}
+.volver-fila{display:none}
+/* En el ordenador: dos botones redondos arriba a la derecha de la ficha, con
+   el "12 de 86" entre ellos. En el móvil no hacen falta: se desliza. */
+.hero-nav{
+  display:flex; align-items:center; gap:10px; justify-content:flex-end;
+  margin:0 0 -34px; position:relative; z-index:2;
+}
+.hero-nav .btn-icono{width:40px; height:40px}
+.hero-nav .btn-icono svg{width:18px; height:18px}
+.hero-nav .btn-icono:disabled{opacity:.35; cursor:default}
+.hero-nav .btn-icono:disabled:active{translate:none; box-shadow:inset 0 1px 0 var(--canto), var(--sombra-2)}
+@media (min-width:1180px){ .hero-nav{margin-bottom:-40px} }
 
 /* ── Móvil ───────────────────────────────────────────────────────── */
 @media (max-width:860px){
@@ -1248,6 +1260,16 @@ button{background:none;border:0;cursor:pointer;padding:0}
   }
   .volver svg{width:18px;height:18px}
   .volver:active{opacity:.7}
+  .volver-fila{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    position:sticky; top:0; z-index:2; margin:0 -16px 6px; width:calc(100% + 32px);
+    background:color-mix(in srgb,var(--fondo) 88%,transparent);
+    backdrop-filter:saturate(1.4) blur(14px);
+    padding-top:env(safe-area-inset-top);
+  }
+  .volver-fila .volver{position:static; margin:0; width:auto; background:none; backdrop-filter:none; padding-top:0; flex:1 1 auto; min-width:0}
+  .volver-pos{padding:0 18px; white-space:nowrap; color:var(--texto-3)}
+  .hero-nav{display:none}
   .hero{gap:16px; padding-top:6px}
   .hero-muestra{width:112px;height:112px;border-radius:28px}
   .hero-txt h2{font-size:24px}
@@ -5123,11 +5145,22 @@ function pintarFicha(){
   const totalMovido = ultimosGramos && ultimosGramos.total !== undefined
                       && ultimosGramos.total !== (lote?lote.total:0);
 
+  const pos = posicionColor();
   $ficha.innerHTML = `
-    <button class="volver" id="volver">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-      Todas las fórmulas
-    </button>
+    <div class="volver-fila">
+      <button class="volver" id="volver">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        Todas las fórmulas
+      </button>
+      ${pos ? `<span class="volver-pos ceja" title="Desliza para pasar al siguiente">${pos.i} de ${pos.n}</span>` : ''}
+    </div>
+    ${pos && pos.n > 1 ? `<div class="hero-nav">
+      <button class="btn-icono" id="color-ant" aria-label="Color anterior" title="Anterior (←)"${pos.i === 1 ? ' disabled' : ''}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+      <span class="ceja">${pos.i} de ${pos.n}</span>
+      <button class="btn-icono" id="color-sig" aria-label="Color siguiente" title="Siguiente (→)"${pos.i === pos.n ? ' disabled' : ''}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
+    </div>` : ''}
 
     <div class="hero">
       <div class="hero-envoltura">
@@ -5256,6 +5289,8 @@ function pintarFicha(){
 
   enlazarFotos($ficha);
   document.getElementById('volver')?.addEventListener('click', cerrarFicha);
+  document.getElementById('color-ant')?.addEventListener('click', ()=>irAlVecino(-1));
+  document.getElementById('color-sig')?.addEventListener('click', ()=>irAlVecino(1));
   enlazarBotonesFoto('foto', f);
   document.getElementById('foto-ver')?.addEventListener('click', ()=>verFoto(f));
   // Y la propia muestra: si tiene foto, pulsarla la abre a pantalla completa.
@@ -8233,7 +8268,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">46d86fc7</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">4c632155</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -11491,22 +11526,24 @@ pintarSolapas();
 
    Y solo con pantalla táctil y con sellos disponibles: en el PC no hay dedo,
    y para el taller no hay segunda sección a la que ir. */
-(function(){
-  if(!HAY_SELLOS || !matchMedia('(pointer: coarse)').matches) return;
-  const zona = document.querySelector('.cuerpo');
-  if(!zona) return;
+/** El gesto de deslizar, una sola vez para toda la app. `puede(e)` dice si
+    en ese momento el gesto es de esta zona; `izquierda`/`derecha` es lo que
+    hace el dedo (hacia la izquierda = "siguiente", como en las fotos del
+    móvil). Nunca desde el borde de la pantalla: eso es del navegador. */
+function escucharDeslizar(zona, {puede, izquierda, derecha}){
+  if(!zona || !matchMedia('(pointer: coarse)').matches) return;
   const BORDE = 28, MINIMO = 70, MAX_MS = 700;
   let x0 = null, y0 = 0, t0 = 0;
-
   zona.addEventListener('touchstart', e=>{
     x0 = null;
     if(e.touches.length !== 1) return;
-    if(document.body.dataset.ficha === 'on' || $dlg.open) return;
+    if(puede && !puede(e)) return;
     const t = e.touches[0];
     if(t.clientX < BORDE || t.clientX > innerWidth - BORDE) return;
+    // Sobre un campo de texto o algo que ya se desplaza de lado, el gesto es suyo.
+    if(e.target.closest('input, textarea, select, .s-carrusel, .chips-cli')) return;
     x0 = t.clientX; y0 = t.clientY; t0 = Date.now();
   }, {passive: true});
-
   zona.addEventListener('touchend', e=>{
     if(x0 === null) return;
     const t = e.changedTouches[0];
@@ -11514,9 +11551,109 @@ pintarSolapas();
     x0 = null;
     if(Date.now() - t0 > MAX_MS) return;
     if(Math.abs(dx) < MINIMO || Math.abs(dx) < Math.abs(dy) * 2) return;
-    deslizarSeccion(dx < 0 ? 'sellos' : 'colores');
+    (dx < 0 ? izquierda : derecha)();
   }, {passive: true});
-})();
+}
+
+if(HAY_SELLOS) escucharDeslizar(document.querySelector('.cuerpo'), {
+  puede: ()=> document.body.dataset.ficha !== 'on' && !$dlg.open,
+  izquierda: ()=>deslizarSeccion('sellos'),
+  derecha:   ()=>deslizarSeccion('colores'),
+});
+
+/* ── Deslizar entre COLORES, dentro de una ficha ──────────────────────
+   Con un color abierto, el dedo hacia la izquierda pasa al siguiente de la
+   lista (la que tengas filtrada) y hacia la derecha al anterior, como se
+   pasan las fotos. En el ordenador, las flechas ← → del teclado y los dos
+   botones de la cabecera hacen lo mismo. La ficha entra por el lado por el
+   que empuja el dedo. */
+function vecinoColor(dir){
+  if(SECCION !== 'colores' || !seleccion) return null;
+  const i = filtradas.findIndex(f=>f.id === seleccion);
+  if(i < 0) return null;
+  return filtradas[i + dir] || null;
+}
+function posicionColor(){
+  const i = filtradas.findIndex(f=>f.id === seleccion);
+  return i < 0 ? null : {i: i + 1, n: filtradas.length};
+}
+function irAlVecino(dir){
+  const f = vecinoColor(dir);
+  if(!f){
+    brindis(dir > 0 ? 'Es el último de la lista' : 'Es el primero de la lista');
+    return false;
+  }
+  const el = $ficha;
+  const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cambiar = ()=>{
+    abrir(f.id);
+    // En el ordenador la lista sigue a la vista: la fila elegida se acerca.
+    $lista.querySelector(`.fila[data-id="${CSS.escape(f.id)}"]`)
+      ?.scrollIntoView({block: 'nearest'});
+  };
+  if(quieto){ cambiar(); return true; }
+  el.style.transition = 'transform .14s var(--salida), opacity .14s var(--salida)';
+  el.style.transform = `translateX(${-dir * 26}px)`; el.style.opacity = '0';
+  setTimeout(()=>{
+    cambiar();
+    el.style.transition = 'none';
+    el.style.transform = `translateX(${dir * 26}px)`;
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      el.style.transition = 'transform .2s var(--salida), opacity .2s var(--salida)';
+      el.style.transform = ''; el.style.opacity = '';
+      setTimeout(()=>{ el.style.transition = ''; }, 220);
+    }));
+  }, 140);
+  return true;
+}
+escucharDeslizar(document.getElementById('columna-ficha'), {
+  puede: ()=> SECCION === 'colores' && document.body.dataset.ficha === 'on' && !$dlg.open,
+  izquierda: ()=>irAlVecino(1),
+  derecha:   ()=>irAlVecino(-1),
+});
+document.addEventListener('keydown', e=>{
+  if(e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  if($dlg.open || SECCION !== 'colores' || !seleccion) return;
+  const a = document.activeElement;
+  if(a && a.closest('input, textarea, select, [contenteditable]')) return;
+  e.preventDefault();
+  irAlVecino(e.key === 'ArrowRight' ? 1 : -1);
+});
+
+/* ── Deslizar entre las pestañas del historial ────────────────────────
+   Todo / Fórmulas / Sellos / Botes / Fotos: el dedo hacia la izquierda
+   pasa a la siguiente, como en cualquier app con pestañas. */
+escucharDeslizar($dc, {
+  puede: ()=> !!$dc.querySelector('.seg-hist'),
+  izquierda: ()=>pestanaHistVecina(1),
+  derecha:   ()=>pestanaHistVecina(-1),
+});
+function pestanaHistVecina(dir){
+  const k = PESTANAS.findIndex(p=>p.k === pestanaHist);
+  const sig = PESTANAS[k + dir];
+  if(!sig) return;
+  const b = $dc.querySelector(`[data-pes="${sig.k}"]`);
+  if(!b) return;
+  const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(quieto){ b.click(); return; }
+  const cuerpo = $dc.querySelector('.hist-lista, .rep-fin');
+  if(cuerpo){
+    cuerpo.style.transition = 'transform .12s var(--salida), opacity .12s var(--salida)';
+    cuerpo.style.transform = `translateX(${-dir * 22}px)`; cuerpo.style.opacity = '0';
+  }
+  setTimeout(()=>{
+    b.click();
+    const nuevo = $dc.querySelector('.hist-lista, .rep-fin');
+    if(!nuevo) return;
+    nuevo.style.transition = 'none'; nuevo.style.transform = `translateX(${dir * 22}px)`; nuevo.style.opacity = '0';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      nuevo.style.transition = 'transform .18s var(--salida), opacity .18s var(--salida)';
+      nuevo.style.transform = ''; nuevo.style.opacity = '';
+      setTimeout(()=>{ nuevo.style.transition = ''; }, 200);
+    }));
+    $dc.querySelector('.seg-hist')?.scrollIntoView({block:'nearest'});
+  }, cuerpo ? 120 : 0);
+}
 
 /* El cambio con animación: la lista se va por donde empuja el dedo y la
    nueva entra por el otro lado. Corto —160 ms— para que acompañe al gesto y

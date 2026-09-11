@@ -7684,6 +7684,12 @@ function restaurar(f, k){
   if(!puedeEditar) return brindis(SIN_PERMISO);
   const h = f.historial[k];
   if(!h) return;
+  /* Restaurar una versión IGUAL a la de ahora no cambia nada y no se apunta:
+     Juanjo probando el botón dejó cinco "Restaurada… el color no cambió"
+     seguidos en un color. Un historial con apuntes vacíos deja de leerse. */
+  const igual = (h.nombre || f.nombre) === f.nombre
+    && JSON.stringify(h.ingredientes) === JSON.stringify(f.ingredientes);
+  if(igual) return brindis('Ya está así: esa versión es igual a la de ahora');
   const hist = f.historial.slice();
   hist.push({fecha:new Date().toISOString(), texto:`Restaurada la versión del ${fecha(h.fecha)}`,
              nombre:f.nombre, ingredientes:f.ingredientes});
@@ -8220,7 +8226,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">86cced5c</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">8c1e0868</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

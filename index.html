@@ -2008,13 +2008,20 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
   font-variant-numeric:tabular-nums;
 }
 .s-paso-s em{font-style:normal; font-size:11px; font-weight:500; color:var(--texto-3); margin-left:2px}
-/* El vulcanizado final no es un horneado más: se distingue para que no se
-   confunda al seguir la lista con prisa. */
+/* Los horneados y los vulcanizados, remarcados: son las pausas del proceso.
+   Caja rellena con borde y una llama delante; el vulcanizado final, que
+   cierra la ficha, lleva el borde fuerte. */
 .s-paso.hito{
-  background:var(--tinta-suave); border-bottom:0; border-radius:var(--r-m);
-  padding:11px 13px; margin:3px 0;
+  background:linear-gradient(180deg,var(--panel-luz),var(--panel-2)); border:1px solid var(--linea);
+  border-radius:var(--r-m); padding:12px 14px; margin:4px 0;
+  box-shadow:inset 0 1px 0 var(--canto), var(--sombra-1);
 }
 .s-paso.hito .s-paso-n{color:var(--texto)}
+.s-paso.hito .s-paso-q{font-weight:700}
+.s-paso-ic{width:17px; height:17px; flex:0 0 auto; color:var(--ambar); margin-right:2px}
+.s-paso.hito.final{border-color:var(--linea-fuerte); background:linear-gradient(180deg,var(--tinta-suave),var(--panel-2))}
+.s-paso.hito.final .s-paso-ic{color:var(--texto)}
+.s-paso.hito .s-paso-s{font-size:17px}
 
 /* ── Parámetros ──────────────────────────────────────────────────── */
 .s-bloque{
@@ -8226,7 +8233,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">8c1e0868</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">46d86fc7</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -9995,14 +10002,19 @@ function panelPasos(s){
   return `<div class="s-panel" data-panel="2">
     ${pasos.length ? pasos.map((p, i)=>{
       const t = tipoPaso(p.tipo);
-      const hito = p.tipo === 'vulcanizar';
-      const nombreHito = i === ultimoVul ? 'Vulcanizado final' : 'Vulcanizado';
-      return `<div class="s-paso${hito ? ' hito' : ''}">
+      /* Los horneados y los vulcanizados se remarcan: son las pausas del
+         proceso, los puntos donde el sello entra al horno y se para todo lo
+         demás. Al seguir la lista con prisa, son lo que hay que ver. El
+         vulcanizado final, además, cierra la ficha. */
+      const hito = p.tipo === 'vulcanizar' || p.tipo === 'hornear';
+      const final = p.tipo === 'vulcanizar' && i === ultimoVul;
+      const nombreHito = p.tipo === 'vulcanizar' ? (final ? 'Vulcanizado final' : 'Vulcanizado') : t.t;
+      return `<div class="s-paso${hito ? ' hito' : ''}${final ? ' final' : ''}">
         <div class="s-paso-n">${i+1}</div>
         <div class="s-paso-q">${t.color && p.ref
           ? `<i style="background:${colorHexDe(p.ref)}"></i>${esc(t.t)} ${esc(p.nombre || '')}${
               p.parte ? ` <em class="s-parte">${esc(p.parte)}</em>` : ''}`
-          : esc(hito ? nombreHito : t.t)}</div>
+          : (hito ? `<svg class="s-paso-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3c0 3-3 4-3 7a7 7 0 0 0 14 0c0-2-1-3-2-4 0 2-1 3-2 3 1-3 0-6-3-8 0 3-4 4-4 2z"/></svg>${esc(nombreHito)}` : esc(t.t))}</div>
         ${p.segundos != null && p.segundos !== ''
           ? `<div class="s-paso-s">${fmt(p.segundos)}<em>s</em></div>` : ''}
       </div>`;
@@ -11241,7 +11253,8 @@ async function hojaSello(s){
       : esc(p.tipo === 'vulcanizar'
           ? (i === ultimoVulHoja ? 'Vulcanizado final' : 'Vulcanizado') : t.t);
     const v = p.segundos != null && p.segundos !== '' ? `${fmt(p.segundos)} s` : '';
-    return `<div class="hp"><span class="n">${String(i+1).padStart(2,'0')}</span>
+    const hito = p.tipo === 'hornear' || p.tipo === 'vulcanizar';
+    return `<div class="hp${hito ? ' hito' : ''}"><span class="n">${String(i+1).padStart(2,'0')}</span>
       <span class="q">${q}</span><span class="v">${v}</span></div>`;
   };
 
@@ -11280,6 +11293,9 @@ async function hojaSello(s){
   .hp .q i{width:3mm;height:3mm;border-radius:1px;display:inline-block;margin-right:2mm;
            border:.4px solid rgba(0,0,0,.2)}
   .hp .v{font-size:12px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+  /* Horneados y vulcanizados remarcados también en el papel: son las pausas. */
+  .hp.hito{background:#f1efe9;border:1px solid #d3d0c9;border-radius:3px;padding:1.6mm 2mm;margin:.8mm 0}
+  .hp.hito .q{font-weight:700}
   .par{border:1px solid #d3d0c9;border-radius:4px;overflow:hidden;margin-bottom:4mm}
   .par h3{margin:0;padding:1.5mm 3mm;font-size:8px;font-weight:700;letter-spacing:.11em;
           text-transform:uppercase;color:#5c6167;background:#f4f3f0;border-bottom:1px solid #e6e4df}

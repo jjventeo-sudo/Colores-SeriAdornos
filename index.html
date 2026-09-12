@@ -1998,7 +1998,11 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 }
 .s-datos dd small{font-weight:450; color:var(--texto-3); font-size:12px}
 .s-tipos{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px}
+/* El tipo del sello: el elegido lleva el punto verde; los demás, apagados y
+   sin punto. Con punto gris en los apagados y ninguno en "Robot", el elegido
+   parecía el que no lo era (Juanjo, 12-sep). */
 .etiqueta.apagada{opacity:.34}
+.s-tipos .etiqueta.apagada::before{content:none}
 .s-ir{
   width:30px;height:30px;flex:0 0 auto;border-radius:var(--r-s); cursor:pointer;
   border:1px solid var(--linea); background:var(--panel-2); color:var(--texto-3);
@@ -8270,7 +8274,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">b217c22a</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">4036c404</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -10025,8 +10029,8 @@ function panelMolde(s){
     <div class="s-tipos">
       <span class="etiqueta${s.tipo !== 'piloto' ? ' ok' : ' apagada'}">Molde</span>
       <span class="etiqueta${s.tipo === 'piloto' ? ' ok' : ' apagada'}">Piloto</span>
-      <span class="etiqueta${s.robot ? ' info' : ' apagada'}">Robot</span>
-      <span class="etiqueta${!s.robot ? ' info' : ' apagada'}">A mano</span>
+      <span class="etiqueta${s.robot ? ' ok' : ' apagada'}">Robot</span>
+      <span class="etiqueta${!s.robot ? ' ok' : ' apagada'}">A mano</span>
     </div>
     ${s.notas ? `<div class="s-rotulo"><span>Notas</span></div>
       <p class="s-notas">${esc(s.notas)}</p>` : ''}

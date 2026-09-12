@@ -8268,7 +8268,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">4c632155</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">869aabf1</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -10412,7 +10412,6 @@ function editarSello(base, duplicar, seguirId){
     recuperado = guardado.cuando;
   }
 
-  const clientes = [...new Set(DATOS.sellos.map(x=>clienteS(x)).filter(Boolean))].sort();
 
   const pintar = ()=>{
     $dt.textContent = esNuevo ? (duplicar ? 'Nuevo a partir de otro' : 'Nuevo sello') : 'Editar sello';
@@ -10429,7 +10428,9 @@ function editarSello(base, duplicar, seguirId){
         <label class="campo ancho"><span>Cliente</span>
           <input id="ed-s-cliente" value="${esc(s.cliente||'')}" autocomplete="off"
                  list="ed-s-clientes" placeholder="Escribe o elige">
-          <datalist id="ed-s-clientes">${clientes.map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
+          <!-- Se sugieren los clientes de los sellos Y los de la lista pegada en
+               Opciones → Clientes, para que el nuevo salga con su número. -->
+          <datalist id="ed-s-clientes">${clientesDeSellos().map(c=>`<option value="${esc(c.nombre)}"${c.numero ? ` label="Nº ${esc(c.numero)}"` : ''}>`).join('')}</datalist>
         </label>
         <label class="campo"><span>Nº de molde</span>
           <input id="ed-s-molde" value="${esc(s.molde.numero||'')}" autocomplete="off"></label>
@@ -10891,6 +10892,10 @@ function pantallaClientes(volver){
         <b>una vez por cliente</b> y aparece en todas sus fichas; buscarlo en el
         buscador trae sus sellos igual que buscar el nombre.
         ${lista.length ? `<br>${conNum} de ${lista.length} con número.` : ''}</p>
+      ${puedeEditar ? `<div class="op-botones" style="margin:0 0 14px">
+        <button class="btn" id="cli-importar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6"/></svg>
+          Pegar una lista de clientes</button></div>` : ''}
       ${lista.length ? `<div class="s-tabla">${lista.map((c, i)=>`
         <div class="cli-fila">
           <div class="cli-txt">
@@ -10926,9 +10931,93 @@ function pantallaClientes(volver){
         brindis(num ? `${c.nombre} · Nº ${num}` : `${c.nombre} se queda sin número`);
       };
     }
+    document.getElementById('cli-importar')?.addEventListener('click', ()=>importarClientes(pintar));
     if(!$dlg.open) $dlg.showModal();
   };
   pintar();
+}
+
+/* ── PEGAR UNA LISTA DE CLIENTES ─────────────────────────────────────
+   Juanjo tiene la lista entera de clientes con su número en otro sitio (el
+   ERP, una hoja). Meterlos uno a uno no tiene sentido, y meterlos en el
+   CÓDIGO es imposible: la app está colgada en internet y ni un nombre de
+   cliente puede ir dentro. Así que se pegan aquí, en su propio aparato, y
+   viajan a la nube como cualquier otro dato suyo.
+
+   Una línea por cliente, y el número donde caiga: "NOMBRE 4021",
+   "4021 NOMBRE", "NOMBRE;4021", separado por tabulador (así llega al pegar
+   desde una hoja de cálculo)… Se busca el trozo que son solo cifras. La
+   coma no vale de separador: "DELAHOUSE Y FILS, S.A." la lleva dentro. */
+function leerLineasClientes(texto){
+  const out = [];
+  for(const cruda of String(texto || '').split(/\r?\n/)){
+    const linea = cruda.trim();
+    if(!linea) continue;
+    // Se parte por tabulador o punto y coma si los hay; si no, por espacios.
+    // La coma NO separa: los nombres de empresa la llevan ("…, S.L.").
+    let trozos = /[\t;]/.test(linea) ? linea.split(/[\t;]+/) : linea.split(/\s+/);
+    trozos = trozos.map(t=>t.trim()).filter(Boolean);
+    let numero = '';
+    // El número es el trozo que son solo cifras, al principio o al final.
+    if(trozos.length > 1 && /^\d+$/.test(trozos[trozos.length-1])) numero = trozos.pop();
+    else if(trozos.length > 1 && /^\d+$/.test(trozos[0])) numero = trozos.shift();
+    const nombre = trozos.join(' ').replace(/\s+/g, ' ').trim().toUpperCase();
+    if(!nombre) continue;
+    out.push({nombre, numero});
+  }
+  return out;
+}
+function importarClientes(volver){
+  const prev = {t: $dt.textContent};
+  $dt.textContent = 'Pegar clientes';
+  $dc.innerHTML = `
+    <p class="op-p">Una línea por cliente, con su número al lado. Vale tal cual
+      sale de una hoja de cálculo o del programa de facturación.</p>
+    <label class="campo"><span>Lista</span>
+      <textarea id="cli-texto" rows="9" placeholder="DELAHOUSE Y FILS, S.A.&#9;4021
+ORIGEN Y COMUNICACIÓN, S.L.&#9;4088
+…" spellcheck="false"></textarea></label>
+    <div id="cli-previa" class="op-p flojo"></div>`;
+  $dp.innerHTML = `<button class="btn" id="cli-no">Cancelar</button>
+                   <button class="btn btn-1" id="cli-si" disabled>Añadir</button>`;
+  const $t = document.getElementById('cli-texto'), $p = document.getElementById('cli-previa'),
+        $si = document.getElementById('cli-si');
+  const resumen = ()=>{
+    const filas = leerLineasClientes($t.value);
+    if(!filas.length){ $p.textContent = ''; $si.disabled = true; return filas; }
+    let nuevos = 0, cambian = 0, iguales = 0, sinNum = 0;
+    for(const f of filas){
+      const ya = CLIENTES.find(x=>norm(x.nombre) === norm(f.nombre));
+      if(!f.numero) sinNum++;
+      if(!ya) nuevos++;
+      else if(f.numero && ya.numero !== f.numero) cambian++;
+      else iguales++;
+    }
+    $p.innerHTML = `<b>${filas.length}</b> línea${filas.length===1?'':'s'}: ${nuevos} cliente${nuevos===1?'':'s'} nuevo${nuevos===1?'':'s'}${
+      cambian ? `, ${cambian} con número distinto al que había (se cambia)` : ''}${
+      iguales ? `, ${iguales} ya estaba${iguales===1?'':'n'} igual` : ''}${
+      sinNum ? `. ${sinNum} sin número: se añade${sinNum===1?'':'n'} igual, y se le pone luego` : ''}.`;
+    $si.disabled = false;
+    return filas;
+  };
+  $t.oninput = resumen;
+  document.getElementById('cli-no').onclick = ()=>{ $dt.textContent = prev.t; volver(); };
+  $si.onclick = ()=>{
+    const filas = resumen();
+    if(!filas.length) return;
+    let nuevos = 0, cambiados = 0;
+    for(const f of filas){
+      const ya = CLIENTES.find(x=>norm(x.nombre) === norm(f.nombre));
+      if(ya){ if(f.numero && ya.numero !== f.numero){ ya.numero = f.numero; cambiados++; } }
+      else { CLIENTES.push({nombre: f.nombre, numero: f.numero}); nuevos++; }
+    }
+    guardarClientes();
+    actualizar();
+    if(SECCION === 'sellos' && selloSel) pintarFichaSello();
+    brindis(`${nuevos} cliente${nuevos===1?'':'s'} nuevo${nuevos===1?'':'s'}${cambiados ? ` · ${cambiados} número${cambiados===1?'':'s'} corregido${cambiados===1?'':'s'}` : ''}`);
+    $dt.textContent = prev.t; volver();
+  };
+  setTimeout(()=>$t.focus(), 50);
 }
 
 /** Cuántos sellos usan esta aguja. */

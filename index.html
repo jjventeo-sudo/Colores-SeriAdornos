@@ -1725,6 +1725,11 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 .esc-pie span{font-size:14px; color:#c9cbcf; min-width:0}
 .esc-pie .btn-fino{color:#f2f3f4; background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.14); box-shadow:none; flex:0 0 auto}
 .esc-pie .btn-fino[aria-pressed="true"]{background:#f2f3f4; color:#0a0b0d}
+
+/* El sello de "marcar como actualizada" sin marcar: un botón tranquilo, no un
+   aviso ni un fantasma. Se lee, pero no llama. */
+.sello-btn.apagada{opacity:1; color:var(--texto-2); border-style:dashed}
+.sello-btn.apagada::before{content:none}
 /* ═══════════════════════════════════════════════════════════════════
    SELLOS
    ═══════════════════════════════════════════════════════════════════ */
@@ -4565,7 +4570,14 @@ function estadoAct(f){
   if(tocadas.length)   return {aldia: false, motivo: 'anidada', cambiados, tocadas};
   return {aldia: true, motivo: null, cambiados: [], tocadas: []};
 }
-const porRevisar = f => !estadoAct(f).aldia;
+/* "Por revisar" es SOLO la que ya se dio por buena y después cambió algo que
+   lleva (un pigmento, o una base que va dentro). Una fórmula que nunca se ha
+   marcado no está pendiente de nada: es una fórmula normal, y se marcará el
+   día que se haga el color y se ajuste a los pigmentos nuevos (Juanjo, 12
+   sep: «están todos bien; cuando hagamos un color y veamos que hay que
+   actualizar los pigmentos, entonces lo actualizaré»). Antes las 860 sin
+   marcar contaban como pendientes, y era un reproche sobre todo el recetario. */
+const porRevisar = f => { const e = estadoAct(f); return !e.aldia && e.motivo !== 'nunca'; };
 
 calcularMateriasDe();
 
@@ -5309,7 +5321,8 @@ function haceCuanto(iso){
 function selloActualizacion(f){
   const e = estadoAct(f);
   const avisa = e.motivo === 'pigmento' || e.motivo === 'anidada';
-  const cls = e.aldia ? 'etiqueta ok' : avisa ? 'etiqueta avisa' : 'etiqueta';
+  // Sin marcar no es un aviso: es un botón tranquilo para el día que se marque.
+  const cls = e.aldia ? 'etiqueta ok' : avisa ? 'etiqueta avisa' : 'etiqueta apagada';
   const icono = e.aldia
     ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>'
     : avisa
@@ -5323,7 +5336,7 @@ function selloActualizacion(f){
       : e.motivo === 'anidada'
         ? `Por revisar: cambió ${e.tocadas.slice(0,2).map(h=>esc(h.nombre)).join(' y ')}${
             e.tocadas.length > 2 ? ` y ${e.tocadas.length - 2} más` : ''}`
-        : 'Sin actualizar';
+        : (puedeEditar ? 'Marcar como actualizada' : 'Pigmentos de siempre');
   // Al taller se le enseña, pero no se le deja tocar: el sello es un sello.
   if(!puedeEditar) return `<span class="${cls}">${icono}${txt}</span>` +
     (e.aldia && f.fecha_actualizacion ? `<span class="etiqueta">${fecha(f.fecha_actualizacion)}</span>` : '');
@@ -5955,8 +5968,8 @@ function explicaActualizacion(f){
       e.tocadas.length > 3 ? ` y ${e.tocadas.length - 3} más` : ''}, que
     ${e.tocadas.length === 1 ? 'va' : 'van'} dentro de esta. Su color ha cambiado,
     así que el de esta también.</p>`;
-  return `<p class="estado-act">Todavía con las cantidades antiguas: nadie la ha
-    dado por buena con los pigmentos de ahora.</p>`;
+  return `<p class="estado-act">Sin marcar. Cuando hagas este color y ajustes las
+    cantidades a los pigmentos nuevos, márcala y quedará con la fecha.</p>`;
 }
 
 /* ── COMPARAR DOS COLORES ─────────────────────────────────────────────
@@ -8669,7 +8682,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">f724be8a</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">f8b12972</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

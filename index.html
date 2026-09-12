@@ -1410,6 +1410,7 @@ dialog[open] .hoja{animation:entra .2s var(--salida)}
   color:var(--texto); transition:background-color .1s var(--salida);
 }
 .busc-op i{width:22px;height:22px;border-radius:50%;flex:0 0 auto;box-shadow:var(--sombra-gota)}
+.busc-op small{margin-left:auto; flex:0 0 auto; font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--texto-3)}
 .busc-op:hover{background:var(--panel-2)}
 .busc-op.on{background:var(--tinta-suave); color:var(--texto); font-weight:620; box-shadow:inset 2px 0 0 var(--tinta)}
 .busc-nada{padding:14px 10px; font-size:13.5px; color:var(--texto-3); text-align:center}
@@ -8330,7 +8331,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">f0c41096</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">f2fae8c1</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -9170,18 +9171,64 @@ function etiqueta(f, cantidades, total, nombres){
   }]);
 }
 
-/* Ocho por folio: 2 columnas de 95 mm y 4 filas de 62 mm caben justas en un
-   A4 con 10 mm de margen. Van pegadas a propósito, compartiendo la línea de
-   corte: se recorta la hoja de un tijeretazo por cada raya en vez de ir
-   bordeando etiqueta por etiqueta. */
-const ET_POR_HOJA = 8;
+/* ── PEGATINAS: la impresora de etiquetas ─────────────────────────────
+   Desde el 12 de septiembre las etiquetas no van a la impresora normal sino
+   a una Brother QL de rollo, con pegatinas de 10 × 11 cm. Cada pegatina es
+   UNA página: la de un bote lleva una fórmula; la de moldes lleva hasta
+   cuatro tarjetas con línea de corte, para aprovecharla.
+
+   La QL-1100 imprime hasta 101,6 mm de ancho y pide 1–1,5 mm de margen; si
+   el rollo entra un pelín torcido se come más, así que se dejan 5 mm. Es
+   térmica: solo negro, nada de grises finos ni degradados. */
+const PEGATINA = {ancho: 100, alto: 110, margen: 5};   // mm
+const ET_POR_HOJA = 1;                                 // una fórmula por pegatina
+
+function cabeceraPegatinas(titulo){
+  return `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+  <title>${titulo}</title>
+  <style>
+    ${tipografiaIncrustada()}
+    @page{size:${PEGATINA.ancho}mm ${PEGATINA.alto}mm; margin:0}
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact;
+         font-family:"Plex",ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;
+         font-variant-numeric:tabular-nums slashed-zero}
+    .peg{width:${PEGATINA.ancho}mm; height:${PEGATINA.alto}mm; overflow:hidden;
+         page-break-after:always; break-after:page; position:relative}
+    .peg:last-child{page-break-after:auto; break-after:auto}
+    .ceja{font-size:7pt;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#000}
+    .marca{font-style:italic;font-weight:800;font-size:8.5pt;color:#000;letter-spacing:.01em}
+    .marca b{font-size:1.25em;line-height:0}
+  </style></head><body>`;
+}
+
+/* Medir DESPUÉS de que la tipografía esté cargada: antes el navegador usa la
+   de reserva, que ocupa distinto, y la cuenta sale mal. Cada recuadro encoge
+   su letra hasta que nada se sale. */
+const PIE_PEGATINAS = `<script>
+    function encajar(){
+      document.querySelectorAll('[data-encaja]').forEach(function(el){
+        var f = 1;
+        el.style.removeProperty('--esc');
+        /* Tolerancia de 1,5 px, no de medio: con medidas en mm el alto visible
+           se redondea hacia abajo y el contenido hacia arriba, y con 0,5 una
+           tarjeta que cabe de sobra se encogía hasta el mínimo "por un píxel". */
+        while(el.scrollHeight > el.clientHeight + 1.5 && f > 0.55){
+          f -= 0.04; el.style.setProperty('--esc', f.toFixed(2));
+        }
+      });
+    }
+    (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve())
+      .then(function(){ encajar(); setTimeout(function(){ window.print(); }, 250); });
+  <\/script></body></html>`;
 
 function imprimirEtiquetas(items){
   if(!items.length) return brindis('No hay ninguna etiqueta que imprimir');
   const w = window.open('','_blank');
   if(!w) return brindis('El navegador ha bloqueado la ventana de las etiquetas');
 
-  const una = e => `<div class="et">
+  const una = e => `<section class="peg"><div class="et" data-encaja>
       <h1>${esc(e.nombre)}</h1>
       <table>${e.nombres.map((n,k)=>
         `<tr><td class="n">${esc(n)}</td><td class="g">${fmt(e.cantidades[k])}</td></tr>`).join('')}</table>
@@ -9189,82 +9236,192 @@ function imprimirEtiquetas(items){
         <div class="tot"><span>Total</span>${fmt(e.total)} g</div>
         <div class="marca"><b>S</b>ERI<b>A</b>DORNOS</div>
       </div>
+    </div></section>`;
+
+  w.document.write(cabeceraPegatinas(items.length === 1
+      ? 'Etiqueta — ' + esc(items[0].nombre) : 'Etiquetas (' + items.length + ')') + `
+  <style>
+    .et{position:absolute; inset:${PEGATINA.margen}mm; display:flex; flex-direction:column; overflow:hidden}
+    h1{margin:0;font-size:calc(21pt * var(--esc,1));line-height:1.05;letter-spacing:-.02em;font-weight:700;
+       overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 0 auto}
+    table{width:100%;border-collapse:collapse;flex:0 0 auto;
+          margin-top:calc(4mm * var(--esc,1));
+          border-top:.5mm solid #000;padding-top:2mm}
+    td{padding:calc(1.6mm * var(--esc,1)) 0;font-size:calc(13pt * var(--esc,1));vertical-align:baseline}
+    td.n{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:64mm}
+    td.g{text-align:right;font-weight:700;white-space:nowrap}
+    td.g::after{content:" g";font-weight:400;color:#000;font-size:.8em}
+    .pie{display:flex;justify-content:space-between;align-items:flex-end;
+         border-top:.5mm solid #000;padding-top:2.5mm;margin-top:auto;flex:0 0 auto}
+    .pie .tot{font-size:17pt;font-weight:700}
+    .pie .tot span{font-size:8pt;font-weight:600;letter-spacing:.08em;
+                   text-transform:uppercase;margin-right:2mm}
+  </style>
+  ${items.map(una).join('')}
+  ${PIE_PEGATINAS}`);
+  w.document.close();
+}
+
+/* ── Pegatinas de MOLDE ────────────────────────────────────────────────
+   Una tarjeta por molde para pegarla en el propio molde: número, sellos,
+   medidas, robot y los archivos del programa. Caben cuatro por pegatina
+   (dos por dos, de 50 × 55 mm) con línea de corte; si en una pegatina van
+   solo una o dos, se hacen a lo ancho (100 × 55 mm) y se lee más grande. */
+const MOLDES_POR_PEGATINA = 4;
+
+/** La tarjeta de un molde a partir de un sello. Si hay más sellos con el
+    mismo nº de molde (el mismo molde en otro color), sus archivos y robots
+    se juntan: la pegatina va en el molde, no en el sello. */
+function tarjetaMolde(s){
+  const m = s.molde || {};
+  const num = (m.numero || '').trim();
+  const hermanos = num
+    ? DATOS.sellos.filter(x => ((x.molde && x.molde.numero) || '').trim().toUpperCase() === num.toUpperCase())
+    : [s];
+  const unicos = xs => [...new Set(xs.filter(Boolean))];
+  return {
+    id: s.id,
+    numero: num || 'Sin nº de molde',
+    sellos: m.sellos || null,
+    largo: m.largo || null, ancho: m.ancho || null,
+    robots: unicos(hermanos.map(x => x.robot ? (robot(x.robot_id)?.nombre || 'Robot') : null)),
+    archivos: unicos(hermanos.flatMap(x => archivosDe(x).map(a => a.nombre.trim()))),
+    nombres: unicos(hermanos.map(x => x.nombre)),
+  };
+}
+
+function imprimirPegatinasMolde(tarjetas){
+  if(!tarjetas.length) return brindis('No hay ningún molde que imprimir');
+  const w = window.open('','_blank');
+  if(!w) return brindis('El navegador ha bloqueado la ventana de las pegatinas');
+
+  const fila = (ceja, v, clase) => v ? `<div class="d${clase ? ' ' + clase : ''}"><span class="ceja">${ceja}</span><b>${v}</b></div>` : '';
+  const una = c => `<div class="tm" data-encaja>
+      <div class="cab"><span class="ceja">Molde</span><h1>${esc(c.numero)}</h1></div>
+      ${fila('Sellos', c.sellos ? fmt(c.sellos) + (c.sellos === 1 ? ' sello' : ' sellos') : '')}
+      ${fila('Medidas', c.largo && c.ancho ? `${fmt(c.largo)} × ${fmt(c.ancho)} mm` : '', 'med')}
+      ${fila('Robot', c.robots.length ? esc(c.robots.join(' · ')) : 'A mano')}
+      ${fila('Archivos', c.archivos.length ? esc(c.archivos.join(' · ')) : '')}
+      <div class="marca"><b>S</b>ERI<b>A</b>DORNOS</div>
     </div>`;
 
-  const cols = items.length === 1 ? 1 : 2;
-  const hojas = [];
-  for(let i = 0; i < items.length; i += ET_POR_HOJA)
-    hojas.push(`<section class="hoja">${items.slice(i, i+ET_POR_HOJA).map(una).join('')}</section>`);
+  const pegs = [];
+  for(let i = 0; i < tarjetas.length; i += MOLDES_POR_PEGATINA){
+    const grupo = tarjetas.slice(i, i + MOLDES_POR_PEGATINA);
+    pegs.push(`<section class="peg"><div class="rejilla ${grupo.length <= 2 ? 'tiras' : 'cuatro'}">${
+      grupo.map(una).join('')}</div></section>`);
+  }
 
-  w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
-  <title>${items.length === 1 ? 'Etiqueta — ' + esc(items[0].nombre)
-                              : 'Etiquetas (' + items.length + ')'}</title>
+  w.document.write(cabeceraPegatinas(tarjetas.length === 1
+      ? 'Pegatina de molde — ' + esc(tarjetas[0].numero)
+      : 'Pegatinas de moldes (' + tarjetas.length + ')') + `
   <style>
-    ${tipografiaIncrustada()}
-    @page{size:A4; margin:10mm}
-    *{box-sizing:border-box}
-    body{margin:0;color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact;
-         font-family:"Plex",ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;
-         font-variant-numeric:tabular-nums slashed-zero}
-    /* La línea de corte va en dos lados de cada etiqueta y el resto lo cierra
-       la hoja: así entre dos etiquetas hay UNA raya, no dos pegadas. */
-    .hoja{display:grid; grid-template-columns:repeat(${cols},95mm); width:${cols*95}mm;
-          border-top:.3mm dashed #bbb; border-left:.3mm dashed #bbb}
-    .hoja + .hoja{page-break-before:always}
-    .et{width:95mm; height:62mm; padding:5mm 6mm 4mm; overflow:hidden;
-        display:flex; flex-direction:column;
-        border-right:.3mm dashed #bbb; border-bottom:.3mm dashed #bbb;
-        page-break-inside:avoid}
-    h1{margin:0;font-size:15pt;line-height:1.05;letter-spacing:-.02em;font-weight:700;
-       overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 0 auto}
-    /* --esc lo ajusta el propio documento antes de imprimir: ver más abajo. */
-    table{width:100%;border-collapse:collapse;flex:0 0 auto;
-          margin-top:calc(3.5mm * var(--esc,1));
-          border-top:.4mm solid #222;padding-top:2mm}
-    td{padding:calc(1mm * var(--esc,1)) 0;font-size:calc(9.5pt * var(--esc,1));vertical-align:baseline}
-    td.n{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:62mm}
-    td.g{text-align:right;font-weight:700;white-space:nowrap}
-    td.g::after{content:" g";font-weight:400;color:#666;font-size:.8em}
-    .pie{display:flex;justify-content:space-between;align-items:flex-end;
-         border-top:.4mm solid #222;padding-top:2mm;margin-top:auto;flex:0 0 auto}
-    .pie .tot{font-size:12pt;font-weight:700}
-    .pie .tot span{font-size:8pt;font-weight:600;color:#555;letter-spacing:.06em;
-                   text-transform:uppercase;margin-right:2mm}
-    /* Sin degradados sobre texto: en papel el motor de impresión no los
-       recorta a la letra y salen los rectángulos detrás de cada carácter. */
-    .marca{font-style:italic;font-weight:800;font-size:9pt;color:#9b9da1;letter-spacing:.01em}
-    .marca b{color:#b61517;font-size:1.25em;line-height:0}
-  </style></head><body>
-  ${hojas.join('')}
-  <script>
-    /* Una fórmula larga no cabe. En vez de adivinar cuántas filas entran, se
-       mide etiqueta por etiqueta y se encoge la letra de su lista hasta que
-       cabe. Con las de hoy (seis ingredientes como mucho) casi no toca nada.
-
-       OJO al orden: hay que medir DESPUÉS de que la tipografía esté cargada.
-       Midiendo antes, el navegador aún usa la de reserva, que ocupa distinto,
-       y la cuenta sale mal: una fórmula de seis se salía por abajo. */
-    function encajar(){
-      document.querySelectorAll('.et').forEach(function(et){
-        var f = 1;
-        et.style.removeProperty('--esc');
-        while(et.scrollHeight > et.clientHeight + 0.5 && f > 0.55){
-          f -= 0.04; et.style.setProperty('--esc', f.toFixed(2));
-        }
-      });
-    }
-    (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve())
-      .then(function(){ encajar(); setTimeout(function(){ window.print(); }, 250); });
-  <\/script>
-  </body></html>`);
+    .rejilla{position:absolute; inset:${PEGATINA.margen - 1}mm; display:grid; gap:0}
+    .rejilla.cuatro{grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr}
+    .rejilla.tiras{grid-template-columns:1fr; grid-template-rows:1fr 1fr}
+    /* La línea de corte, discontinua, va entre tarjetas y no en el borde. */
+    .tm{padding:2.5mm 3mm 2mm; overflow:hidden; display:flex; flex-direction:column; gap:calc(1.1mm * var(--esc,1));
+        border:.3mm dashed #000; margin:-.15mm}
+    .cab{display:flex; flex-direction:column; gap:.4mm; margin-bottom:.8mm}
+    h1{margin:0; font-size:calc(18pt * var(--esc,1)); line-height:1; letter-spacing:-.02em; font-weight:800;
+       overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+    .tiras h1{font-size:calc(26pt * var(--esc,1))}
+    /* Rótulo y dato en la misma línea: en 50 mm de ancho caben, y en alto es
+       donde no sobra nada. */
+    .d{display:flex; align-items:baseline; gap:1.5mm}
+    .d .ceja{flex:0 0 13.5mm; font-size:6.5pt}
+    .d.med b{white-space:nowrap}
+    .d b{font-size:calc(10pt * var(--esc,1)); font-weight:650; line-height:1.15; overflow-wrap:anywhere; min-width:0}
+    .tiras .d{gap:2mm}
+    .tiras .d .ceja{flex:0 0 18mm; font-size:7pt}
+    .tiras .d b{font-size:calc(13pt * var(--esc,1))}
+    .marca{margin-top:auto; padding-top:.5mm; align-self:flex-end; font-size:7pt}
+  </style>
+  ${pegs.join('')}
+  ${PIE_PEGATINAS}`);
   w.document.close();
+}
+
+/** La pantalla para elegir qué moldes van en las pegatinas. */
+let pegatinasMolde = [];       // ids de sello elegidos, en orden
+function pantallaPegatinasMolde(s){
+  pegatinasMolde = s ? [s.id] : [];
+  $dt.textContent = 'Pegatinas de moldes';
+  $dc.innerHTML = `
+    <p class="op-p flojo" style="margin:0 0 10px">Caben <b>${MOLDES_POR_PEGATINA}</b> por pegatina,
+      con línea de corte. Añade los moldes que quieras y se reparten solos.</p>
+    <div class="campo" style="margin-bottom:10px"><span>Añadir un sello (por nombre, cliente o molde)</span>
+      <div id="pm-buscador"></div></div>
+    <div class="et-pie" id="pm-pie"></div>
+    <div class="et-lista" id="pm-lista"></div>`;
+  const items = DATOS.sellos.map(x=>({
+    v: x.id, nombre: x.nombre,
+    sub: (x.molde && x.molde.numero) ? x.molde.numero : '',
+    n: norm([x.nombre, x.cliente || '', (x.molde && x.molde.numero) || ''].join(' ')),
+  }));
+  const busc = selectorFormula(id=>{
+    if(!pegatinasMolde.includes(id)) pegatinasMolde.push(id);
+    else brindis('Ese molde ya está en la lista');
+    pintarPegatinasMolde();
+  }, {items, vacio: 'Ningún sello con ese nombre', pista: 'Escribe un sello o un nº de molde y pulsa Intro…'});
+  document.getElementById('pm-buscador').appendChild(busc.el);
+  pintarPegatinasMolde();
+  $dp.innerHTML = `<button class="btn" data-cerrar>Cerrar</button>
+                   <button class="btn btn-1" id="pm-ir">Imprimir</button>`;
+  $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
+  document.getElementById('pm-ir').onclick = ()=>{
+    const tarjetas = pegatinasMolde.map(id => porIdS.get(id)).filter(Boolean).map(tarjetaMolde);
+    if(!tarjetas.length) return brindis('Añade algún molde');
+    imprimirPegatinasMolde(tarjetas);
+    $dlg.close();
+  };
+  if(!$dlg.open) $dlg.showModal();
+  setTimeout(()=>busc.foco(), 60);
+}
+function pintarPegatinasMolde(){
+  const $l = document.getElementById('pm-lista');
+  const $p = document.getElementById('pm-pie');
+  if(!$l) return;
+  const n = pegatinasMolde.length;
+  if(!n){
+    $l.innerHTML = `<div class="busc-nada" style="padding:22px 10px">Busca arriba y ve añadiendo moldes.</div>`;
+  }else{
+    $l.innerHTML = pegatinasMolde.map((id,k)=>{
+      const s = porIdS.get(id); if(!s) return '';
+      const c = tarjetaMolde(s);
+      const det = [c.sellos ? c.sellos + ' sellos' : null,
+                   c.largo && c.ancho ? `${fmt(c.largo)} × ${fmt(c.ancho)} mm` : null,
+                   c.robots.length ? c.robots.join(' · ') : 'A mano',
+                   c.archivos.length ? c.archivos.join(' · ') : null].filter(Boolean).join(' · ');
+      return `<div class="et-fila">
+        <div class="et-nom"><b>Molde ${esc(c.numero)}</b><small>${esc(det || 'Sin datos del molde')}${
+          c.nombres.length > 1 ? ` · ${c.nombres.length} sellos comparten el molde` : ''}</small></div>
+        <button class="et-quitar" data-quitar="${k}" aria-label="Quitar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>`;
+    }).join('');
+  }
+  const pegs = Math.ceil(n / MOLDES_POR_PEGATINA);
+  const huecos = n ? pegs * MOLDES_POR_PEGATINA - n : 0;
+  $p.innerHTML = n
+    ? `<span><b>${n}</b> molde${n===1?'':'s'} · ${pegs} pegatina${pegs===1?'':'s'}${
+        huecos ? ` · <b>${huecos}</b> hueco${huecos===1?'':'s'} libre${huecos===1?'':'s'}` : ' · pegatina completa'}</span>
+       <button class="btn btn-fino" id="pm-vaciar">Vaciar</button>`
+    : `<span>Ningún molde todavía</span>`;
+  for(const b of $l.querySelectorAll('[data-quitar]'))
+    b.onclick = ()=>{ pegatinasMolde.splice(+b.dataset.quitar, 1); pintarPegatinasMolde(); };
+  document.getElementById('pm-vaciar')?.addEventListener('click', ()=>{ pegatinasMolde = []; pintarPegatinasMolde(); });
 }
 
 /* Buscador para ir AÑADIENDO colores a la hoja. Se parece al de ingredientes
    pero no guarda selección: en cuanto eliges uno lo suelta y se vacía, que es
    lo que quieres cuando estás metiendo doce seguidos. */
-function selectorFormula(alElegir){
-  const items = DATOS.formulas.map(x=>({v:x.id, nombre:x.nombre, formula:x, n:norm(x.nombre)}));
+function selectorFormula(alElegir, fuente){
+  /* `fuente`: otra lista que no sean las fórmulas (los sellos, para las
+     pegatinas de molde): {items:[{v, nombre, n, sub?, hex?}], vacio, pista}. */
+  const items = fuente ? fuente.items
+    : DATOS.formulas.map(x=>({v:x.id, nombre:x.nombre, n:norm(x.nombre), hex:color(x).hex}));
   let activo = 0, abierto = false, lista = [];
 
   const caja = document.createElement('div');
@@ -9273,7 +9430,7 @@ function selectorFormula(alElegir){
     <div class="busc-campo">
       <span class="busc-color busc-sin-color"></span>
       <input class="busc-q" type="text" autocomplete="off" spellcheck="false"
-             placeholder="Escribe un color y pulsa Intro para añadirlo…" role="combobox"
+             placeholder="${esc((fuente && fuente.pista) || 'Escribe un color y pulsa Intro para añadirlo…')}" role="combobox"
              aria-expanded="false" aria-autocomplete="list">
     </div>
     <div class="busc-lista" role="listbox" hidden></div>`;
@@ -9295,11 +9452,12 @@ function selectorFormula(alElegir){
   }
   function pintarLista(){
     if(!lista.length){
-      $l.innerHTML = `<div class="busc-nada">Ninguna fórmula con ese nombre</div>`; return;
+      $l.innerHTML = `<div class="busc-nada">${esc((fuente && fuente.vacio) || 'Ninguna fórmula con ese nombre')}</div>`; return;
     }
     $l.innerHTML = lista.map((i,k)=>
       `<button type="button" class="busc-op${k===activo?' on':''}" data-k="${k}" role="option"
-        aria-selected="${k===activo}"><i style="background:${color(i.formula).hex}"></i>${esc(i.nombre)}</button>`
+        aria-selected="${k===activo}">${i.hex ? `<i style="background:${i.hex}"></i>` : ''}${esc(i.nombre)}${
+        i.sub ? `<small>${esc(i.sub)}</small>` : ''}</button>`
     ).join('');
     $l.querySelector('.on')?.scrollIntoView({block:'nearest'});
   }
@@ -9352,8 +9510,19 @@ document.getElementById('btn-pdf').onclick = ()=>{
   // En sellos, el botón de imprimir saca la hoja del que tengas abierto.
   if(SECCION === 'sellos'){
     const s0 = porIdS.get(selloSel);
-    if(!s0) return brindis('Abre un sello para imprimir su hoja');
-    return hojaSello(s0);
+    if(!puedeEditar) return brindis(SIN_PERMISO);
+    $dt.textContent = 'Imprimir';
+    $dc.innerHTML = grupoAjustes('', [
+      s0 ? filaAjuste('imp-hoja', 'Hoja del sello', esc(s0.nombre)) : '',
+      filaAjuste('imp-moldes', 'Pegatinas de moldes', `${MOLDES_POR_PEGATINA} por pegatina`),
+    ]) + `<p class="op-p flojo" style="margin:12px 0 0">La hoja va a la impresora normal (A4). Las
+      pegatinas, a la impresora de etiquetas de 10 × 11 cm.${s0 ? '' : ' Abre un sello para poder imprimir su hoja.'}</p>`;
+    $dp.innerHTML = `<button class="btn" data-cerrar>Cerrar</button>`;
+    $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
+    document.getElementById('imp-hoja')?.addEventListener('click', ()=>{ $dlg.close(); hojaSello(s0); });
+    document.getElementById('imp-moldes').onclick = ()=>pantallaPegatinasMolde(s0 || null);
+    $dlg.showModal();
+    return;
   }
   if(!puedeEditar) return brindis(MODO==='nube'?'Tu cuenta no puede imprimir':'Con esta contraseña no se puede imprimir');
   // Se empieza de cero cada vez. Antes las etiquetas de la última hoja se
@@ -9402,9 +9571,6 @@ function panelPdf(seg){
    de todo. Lo que se enseña debajo del nombre son los gramos de verdad que va
    a llevar la etiqueta, no la cifra que has pedido. */
 function panelEtiquetas(seg){
-  const hojas = Math.max(1, Math.ceil(etiquetasHoja.length / ET_POR_HOJA));
-  const huecos = hojas * ET_POR_HOJA - etiquetasHoja.length;
-
   $dc.innerHTML = seg + `
     <div class="campo" style="margin-bottom:10px"><span>Añadir colores a la hoja</span>
       <div id="et-buscador"></div></div>
@@ -9444,7 +9610,7 @@ function pintarEtiquetas(){
 
   if(!etiquetasHoja.length){
     $l.innerHTML = `<div class="busc-nada" style="padding:22px 10px">
-      Busca arriba y ve añadiendo colores. Caben <b>${ET_POR_HOJA}</b> por folio.</div>`;
+      Busca arriba y ve añadiendo colores. Cada color va en su pegatina de 10 × 11 cm.</div>`;
   }else{
     $l.innerHTML = etiquetasHoja.map((e,k)=>{
       const f = porId.get(e.id);
@@ -9475,11 +9641,9 @@ function pintarEtiquetas(){
   }
 
   const n = etiquetasHoja.length;
-  const hojas = Math.max(1, Math.ceil(n / ET_POR_HOJA));
-  const huecos = n ? hojas * ET_POR_HOJA - n : 0;
+  const pegs = Math.ceil(n / ET_POR_HOJA);
   $p.innerHTML = n
-    ? `<span><b>${n}</b> etiqueta${n===1?'':'s'} · ${hojas} folio${hojas===1?'':'s'}${
-        huecos ? ` · <b>${huecos}</b> hueco${huecos===1?'':'s'} libre${huecos===1?'':'s'}` : ' · folio completo'}</span>
+    ? `<span><b>${n}</b> etiqueta${n===1?'':'s'} · ${pegs} pegatina${pegs===1?'':'s'}</span>
        <button class="btn btn-fino" id="et-vaciar">Vaciar</button>`
     : `<span>Ninguna etiqueta todavía</span>`;
 
@@ -10363,6 +10527,7 @@ function pintarFichaSello(){
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4z"/></svg>
       Editar</button>
     <button class="btn" id="s-duplicar">Nuevo a partir de este</button>
+    <button class="btn" id="s-pegatina">Pegatina del molde</button>
     ${faltaInfo(s)
       ? '<button class="btn" id="s-completo">Ya está completo</button>'
       : '<button class="btn btn-falta" id="s-falta-btn">Falta información</button>'}
@@ -10415,6 +10580,7 @@ function pintarFichaSello(){
   document.getElementById('s-editar')?.addEventListener('click', ()=>editarSello(s));
   document.getElementById('s-duplicar')?.addEventListener('click', ()=>editarSello(s, true));
   document.getElementById('s-borrar')?.addEventListener('click', ()=>borrarSello(s));
+  document.getElementById('s-pegatina')?.addEventListener('click', ()=>pantallaPegatinasMolde(s));
   document.getElementById('s-falta-btn')?.addEventListener('click', ()=>marcarFalta(s));
   document.getElementById('s-completo')?.addEventListener('click', ()=>quitarFalta(s));
   if(puedeEditar) document.getElementById('s-falta')?.addEventListener('click', ()=>marcarFalta(s));
@@ -11967,6 +12133,7 @@ window.__app = {
   get SELLOS(){ return DATOS.sellos.slice(); }, porIdS,
   abrirSello, editarSello, borrarSello, guardarSello, hojaSello,
   faltaInfo, marcarFalta, quitarFalta, get soloFaltaS(){ return soloFaltaS; },
+  tarjetaMolde, imprimirPegatinasMolde, pantallaPegatinasMolde, imprimirEtiquetas, PEGATINA,
   coloresDeSello, tandasDe, parametrosDe, pantallaAgujas,
   get AGUJAS(){ return AGUJAS; }, TIPOS_PASO, guardarAgujas,
   get CLIENTES(){ return CLIENTES; }, clientesDeSellos, numeroDe, guardarClientes,

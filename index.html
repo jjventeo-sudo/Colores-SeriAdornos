@@ -1679,6 +1679,52 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 }
 .brindis.on{opacity:1; translate:-50% -4px}
 
+
+/* ── El escáner de pegatinas ─────────────────────────────────────────────
+   La cámara a pantalla completa, con una mira de cuatro esquinas para saber
+   dónde apuntar. Fondo negro de verdad: alrededor del vídeo no hay nada que
+   ver, y el negro no distrae del recuadro. */
+.escaner{
+  position:fixed; inset:0; z-index:130; display:flex; flex-direction:column;
+  background:#050506; color:#f2f3f4;
+  animation:visor-entra calc(.2s * var(--ritmo)) var(--salida) both;
+}
+#esc-x{
+  width:38px;height:38px;flex:0 0 auto;border-radius:var(--r-m); cursor:pointer;
+  background:rgba(255,255,255,.1); border:0; color:#f2f3f4;
+  display:grid; place-items:center;
+}
+#esc-x svg{width:19px;height:19px}
+.esc-marco{flex:1 1 auto; min-height:0; position:relative; overflow:hidden; background:#000}
+#esc-video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block}
+/* La mira: cuatro esquinas, y fuera de ella el vídeo un poco oscurecido para
+   que el ojo vaya al recuadro. */
+.esc-mira{
+  position:absolute; left:50%; top:50%; translate:-50% -50%;
+  width:min(68vw, 62vh, 340px); aspect-ratio:1; border-radius:18px;
+  box-shadow:0 0 0 200vmax rgba(0,0,0,.45);
+}
+.esc-mira i{
+  position:absolute; width:30px; height:30px; border:3px solid #fff; border-radius:6px;
+}
+.esc-mira i:nth-child(1){left:-2px; top:-2px; border-right:0; border-bottom:0; border-radius:14px 0 0 0}
+.esc-mira i:nth-child(2){right:-2px; top:-2px; border-left:0; border-bottom:0; border-radius:0 14px 0 0}
+.esc-mira i:nth-child(3){left:-2px; bottom:-2px; border-right:0; border-top:0; border-radius:0 0 0 14px}
+.esc-mira i:nth-child(4){right:-2px; bottom:-2px; border-left:0; border-top:0; border-radius:0 0 14px 0}
+.escaner.leido .esc-mira i{border-color:var(--verde)}
+.esc-aviso{
+  position:absolute; left:50%; top:50%; translate:-50% -50%; max-width:min(86vw, 420px);
+  padding:16px 18px; border-radius:var(--r-l); background:rgba(20,22,25,.92);
+  border:1px solid rgba(255,255,255,.12); font-size:15px; line-height:1.45; text-align:center;
+}
+.esc-aviso b{display:block; font-size:16px; margin-bottom:4px}
+.esc-pie{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:12px 16px calc(14px + env(safe-area-inset-bottom)); flex:0 0 auto;
+}
+.esc-pie span{font-size:14px; color:#c9cbcf; min-width:0}
+.esc-pie .btn-fino{color:#f2f3f4; background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.14); box-shadow:none; flex:0 0 auto}
+.esc-pie .btn-fino[aria-pressed="true"]{background:#f2f3f4; color:#0a0b0d}
 /* ═══════════════════════════════════════════════════════════════════
    SELLOS
    ═══════════════════════════════════════════════════════════════════ */
@@ -2401,6 +2447,12 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
   .s-datos{grid-template-columns:1fr}
   .muro-sellos{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
 }
+
+/* El icono de cada fila de Opciones, y el de cada paso de la ficha del
+   sello (antes solo lo llevaban los horneados). */
+.aj-ic{width:22px; height:22px; flex:0 0 auto; color:var(--texto-2); display:grid; place-items:center; margin-right:-2px}
+.aj-ic svg{width:22px; height:22px}
+.s-paso:not(.hito) .s-paso-ic{color:var(--texto-3)}
 </style>
 </head>
 <body>
@@ -2420,11 +2472,11 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
       </button>
     </div>
     <div class="buscador">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m20 20-3.6-3.6"/><circle cx="11" cy="11" r="6.5"/></svg>
       <input id="q" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search"
              placeholder="Buscar color, cliente o pigmento" aria-label="Buscar">
       <button class="limpiar" id="limpiar" aria-label="Limpiar búsqueda">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
       </button>
     </div>
   </header>
@@ -2434,31 +2486,37 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
   <nav class="barra" id="barra" aria-label="Secciones y acciones">
     <div id="solapas" role="tablist">
       <button data-sec="colores" aria-pressed="true" role="tab">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5C12 3.5 6 10 6 14.5a6 6 0 0 0 12 0C18 10 12 3.5 12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5C12 3.5 6 10 6 14.5a6 6 0 0 0 12 0C18 10 12 3.5 12 3.5z"/><path d="M9.3 14.8a2.7 2.7 0 0 0 2 2.4"/></svg>
         <span>Colores</span>
       </button>
       <button data-sec="sellos" aria-pressed="false" role="tab">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="3"/><path d="M8 9h8M8 13h5"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M8.5 4h7v5h-7z"/><path d="M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z"/><path d="M4 19.5h16"/></svg>
         <span>Sellos</span>
+      </button>
+      <!-- Escanear no es una sección: abre la cámara. Va en la barra porque es
+           lo que se hace con el móvil en la mano delante del molde o del bote. -->
+      <button data-sec="escanear" aria-pressed="false" role="tab" title="Escanear el QR de una pegatina">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 8h3v3H8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M13 8h3v3h-3z" fill="currentColor" stroke="none" opacity=".3"/><path d="M8 13h3v3H8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4 8V6a2 2 0 0 1 2-2h2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M20 16v2a2 2 0 0 1-2 2h-2"/><path d="M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M8 8h3v3H8z"/><path d="M13 8h3v3h-3z"/><path d="M8 13h3v3H8z"/><path d="M13 13h1.5M16 13v1.5M13 16h3"/></svg>
+        <span>Escanear</span>
       </button>
     </div>
     <button class="btn-icono" id="btn-nuevo" aria-label="Nueva fórmula" title="Nueva fórmula">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
     </button>
     <button class="btn-icono" id="btn-pdf" aria-label="Generar PDF" title="Generar PDF de lo que estás viendo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V4h12v5"/><path d="M6 18H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-1"/><path d="M6 15h12v5H6z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h18v7H3z" fill="currentColor" stroke="none" opacity=".3"/><path d="M7 8V4h10v4"/><path d="M7 15H5a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><path d="M7 13h10v7H7z"/></svg>
     </button>
     <button class="btn-icono" id="btn-menu" aria-label="Opciones" title="Opciones">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9"/><path d="M17 7h3"/><path d="M4 17h3"/><path d="M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>
     </button>
   </nav>
 
   <div class="aviso-global" id="aviso-cal">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.2v.1"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 8v.1"/><path d="M12 11v5.5"/><circle cx="12" cy="12" r="9"/></svg>
     <span id="aviso-cal-txt">Las muestras son <b>orientativas</b>: los colores base están estimados, no medidos.</span>
     <button id="btn-explicar-cal">Cómo afinarlas</button>
     <button class="cerrar-aviso" id="btn-cerrar-aviso" aria-label="No volver a mostrar este aviso" title="No volver a mostrarlo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
     </button>
   </div>
 
@@ -2487,7 +2545,7 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
   <div class="visor-barra">
     <span id="visor-tit"></span>
     <button id="visor-x" aria-label="Cerrar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
     </button>
   </div>
   <div class="visor-marco" id="visor-marco">
@@ -2496,10 +2554,31 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
   <div class="visor-pie" id="visor-pie"></div>
 </div>
 
+<!-- El escáner: la cámara a pantalla completa con un recuadro para apuntar
+     al QR de una pegatina. Lee el código y salta a la ficha, sin salir de la
+     app. -->
+<div class="escaner" id="escaner" hidden>
+  <div class="visor-barra">
+    <span>Escanear una pegatina</span>
+    <button id="esc-x" aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="esc-marco" id="esc-marco">
+    <video id="esc-video" playsinline muted autoplay></video>
+    <div class="esc-mira" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div class="esc-aviso" id="esc-aviso" hidden></div>
+  </div>
+  <div class="esc-pie">
+    <span id="esc-pista">Apunta al QR de la pegatina del molde o del bote</span>
+    <button class="btn btn-fino" id="esc-luz" hidden>Linterna</button>
+  </div>
+</div>
+
 <dialog id="dlg"><div class="hoja">
   <div class="hoja-cab"><h3 id="dlg-titulo"></h3>
     <button class="btn-icono" style="width:38px;height:38px" data-cerrar aria-label="Cerrar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
     </button>
   </div>
   <div class="hoja-cuerpo" id="dlg-cuerpo"></div>
@@ -3721,12 +3800,101 @@ function crearNube({url, clave}){
    "QR Code" es marca registrada de DENSO WAVE INCORPORATED. */
 var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1})},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(o*r,n*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)};
 
+/* jsQR 1.4.0 — Cosmo Wolfe, MIT (dist/jsQR.js sin la tabla kanji, que no hace falta
+   para leer direcciones, y minificado con terser). Lector de QR de reserva para los
+   navegadores sin BarcodeDetector (iPhone, Firefox). */
+const jsQR = (function(){ var module = {exports:{}}; var exports = module.exports;
+!function(o,e){"object"==typeof exports&&"object"==typeof module?module.exports=e():"function"==typeof define&&define.amd?define([],e):"object"==typeof exports?exports.jsQR=e():o.jsQR=e()}("undefined"!=typeof self?self:this,function(){return function(o){var e={};function r(t){if(e[t])return e[t].exports;var c=e[t]={i:t,l:!1,exports:{}};return o[t].call(c.exports,c,c.exports,r),c.l=!0,c.exports}return r.m=o,r.c=e,r.d=function(o,e,t){r.o(o,e)||Object.defineProperty(o,e,{configurable:!1,enumerable:!0,get:t})},r.n=function(o){var e=o&&o.__esModule?function(){return o.default}:function(){return o};return r.d(e,"a",e),e},r.o=function(o,e){return Object.prototype.hasOwnProperty.call(o,e)},r.p="",r(r.s=3)}([function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=function(){function o(o,e){this.width=e,this.height=o.length/e,this.data=o}return o.createEmpty=function(e,r){return new o(new Uint8ClampedArray(e*r),e)},o.prototype.get=function(o,e){return!(o<0||o>=this.width||e<0||e>=this.height)&&!!this.data[e*this.width+o]},o.prototype.set=function(o,e,r){this.data[e*this.width+o]=r?1:0},o.prototype.setRegion=function(o,e,r,t,c){for(var s=e;s<e+t;s++)for(var a=o;a<o+r;a++)this.set(a,s,!!c)},o}();e.BitMatrix=t},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=r(2);e.addOrSubtractGF=function(o,e){return o^e};var c=function(){function o(o,e,r){this.primitive=o,this.size=e,this.generatorBase=r,this.expTable=new Array(this.size),this.logTable=new Array(this.size);for(var c=1,s=0;s<this.size;s++)this.expTable[s]=c,(c*=2)>=this.size&&(c=(c^this.primitive)&this.size-1);for(s=0;s<this.size-1;s++)this.logTable[this.expTable[s]]=s;this.zero=new t.default(this,Uint8ClampedArray.from([0])),this.one=new t.default(this,Uint8ClampedArray.from([1]))}return o.prototype.multiply=function(o,e){return 0===o||0===e?0:this.expTable[(this.logTable[o]+this.logTable[e])%(this.size-1)]},o.prototype.inverse=function(o){if(0===o)throw new Error("Can't invert 0");return this.expTable[this.size-this.logTable[o]-1]},o.prototype.buildMonomial=function(o,e){if(o<0)throw new Error("Invalid monomial degree less than 0");if(0===e)return this.zero;var r=new Uint8ClampedArray(o+1);return r[0]=e,new t.default(this,r)},o.prototype.log=function(o){if(0===o)throw new Error("Can't take log(0)");return this.logTable[o]},o.prototype.exp=function(o){return this.expTable[o]},o}();e.default=c},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=r(1),c=function(){function o(o,e){if(0===e.length)throw new Error("No coefficients.");this.field=o;var r=e.length;if(r>1&&0===e[0]){for(var t=1;t<r&&0===e[t];)t++;if(t===r)this.coefficients=o.zero.coefficients;else{this.coefficients=new Uint8ClampedArray(r-t);for(var c=0;c<this.coefficients.length;c++)this.coefficients[c]=e[t+c]}}else this.coefficients=e}return o.prototype.degree=function(){return this.coefficients.length-1},o.prototype.isZero=function(){return 0===this.coefficients[0]},o.prototype.getCoefficient=function(o){return this.coefficients[this.coefficients.length-1-o]},o.prototype.addOrSubtract=function(e){var r;if(this.isZero())return e;if(e.isZero())return this;var c=this.coefficients,s=e.coefficients;c.length>s.length&&(c=(r=[s,c])[0],s=r[1]);for(var a=new Uint8ClampedArray(s.length),n=s.length-c.length,d=0;d<n;d++)a[d]=s[d];for(d=n;d<s.length;d++)a[d]=t.addOrSubtractGF(c[d-n],s[d]);return new o(this.field,a)},o.prototype.multiply=function(e){if(0===e)return this.field.zero;if(1===e)return this;for(var r=this.coefficients.length,t=new Uint8ClampedArray(r),c=0;c<r;c++)t[c]=this.field.multiply(this.coefficients[c],e);return new o(this.field,t)},o.prototype.multiplyPoly=function(e){if(this.isZero()||e.isZero())return this.field.zero;for(var r=this.coefficients,c=r.length,s=e.coefficients,a=s.length,n=new Uint8ClampedArray(c+a-1),d=0;d<c;d++)for(var l=r[d],i=0;i<a;i++)n[d+i]=t.addOrSubtractGF(n[d+i],this.field.multiply(l,s[i]));return new o(this.field,n)},o.prototype.multiplyByMonomial=function(e,r){if(e<0)throw new Error("Invalid degree less than 0");if(0===r)return this.field.zero;for(var t=this.coefficients.length,c=new Uint8ClampedArray(t+e),s=0;s<t;s++)c[s]=this.field.multiply(this.coefficients[s],r);return new o(this.field,c)},o.prototype.evaluateAt=function(o){var e=0;if(0===o)return this.getCoefficient(0);var r=this.coefficients.length;if(1===o)return this.coefficients.forEach(function(o){e=t.addOrSubtractGF(e,o)}),e;e=this.coefficients[0];for(var c=1;c<r;c++)e=t.addOrSubtractGF(this.field.multiply(o,e),this.coefficients[c]);return e},o}();e.default=c},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=r(4),c=r(5),s=r(11),a=r(12);function n(o){var e=a.locate(o);if(!e)return null;for(var r=0,t=e;r<t.length;r++){var n=t[r],d=s.extract(o,n),l=c.decode(d.matrix);if(l)return{binaryData:l.bytes,data:l.text,chunks:l.chunks,version:l.version,location:{topRightCorner:d.mappingFunction(n.dimension,0),topLeftCorner:d.mappingFunction(0,0),bottomRightCorner:d.mappingFunction(n.dimension,n.dimension),bottomLeftCorner:d.mappingFunction(0,n.dimension),topRightFinderPattern:n.topRight,topLeftFinderPattern:n.topLeft,bottomLeftFinderPattern:n.bottomLeft,bottomRightAlignmentPattern:n.alignmentPattern}}}return null}var d={inversionAttempts:"attemptBoth"};function l(o,e,r,c){void 0===c&&(c={});var s=d;Object.keys(s||{}).forEach(function(o){s[o]=c[o]||s[o]});var a="attemptBoth"===s.inversionAttempts||"invertFirst"===s.inversionAttempts,l="onlyInvert"===s.inversionAttempts||"invertFirst"===s.inversionAttempts,i=t.binarize(o,e,r,a),B=i.binarized,k=i.inverted,u=n(l?k:B);return u||"attemptBoth"!==s.inversionAttempts&&"invertFirst"!==s.inversionAttempts||(u=n(l?B:k)),u}l.default=l,e.default=l},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=r(0);function c(o,e,r){return o<e?e:o>r?r:o}var s=function(){function o(o,e){this.width=o,this.data=new Uint8ClampedArray(o*e)}return o.prototype.get=function(o,e){return this.data[e*this.width+o]},o.prototype.set=function(o,e,r){this.data[e*this.width+o]=r},o}();e.binarize=function(o,e,r,a){if(o.length!==e*r*4)throw new Error("Malformed data passed to binarizer.");for(var n=new s(e,r),d=0;d<e;d++)for(var l=0;l<r;l++){var i=o[4*(l*e+d)+0],B=o[4*(l*e+d)+1],k=o[4*(l*e+d)+2];n.set(d,l,.2126*i+.7152*B+.0722*k)}for(var u=Math.ceil(e/8),C=Math.ceil(r/8),m=new s(u,C),f=0;f<C;f++)for(var w=0;w<u;w++){var P=0,v=1/0,h=0;for(l=0;l<8;l++)for(d=0;d<8;d++){var y=n.get(8*w+d,8*f+l);P+=y,v=Math.min(v,y),h=Math.max(h,y)}var p=P/Math.pow(8,2);if(h-v<=24&&(p=v/2,f>0&&w>0)){var b=(m.get(w,f-1)+2*m.get(w-1,f)+m.get(w-1,f-1))/4;v<b&&(p=b)}m.set(w,f,p)}var g=t.BitMatrix.createEmpty(e,r),x=null;for(a&&(x=t.BitMatrix.createEmpty(e,r)),f=0;f<C;f++)for(w=0;w<u;w++){for(var M=c(w,2,u-3),L=c(f,2,C-3),N=(P=0,-2);N<=2;N++)for(var I=-2;I<=2;I++)P+=m.get(M+N,L+I);var O=P/25;for(N=0;N<8;N++)for(I=0;I<8;I++){d=8*w+N,l=8*f+I;var z=n.get(d,l);g.set(d,l,z<=O),a&&x.set(d,l,!(z<=O))}}return a?{binarized:g,inverted:x}:{binarized:g}}},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=r(0),c=r(6),s=r(9),a=r(10);function n(o,e){for(var r=o^e,t=0;r;)t++,r&=r-1;return t}function d(o,e){return e<<1|o}var l=[{bits:21522,formatInfo:{errorCorrectionLevel:1,dataMask:0}},{bits:20773,formatInfo:{errorCorrectionLevel:1,dataMask:1}},{bits:24188,formatInfo:{errorCorrectionLevel:1,dataMask:2}},{bits:23371,formatInfo:{errorCorrectionLevel:1,dataMask:3}},{bits:17913,formatInfo:{errorCorrectionLevel:1,dataMask:4}},{bits:16590,formatInfo:{errorCorrectionLevel:1,dataMask:5}},{bits:20375,formatInfo:{errorCorrectionLevel:1,dataMask:6}},{bits:19104,formatInfo:{errorCorrectionLevel:1,dataMask:7}},{bits:30660,formatInfo:{errorCorrectionLevel:0,dataMask:0}},{bits:29427,formatInfo:{errorCorrectionLevel:0,dataMask:1}},{bits:32170,formatInfo:{errorCorrectionLevel:0,dataMask:2}},{bits:30877,formatInfo:{errorCorrectionLevel:0,dataMask:3}},{bits:26159,formatInfo:{errorCorrectionLevel:0,dataMask:4}},{bits:25368,formatInfo:{errorCorrectionLevel:0,dataMask:5}},{bits:27713,formatInfo:{errorCorrectionLevel:0,dataMask:6}},{bits:26998,formatInfo:{errorCorrectionLevel:0,dataMask:7}},{bits:5769,formatInfo:{errorCorrectionLevel:3,dataMask:0}},{bits:5054,formatInfo:{errorCorrectionLevel:3,dataMask:1}},{bits:7399,formatInfo:{errorCorrectionLevel:3,dataMask:2}},{bits:6608,formatInfo:{errorCorrectionLevel:3,dataMask:3}},{bits:1890,formatInfo:{errorCorrectionLevel:3,dataMask:4}},{bits:597,formatInfo:{errorCorrectionLevel:3,dataMask:5}},{bits:3340,formatInfo:{errorCorrectionLevel:3,dataMask:6}},{bits:2107,formatInfo:{errorCorrectionLevel:3,dataMask:7}},{bits:13663,formatInfo:{errorCorrectionLevel:2,dataMask:0}},{bits:12392,formatInfo:{errorCorrectionLevel:2,dataMask:1}},{bits:16177,formatInfo:{errorCorrectionLevel:2,dataMask:2}},{bits:14854,formatInfo:{errorCorrectionLevel:2,dataMask:3}},{bits:9396,formatInfo:{errorCorrectionLevel:2,dataMask:4}},{bits:8579,formatInfo:{errorCorrectionLevel:2,dataMask:5}},{bits:11994,formatInfo:{errorCorrectionLevel:2,dataMask:6}},{bits:11245,formatInfo:{errorCorrectionLevel:2,dataMask:7}}],i=[function(o){return(o.y+o.x)%2==0},function(o){return o.y%2==0},function(o){return o.x%3==0},function(o){return(o.y+o.x)%3==0},function(o){return(Math.floor(o.y/2)+Math.floor(o.x/3))%2==0},function(o){return o.x*o.y%2+o.x*o.y%3==0},function(o){return(o.y*o.x%2+o.y*o.x%3)%2==0},function(o){return((o.y+o.x)%2+o.y*o.x%3)%2==0}];function B(o,e,r){for(var c=i[r.dataMask],s=o.height,a=function(o){var e=17+4*o.versionNumber,r=t.BitMatrix.createEmpty(e,e);r.setRegion(0,0,9,9,!0),r.setRegion(e-8,0,8,9,!0),r.setRegion(0,e-8,9,8,!0);for(var c=0,s=o.alignmentPatternCenters;c<s.length;c++)for(var a=s[c],n=0,d=o.alignmentPatternCenters;n<d.length;n++){var l=d[n];6===a&&6===l||6===a&&l===e-7||a===e-7&&6===l||r.setRegion(a-2,l-2,5,5,!0)}return r.setRegion(6,9,1,e-17,!0),r.setRegion(9,6,e-17,1,!0),o.versionNumber>6&&(r.setRegion(e-11,0,3,6,!0),r.setRegion(0,e-11,6,3,!0)),r}(e),n=[],l=0,B=0,k=!0,u=s-1;u>0;u-=2){6===u&&u--;for(var C=0;C<s;C++)for(var m=k?s-1-C:C,f=0;f<2;f++){var w=u-f;if(!a.get(w,m)){B++;var P=o.get(w,m);c({y:m,x:w})&&(P=!P),l=d(P,l),8===B&&(n.push(l),B=0,l=0)}}k=!k}return n}function k(o){var e=function(o){var e=o.height,r=Math.floor((e-17)/4);if(r<=6)return a.VERSIONS[r-1];for(var t=0,c=5;c>=0;c--)for(var s=e-9;s>=e-11;s--)t=d(o.get(s,c),t);var l=0;for(s=5;s>=0;s--)for(c=e-9;c>=e-11;c--)l=d(o.get(s,c),l);for(var i,B=1/0,k=0,u=a.VERSIONS;k<u.length;k++){var C=u[k];if(C.infoBits===t||C.infoBits===l)return C;var m=n(t,C.infoBits);m<B&&(i=C,B=m),(m=n(l,C.infoBits))<B&&(i=C,B=m)}return B<=3?i:void 0}(o);if(!e)return null;var r=function(o){for(var e=0,r=0;r<=8;r++)6!==r&&(e=d(o.get(r,8),e));for(var t=7;t>=0;t--)6!==t&&(e=d(o.get(8,t),e));var c=o.height,s=0;for(t=c-1;t>=c-7;t--)s=d(o.get(8,t),s);for(r=c-8;r<c;r++)s=d(o.get(r,8),s);for(var a=1/0,i=null,B=0,k=l;B<k.length;B++){var u=k[B],C=u.bits,m=u.formatInfo;if(C===e||C===s)return m;var f=n(e,C);f<a&&(i=m,a=f),e!==s&&(f=n(s,C))<a&&(i=m,a=f)}return a<=3?i:null}(o);if(!r)return null;var t=function(o,e,r){var t=e.errorCorrectionLevels[r],c=[],s=0;if(t.ecBlocks.forEach(function(o){for(var e=0;e<o.numBlocks;e++)c.push({numDataCodewords:o.dataCodewordsPerBlock,codewords:[]}),s+=o.dataCodewordsPerBlock+t.ecCodewordsPerBlock}),o.length<s)return null;o=o.slice(0,s);for(var a=t.ecBlocks[0].dataCodewordsPerBlock,n=0;n<a;n++)for(var d=0,l=c;d<l.length;d++)l[d].codewords.push(o.shift());if(t.ecBlocks.length>1){var i=t.ecBlocks[0].numBlocks,B=t.ecBlocks[1].numBlocks;for(n=0;n<B;n++)c[i+n].codewords.push(o.shift())}for(;o.length>0;)for(var k=0,u=c;k<u.length;k++)u[k].codewords.push(o.shift());return c}(B(o,e,r),e,r.errorCorrectionLevel);if(!t)return null;for(var i=t.reduce(function(o,e){return o+e.numDataCodewords},0),k=new Uint8ClampedArray(i),u=0,C=0,m=t;C<m.length;C++){var f=m[C],w=s.decode(f.codewords,f.codewords.length-f.numDataCodewords);if(!w)return null;for(var P=0;P<f.numDataCodewords;P++)k[u++]=w[P]}try{return c.decode(k,e.versionNumber)}catch(o){return null}}e.decode=function(o){if(null==o)return null;var e=k(o);if(e)return e;for(var r=0;r<o.width;r++)for(var t=r+1;t<o.height;t++)o.get(r,t)!==o.get(t,r)&&(o.set(r,t,!o.get(r,t)),o.set(t,r,!o.get(t,r)));return k(o)}},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t,c,s=r(7),a=r(8);function n(o,e){for(var r=[],t="",c=[10,12,14][e],s=o.readBits(c);s>=3;){if((l=o.readBits(10))>=1e3)throw new Error("Invalid numeric value above 999");var a=Math.floor(l/100),n=Math.floor(l/10)%10,d=l%10;r.push(48+a,48+n,48+d),t+=a.toString()+n.toString()+d.toString(),s-=3}if(2===s){if((l=o.readBits(7))>=100)throw new Error("Invalid numeric value above 99");a=Math.floor(l/10),n=l%10;r.push(48+a,48+n),t+=a.toString()+n.toString()}else if(1===s){var l;if((l=o.readBits(4))>=10)throw new Error("Invalid numeric value above 9");r.push(48+l),t+=l.toString()}return{bytes:r,text:t}}!function(o){o.Numeric="numeric",o.Alphanumeric="alphanumeric",o.Byte="byte",o.Kanji="kanji",o.ECI="eci"}(t=e.Mode||(e.Mode={})),function(o){o[o.Terminator=0]="Terminator",o[o.Numeric=1]="Numeric",o[o.Alphanumeric=2]="Alphanumeric",o[o.Byte=4]="Byte",o[o.Kanji=8]="Kanji",o[o.ECI=7]="ECI"}(c||(c={}));var d=["0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"," ","$","%","*","+","-",".","/",":"];function l(o,e){for(var r=[],t="",c=[9,11,13][e],s=o.readBits(c);s>=2;){var a=o.readBits(11),n=Math.floor(a/45),l=a%45;r.push(d[n].charCodeAt(0),d[l].charCodeAt(0)),t+=d[n]+d[l],s-=2}if(1===s){n=o.readBits(6);r.push(d[n].charCodeAt(0)),t+=d[n]}return{bytes:r,text:t}}function i(o,e){for(var r=[],t="",c=[8,16,16][e],s=o.readBits(c),a=0;a<s;a++){var n=o.readBits(8);r.push(n)}try{t+=decodeURIComponent(r.map(function(o){return"%"+("0"+o.toString(16)).substr(-2)}).join(""))}catch(o){}return{bytes:r,text:t}}function B(o,e){for(var r=[],t="",c=[8,10,12][e],s=o.readBits(c),n=0;n<s;n++){var d=o.readBits(13),l=Math.floor(d/192)<<8|d%192;l+=l<7936?33088:49472,r.push(l>>8,255&l),t+=String.fromCharCode(a.shiftJISTable[l])}return{bytes:r,text:t}}e.decode=function(o,e){for(var r,a,d,k,u=new s.BitStream(o),C=e<=9?0:e<=26?1:2,m={text:"",bytes:[],chunks:[],version:e};u.available()>=4;){var f=u.readBits(4);if(f===c.Terminator)return m;if(f===c.ECI)0===u.readBits(1)?m.chunks.push({type:t.ECI,assignmentNumber:u.readBits(7)}):0===u.readBits(1)?m.chunks.push({type:t.ECI,assignmentNumber:u.readBits(14)}):0===u.readBits(1)?m.chunks.push({type:t.ECI,assignmentNumber:u.readBits(21)}):m.chunks.push({type:t.ECI,assignmentNumber:-1});else if(f===c.Numeric){var w=n(u,C);m.text+=w.text,(r=m.bytes).push.apply(r,w.bytes),m.chunks.push({type:t.Numeric,text:w.text})}else if(f===c.Alphanumeric){var P=l(u,C);m.text+=P.text,(a=m.bytes).push.apply(a,P.bytes),m.chunks.push({type:t.Alphanumeric,text:P.text})}else if(f===c.Byte){var v=i(u,C);m.text+=v.text,(d=m.bytes).push.apply(d,v.bytes),m.chunks.push({type:t.Byte,bytes:v.bytes,text:v.text})}else if(f===c.Kanji){var h=B(u,C);m.text+=h.text,(k=m.bytes).push.apply(k,h.bytes),m.chunks.push({type:t.Kanji,bytes:h.bytes,text:h.text})}}if(0===u.available()||0===u.readBits(u.available()))return m}},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=function(){function o(o){this.byteOffset=0,this.bitOffset=0,this.bytes=o}return o.prototype.readBits=function(o){if(o<1||o>32||o>this.available())throw new Error("Cannot read "+o.toString()+" bits");var e=0;if(this.bitOffset>0){var r=8-this.bitOffset,t=o<r?o:r,c=255>>8-t<<(s=r-t);e=(this.bytes[this.byteOffset]&c)>>s,o-=t,this.bitOffset+=t,8===this.bitOffset&&(this.bitOffset=0,this.byteOffset++)}if(o>0){for(;o>=8;)e=e<<8|255&this.bytes[this.byteOffset],this.byteOffset++,o-=8;if(o>0){var s;c=255>>(s=8-o)<<s;e=e<<o|(this.bytes[this.byteOffset]&c)>>s,this.bitOffset+=o}}return e},o.prototype.available=function(){return 8*(this.bytes.length-this.byteOffset)-this.bitOffset},o}();e.BitStream=t},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.shiftJISTable={}},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=r(1),c=r(2);e.decode=function(o,e){var r=new Uint8ClampedArray(o.length);r.set(o);for(var s=new t.default(285,256,0),a=new c.default(s,r),n=new Uint8ClampedArray(e),d=!1,l=0;l<e;l++){var i=a.evaluateAt(s.exp(l+s.generatorBase));n[n.length-1-l]=i,0!==i&&(d=!0)}if(!d)return r;var B=new c.default(s,n),k=function(o,e,r,t){var c;e.degree()<r.degree()&&(e=(c=[r,e])[0],r=c[1]);for(var s=e,a=r,n=o.zero,d=o.one;a.degree()>=t/2;){var l=s,i=n;if(n=d,(s=a).isZero())return null;a=l;for(var B=o.zero,k=s.getCoefficient(s.degree()),u=o.inverse(k);a.degree()>=s.degree()&&!a.isZero();){var C=a.degree()-s.degree(),m=o.multiply(a.getCoefficient(a.degree()),u);B=B.addOrSubtract(o.buildMonomial(C,m)),a=a.addOrSubtract(s.multiplyByMonomial(C,m))}if(d=B.multiplyPoly(n).addOrSubtract(i),a.degree()>=s.degree())return null}var f=d.getCoefficient(0);if(0===f)return null;var w=o.inverse(f);return[d.multiply(w),a.multiply(w)]}(s,s.buildMonomial(e,1),B,e);if(null===k)return null;var u=function(o,e){var r=e.degree();if(1===r)return[e.getCoefficient(1)];for(var t=new Array(r),c=0,s=1;s<o.size&&c<r;s++)0===e.evaluateAt(s)&&(t[c]=o.inverse(s),c++);return c!==r?null:t}(s,k[0]);if(null==u)return null;for(var C=function(o,e,r){for(var c=r.length,s=new Array(c),a=0;a<c;a++){for(var n=o.inverse(r[a]),d=1,l=0;l<c;l++)a!==l&&(d=o.multiply(d,t.addOrSubtractGF(1,o.multiply(r[l],n))));s[a]=o.multiply(e.evaluateAt(n),o.inverse(d)),0!==o.generatorBase&&(s[a]=o.multiply(s[a],n))}return s}(s,k[1],u),m=0;m<u.length;m++){var f=r.length-1-s.log(u[m]);if(f<0)return null;r[f]=t.addOrSubtractGF(r[f],C[m])}return r}},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.VERSIONS=[{infoBits:null,versionNumber:1,alignmentPatternCenters:[],errorCorrectionLevels:[{ecCodewordsPerBlock:7,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:19}]},{ecCodewordsPerBlock:10,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:16}]},{ecCodewordsPerBlock:13,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:13}]},{ecCodewordsPerBlock:17,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:9}]}]},{infoBits:null,versionNumber:2,alignmentPatternCenters:[6,18],errorCorrectionLevels:[{ecCodewordsPerBlock:10,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:34}]},{ecCodewordsPerBlock:16,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:28}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:22}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:16}]}]},{infoBits:null,versionNumber:3,alignmentPatternCenters:[6,22],errorCorrectionLevels:[{ecCodewordsPerBlock:15,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:55}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:44}]},{ecCodewordsPerBlock:18,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:17}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:13}]}]},{infoBits:null,versionNumber:4,alignmentPatternCenters:[6,26],errorCorrectionLevels:[{ecCodewordsPerBlock:20,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:80}]},{ecCodewordsPerBlock:18,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:32}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:24}]},{ecCodewordsPerBlock:16,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:9}]}]},{infoBits:null,versionNumber:5,alignmentPatternCenters:[6,30],errorCorrectionLevels:[{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:108}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:43}]},{ecCodewordsPerBlock:18,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:15},{numBlocks:2,dataCodewordsPerBlock:16}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:11},{numBlocks:2,dataCodewordsPerBlock:12}]}]},{infoBits:null,versionNumber:6,alignmentPatternCenters:[6,34],errorCorrectionLevels:[{ecCodewordsPerBlock:18,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:68}]},{ecCodewordsPerBlock:16,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:27}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:19}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:15}]}]},{infoBits:31892,versionNumber:7,alignmentPatternCenters:[6,22,38],errorCorrectionLevels:[{ecCodewordsPerBlock:20,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:78}]},{ecCodewordsPerBlock:18,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:31}]},{ecCodewordsPerBlock:18,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:14},{numBlocks:4,dataCodewordsPerBlock:15}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:13},{numBlocks:1,dataCodewordsPerBlock:14}]}]},{infoBits:34236,versionNumber:8,alignmentPatternCenters:[6,24,42],errorCorrectionLevels:[{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:97}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:38},{numBlocks:2,dataCodewordsPerBlock:39}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:18},{numBlocks:2,dataCodewordsPerBlock:19}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:14},{numBlocks:2,dataCodewordsPerBlock:15}]}]},{infoBits:39577,versionNumber:9,alignmentPatternCenters:[6,26,46],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:116}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:36},{numBlocks:2,dataCodewordsPerBlock:37}]},{ecCodewordsPerBlock:20,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:16},{numBlocks:4,dataCodewordsPerBlock:17}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:12},{numBlocks:4,dataCodewordsPerBlock:13}]}]},{infoBits:42195,versionNumber:10,alignmentPatternCenters:[6,28,50],errorCorrectionLevels:[{ecCodewordsPerBlock:18,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:68},{numBlocks:2,dataCodewordsPerBlock:69}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:43},{numBlocks:1,dataCodewordsPerBlock:44}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:6,dataCodewordsPerBlock:19},{numBlocks:2,dataCodewordsPerBlock:20}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:6,dataCodewordsPerBlock:15},{numBlocks:2,dataCodewordsPerBlock:16}]}]},{infoBits:48118,versionNumber:11,alignmentPatternCenters:[6,30,54],errorCorrectionLevels:[{ecCodewordsPerBlock:20,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:81}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:50},{numBlocks:4,dataCodewordsPerBlock:51}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:22},{numBlocks:4,dataCodewordsPerBlock:23}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:12},{numBlocks:8,dataCodewordsPerBlock:13}]}]},{infoBits:51042,versionNumber:12,alignmentPatternCenters:[6,32,58],errorCorrectionLevels:[{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:92},{numBlocks:2,dataCodewordsPerBlock:93}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:6,dataCodewordsPerBlock:36},{numBlocks:2,dataCodewordsPerBlock:37}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:20},{numBlocks:6,dataCodewordsPerBlock:21}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:7,dataCodewordsPerBlock:14},{numBlocks:4,dataCodewordsPerBlock:15}]}]},{infoBits:55367,versionNumber:13,alignmentPatternCenters:[6,34,62],errorCorrectionLevels:[{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:107}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:8,dataCodewordsPerBlock:37},{numBlocks:1,dataCodewordsPerBlock:38}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:8,dataCodewordsPerBlock:20},{numBlocks:4,dataCodewordsPerBlock:21}]},{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:12,dataCodewordsPerBlock:11},{numBlocks:4,dataCodewordsPerBlock:12}]}]},{infoBits:58893,versionNumber:14,alignmentPatternCenters:[6,26,46,66],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:115},{numBlocks:1,dataCodewordsPerBlock:116}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:40},{numBlocks:5,dataCodewordsPerBlock:41}]},{ecCodewordsPerBlock:20,ecBlocks:[{numBlocks:11,dataCodewordsPerBlock:16},{numBlocks:5,dataCodewordsPerBlock:17}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:11,dataCodewordsPerBlock:12},{numBlocks:5,dataCodewordsPerBlock:13}]}]},{infoBits:63784,versionNumber:15,alignmentPatternCenters:[6,26,48,70],errorCorrectionLevels:[{ecCodewordsPerBlock:22,ecBlocks:[{numBlocks:5,dataCodewordsPerBlock:87},{numBlocks:1,dataCodewordsPerBlock:88}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:5,dataCodewordsPerBlock:41},{numBlocks:5,dataCodewordsPerBlock:42}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:5,dataCodewordsPerBlock:24},{numBlocks:7,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:11,dataCodewordsPerBlock:12},{numBlocks:7,dataCodewordsPerBlock:13}]}]},{infoBits:68472,versionNumber:16,alignmentPatternCenters:[6,26,50,74],errorCorrectionLevels:[{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:5,dataCodewordsPerBlock:98},{numBlocks:1,dataCodewordsPerBlock:99}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:7,dataCodewordsPerBlock:45},{numBlocks:3,dataCodewordsPerBlock:46}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:15,dataCodewordsPerBlock:19},{numBlocks:2,dataCodewordsPerBlock:20}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:15},{numBlocks:13,dataCodewordsPerBlock:16}]}]},{infoBits:70749,versionNumber:17,alignmentPatternCenters:[6,30,54,78],errorCorrectionLevels:[{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:107},{numBlocks:5,dataCodewordsPerBlock:108}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:10,dataCodewordsPerBlock:46},{numBlocks:1,dataCodewordsPerBlock:47}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:22},{numBlocks:15,dataCodewordsPerBlock:23}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:14},{numBlocks:17,dataCodewordsPerBlock:15}]}]},{infoBits:76311,versionNumber:18,alignmentPatternCenters:[6,30,56,82],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:5,dataCodewordsPerBlock:120},{numBlocks:1,dataCodewordsPerBlock:121}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:9,dataCodewordsPerBlock:43},{numBlocks:4,dataCodewordsPerBlock:44}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:17,dataCodewordsPerBlock:22},{numBlocks:1,dataCodewordsPerBlock:23}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:14},{numBlocks:19,dataCodewordsPerBlock:15}]}]},{infoBits:79154,versionNumber:19,alignmentPatternCenters:[6,30,58,86],errorCorrectionLevels:[{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:113},{numBlocks:4,dataCodewordsPerBlock:114}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:44},{numBlocks:11,dataCodewordsPerBlock:45}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:17,dataCodewordsPerBlock:21},{numBlocks:4,dataCodewordsPerBlock:22}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:9,dataCodewordsPerBlock:13},{numBlocks:16,dataCodewordsPerBlock:14}]}]},{infoBits:84390,versionNumber:20,alignmentPatternCenters:[6,34,62,90],errorCorrectionLevels:[{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:107},{numBlocks:5,dataCodewordsPerBlock:108}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:41},{numBlocks:13,dataCodewordsPerBlock:42}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:15,dataCodewordsPerBlock:24},{numBlocks:5,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:15,dataCodewordsPerBlock:15},{numBlocks:10,dataCodewordsPerBlock:16}]}]},{infoBits:87683,versionNumber:21,alignmentPatternCenters:[6,28,50,72,94],errorCorrectionLevels:[{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:116},{numBlocks:4,dataCodewordsPerBlock:117}]},{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:17,dataCodewordsPerBlock:42}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:17,dataCodewordsPerBlock:22},{numBlocks:6,dataCodewordsPerBlock:23}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:19,dataCodewordsPerBlock:16},{numBlocks:6,dataCodewordsPerBlock:17}]}]},{infoBits:92361,versionNumber:22,alignmentPatternCenters:[6,26,50,74,98],errorCorrectionLevels:[{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:111},{numBlocks:7,dataCodewordsPerBlock:112}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:17,dataCodewordsPerBlock:46}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:7,dataCodewordsPerBlock:24},{numBlocks:16,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:24,ecBlocks:[{numBlocks:34,dataCodewordsPerBlock:13}]}]},{infoBits:96236,versionNumber:23,alignmentPatternCenters:[6,30,54,74,102],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:121},{numBlocks:5,dataCodewordsPerBlock:122}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:47},{numBlocks:14,dataCodewordsPerBlock:48}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:11,dataCodewordsPerBlock:24},{numBlocks:14,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:16,dataCodewordsPerBlock:15},{numBlocks:14,dataCodewordsPerBlock:16}]}]},{infoBits:102084,versionNumber:24,alignmentPatternCenters:[6,28,54,80,106],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:6,dataCodewordsPerBlock:117},{numBlocks:4,dataCodewordsPerBlock:118}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:6,dataCodewordsPerBlock:45},{numBlocks:14,dataCodewordsPerBlock:46}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:11,dataCodewordsPerBlock:24},{numBlocks:16,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:30,dataCodewordsPerBlock:16},{numBlocks:2,dataCodewordsPerBlock:17}]}]},{infoBits:102881,versionNumber:25,alignmentPatternCenters:[6,32,58,84,110],errorCorrectionLevels:[{ecCodewordsPerBlock:26,ecBlocks:[{numBlocks:8,dataCodewordsPerBlock:106},{numBlocks:4,dataCodewordsPerBlock:107}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:8,dataCodewordsPerBlock:47},{numBlocks:13,dataCodewordsPerBlock:48}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:7,dataCodewordsPerBlock:24},{numBlocks:22,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:22,dataCodewordsPerBlock:15},{numBlocks:13,dataCodewordsPerBlock:16}]}]},{infoBits:110507,versionNumber:26,alignmentPatternCenters:[6,30,58,86,114],errorCorrectionLevels:[{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:10,dataCodewordsPerBlock:114},{numBlocks:2,dataCodewordsPerBlock:115}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:19,dataCodewordsPerBlock:46},{numBlocks:4,dataCodewordsPerBlock:47}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:28,dataCodewordsPerBlock:22},{numBlocks:6,dataCodewordsPerBlock:23}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:33,dataCodewordsPerBlock:16},{numBlocks:4,dataCodewordsPerBlock:17}]}]},{infoBits:110734,versionNumber:27,alignmentPatternCenters:[6,34,62,90,118],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:8,dataCodewordsPerBlock:122},{numBlocks:4,dataCodewordsPerBlock:123}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:22,dataCodewordsPerBlock:45},{numBlocks:3,dataCodewordsPerBlock:46}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:8,dataCodewordsPerBlock:23},{numBlocks:26,dataCodewordsPerBlock:24}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:12,dataCodewordsPerBlock:15},{numBlocks:28,dataCodewordsPerBlock:16}]}]},{infoBits:117786,versionNumber:28,alignmentPatternCenters:[6,26,50,74,98,122],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:117},{numBlocks:10,dataCodewordsPerBlock:118}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:3,dataCodewordsPerBlock:45},{numBlocks:23,dataCodewordsPerBlock:46}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:24},{numBlocks:31,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:11,dataCodewordsPerBlock:15},{numBlocks:31,dataCodewordsPerBlock:16}]}]},{infoBits:119615,versionNumber:29,alignmentPatternCenters:[6,30,54,78,102,126],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:7,dataCodewordsPerBlock:116},{numBlocks:7,dataCodewordsPerBlock:117}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:21,dataCodewordsPerBlock:45},{numBlocks:7,dataCodewordsPerBlock:46}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:1,dataCodewordsPerBlock:23},{numBlocks:37,dataCodewordsPerBlock:24}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:19,dataCodewordsPerBlock:15},{numBlocks:26,dataCodewordsPerBlock:16}]}]},{infoBits:126325,versionNumber:30,alignmentPatternCenters:[6,26,52,78,104,130],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:5,dataCodewordsPerBlock:115},{numBlocks:10,dataCodewordsPerBlock:116}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:19,dataCodewordsPerBlock:47},{numBlocks:10,dataCodewordsPerBlock:48}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:15,dataCodewordsPerBlock:24},{numBlocks:25,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:23,dataCodewordsPerBlock:15},{numBlocks:25,dataCodewordsPerBlock:16}]}]},{infoBits:127568,versionNumber:31,alignmentPatternCenters:[6,30,56,82,108,134],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:13,dataCodewordsPerBlock:115},{numBlocks:3,dataCodewordsPerBlock:116}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:46},{numBlocks:29,dataCodewordsPerBlock:47}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:42,dataCodewordsPerBlock:24},{numBlocks:1,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:23,dataCodewordsPerBlock:15},{numBlocks:28,dataCodewordsPerBlock:16}]}]},{infoBits:133589,versionNumber:32,alignmentPatternCenters:[6,34,60,86,112,138],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:17,dataCodewordsPerBlock:115}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:10,dataCodewordsPerBlock:46},{numBlocks:23,dataCodewordsPerBlock:47}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:10,dataCodewordsPerBlock:24},{numBlocks:35,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:19,dataCodewordsPerBlock:15},{numBlocks:35,dataCodewordsPerBlock:16}]}]},{infoBits:136944,versionNumber:33,alignmentPatternCenters:[6,30,58,86,114,142],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:17,dataCodewordsPerBlock:115},{numBlocks:1,dataCodewordsPerBlock:116}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:14,dataCodewordsPerBlock:46},{numBlocks:21,dataCodewordsPerBlock:47}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:29,dataCodewordsPerBlock:24},{numBlocks:19,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:11,dataCodewordsPerBlock:15},{numBlocks:46,dataCodewordsPerBlock:16}]}]},{infoBits:141498,versionNumber:34,alignmentPatternCenters:[6,34,62,90,118,146],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:13,dataCodewordsPerBlock:115},{numBlocks:6,dataCodewordsPerBlock:116}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:14,dataCodewordsPerBlock:46},{numBlocks:23,dataCodewordsPerBlock:47}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:44,dataCodewordsPerBlock:24},{numBlocks:7,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:59,dataCodewordsPerBlock:16},{numBlocks:1,dataCodewordsPerBlock:17}]}]},{infoBits:145311,versionNumber:35,alignmentPatternCenters:[6,30,54,78,102,126,150],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:12,dataCodewordsPerBlock:121},{numBlocks:7,dataCodewordsPerBlock:122}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:12,dataCodewordsPerBlock:47},{numBlocks:26,dataCodewordsPerBlock:48}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:39,dataCodewordsPerBlock:24},{numBlocks:14,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:22,dataCodewordsPerBlock:15},{numBlocks:41,dataCodewordsPerBlock:16}]}]},{infoBits:150283,versionNumber:36,alignmentPatternCenters:[6,24,50,76,102,128,154],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:6,dataCodewordsPerBlock:121},{numBlocks:14,dataCodewordsPerBlock:122}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:6,dataCodewordsPerBlock:47},{numBlocks:34,dataCodewordsPerBlock:48}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:46,dataCodewordsPerBlock:24},{numBlocks:10,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:2,dataCodewordsPerBlock:15},{numBlocks:64,dataCodewordsPerBlock:16}]}]},{infoBits:152622,versionNumber:37,alignmentPatternCenters:[6,28,54,80,106,132,158],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:17,dataCodewordsPerBlock:122},{numBlocks:4,dataCodewordsPerBlock:123}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:29,dataCodewordsPerBlock:46},{numBlocks:14,dataCodewordsPerBlock:47}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:49,dataCodewordsPerBlock:24},{numBlocks:10,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:24,dataCodewordsPerBlock:15},{numBlocks:46,dataCodewordsPerBlock:16}]}]},{infoBits:158308,versionNumber:38,alignmentPatternCenters:[6,32,58,84,110,136,162],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:4,dataCodewordsPerBlock:122},{numBlocks:18,dataCodewordsPerBlock:123}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:13,dataCodewordsPerBlock:46},{numBlocks:32,dataCodewordsPerBlock:47}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:48,dataCodewordsPerBlock:24},{numBlocks:14,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:42,dataCodewordsPerBlock:15},{numBlocks:32,dataCodewordsPerBlock:16}]}]},{infoBits:161089,versionNumber:39,alignmentPatternCenters:[6,26,54,82,110,138,166],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:20,dataCodewordsPerBlock:117},{numBlocks:4,dataCodewordsPerBlock:118}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:40,dataCodewordsPerBlock:47},{numBlocks:7,dataCodewordsPerBlock:48}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:43,dataCodewordsPerBlock:24},{numBlocks:22,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:10,dataCodewordsPerBlock:15},{numBlocks:67,dataCodewordsPerBlock:16}]}]},{infoBits:167017,versionNumber:40,alignmentPatternCenters:[6,30,58,86,114,142,170],errorCorrectionLevels:[{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:19,dataCodewordsPerBlock:118},{numBlocks:6,dataCodewordsPerBlock:119}]},{ecCodewordsPerBlock:28,ecBlocks:[{numBlocks:18,dataCodewordsPerBlock:47},{numBlocks:31,dataCodewordsPerBlock:48}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:34,dataCodewordsPerBlock:24},{numBlocks:34,dataCodewordsPerBlock:25}]},{ecCodewordsPerBlock:30,ecBlocks:[{numBlocks:20,dataCodewordsPerBlock:15},{numBlocks:61,dataCodewordsPerBlock:16}]}]}]},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=r(0);function c(o,e,r,t){var c=o.x-e.x+r.x-t.x,s=o.y-e.y+r.y-t.y;if(0===c&&0===s)return{a11:e.x-o.x,a12:e.y-o.y,a13:0,a21:r.x-e.x,a22:r.y-e.y,a23:0,a31:o.x,a32:o.y,a33:1};var a=e.x-r.x,n=t.x-r.x,d=e.y-r.y,l=t.y-r.y,i=a*l-n*d,B=(c*l-n*s)/i,k=(a*s-c*d)/i;return{a11:e.x-o.x+B*e.x,a12:e.y-o.y+B*e.y,a13:B,a21:t.x-o.x+k*t.x,a22:t.y-o.y+k*t.y,a23:k,a31:o.x,a32:o.y,a33:1}}e.extract=function(o,e){for(var r,s,a=function(o,e,r,t){var s=c(o,e,r,t);return{a11:s.a22*s.a33-s.a23*s.a32,a12:s.a13*s.a32-s.a12*s.a33,a13:s.a12*s.a23-s.a13*s.a22,a21:s.a23*s.a31-s.a21*s.a33,a22:s.a11*s.a33-s.a13*s.a31,a23:s.a13*s.a21-s.a11*s.a23,a31:s.a21*s.a32-s.a22*s.a31,a32:s.a12*s.a31-s.a11*s.a32,a33:s.a11*s.a22-s.a12*s.a21}}({x:3.5,y:3.5},{x:e.dimension-3.5,y:3.5},{x:e.dimension-6.5,y:e.dimension-6.5},{x:3.5,y:e.dimension-3.5}),n=c(e.topLeft,e.topRight,e.alignmentPattern,e.bottomLeft),d=(s=a,{a11:(r=n).a11*s.a11+r.a21*s.a12+r.a31*s.a13,a12:r.a12*s.a11+r.a22*s.a12+r.a32*s.a13,a13:r.a13*s.a11+r.a23*s.a12+r.a33*s.a13,a21:r.a11*s.a21+r.a21*s.a22+r.a31*s.a23,a22:r.a12*s.a21+r.a22*s.a22+r.a32*s.a23,a23:r.a13*s.a21+r.a23*s.a22+r.a33*s.a23,a31:r.a11*s.a31+r.a21*s.a32+r.a31*s.a33,a32:r.a12*s.a31+r.a22*s.a32+r.a32*s.a33,a33:r.a13*s.a31+r.a23*s.a32+r.a33*s.a33}),l=t.BitMatrix.createEmpty(e.dimension,e.dimension),i=function(o,e){var r=d.a13*o+d.a23*e+d.a33;return{x:(d.a11*o+d.a21*e+d.a31)/r,y:(d.a12*o+d.a22*e+d.a32)/r}},B=0;B<e.dimension;B++)for(var k=0;k<e.dimension;k++){var u=i(k+.5,B+.5);l.set(k,B,o.get(Math.floor(u.x),Math.floor(u.y)))}return{matrix:l,mappingFunction:i}}},function(o,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var t=function(o,e){return Math.sqrt(Math.pow(e.x-o.x,2)+Math.pow(e.y-o.y,2))};function c(o){return o.reduce(function(o,e){return o+e})}function s(o,e,r,c){var s,a,n,d,l=[{x:Math.floor(o.x),y:Math.floor(o.y)}],i=Math.abs(e.y-o.y)>Math.abs(e.x-o.x);i?(s=Math.floor(o.y),a=Math.floor(o.x),n=Math.floor(e.y),d=Math.floor(e.x)):(s=Math.floor(o.x),a=Math.floor(o.y),n=Math.floor(e.x),d=Math.floor(e.y));for(var B=Math.abs(n-s),k=Math.abs(d-a),u=Math.floor(-B/2),C=s<n?1:-1,m=a<d?1:-1,f=!0,w=s,P=a;w!==n+C;w+=C){var v=i?P:w,h=i?w:P;if(r.get(v,h)!==f&&(f=!f,l.push({x:v,y:h}),l.length===c+1))break;if((u+=k)>0){if(P===d)break;P+=m,u-=B}}for(var y=[],p=0;p<c;p++)l[p]&&l[p+1]?y.push(t(l[p],l[p+1])):y.push(0);return y}function a(o,e,r,t){var c,a=e.y-o.y,n=e.x-o.x,d=s(o,e,r,Math.ceil(t/2)),l=s(o,{x:o.x-n,y:o.y-a},r,Math.ceil(t/2)),i=d.shift()+l.shift()-1;return(c=l.concat(i)).concat.apply(c,d)}function n(o,e){var r=c(o)/c(e),t=0;return e.forEach(function(e,c){t+=Math.pow(o[c]-e*r,2)}),{averageSize:r,error:t}}function d(o,e,r){try{var t=a(o,{x:-1,y:o.y},r,e.length),c=a(o,{x:o.x,y:-1},r,e.length),s=a(o,{x:Math.max(0,o.x-o.y)-1,y:Math.max(0,o.y-o.x)-1},r,e.length),d=a(o,{x:Math.min(r.width,o.x+o.y)+1,y:Math.min(r.height,o.y+o.x)+1},r,e.length),l=n(t,e),i=n(c,e),B=n(s,e),k=n(d,e),u=Math.sqrt(l.error*l.error+i.error*i.error+B.error*B.error+k.error*k.error),C=(l.averageSize+i.averageSize+B.averageSize+k.averageSize)/4;return u+(Math.pow(l.averageSize-C,2)+Math.pow(i.averageSize-C,2)+Math.pow(B.averageSize-C,2)+Math.pow(k.averageSize-C,2))/C}catch(o){return 1/0}}function l(o,e){for(var r=Math.round(e.x);o.get(r,Math.round(e.y));)r--;for(var t=Math.round(e.x);o.get(t,Math.round(e.y));)t++;for(var c=(r+t)/2,s=Math.round(e.y);o.get(Math.round(c),s);)s--;for(var a=Math.round(e.y);o.get(Math.round(c),a);)a++;return{x:c,y:(s+a)/2}}function i(o,e,r,s,n){var l,i,B;try{l=function(o,e,r,s){var n=(c(a(o,r,s,5))/7+c(a(o,e,s,5))/7+c(a(r,o,s,5))/7+c(a(e,o,s,5))/7)/4;if(n<1)throw new Error("Invalid module size");var d=Math.round(t(o,e)/n),l=Math.round(t(o,r)/n),i=Math.floor((d+l)/2)+7;switch(i%4){case 0:i++;break;case 2:i--}return{dimension:i,moduleSize:n}}(s,r,n,o),i=l.dimension,B=l.moduleSize}catch(o){return null}var k=r.x-s.x+n.x,u=r.y-s.y+n.y,C=(t(s,n)+t(s,r))/2/B,m=1-3/C,f={x:s.x+m*(k-s.x),y:s.y+m*(u-s.y)},w=e.map(function(e){var r=(e.top.startX+e.top.endX+e.bottom.startX+e.bottom.endX)/4,s=(e.top.y+e.bottom.y+1)/2;if(o.get(Math.floor(r),Math.floor(s))){var a=[e.top.endX-e.top.startX,e.bottom.endX-e.bottom.startX,e.bottom.y-e.top.y+1];c(a);return{x:r,y:s,score:d({x:Math.floor(r),y:Math.floor(s)},[1,1,1],o)+t({x:r,y:s},f)}}}).filter(function(o){return!!o}).sort(function(o,e){return o.score-e.score});return{alignmentPattern:C>=15&&w.length?w[0]:f,dimension:i}}e.locate=function(o){for(var e=[],r=[],s=[],a=[],n=function(t){for(var n=0,d=!1,l=[0,0,0,0,0],i=function(e){var s=o.get(e,t);if(s===d)n++;else{l=[l[1],l[2],l[3],l[4],n],n=1,d=s;var i=c(l)/7,B=Math.abs(l[0]-i)<i&&Math.abs(l[1]-i)<i&&Math.abs(l[2]-3*i)<3*i&&Math.abs(l[3]-i)<i&&Math.abs(l[4]-i)<i&&!s,k=c(l.slice(-3))/3,u=Math.abs(l[2]-k)<k&&Math.abs(l[3]-k)<k&&Math.abs(l[4]-k)<k&&s;if(B){var C=e-l[3]-l[4],m=C-l[2],f={startX:m,endX:C,y:t};(w=r.filter(function(o){return m>=o.bottom.startX&&m<=o.bottom.endX||C>=o.bottom.startX&&m<=o.bottom.endX||m<=o.bottom.startX&&C>=o.bottom.endX&&l[2]/(o.bottom.endX-o.bottom.startX)<1.5&&l[2]/(o.bottom.endX-o.bottom.startX)>.5})).length>0?w[0].bottom=f:r.push({top:f,bottom:f})}if(u){var w,P=e-l[4],v=P-l[3];f={startX:v,y:t,endX:P};(w=a.filter(function(o){return v>=o.bottom.startX&&v<=o.bottom.endX||P>=o.bottom.startX&&v<=o.bottom.endX||v<=o.bottom.startX&&P>=o.bottom.endX&&l[2]/(o.bottom.endX-o.bottom.startX)<1.5&&l[2]/(o.bottom.endX-o.bottom.startX)>.5})).length>0?w[0].bottom=f:a.push({top:f,bottom:f})}}},B=-1;B<=o.width;B++)i(B);e.push.apply(e,r.filter(function(o){return o.bottom.y!==t&&o.bottom.y-o.top.y>=2})),r=r.filter(function(o){return o.bottom.y===t}),s.push.apply(s,a.filter(function(o){return o.bottom.y!==t})),a=a.filter(function(o){return o.bottom.y===t})},B=0;B<=o.height;B++)n(B);e.push.apply(e,r.filter(function(o){return o.bottom.y-o.top.y>=2})),s.push.apply(s,a);var k=e.filter(function(o){return o.bottom.y-o.top.y>=2}).map(function(e){var r=(e.top.startX+e.top.endX+e.bottom.startX+e.bottom.endX)/4,t=(e.top.y+e.bottom.y+1)/2;if(o.get(Math.round(r),Math.round(t))){var s=[e.top.endX-e.top.startX,e.bottom.endX-e.bottom.startX,e.bottom.y-e.top.y+1],a=c(s)/s.length;return{score:d({x:Math.round(r),y:Math.round(t)},[1,1,3,1,1],o),x:r,y:t,size:a}}}).filter(function(o){return!!o}).sort(function(o,e){return o.score-e.score}).map(function(o,e,r){if(e>4)return null;var t=r.filter(function(o,r){return e!==r}).map(function(e){return{x:e.x,y:e.y,score:e.score+Math.pow(e.size-o.size,2)/o.size,size:e.size}}).sort(function(o,e){return o.score-e.score});if(t.length<2)return null;var c=o.score+t[0].score+t[1].score;return{points:[o].concat(t.slice(0,2)),score:c}}).filter(function(o){return!!o}).sort(function(o,e){return o.score-e.score});if(0===k.length)return null;var u=function(o,e,r){var c,s,a,n,d,l,i,B=t(o,e),k=t(e,r),u=t(o,r);return k>=B&&k>=u?(d=(c=[e,o,r])[0],l=c[1],i=c[2]):u>=k&&u>=B?(d=(s=[o,e,r])[0],l=s[1],i=s[2]):(d=(a=[o,r,e])[0],l=a[1],i=a[2]),(i.x-l.x)*(d.y-l.y)-(i.y-l.y)*(d.x-l.x)<0&&(d=(n=[i,d])[0],i=n[1]),{bottomLeft:d,topLeft:l,topRight:i}}(k[0].points[0],k[0].points[1],k[0].points[2]),C=u.topRight,m=u.topLeft,f=u.bottomLeft,w=i(o,s,C,m,f),P=[];w&&P.push({alignmentPattern:{x:w.alignmentPattern.x,y:w.alignmentPattern.y},bottomLeft:{x:f.x,y:f.y},dimension:w.dimension,topLeft:{x:m.x,y:m.y},topRight:{x:C.x,y:C.y}});var v=l(o,C),h=l(o,m),y=l(o,f),p=i(o,s,v,h,y);return p&&P.push({alignmentPattern:{x:p.alignmentPattern.x,y:p.alignmentPattern.y},bottomLeft:{x:y.x,y:y.y},topLeft:{x:h.x,y:h.y},topRight:{x:v.x,y:v.y},dimension:p.dimension}),0===P.length?null:P}}]).default});
+return module.exports; })();
+
 
 /* La dirección de la nube y su clave pública. Se rellenan al construir.
    Si van a null, la app funciona como siempre: con los datos dentro del
    archivo y una contraseña para abrirlos. */
 const CONFIG_NUBE = {"url": "https://vbfksahwmtqzqfpjtpks.supabase.co", "clave": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiZmtzYWh3bXRxenFmcGp0cGtzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5MDc4NjIsImV4cCI6MjEwMjQ4Mzg2Mn0.pgRVvlc8fQSVt74WcvKU9-TD9M-0RZ17BKUxem1UDXk"};
 
+/* ═══════════════════════════════════════════════════════════════════
+   LOS ICONOS
+
+   Un solo juego para toda la app, dibujado en un cuadro de 24: línea de 2
+   redondeada y, dentro de las formas cerradas, un relleno suave del mismo
+   color (la variante "B" que eligió Juanjo el 12 de septiembre). Se usan con
+   icono('nombre') desde el código; en la página fija (la barra, el buscador)
+   van pegados tal cual, generados con la misma tabla.
+
+   `t` son los trazos, `c` círculos [cx, cy, r] y `f` las formas que llevan
+   relleno. El fueguito de los horneados es el de siempre.
+   ═══════════════════════════════════════════════════════════════════ */
+const ICONOS = {
+  colores:  {t:['M12 3.5C12 3.5 6 10 6 14.5a6 6 0 0 0 12 0C18 10 12 3.5 12 3.5z','M9.3 14.8a2.7 2.7 0 0 0 2 2.4'], f:['M12 3.5C12 3.5 6 10 6 14.5a6 6 0 0 0 12 0C18 10 12 3.5 12 3.5z']},
+  sellos:   {t:['M8.5 4h7v5h-7z','M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z','M4 19.5h16'], f:['M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z']},
+  escanear: {t:['M4 8V6a2 2 0 0 1 2-2h2','M16 4h2a2 2 0 0 1 2 2v2','M20 16v2a2 2 0 0 1-2 2h-2','M8 20H6a2 2 0 0 1-2-2v-2','M8 8h3v3H8z','M13 8h3v3h-3z','M8 13h3v3H8z','M13 13h1.5M16 13v1.5M13 16h3'], f:['M8 8h3v3H8z','M13 8h3v3h-3z','M8 13h3v3H8z']},
+  nuevo:    {t:['M12 5v14','M5 12h14']},
+  imprimir: {t:['M7 8V4h10v4','M7 15H5a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2','M7 13h10v7H7z'], f:['M3 8h18v7H3z']},
+  opciones: {t:['M4 7h9','M17 7h3','M4 17h3','M11 17h9'], c:[[15,7,2],[9,17,2]]},
+  buscar:   {t:['m20 20-3.6-3.6'], c:[[11,11,6.5]]},
+  cerrar:   {t:['M18 6 6 18','M6 6l12 12']},
+  ok:       {t:['m5 12.5 4.5 4.5L19 7']},
+  aviso:    {t:['M12 3.5 2.5 20h19L12 3.5z','M12 10v4.5','M12 17.3v.1'], f:['M12 3.5 2.5 20h19L12 3.5z']},
+  info:     {t:['M12 8v.1','M12 11v5.5'], c:[[12,12,9]], f:['M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z']},
+  preparar: {t:['M12 4.5v15','M8.5 19.5h7','M4 8h16','M5.5 8l-2.5 6a3 3 0 0 0 6 0L6.5 8','M18.5 8l-2.5 6a3 3 0 0 0 6 0L19.5 8'], f:['M3 14a3 3 0 0 0 6 0z','M16 14a3 3 0 0 0 6 0z']},
+  etiqueta: {t:['M3 7.5A2.5 2.5 0 0 1 5.5 5h6.6c.5 0 1 .2 1.4.6l6.9 6.9a2 2 0 0 1 0 2.8l-4.1 4.1a2 2 0 0 1-2.8 0l-6.9-6.9A2 2 0 0 1 6 11.1V7.5z'], c:[[8.3,8.3,1.2]], f:['M3 7.5A2.5 2.5 0 0 1 5.5 5h6.6c.5 0 1 .2 1.4.6l6.9 6.9a2 2 0 0 1 0 2.8l-4.1 4.1a2 2 0 0 1-2.8 0l-6.9-6.9A2 2 0 0 1 6 11.1V7.5z']},
+  comparar: {t:['M4 4.5h9.5V14H4z','M10.5 10h9.5v9.5h-9.5z'], f:['M10.5 10h3V14h-3z']},
+  editar:   {t:['M4 20h4l10.5-10.5a2.8 2.8 0 0 0-4-4L4 16v4z','M13 7l4 4'], f:['M14.5 5.5l4 4-2.5 2.5-4-4z']},
+  borrar:   {t:['M4 7h16','M9.5 7V4.5h5V7','M6 7l1 13h10l1-13','M10 11v6','M14 11v6'], f:['M6 7l1 13h10l1-13z']},
+  camara:   {t:['M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z'], c:[[12,13,3.4]], f:['M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z']},
+  galeria:  {t:['M4 5h16v14H4z','M4 15.5l4.5-4.5 4 4 3-3 4.5 4.5'], c:[[16,9,1.6]], f:['M4 15.5l4.5-4.5 4 4 3-3 4.5 4.5V19H4z']},
+  pegatina: {t:['M5 4h14v11l-5 5H5z','M14 20v-5h5'], f:['M14 15h5l-5 5z']},
+  ver:      {t:['M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z'], c:[[12,12,3]], f:['M9 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0z']},
+  archivo:  {t:['M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z','M14 3v5h5'], f:['M14 3v5h5z']},
+  lista:    {t:['M5 4h14v16H5z','M9 3v2','M15 3v2','M9 10h6','M9 14h6'], f:['M5 4h14v16H5z']},
+  copiar:   {t:['M9 9h11v11H9z','M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1'], f:['M9 9h11v11H9z']},
+  recuperar:{t:['M3 12a9 9 0 1 0 3-6.7','M3 4v5h5']},
+  deshacer: {t:['M3 8h11a5 5 0 0 1 0 10H8','m7 4-4 4 4 4']},
+  historial:{t:['M12 7.5v4.5l3 2','M4 12a8 8 0 1 0 2.3-5.7','M4 5v3.5h3.5']},
+  reloj:    {t:['M12 8v4.6l3 1.8'], c:[[12,12,9]], f:['M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z']},
+  papelera: {t:['M4 7h16','M9.5 7V4.5h5V7','M6 7l1 13h10l1-13','M10 11v6','M14 11v6'], f:['M6 7l1 13h10l1-13z']},
+  clientes: {t:['M3.5 20a5.5 5.5 0 0 1 11 0','M16 4.5a3.5 3.5 0 0 1 0 7','M21 20a5.5 5.5 0 0 0-4.5-5.4'], c:[[9,8,3.5]], f:['M3.5 20a5.5 5.5 0 0 1 11 0z']},
+  agujas:   {t:['M4 20 15.5 8.5','M15.5 8.5a2.5 2.5 0 1 0 3.5-3.5','M19 5l-3.5 3.5']},
+  robots:   {t:['M5 9h14v10H5z','M12 4.5V9','M9 16h6','M2.5 12.5v3','M21.5 12.5v3','M9 12.5h.1','M15 12.5h.1'], c:[[12,3.5,1]], f:['M5 9h14v10H5z']},
+  copia:    {t:['M12 4v11','M7.5 10.5 12 15l4.5-4.5','M4 19.5h16']},
+  publicar: {t:['M12 15V4','M7.5 8.5 12 4l4.5 4.5','M4 19.5h16']},
+  clave:    {t:['M11.5 12.5 20 4','M17 7l3 3','M14.5 9.5l2 2'], c:[[8,15.5,4.5]], f:['M3.5 15.5a4.5 4.5 0 1 0 9 0 4.5 4.5 0 0 0-9 0z']},
+  tema:     {t:['M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z'], f:['M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z']},
+  nube:     {t:['M7 18.5a4.25 4.25 0 0 1-.6-8.45A6 6 0 0 1 18 8.5a5 5 0 0 1 0 10z'], f:['M7 18.5a4.25 4.25 0 0 1-.6-8.45A6 6 0 0 1 18 8.5a5 5 0 0 1 0 10z']},
+  pigmentos:{t:['M12 3.5C12 3.5 6 10 6 14.5a6 6 0 0 0 12 0C18 10 12 3.5 12 3.5z','M9.3 14.8a2.7 2.7 0 0 0 2 2.4'], f:['M12 3.5C12 3.5 6 10 6 14.5a6 6 0 0 0 12 0C18 10 12 3.5 12 3.5z']},
+  cuenta:   {t:['M4.5 20a7.5 7.5 0 0 1 15 0'], c:[[12,8.5,4]], f:['M4.5 20a7.5 7.5 0 0 1 15 0z']},
+  muro:     {t:['M4 5h16v14H4z','M4 12h16','M12 5v14'], f:['M4 5h8v7H4z','M12 12h8v7h-8z']},
+  // flechas y chevrones, que también van con la misma línea
+  'chev-der':   {t:['m9 6 6 6-6 6']},
+  'chev-izq':   {t:['m15 18-6-6 6-6']},
+  'chev-abajo': {t:['m6 9 6 6 6-6']},
+  'chev-arriba':{t:['m6 15 6-6 6 6']},
+  'flecha-der': {t:['M5 12h13','M13 6l6 6-6 6']},
+  // los pasos de fabricación
+  inyectar: {t:['M9.5 3h5v4l-1 3.5h-3L9.5 7z','M12 10.5v3.5','M5.5 17h13v3h-13z'], f:['M5.5 17h13v3h-13z']},
+  hornear:  {t:['M7 3.5c0 1.6 1.6 1.6 1.6 3.2S7 8.3 7 10','M12 3.5c0 1.6 1.6 1.6 1.6 3.2S12 8.3 12 10','M17 3.5c0 1.6 1.6 1.6 1.6 3.2S17 8.3 17 10','M4 13h16v7H4z','M8 16.5h8'], f:['M4 13h16v7H4z']},
+  enfriar:  {t:['M12 3v18','M4.2 7.5l15.6 9','M19.8 7.5l-15.6 9','M9.5 4.5 12 6l2.5-1.5','M9.5 19.5 12 18l2.5 1.5']},
+  engomar:  {t:['M4.5 19.5 10 14','M10 14l-2.5-2.5 7.5-7.5a2.8 2.8 0 0 1 4 4L11.5 15.5z','M14.5 8l2 2'], f:['M10 14l-2.5-2.5 7.5-7.5a2.8 2.8 0 0 1 4 4L11.5 15.5z']},
+  limpiar:  {t:['M14 4.5 19.5 10','M9.5 9l5.5 5.5','M4 20c.2-4 2.2-7 5.5-8l3 3c-1 3.3-4 5.3-8.5 5.5z'], f:['M4 20c.2-4 2.2-7 5.5-8l3 3c-1 3.3-4 5.3-8.5 5.5z']},
+  pinchar:  {t:['M9.5 3.5h5l-1 5 3.5 3.5h-10L10.5 8.5z','M12 12v8.5'], f:['M9.5 3.5h5l-1 5 3.5 3.5h-10L10.5 8.5z']},
+  vulcanizar:{t:['M4 4.5h16','M12 4.5v4','M6 8.5h12v4H6z','M9 12.5v4','M15 12.5v4','M5 16.5h14v3H5z'], f:['M6 8.5h12v4H6z','M5 16.5h14v3H5z']},
+  soporte:  {t:['M4 19.5h16','M7 19.5v-8h10v8','M9.5 11.5V7h5v4.5'], f:['M7 19.5v-8h10v8z']},
+  velcro:   {t:['M4 7h16v10H4z','M8 7v10','M12 7v10','M16 7v10'], f:['M4 7h16v10H4z']},
+  sacar:    {t:['M5 20h14','M5 20v-7h14v7','M9 13V9.5h6V13','M12 3v4','M10 5l2-2 2 2'], f:['M9 13V9.5h6V13z']},
+  envasar:  {t:['M4 9h16v11H4z','M4 9l2-4.5h12L20 9','M12 9v11','M10 4.5V9'], f:['M4 9l2-4.5h12L20 9z']},
+  fuego:    {t:['M8 3c0 3-3 4-3 7a7 7 0 0 0 14 0c0-2-1-3-2-4 0 2-1 3-2 3 1-3 0-6-3-8 0 3-4 4-4 2z'], f:['M8 3c0 3-3 4-3 7a7 7 0 0 0 14 0c0-2-1-3-2-4 0 2-1 3-2 3 1-3 0-6-3-8 0 3-4 4-4 2z']},
+};
+
+/** El SVG de un icono. `extra` son atributos para la etiqueta (class, style…). */
+function icono(nombre, extra){
+  const i = ICONOS[nombre];
+  if(!i) return '';
+  const fills = (i.f || []).map(d => `<path d="${d}" fill="currentColor" stroke="none" opacity=".3"/>`).join('');
+  const trazos = (i.t || []).map(d => `<path d="${d}"/>`).join('');
+  const circ = (i.c || []).map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join('');
+  return `<svg${extra ? ' ' + extra : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${fills}${trazos}${circ}</svg>`;
+}
 /* ═══════════════════════════════════════════════════════════════════
    ESTADO
    ═══════════════════════════════════════════════════════════════════ */
@@ -3806,7 +3974,7 @@ function pantallaClave(sobre){
           <span class="interruptor-txt">Recordar en este dispositivo
             <small>Quítalo si es un ordenador compartido</small></span></label>
         <div id="cnd-error" class="aviso" hidden>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
           <span>Esa contraseña no abre el recetario.</span></div>
         <button class="btn btn-marca" id="cnd-ir" type="submit" style="width:100%;height:48px;margin-top:4px">Abrir</button>
       </form>`;
@@ -3869,7 +4037,7 @@ function pantallaImposible(titulo, texto){
   capa.innerHTML = `<div class="candado-caja">
     <h1><span class="marca-seccion">Goma </span><span class="logo-marca"><b>S</b>ERI<b>A</b>DORNOS</span></h1>
     <div class="aviso" style="margin:14px 0 0">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
       <span><b>${titulo}</b><br>${texto}</span></div></div>`;
   document.body.appendChild(capa);
 }
@@ -3924,7 +4092,7 @@ function pantallaEntrar(aviso){
         <h1><span class="marca-seccion">Goma </span><span class="logo-marca"
           ><b>S</b>ERI<b>A</b>DORNOS</span></h1>
         <p>Entra con tu cuenta para ver el recetario.</p>
-        ${aviso ? `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg><span>${aviso}</span></div>` : ''}
+        ${aviso ? `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg><span>${aviso}</span></div>` : ''}
         <label class="campo"><span>Correo</span>
           <input id="nb-mail" type="email" autocomplete="username" inputmode="email"
                  autocapitalize="off" autocorrect="off" spellcheck="false" required></label>
@@ -3932,7 +4100,7 @@ function pantallaEntrar(aviso){
           <input id="nb-clave" type="password" autocomplete="current-password"
                  autocapitalize="off" autocorrect="off" spellcheck="false" required></label>
         <div id="nb-error" class="aviso" hidden>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
           <span></span></div>
         <button class="btn btn-marca" id="nb-ir" type="submit" style="width:100%;height:48px;margin-top:4px">Entrar</button>
         <p style="margin:14px 0 0;font-size:12.5px;color:var(--texto-3)">
@@ -4645,7 +4813,7 @@ function filaUltima(){
     `<div class="fila-txt"><div class="fila-sub">Última preparada · ${esc(haceCuanto(e.cuando))}${
        e.gramos ? ' · ' + fmt(e.gramos) + ' g' : ''}</div>` +
     `<div class="fila-nombre">${esc(f.nombre)}</div></div>` +
-    `<svg class="fila-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>`;
+    `<svg class="fila-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>`;
   return b;
 }
 
@@ -4661,7 +4829,7 @@ function pintarLista(reinicia=true){
       el.className = 'fila fila-medias'; el.type = 'button';
       el.dataset.medias = b.id;
       el.innerHTML =
-        `<div class="medias-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div>` +
+        `<div class="medias-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5l4 4-2.5 2.5-4-4z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4 20h4l10.5-10.5a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13 7l4 4"/></svg></div>` +
         `<div class="fila-txt"><div class="fila-nombre">${esc((b.f.nombre || '').trim().toUpperCase() || 'Fórmula sin nombre todavía')}</div>` +
         `<div class="fila-sub">A medias · ${esc(haceCuanto(new Date(b.cuando).toISOString()))}</div></div>` +
         `<span class="medias-seguir">Seguir</span>`;
@@ -4702,7 +4870,7 @@ function pintarLista(reinicia=true){
       `<div class="fila-txt"><div class="fila-nombre">${resaltar(f.nombre,txt)}</div>`+
       `<div class="fila-sub">${sub}</div></div>`+
       (pend?`<span class="pin" title="Tiene algo pendiente de revisar"></span>`:'')+
-      `<svg class="fila-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>`;
+      `<svg class="fila-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>`;
     frag.appendChild(b);
   }
   $lista.appendChild(frag);
@@ -4784,7 +4952,7 @@ function actualizar(tarde = false){
   cp.hidden = !filtroPigmento;
   if(filtroPigmento){
     cp.innerHTML = `Con ${esc(materias.get(filtroPigmento)?.nombre || '?')}
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>`;
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>`;
     cp.title = 'Quitar el filtro y ver todas';
   }
 
@@ -4984,6 +5152,7 @@ function cerrarDeVerdad(tipo){
   if(tipo === 'dlg') $dlg.close();
   else if(tipo === 'ficha') cerrarFicha();
   else if(tipo === 'visor') cerrarVisorDeVerdad();
+  else if(tipo === 'escaner') cerrarEscanerDeVerdad();
 }
 
 /** La capa se ha cerrado desde dentro (un botón, la ✕, Escape). */
@@ -5010,7 +5179,7 @@ function cerrarTodo(){
     volviendoTodo = true;
     return history.go(-capas.length);
   }
-  $dlg.close(); cerrarFicha();
+  $dlg.close(); cerrarFicha(); cerrarEscanerDeVerdad();
 }
 
 let trasVolver = null;    // qué hacer cuando TERMINE la vuelta atrás en curso
@@ -5082,7 +5251,7 @@ function muroDeColores(){
   $ficha.classList.remove('es-muro');
   if(!filtradas.length){
     $ficha.innerHTML = `<div class="vacio">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m20 20-3.6-3.6"/><circle cx="11" cy="11" r="6.5"/></svg>
       <p><b>Nada con ese nombre</b>Prueba con menos letras, o con el cliente entre paréntesis. Por ejemplo <em>lezna</em>, <em>fluor</em> o <em>plata</em>.</p></div>`;
     return;
   }
@@ -5142,9 +5311,9 @@ function selloActualizacion(f){
   const avisa = e.motivo === 'pigmento' || e.motivo === 'anidada';
   const cls = e.aldia ? 'etiqueta ok' : avisa ? 'etiqueta avisa' : 'etiqueta';
   const icono = e.aldia
-    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>'
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>'
     : avisa
-      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>'
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>'
       : '';
   const txt = e.aldia
     ? 'Pigmentos nuevos'
@@ -5176,7 +5345,7 @@ function datosHero(f, total, usan){
   // pregunta "¿qué le hacemos a este cliente?" es de las que más se hacen.
   d.push(['Cliente', cli
     ? `<button class="enlace-cliente" data-cliente="${esc(cli)}">${esc(cli)}
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>`
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>`
     : '<span class="flojo">Sin cliente</span>']);
   d.push(['Receta base', `<span class="num">${fmt(total)} g</span>`]);
   if(ultima)
@@ -5197,7 +5366,7 @@ function historialVisual(f){
   const hexDe = ing => (colorDeVersion(f, ing) || {}).hex || null;
   const cuadro = hex => `<i style="background:${hex
     || 'repeating-linear-gradient(45deg,var(--linea),var(--linea) 4px,var(--panel-2) 4px,var(--panel-2) 8px)'}"></i>`;
-  const flecha = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg>`;
+  const flecha = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13"/><path d="M13 6l6 6-6 6"/></svg>`;
 
   return H.map((h,k)=>({h, k}))
     .reverse()
@@ -5262,17 +5431,17 @@ function pintarFicha(){
   $ficha.innerHTML = `
     <div class="volver-fila">
       <button class="volver" id="volver">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
         Todas las fórmulas
       </button>
       ${pos ? `<span class="volver-pos ceja" title="Desliza para pasar al siguiente">${pos.i} de ${pos.n}</span>` : ''}
     </div>
     ${pos && pos.n > 1 ? `<div class="hero-nav">
       <button class="btn-icono" id="color-ant" aria-label="Color anterior" title="Anterior (←)"${pos.i === 1 ? ' disabled' : ''}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
       <span class="ceja">${pos.i} de ${pos.n}</span>
       <button class="btn-icono" id="color-sig" aria-label="Color siguiente" title="Siguiente (→)"${pos.i === pos.n ? ' disabled' : ''}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
     </div>` : ''}
 
     <div class="hero">
@@ -5280,7 +5449,7 @@ function pintarFicha(){
         <div class="hero-muestra${c.metalizado?' metal':''}" style="background:${c.hex}"${marcaFoto(f.id)}></div>
         ${tieneFoto(f.id)
           ? `<button class="foto-btn" id="foto-ver" title="Ver la muestra en grande">
-               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
                Muestra real</button>`
           : (puedeFoto(f.id) ? botonesFoto('foto') : '')}
       </div>
@@ -5302,11 +5471,11 @@ function pintarFicha(){
            está enseñando el calculado. Dejarlos sería mentir al revés. */
         .filter(a=>!(tieneFoto(f.id) && ['brillo','fluor','sin-calibrar'].includes(a.tipo)))
         .map(a=>`<div class="aviso ${a.tipo==='pendiente'?'':'info'}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
         <span>${esc(a.texto)}</span></div>`).join('')}
 
     ${f.solo_referencia ? `<div class="aviso info" style="margin-top:18px">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.2v.1"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 8v.1"/><path d="M12 11v5.5"/><circle cx="12" cy="12" r="9"/></svg>
         <span>Esta no tiene ingredientes apuntados a propósito: <b>la receta está escrita
         en el propio nombre</b>. Se guarda tal cual para no perderla.</span></div>` : ''}
 
@@ -5314,7 +5483,7 @@ function pintarFicha(){
     <div class="tarjeta tarjeta-fm">
       <div class="tarjeta-cab"><h3>Fórmula</h3>
         <button class="btn btn-fino" id="btn-etiqueta" title="Imprimir una etiqueta para pegar en el bote">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h6.6c.5 0 1 .2 1.4.6l6.9 6.9a2 2 0 0 1 0 2.8l-4.1 4.1a2 2 0 0 1-2.8 0l-6.9-6.9A2 2 0 0 1 6 11.1V7.5z"/><path d="M8.2 8.2v.01"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h6.6c.5 0 1 .2 1.4.6l6.9 6.9a2 2 0 0 1 0 2.8l-4.1 4.1a2 2 0 0 1-2.8 0l-6.9-6.9A2 2 0 0 1 6 11.1V7.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h6.6c.5 0 1 .2 1.4.6l6.9 6.9a2 2 0 0 1 0 2.8l-4.1 4.1a2 2 0 0 1-2.8 0l-6.9-6.9A2 2 0 0 1 6 11.1V7.5z"/><circle cx="8.3" cy="8.3" r="1.2"/></svg>
           Etiqueta</button>
       </div>
       <div class="calc">
@@ -5341,7 +5510,7 @@ function pintarFicha(){
       <div class="tarjeta"><div class="tarjeta-cab"><h3>${grupo.tipo==='identica'?'Fórmulas idénticas':'Misma proporción, otro tamaño de lote'}</h3></div>
       <div class="tarjeta-cuerpo">
         <div class="aviso info" style="margin:6px 0 12px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.2v.1"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 8v.1"/><path d="M12 11v5.5"/><circle cx="12" cy="12" r="9"/></svg>
           <span>Si cambias esta a los pigmentos nuevos, ${hermanas.length===1?'la otra necesita':'las otras necesitan'} el mismo cambio.</span></div>
         <div class="enlaces">${hermanas.map(h=>botonEnlace(h)).join('')}</div>
       </div></div>` : ''}
@@ -5350,7 +5519,7 @@ function pintarFicha(){
       <div class="tarjeta"><div class="tarjeta-cab"><h3>La llevan dentro ${usan.length} fórmula${usan.length===1?'':'s'}</h3></div>
       <div class="tarjeta-cuerpo">
         <div class="aviso" style="margin:6px 0 12px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
           <span>Si tocas esta receta, <b>cambia el color de ${usan.length===1?'esta otra':'estas '+usan.length}</b>.</span></div>
         <div class="enlaces">${usan.map(h=>botonEnlace(h)).join('')}</div>
       </div></div>` : ''}
@@ -5359,10 +5528,10 @@ function pintarFicha(){
       return `<div class="tarjeta" id="tarjeta-sellos"><div class="tarjeta-cab"><h3>Lo llevan ${ss.length} sello${ss.length===1?'':'s'}</h3></div>
       <div class="tarjeta-cuerpo">
         <div class="aviso info" style="margin:6px 0 12px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.2v.1"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 8v.1"/><path d="M12 11v5.5"/><circle cx="12" cy="12" r="9"/></svg>
           <span>Si cambias esta receta o la pasas a pigmentos nuevos, ${ss.length===1?'este sello sale':'estos sellos salen'} distinto: conviene mirarlos.</span></div>
         <div class="enlaces">${ss.map(x=>`<button class="enlace" data-sello="${esc(x.id)}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;margin:0 2px 0 4px;color:var(--texto-3)"><rect x="4" y="5" width="16" height="14" rx="3"/><path d="M8 9h8M8 13h5"/></svg>
+          <svg style="width:16px;height:16px;margin:0 2px 0 4px;color:var(--texto-3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M8.5 4h7v5h-7z"/><path d="M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z"/><path d="M4 19.5h16"/></svg>
           ${esc(x.nombre)}${clienteS(x) ? ` <em style="font-style:normal;color:var(--texto-3);font-weight:500">· ${esc(clienteS(x))}</em>` : ''}</button>`).join('')}</div>
       </div></div>`; })()}
 
@@ -5375,7 +5544,7 @@ function pintarFicha(){
             <summary><span class="ceja">Historial</span>
               <b>${f.historial.length} cambio${f.historial.length===1?'':'s'}</b>
               <em>· último ${esc(haceCuanto(f.historial[f.historial.length-1].fecha))}</em>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
             </summary>
             <ul class="historial">${historialVisual(f)}</ul>
           </details>`:''}
@@ -5384,14 +5553,14 @@ function pintarFicha(){
 
     <div class="acciones-ficha">
       <button class="btn btn-marca" id="btn-preparar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.6v14.8M8.6 19.4h6.8M4.4 8h15.2"/><path d="M4.4 8 2.2 12.9a2.4 2.4 0 0 0 4.4 0L4.4 8Z"/><path d="M19.6 8l-2.2 4.9a2.4 2.4 0 0 0 4.4 0L19.6 8Z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14a3 3 0 0 0 6 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M16 14a3 3 0 0 0 6 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 4.5v15"/><path d="M8.5 19.5h7"/><path d="M4 8h16"/><path d="M5.5 8l-2.5 6a3 3 0 0 0 6 0L6.5 8"/><path d="M18.5 8l-2.5 6a3 3 0 0 0 6 0L19.5 8"/></svg>
         Preparar</button>
       <button class="btn" id="btn-editar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5l4 4-2.5 2.5-4-4z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4 20h4l10.5-10.5a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13 7l4 4"/></svg>
         Editar</button>
       <button class="btn" id="btn-duplicar">Duplicar</button>
       <button class="btn" id="btn-comparar" title="Ver este color al lado de otro">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="9" cy="12" r="5.5"/><circle cx="15" cy="12" r="5.5"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 10h3V14h-3z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4 4.5h9.5V14H4z"/><path d="M10.5 10h9.5v9.5h-9.5z"/></svg>
         Comparar</button>
       <button class="btn btn-peligro" id="btn-borrar">Eliminar</button>
     </div></div>`;
@@ -6060,7 +6229,7 @@ function pintarPesaje(){
     const avisar = ()=>{
       const v = parseFloat($c.value)||0;
       document.getElementById('pes-aviso').innerHTML = v>0 && v<min
-        ? `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+        ? `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
            <span>Con báscula de 1 g, por debajo de <b>${fmt(min)} g</b> algún ingrediente de esta fórmula
            no se puede pesar bien y el color saldrá distinto.
            <button class="pes-sube" data-cant="${min}">Preparar ${fmt(min)} g</button></span></div>`
@@ -6097,7 +6266,7 @@ function pintarPesaje(){
     </div>
     <div class="pes-barra"><i style="width:${hechas/p.filas.length*100}%"></i></div>
     ${heroePesaje(p, hechas)}
-    ${p.crecio ? `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+    ${p.crecio ? `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
        <span>Te has pasado con algo, así que <b>el lote sube a ${fmt(p.total)} g</b> para que las proporciones sigan bien. Lo de más ya está descontado abajo.</span></div>`:''}
     ${(()=>{ const min = loteMinimo();
       // Se mira el LOTE MÍNIMO, no solo si alguna fila baja de 1 g. Redondeando,
@@ -6106,7 +6275,7 @@ function pintarPesaje(){
       // Ese aviso vivía en la pantalla de la cantidad, que ya no se pasa por
       // ella, y se había quedado sin sitio.
       if(!(pes.objetivo < min) && !p.filas.some(x=>x.impesable)) return '';
-      return `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+      return `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
        <span>Con báscula de 1 g, por debajo de <b>${fmt(min)} g</b> algún ingrediente
        de esta fórmula no se pesa bien y el color saldrá distinto.
        <button class="pes-sube" data-subir="${min}">Subir a ${fmt(min)} g</button></span></div>`;
@@ -6123,7 +6292,7 @@ function pintarPesaje(){
   });
   $dp.innerHTML = `<button class="btn" id="pes-atras">Cambiar cantidad</button>
     <button class="btn" id="pes-etiqueta" title="Para pegar en el bote">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h6.6c.5 0 1 .2 1.4.6l6.9 6.9a2 2 0 0 1 0 2.8l-4.1 4.1a2 2 0 0 1-2.8 0l-6.9-6.9A2 2 0 0 1 6 11.1V7.5z"/><path d="M8.2 8.2v.01"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h6.6c.5 0 1 .2 1.4.6l6.9 6.9a2 2 0 0 1 0 2.8l-4.1 4.1a2 2 0 0 1-2.8 0l-6.9-6.9A2 2 0 0 1 6 11.1V7.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h6.6c.5 0 1 .2 1.4.6l6.9 6.9a2 2 0 0 1 0 2.8l-4.1 4.1a2 2 0 0 1-2.8 0l-6.9-6.9A2 2 0 0 1 6 11.1V7.5z"/><circle cx="8.3" cy="8.3" r="1.2"/></svg>
       Etiqueta</button>
     <button class="btn ${hechas===p.filas.length?'btn-1':''}" id="pes-fin">
       ${hechas===p.filas.length?'Terminado':'Cerrar'}</button>`;
@@ -6203,7 +6372,7 @@ function heroePesaje(p, hechas){
   if(hechas === n){
     return `<div class="pes-heroe pes-hecho" id="pes-heroe">
       <div class="pes-aro" style="--v:100"><div class="pes-num">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>
       </div></div>
       <div class="pes-heroe-txt"><b>Bote hecho</b><small>${fmt(p.total)} g · ${n} ingrediente${n===1?'':'s'}</small></div>
     </div>`;
@@ -6229,7 +6398,7 @@ function heroePesaje(p, hechas){
           x.real!==undefined && x.real!==x.objetivo ? ` · echaste ${fmt(x.real)}` : ''}</small></div>
     </div>
     <div class="pes-ya-txt">Ya está · siguiente
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m10 6 6 6-6 6"/></svg></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></div>
   </button>
   <div class="pes-pase-fila">
     <button class="pes-pase" data-pase="${k}" type="button">¿Te has pasado? Escribe lo que marca y se recalcula el resto</button>
@@ -6441,7 +6610,7 @@ function pantallaHistorial(volver){
 
     if(!lista.length){
       $dc.innerHTML = seg + `<div class="rep-fin" style="padding:22px 0">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4.6l3 1.8"/><circle cx="12" cy="12" r="9"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 8v4.6l3 1.8"/><circle cx="12" cy="12" r="9"/></svg>
         <b>Nada apuntado todavía${pestanaHist === 'todo' ? '' : ' en este apartado'}</b>
         <p>Aquí queda todo lo que se hace: colores nuevos, recetas tocadas,
           fotos y botes preparados, con quién lo hizo y qué día.</p></div>`;
@@ -6554,16 +6723,16 @@ function filaHist(e){
 
   return `<div class="hist hist-fila">` +
     (sll ? `<button class="hist-ir" data-ir-s-h="${esc(idSello)}">${dentro}
-            <svg class="hist-mas-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+            <svg class="hist-mas-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
           </button>`
      : f ? `<button class="hist-ir" data-ir-h="${esc(e.formula)}">${dentro}
-            <svg class="hist-mas-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+            <svg class="hist-mas-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
           </button>`
        : `<div class="hist-ir hist-muerta">${dentro}</div>`) +
     (puedeDeshacer
       ? `<button class="hist-desh" data-desh="${esc(e.id)}" title="Deshacer esto"
                  aria-label="Deshacer: ${esc(textoDe(e))}">
-           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h11a5 5 0 0 1 0 10H8"/><path d="m7 4-4 4 4 4"/></svg>
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h11a5 5 0 0 1 0 10H8"/><path d="m7 4-4 4 4 4"/></svg>
          </button>` : '') +
     `</div>`;
 }
@@ -7155,8 +7324,8 @@ function pedirArchivoFoto(fuente){
   });
 }
 
-const ICONO_CAM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg>`;
-const ICONO_GAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m4 17 4.5-4.5L12 16l3-2.5 5 3.5"/></svg>`;
+const ICONO_CAM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z"/><circle cx="12" cy="13" r="3.4"/></svg>`;
+const ICONO_GAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15.5l4.5-4.5 4 4 3-3 4.5 4.5V19H4z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4 5h16v14H4z"/><path d="M4 15.5l4.5-4.5 4 4 3-3 4.5 4.5"/><circle cx="16" cy="9" r="1.6"/></svg>`;
 
 /** Los botones de hacer foto. En el móvil, dos; en el PC, uno. */
 function botonesFoto(pre, cambiar){
@@ -7314,7 +7483,7 @@ function pantallaFoto(f, base, alTerminar){
         : base.corregida
         ? `<p><b>Color corregido</b> con el folio blanco de la foto, para que se
              parezca a las demás aunque la luz del taller sea otra.</p>`
-        : `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+        : `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
            <span><b>No he encontrado fondo blanco.</b> La foto se guarda tal cual,
            pero el color no será comparable con el de las otras. Sale mejor
            poniendo la muestra sobre un folio.</span></div>`}
@@ -7719,7 +7888,7 @@ function editar(f, esNueva=false, alSalir=null){
   const rec = guardado && guardado.f ? guardado.f : null;
   $dc.innerHTML = `
     ${rec ? `<div class="ed-recuperado">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
       <span>Recuperado como lo dejaste ${esc(haceCuanto(new Date(guardado.cuando).toISOString()))}.</span>
       <button class="btn btn-fino" id="ed-tirar">Empezar de cero</button>
     </div>` : ''}
@@ -7728,7 +7897,7 @@ function editar(f, esNueva=false, alSalir=null){
     <div class="campo"><span>Ingredientes</span>
       <div class="rejilla-ing" id="ed-ing"></div>
       <button class="btn" style="margin-top:9px" id="ed-add">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         Añadir ingrediente</button>
     </div>
     <label class="campo"><span>Notas (opcional)</span>
@@ -7745,7 +7914,7 @@ function editar(f, esNueva=false, alSalir=null){
     d.insertAdjacentHTML('beforeend',
       `<input type="number" inputmode="decimal" step="any" min="0" value="${cant}" placeholder="g" aria-label="Gramos">
        <button class="btn-icono" type="button" aria-label="Quitar ingrediente">
-         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>`);
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>`);
     selectores.set(d, sel);
     d.querySelector('.btn-icono').onclick = ()=>{ selectores.delete(d); d.remove(); };
     $ing.appendChild(d);
@@ -7915,7 +8084,7 @@ function borrar(f){
   const usan = [...(usadaPor.get(f.id)||[])];
   $dt.textContent = 'Eliminar fórmula';
   $dc.innerHTML = `<p style="margin:0 0 10px">¿Seguro que quieres eliminar <b>${esc(f.nombre)}</b>?</p>`+
-    (usan.length?`<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+    (usan.length?`<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
       <span>La llevan dentro <b>${usan.length} fórmula${usan.length===1?'':'s'}</b>. Si la borras, ${usan.length===1?'esa fórmula se queda':'esas fórmulas se quedan'} sin ese ingrediente.</span></div>`:'')+
     `<p style="font-size:13.5px;color:var(--texto-3);margin:12px 0 0">Se puede recuperar desde Opciones → Deshacer todos mis cambios.</p>`;
   $dp.innerHTML = `<button class="btn" data-cerrar>Cancelar</button><button class="btn btn-peligro" id="conf-borrar" style="border-color:var(--rojo)">Eliminar</button>`;
@@ -8264,11 +8433,19 @@ document.getElementById('btn-nuevo').onclick =
    ═══════════════════════════════════════════════════════════════════ */
 
 /** Una línea de ajuste: nombre a la izquierda, estado a la derecha. */
+/* El icono de cada fila de Opciones, por su id. Una fila sin icono conocido
+   sale sin él, como antes. */
+const ICONO_AJUSTE = {
+  'op-cuenta':'cuenta', 'op-sync-ir':'nube', 'op-pigmentos-ir':'pigmentos', 'op-historial-ir':'historial',
+  'op-papelera':'papelera', 'op-clientes':'clientes', 'op-agujas':'agujas', 'op-robots':'robots',
+  'op-publicar-ir':'publicar', 'op-copia':'copia', 'op-datos':'info',
+};
 function filaAjuste(id, etiqueta, valor, clase){
   return `<button class="aj" id="${id}">
+    ${ICONO_AJUSTE[id] ? `<span class="aj-ic">${icono(ICONO_AJUSTE[id])}</span>` : ''}
     <span class="aj-et">${etiqueta}</span>
     <span class="aj-val">${valor ? `<span class="${clase || ''}">${valor}</span>` : ''}
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
     </span></button>`;
 }
 const grupoAjustes = (titulo, filas) => filas.filter(Boolean).length
@@ -8396,9 +8573,7 @@ function pantallaCuenta(volver){
   $dt.textContent = MODO === 'nube' ? 'Cuenta' : 'Sesión';
   $dc.innerHTML = `
     <p class="op-p"><span class="sello-rol">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${puedeEditar
-        ? '<path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4z"/>'
-        : '<path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/>'}</svg>
+      ${icono(puedeEditar ? 'editar' : 'ver')}
       ${puedeEditar ? 'Editor' : 'Solo consulta'}</span>
       ${puedeEditar
         ? 'Puedes editar, crear, borrar e imprimir.'
@@ -8494,7 +8669,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">c5d017cf</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">f724be8a</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -8664,7 +8839,7 @@ function pintarRepaso(){
     const n = repaso.hechas;
     $dt.textContent = 'Repaso terminado';
     $dc.innerHTML = `<div class="rep-fin">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>
       <b>${n === 0 ? 'No has marcado ninguna' : n === 1 ? '1 fórmula marcada' : n + ' fórmulas marcadas'}</b>
       <p>${repaso.total - n > 0
         ? `Quedan ${repaso.total - n} sin marcar de este repaso. Vuelven a salir cuando quieras seguir.`
@@ -8703,7 +8878,7 @@ function pintarRepaso(){
 
     ${(()=>{ const e = estadoAct(f);
       return e.motivo === 'pigmento' ? `<div class="aviso" style="margin-top:12px">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
         <span>Sale porque ${e.cambiados.length===1?'cambiaste':'cambiaste'}
         ${e.cambiados.map(m=>`<b>${esc(m.nombre)}</b> (${fecha(m.cambiado_el)})`).join(', ')}
         después de darla por buena.</span></div>` : ''; })()}
@@ -8720,11 +8895,11 @@ function pintarRepaso(){
     </div>
 
     ${hermanas.length ? `<div class="aviso" style="margin-top:12px">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
       <span>Hay <b>${hermanas.length}</b> ${hermanas.length===1?'fórmula idéntica':'fórmulas idénticas'} a esta
       (${hermanas.map(h=>esc(h.nombre)).join(', ')}). Si cambias esta, ${hermanas.length===1?'la otra necesita':'las otras necesitan'} el mismo cambio.</span></div>` : ''}
     ${usan.length ? `<div class="aviso info" style="margin-top:12px">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.2v.1"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 8v.1"/><path d="M12 11v5.5"/><circle cx="12" cy="12" r="9"/></svg>
       <span>La llevan dentro <b>${usan.length}</b> fórmula${usan.length===1?'':'s'}: si la tocas, ${usan.length===1?'cambia':'cambian'} de color.</span></div>` : ''}`;
 
   $dp.innerHTML = `
@@ -8869,10 +9044,10 @@ function publicarCambios(){
       Publicar mete tus cambios dentro del archivo para que los móviles del taller
       los vean.</p>
     ${n ? `<div class="aviso info">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.2v.1"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 8v.1"/><path d="M12 11v5.5"/><circle cx="12" cy="12" r="9"/></svg>
         <span>Tienes <b>${n} cambio${n===1?'':'s'}</b> sin publicar.</span></div>`
       : `<div class="aviso">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
         <span>No has hecho ningún cambio en este aparato. No hay nada que publicar.</span></div>`}
     <p style="margin:14px 0 0;font-size:13.5px;color:var(--texto-2)">
       Las contraseñas <b>no cambian</b> y nadie tendrá que volver a entrar.</p>
@@ -8890,7 +9065,7 @@ function publicarCambios(){
       $dc.innerHTML = `<p style="margin-top:0">Se ha descargado <b>index.html</b>
         con tus <b>${n}</b> cambio${n===1?'':'s'} dentro.</p>${pasosGitHub}
         <div class="aviso info" style="margin-top:14px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.2v.1"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 8v.1"/><path d="M12 11v5.5"/><circle cx="12" cy="12" r="9"/></svg>
           <span>En los móviles saldrá el aviso de <b>versión nueva</b> la próxima vez
           que abran la app. Las contraseñas siguen siendo las mismas.</span></div>`;
       $dp.innerHTML = `<button class="btn btn-1" data-cerrar>Entendido</button>`;
@@ -8898,7 +9073,7 @@ function publicarCambios(){
     }catch(e){
       $b.disabled = false; $b.textContent = 'Generar archivo';
       document.getElementById('pub-estado').innerHTML =
-        `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg><span>
+        `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg><span>
         Esto solo funciona con la app abierta desde su dirección de internet.
         Con el archivo suelto en el ordenador, el navegador no deja leerse a sí mismo.</span></div>`;
     }
@@ -8939,7 +9114,7 @@ function cambiarClaves(){
         <small>Es la forma de que lo que has editado aquí llegue a los móviles del taller</small></span></label>` : ''}
 
     <div class="aviso">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
       <span><b>Apunta las contraseñas antes de subir el archivo.</b> Se vuelve a cifrar todo
       desde cero, así que si pierdes la de editor ese archivo no lo abre nadie. Y todos los
       móviles y ordenadores volverán a pedirla — que es justo lo que quieres si cambias la
@@ -8954,7 +9129,7 @@ function cambiarClaves(){
 
   const $est = document.getElementById('cl-estado');
   const aviso = (txt, malo=true)=>{ $est.innerHTML =
-    `<div class="aviso${malo?'':' info'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg><span>${txt}</span></div>`; };
+    `<div class="aviso${malo?'':' info'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg><span>${txt}</span></div>`; };
 
   document.getElementById('cl-ir').onclick = async ()=>{
     const ed = document.getElementById('cl-ed').value;
@@ -9010,7 +9185,7 @@ function cambiarClaves(){
           <li><b>Commit changes</b>.</li>
         </ol>
         <div class="aviso info">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.2v.1"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 8v.1"/><path d="M12 11v5.5"/><circle cx="12" cy="12" r="9"/></svg>
           <span>Hasta que lo subas, todo sigue con las contraseñas de antes. En cuanto lo subas,
           tú y el taller tendréis que escribir las nuevas una vez en cada aparato.</span></div>`;
       $dp.innerHTML = `<button class="btn btn-1" data-cerrar>Entendido</button>`;
@@ -9196,7 +9371,7 @@ function importar(archivoFile){
       <p style="margin-top:0">La copia tiene <b class="num">${j.formulas.length}</b> fórmulas${
         fecha ? ` y es del <b>${esc(fecha)}</b>` : ''}.</p>
       <div class="aviso info">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.2v.1"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 8v.1"/><path d="M12 11v5.5"/><circle cx="12" cy="12" r="9"/></svg>
         <span>Trae <b>${n} cambio${n===1?'':'s'}</b> respecto a los datos originales:
         ${[[Object.keys(nuevo.formulas).length,'fórmula','fórmulas','editada','editadas'],
            [nuevo.nuevas.length,'fórmula','fórmulas','nueva','nuevas'],
@@ -9205,7 +9380,7 @@ function importar(archivoFile){
           .filter(x=>x[0]).map(([q,s1,s2,a1,a2])=>`${q} ${q===1?s1:s2} ${q===1?a1:a2}`)
           .join(' · ') || 'ninguno'}.</span></div>
       ${ahora ? `<div class="aviso">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
         <span>Ojo: en este dispositivo tienes <b>${ahora} cambio${ahora===1?'':'s'}</b> ahora mismo,
         y restaurar <b>los sustituye</b> por los de la copia. Si no estás seguro,
         descarga primero una copia de lo que tienes.</span></div>` : ''}`;
@@ -9621,7 +9796,7 @@ function pintarPegatinasMolde(){
         <div class="et-nom"><b>Molde ${esc(c.numero)}</b><small>${esc(det || 'Sin datos del molde')}${
           c.nombres.length > 1 ? ` · ${c.nombres.length} sellos comparten el molde` : ''}</small></div>
         <button class="et-quitar" data-quitar="${k}" aria-label="Quitar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
         </button>
       </div>`;
     }).join('');
@@ -9858,7 +10033,7 @@ function pintarEtiquetas(){
             : `<button data-abrir-manual="${k}" title="Escribir otra cantidad">Otra</button>`}
         </div>
         <button class="et-quitar" data-quitar="${k}" aria-label="Quitar de la hoja">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
         </button>
       </div>`;
     }).join('');
@@ -10107,21 +10282,10 @@ const TIPOS_PASO = [
 ];
 const tipoPaso = k => TIPOS_PASO.find(x => x.k === k) || {k, t:k};
 
-const ICONO_PASO = {
-  inyectar:'<path d="M12 3v10M8 9l4 4 4-4M5 19h14"/>',
-  hornear:'<path d="M5 12a7 7 0 0 1 14 0v7H5z"/><path d="M9 9V6M15 9V6"/>',
-  enfriar:'<path d="M12 3v18M4.5 7.5l15 9M19.5 7.5l-15 9"/>',
-  engomar:'<path d="M4 16c4-6 12-6 16 0M4 16v3h16v-3"/>',
-  limpiar:'<path d="M6 20h12M9 16l6-9M12 4l4 3-4 7"/>',
-  pinchar:'<path d="M18 5 8 15M6 20l3-4M4 17l4 3"/>',
-  vulcanizar:'<path d="M5 8h14v9H5zM9 8V5h6v3"/>',
-  soporte:'<path d="M4 18h16M8 18V9h8v9"/>',
-  velcro:'<path d="M4 7h16v10H4zM8 7v10M12 7v10M16 7v10"/>',
-  sacar:'<path d="M6 4v16M18 4v16M6 12h12"/>',
-  envasar:'<path d="M4 8h16v12H4zM4 8l2-4h12l2 4M12 8v12"/>',
-};
-const svgPaso = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONO_PASO[k]||''}</svg>`;
+// El icono de cada paso sale del juego común (00-iconos.js): inyectar,
+// hornear, enfriar, engomar, limpiar, pinchar, vulcanizar, soporte, velcro,
+// sacar y envasar tienen el suyo, con el mismo nombre que el tipo.
+const svgPaso = (k, extra) => icono(ICONOS[k] ? k : 'lista', extra);
 
 // ── Las agujas: una lista tuya, guardada con los demás ajustes ────────
 // Va en colores_ajustes y no en una tabla nueva: son cuatro líneas de texto y
@@ -10434,7 +10598,7 @@ function pintarListaSellos(){
     el.className = 'fila fila-medias'; el.type = 'button';
     el.dataset.medias = b.id;
     el.innerHTML =
-      `<div class="medias-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div>` +
+      `<div class="medias-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5l4 4-2.5 2.5-4-4z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4 20h4l10.5-10.5a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13 7l4 4"/></svg></div>` +
       `<div class="fila-txt"><div class="fila-nombre">${
         esc(b.s.nombre || 'Sello sin nombre todavía')}</div>` +
       `<div class="fila-sub">A medias · ${esc(haceCuanto(new Date(b.cuando).toISOString()))}</div></div>` +
@@ -10476,7 +10640,7 @@ function muroDeSellos(){
   $ficha.classList.remove('es-muro');
   if(!DATOS.sellos.length){
     $ficha.innerHTML = `<div class="vacio">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 20h10"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M8.5 4h7v5h-7z"/><path d="M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z"/><path d="M4 19.5h16"/></svg>
       <p><b>Todavía no hay sellos</b>Cada ficha guarda las fotos del sello y del
         molde, los colores que lleva, los pasos de fabricación y los parámetros
         del robot.</p>
@@ -10516,7 +10680,7 @@ function panelSello(s){
   return `<div class="s-panel" data-panel="0">
     <div class="s-foto grande"${marcaFoto(idFotoSello(s,'sello'))}>
       ${tieneFoto(idFotoSello(s,'sello')) ? '' : `<div class="s-foto-vacia">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-9Z"/><circle cx="12" cy="13" r="3.4"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z"/><circle cx="12" cy="13" r="3.4"/></svg>
         <span>Sin foto del sello</span></div>`}
       <span class="s-foto-pie">Sello</span>
     </div>
@@ -10532,7 +10696,7 @@ function panelSello(s){
           c.partes.length ? `<small>${esc(c.partes.join(' · '))}</small>` : ''}${
           f ? '' : '<small>Esta fórmula ya no existe</small>'}</div>
         ${f ? `<button class="s-ir" data-ir-f="${c.ref}" aria-label="Ver la fórmula">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </button>` : ''}
       </div>`;
     }).join('') : `<p class="s-nada">Aún no hay colores. Salen solos al añadir
@@ -10545,7 +10709,7 @@ function panelMolde(s){
   return `<div class="s-panel" data-panel="1">
     <div class="s-foto grande"${marcaFoto(idFotoSello(s,'molde'))}>
       ${tieneFoto(idFotoSello(s,'molde')) ? '' : `<div class="s-foto-vacia">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 9h.01M12 9h.01M17 9h.01M7 14h.01M12 14h.01M17 14h.01"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h8v7H4z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 12h8v7h-8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4 5h16v14H4z"/><path d="M4 12h16"/><path d="M12 5v14"/></svg>
         <span>Sin foto del molde</span></div>`}
       <span class="s-foto-pie">Molde</span>
     </div>
@@ -10588,7 +10752,7 @@ function panelPasos(s){
         <div class="s-paso-q">${t.color && p.ref
           ? `<i style="background:${colorHexDe(p.ref)}"></i>${esc(t.t)} ${esc(p.nombre || '')}${
               p.parte ? ` <em class="s-parte">${esc(p.parte)}</em>` : ''}`
-          : (hito ? `<svg class="s-paso-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3c0 3-3 4-3 7a7 7 0 0 0 14 0c0-2-1-3-2-4 0 2-1 3-2 3 1-3 0-6-3-8 0 3-4 4-4 2z"/></svg>${esc(nombreHito)}` : esc(t.t))}</div>
+          : `${hito ? icono('fuego', 'class="s-paso-ic"') : svgPaso(p.tipo, 'class="s-paso-ic"')}${esc(hito ? nombreHito : t.t)}`}</div>
         ${p.segundos != null && p.segundos !== ''
           ? `<div class="s-paso-s">${fmt(p.segundos)}<em>s</em></div>` : ''}
       </div>`;
@@ -10690,13 +10854,13 @@ function panelParametros(s){
           cabe.colores} de ${cabe.inyectores}</span>` : ''}
       </div>
       ${cabe && !cabe.cabe ? `<div class="s-prog-aviso">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
         <span>Inyecta <b>${cabe.colores} colores</b> y ${esc(cabe.robot.nombre)} tiene
           <b>${cabe.inyectores} inyectores</b>. O no cabe, o hay que cambiar de color
           a mitad.</span></div>` : ''}
       ${archivos.length
         ? archivos.map(f=>`<div class="s-arch">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v5h5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
             <span class="s-arch-n">${esc(f.nombre)}</span>
             ${f.para ? `<em class="s-parte">${esc(f.para)}</em>` : ''}
           </div>`).join('')
@@ -10763,7 +10927,7 @@ function cabeceraCliente(s){
       ? `<button class="s-cliente" data-cli-s="${esc(nom)}">
            <span class="s-cli-nom">${esc(nom)}</span>
            ${num ? `<span class="s-cli-num">Nº ${esc(num)}</span>` : ''}
-           <svg class="s-cli-ir" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+           <svg class="s-cli-ir" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
          </button>`
       : '<p class="s-cliente vacio-cli">Sin cliente</p>'}
     <div class="s-meta">
@@ -10783,7 +10947,7 @@ function avisoFalta(s){
   if(!falta) return '';
   const Tag = puedeEditar ? 'button' : 'div';
   return `<${Tag} class="s-falta" id="s-falta"${puedeEditar ? ' type="button"' : ''}>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
     <div><b>Falta información</b>
       ${falta.nota ? `<p>${esc(falta.nota)}</p>` : '<p class="flojo">Sin apuntar qué falta</p>'}
       <small>Marcado ${esc(haceCuanto(falta.desde))}${puedeEditar ? ' · toca para cambiarlo' : ''}</small>
@@ -10799,7 +10963,7 @@ function pintarFichaSello(){
 
   const cabecera = `
     <button class="volver" id="volver-s">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
       Todos los sellos
     </button>
     <div class="s-titulo">
@@ -10809,10 +10973,10 @@ function pintarFichaSello(){
 
   const acciones = `<div class="acciones-ficha">
     <button class="btn btn-marca" id="s-imprimir">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V4h12v5M6 18h12v-5H6zM6 13H4v-4h16v4h-2"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h18v7H3z" fill="currentColor" stroke="none" opacity=".3"/><path d="M7 8V4h10v4"/><path d="M7 15H5a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><path d="M7 13h10v7H7z"/></svg>
       Imprimir hoja</button>
     ${puedeEditar ? `<button class="btn" id="s-editar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5l4 4-2.5 2.5-4-4z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4 20h4l10.5-10.5a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13 7l4 4"/></svg>
       Editar</button>
     <button class="btn" id="s-duplicar">Nuevo a partir de este</button>
     <button class="btn" id="s-pegatina">Pegatina del molde</button>
@@ -11017,7 +11181,7 @@ function editarSello(base, duplicar, seguirId){
     $dt.textContent = esNuevo ? (duplicar ? 'Nuevo a partir de otro' : 'Nuevo sello') : 'Editar sello';
     $dc.innerHTML = `
       ${recuperado ? `<div class="ed-recuperado">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
         <span>Recuperado como lo dejaste ${esc(haceCuanto(new Date(recuperado).toISOString()))}.</span>
         <button class="btn btn-fino" id="ed-s-tirar">Empezar de cero</button>
       </div>` : ''}
@@ -11077,7 +11241,7 @@ function editarSello(base, duplicar, seguirId){
           <button class="btn btn-fino" id="ed-s-robots-ir">Darlos de alta</button></p>`}
         <div class="ed-archivos" id="ed-archivos"></div>
         <button class="btn-anadir" id="ed-add-archivo" style="margin-bottom:14px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
           Añadir archivo</button>
       </div>
 
@@ -11090,7 +11254,7 @@ function editarSello(base, duplicar, seguirId){
           : '<p class="s-nada">Sin pasos todavía.</p>'}
       </div>
       <button class="btn-anadir" id="ed-add-paso">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         Añadir paso</button>`;
 
     $dp.innerHTML = `<button class="btn" data-cerrar>Cancelar</button>
@@ -11117,7 +11281,7 @@ function editarSello(base, duplicar, seguirId){
                  placeholder="para qué es" autocomplete="off" list="ed-arch-partes"
                  aria-label="Para qué es el archivo ${i+1}">
           <button class="aguja-x" data-arch-x="${i}" aria-label="Quitar archivo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
           </button>
         </div>`).join('') + `<datalist id="ed-arch-partes">${
           // Las mismas partes que ya usas en las inyecciones: si el archivo es
@@ -11433,13 +11597,13 @@ function filaPasoEditor(p, i, s){
     </button>
     <div class="ed-paso-btns">
       <button data-paso-copia="${i}" aria-label="Duplicar" title="Duplicar este paso">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg></button>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 9h11v11H9z" fill="currentColor" stroke="none" opacity=".3"/><path d="M9 9h11v11H9z"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg></button>
       <button data-paso-sube="${i}" ${i===0?'disabled':''} aria-label="Subir">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg></button>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg></button>
       <button data-paso-baja="${i}" ${i===s.pasos.length-1?'disabled':''} aria-label="Bajar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
       <button data-paso-fuera="${i}" aria-label="Quitar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
     </div>
   </div>`;
 }
@@ -11570,7 +11734,7 @@ function pantallaClientes(volver){
         ${lista.length ? `<br>${conNum} de ${lista.length} con número.` : ''}</p>
       ${puedeEditar ? `<div class="op-botones" style="margin:0 0 14px">
         <button class="btn" id="cli-importar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14v16H5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M5 4h14v16H5z"/><path d="M9 3v2"/><path d="M15 3v2"/><path d="M9 10h6"/><path d="M9 14h6"/></svg>
           Pegar una lista de clientes</button></div>` : ''}
       ${lista.length ? `<div class="s-tabla">${lista.map((c, i)=>`
         <div class="cli-fila">
@@ -11790,10 +11954,10 @@ function pantallaRobots(volver){
               : '<span class="sin-medida">sin inyectores apuntados</span>'}${
               n ? ` · ${n} sello${n===1?'':'s'}` : ''}</small></div>
           ${puedeEditar ? `<span class="aguja-lapiz" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4z"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5l4 4-2.5 2.5-4-4z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4 20h4l10.5-10.5a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13 7l4 4"/></svg>
           </span>
           <button class="aguja-x" data-rb-fuera="${esc(r.id)}" aria-label="Quitar ${esc(r.nombre)}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
           </button>` : ''}
         </div>`;
       }).join('')}</div>`
@@ -11947,10 +12111,10 @@ function pantallaAgujas(volver){
             <small>${a.medida ? esc(fmt(a.medida)) + ' mm' : '<span class="sin-medida">sin medida</span>'}${
               usada ? ` · <b>${usada}</b> sello${usada===1?'':'s'}` : ''}</small></div>
           ${puedeEditar ? `<span class="aguja-lapiz" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4z"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5l4 4-2.5 2.5-4-4z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4 20h4l10.5-10.5a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13 7l4 4"/></svg>
           </span>
           <button class="aguja-x" data-aguja-fuera="${esc(a.id)}" aria-label="Quitar ${esc(a.nombre)}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
           </button>` : ''}
         </div>`;
       }).join('')}</div>`).join('')
@@ -12389,6 +12553,8 @@ function cambiarSeccion(sec){
 
 for(const b of document.querySelectorAll('#solapas [data-sec]'))
   b.onclick = ()=>{
+    // Escanear no es una sección: abre la cámara encima de lo que haya.
+    if(b.dataset.sec === 'escanear') return abrirEscaner();
     /* Pulsar la sección en la que ya estás es "volver arriba": cierra lo que
        haya abierto y deja la lista limpia, como el botón de inicio. */
     if(SECCION === b.dataset.sec){
@@ -12607,6 +12773,7 @@ window.__app = {
   faltaInfo, marcarFalta, quitarFalta, get soloFaltaS(){ return soloFaltaS; },
   cicloDe, tiempoLegible,
   enlaceDe, leerEnlace, intentarEnlace, qrSvg,
+  abrirEscaner, cerrarEscaner, procesarQR, get escanerAbierto(){ return !$escaner.hidden; },
   tarjetaMolde, imprimirPegatinasMolde, pantallaPegatinasMolde, imprimirEtiquetas, PEGATINA,
   coloresDeSello, tandasDe, parametrosDe, pantallaAgujas,
   get AGUJAS(){ return AGUJAS; }, TIPOS_PASO, guardarAgujas,
@@ -12622,6 +12789,185 @@ window.__app = {
   get estadoSync(){ return estadoSync; },
 };
 
+/* ═══════════════════════════════════════════════════════════════════
+   ESCANEAR: la cámara lee el QR de una pegatina y abre la ficha
+
+   Leer el QR con la cámara del móvil ya abría la app (el enlace lleva
+   #sello=… o #color=…), pero en Android a veces la abría en el navegador en
+   vez de en la app instalada, y eran dos toques más. Desde aquí no se sale
+   de la app: la pestaña «Escanear» de la barra abre la cámara a pantalla
+   completa, y al leer el código salta a la ficha.
+
+   Dos lectores, uno detrás del otro:
+     · BarcodeDetector, el que trae Chrome en Android: rápido, sin librería.
+     · jsQR, incrustado, para los navegadores que no lo traen (iPhone,
+       Firefox): se copia el vídeo a un lienzo pequeño y se le pasa.
+   El taller también lo tiene: escanea botes; si escanea un molde, se le
+   dice que su cuenta no llega a los sellos, en vez de quedarse mudo.
+   ═══════════════════════════════════════════════════════════════════ */
+const $escaner = document.getElementById('escaner');
+const $escVideo = document.getElementById('esc-video');
+let escFlujo = null;          // el MediaStream de la cámara mientras está abierta
+let escReloj = null;          // el temporizador de lectura
+let escLeyendo = false;       // hay una lectura en curso (no se solapan)
+let escLienzo = null;         // el lienzo para jsQR
+let escDetector = null;       // el BarcodeDetector, si el navegador lo trae
+
+function escAviso(html){
+  const a = document.getElementById('esc-aviso');
+  a.hidden = !html;
+  a.innerHTML = html || '';
+}
+
+async function abrirEscaner(){
+  if(!$escaner.hidden) return;
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    return brindis('Este navegador no deja usar la cámara desde la app');
+  }
+  $escaner.hidden = false;
+  $escaner.classList.remove('leido');
+  escAviso('');
+  document.getElementById('esc-luz').hidden = true;
+  document.querySelector('#solapas [data-sec="escanear"]')?.setAttribute('aria-pressed', 'true');
+  abrirCapa('escaner');
+  try{
+    escFlujo = await navigator.mediaDevices.getUserMedia({
+      video: {facingMode: {ideal: 'environment'}, width: {ideal: 1280}, height: {ideal: 720}},
+      audio: false,
+    });
+  }catch(e){
+    const nombre = (e && e.name) || '';
+    escAviso(nombre === 'NotAllowedError' || nombre === 'SecurityError'
+      ? `<b>La app no tiene permiso para usar la cámara</b>Dale permiso en los ajustes del
+         navegador (el candado o la (i) al lado de la dirección → Cámara → Permitir) y vuelve a pulsar Escanear.`
+      : nombre === 'NotFoundError' || nombre === 'OverconstrainedError'
+        ? '<b>Este aparato no tiene cámara</b>Escanea con el móvil: la pegatina lleva la dirección de la ficha.'
+        : `<b>No se ha podido abrir la cámara</b>${esc((e && e.message) || nombre || '')}`);
+    return;
+  }
+  // Se cerró mientras se pedía permiso: se suelta la cámara y punto.
+  if($escaner.hidden){ pararCamara(); return; }
+  $escVideo.srcObject = escFlujo;
+  try{ await $escVideo.play(); }catch(_){}
+  // La linterna, si la cámara la tiene: en la nave, con poca luz, ayuda.
+  const pista = escFlujo.getVideoTracks()[0];
+  const cap = pista && pista.getCapabilities ? pista.getCapabilities() : {};
+  if(cap && cap.torch){
+    const b = document.getElementById('esc-luz');
+    b.hidden = false; b.setAttribute('aria-pressed', 'false');
+    b.onclick = async ()=>{
+      const on = b.getAttribute('aria-pressed') !== 'true';
+      try{ await pista.applyConstraints({advanced: [{torch: on}]}); b.setAttribute('aria-pressed', String(on)); }
+      catch(_){ brindis('La linterna no ha querido encenderse'); }
+    };
+  }
+  if(!escDetector && 'BarcodeDetector' in window){
+    try{
+      const formatos = await BarcodeDetector.getSupportedFormats();
+      if(formatos.includes('qr_code')) escDetector = new BarcodeDetector({formats: ['qr_code']});
+    }catch(_){ escDetector = null; }
+  }
+  escReloj = setInterval(leerFotograma, escDetector ? 150 : 220);
+}
+
+/** Un fotograma: se le pasa al lector que haya y, si sale algo, se actúa. */
+async function leerFotograma(){
+  if(escLeyendo || $escaner.hidden || !$escVideo.videoWidth) return;
+  escLeyendo = true;
+  try{
+    let texto = null;
+    if(escDetector){
+      const codigos = await escDetector.detect($escVideo);
+      if(codigos && codigos.length) texto = codigos[0].rawValue;
+    }else if(typeof jsQR === 'function'){
+      // Un lienzo pequeño: jsQR con un fotograma de 1280 tarda; con 480 va
+      // sobrado para un QR de 13 mm a un palmo.
+      if(!escLienzo) escLienzo = document.createElement('canvas');
+      const k = Math.min(1, 480 / $escVideo.videoWidth);
+      escLienzo.width = Math.round($escVideo.videoWidth * k);
+      escLienzo.height = Math.round($escVideo.videoHeight * k);
+      const ctx = escLienzo.getContext('2d', {willReadFrequently: true});
+      ctx.drawImage($escVideo, 0, 0, escLienzo.width, escLienzo.height);
+      const img = ctx.getImageData(0, 0, escLienzo.width, escLienzo.height);
+      const r = jsQR(img.data, img.width, img.height, {inversionAttempts: 'dontInvert'});
+      if(r && r.data) texto = r.data;
+    }
+    if(texto) procesarQR(texto);
+  }catch(_){
+    // Un fotograma que falla no es nada: el siguiente viene en 150 ms.
+  }finally{ escLeyendo = false; }
+}
+
+/** Lo que se ha leído. Solo valen los QR de la app (#sello=… / #color=…). */
+function procesarQR(texto){
+  let e = null;
+  try{ e = leerEnlace(new URL(texto).hash); }catch(_){}
+  if(!e){
+    const m = /#(sello|color)=([^&\s]+)/.exec(texto || '');
+    if(m) e = {tipo: m[1], id: decodeURIComponent(m[2])};
+  }
+  if(!e){
+    // No es de la app: se dice y se sigue leyendo (sin martillear).
+    if(!procesarQR.ultimoAviso || Date.now() - procesarQR.ultimoAviso > 2500){
+      procesarQR.ultimoAviso = Date.now();
+      brindis('Ese QR no es de una pegatina de la app');
+    }
+    return false;
+  }
+  if(e.tipo === 'sello' && !HAY_SELLOS){
+    if(!procesarQR.ultimoAviso || Date.now() - procesarQR.ultimoAviso > 2500){
+      procesarQR.ultimoAviso = Date.now();
+      brindis('Ese QR es de un sello, y esta cuenta no llega a los sellos');
+    }
+    return false;
+  }
+  const existe = e.tipo === 'sello' ? porIdS.get(e.id) : porId.get(e.id);
+  if(!existe){
+    if(!procesarQR.ultimoAviso || Date.now() - procesarQR.ultimoAviso > 2500){
+      procesarQR.ultimoAviso = Date.now();
+      brindis(e.tipo === 'sello' ? 'Ese sello ya no está en la app' : 'Ese color ya no está en la app');
+    }
+    return false;
+  }
+  // Leído: se para la cámara, se marca en verde un instante y se abre la ficha.
+  $escaner.classList.add('leido');
+  vibrar(30);
+  clearInterval(escReloj); escReloj = null;
+  const abrirFicha = ()=>{ enlacePendiente = e; intentarEnlace(); };
+  setTimeout(()=>{
+    if(historialVa && capas.includes('escaner')){ trasVolver = abrirFicha; cerrarEscaner(); }
+    else{ cerrarEscaner(); abrirFicha(); }
+  }, 180);
+  return true;
+}
+
+function pararCamara(){
+  clearInterval(escReloj); escReloj = null;
+  if(escFlujo){ for(const p of escFlujo.getTracks()) try{ p.stop(); }catch(_){} }
+  escFlujo = null;
+  try{ $escVideo.srcObject = null; }catch(_){}
+}
+function cerrarEscanerDeVerdad(){
+  pararCamara();
+  $escaner.hidden = true;
+  $escaner.classList.remove('leido');
+  escAviso('');
+  pintarSolapas();
+}
+function cerrarEscaner(){
+  if($escaner.hidden) return;
+  cerrarCapa('escaner');
+  cerrarEscanerDeVerdad();
+}
+document.getElementById('esc-x').onclick = cerrarEscaner;
+addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && !$escaner.hidden){ e.preventDefault(); cerrarEscaner(); }
+});
+// Si la app se va a segundo plano con la cámara abierta, se suelta la cámara:
+// dejarla encendida gasta batería y el piloto de la cámara asusta.
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden && !$escaner.hidden) cerrarEscaner();
+});
 /* ═══════════════════════════════════════════════════════════════════
    RESCATE DE LA VERSIÓN ANTERIOR
 
@@ -12745,14 +13091,14 @@ if(MODO === 'nube' && sesion.vacia){
           modelo: j.modelo || {},
         }, pct=>{ $b.textContent = `Subiendo… ${pct}%`; });
         $e.innerHTML = `<div class="aviso info" style="margin-top:12px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.2v.1"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 8v.1"/><path d="M12 11v5.5"/><circle cx="12" cy="12" r="9"/></svg>
           <span>Subidas <b>${j.formulas.length}</b> fórmulas. Recargando…</span></div>`;
         nube.borrarEspejo();
         setTimeout(()=>location.reload(), 1200);
       }catch(err){
         $b.disabled = false; $b.textContent = 'Elegir el archivo';
         $e.innerHTML = `<div class="aviso" style="margin-top:12px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17.2v.1"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
           <span>${esc(err && err.message || 'No se ha podido subir')}</span></div>`;
       }
     };

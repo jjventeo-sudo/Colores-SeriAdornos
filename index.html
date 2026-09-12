@@ -549,6 +549,18 @@ button{background:none;border:0;cursor:pointer;padding:0}
 /* Con foto no se pinta el barniz del metalizado: la foto YA lleva el brillo
    de verdad, y superponerle el falso lo ensucia. */
 .muestra.con-foto::after,.hero-muestra.con-foto::after,.muro-t i.con-foto::after{content:none}
+/* Las fotos de los SELLOS se ven ENTERAS. Una muestra de color se recorta
+   sin pena (todo es el mismo color), pero un sello recortado es un sello a
+   medias: lo que importa es la pieza completa. Las bandas que quedan a los
+   lados no se dejan vacías: se rellenan con la misma foto desenfocada y
+   oscurecida, que es lo que hace cualquier visor de fotos decente. */
+.s-foto .foto-real, .sello-t-foto .foto-real{object-fit:contain; z-index:1}
+.s-foto.con-foto::before, .sello-t-foto.con-foto::before{
+  content:""; position:absolute; inset:-14%; z-index:0;
+  background:var(--foto-fondo) center/cover no-repeat;
+  filter:blur(16px) saturate(.75) brightness(.55);
+  animation:asoma-foto calc(.34s * var(--ritmo)) var(--salida) both;
+}
 
 .hero-envoltura{display:flex; flex-direction:column; gap:7px; flex:0 0 auto; align-items:stretch}
 /* Los dos caminos (cámara y galería) dentro de un diálogo. */
@@ -4378,6 +4390,9 @@ async function ponerFoto(el){
   const img = document.createElement('img');
   img.className = 'foto-real'; img.alt = ''; img.decoding = 'async'; img.src = url;
   el.appendChild(img);
+  // El fondo desenfocado de las fotos que se ven enteras (sellos): la misma
+  // dirección, que ya está bajada; no cuesta una segunda descarga.
+  el.style.setProperty('--foto-fondo', `url("${url}")`);
   el.classList.add('con-foto');
 }
 /** Engancha todas las muestras de un trozo de pantalla recién pintado. */
@@ -8274,7 +8289,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">4036c404</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">1a5be33c</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

@@ -392,13 +392,13 @@ button{background:none;border:0;cursor:pointer;padding:0}
   box-shadow:var(--sombra-gota);
 }
 .muestra::before,.ing-color::before,.pig-color::before,.hist-color::before,.pes-color::before,
-.busc-color::before,.rep-muestra::before,.et-color::before,.hero-muestra::before,.muro-t i::before{
+.busc-color::before,.et-color::before,.hero-muestra::before,.muro-t i::before{
   content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
   background:
     radial-gradient(circle at 34% 28%, rgba(255,255,255,.42) 0%, rgba(255,255,255,.12) 26%, rgba(255,255,255,0) 44%),
     radial-gradient(circle at 50% 60%, rgba(0,0,0,0) 55%, rgba(0,0,0,.26) 100%);
 }
-.ing-color,.pig-color,.hist-color,.pes-color,.busc-color,.rep-muestra,.et-color{
+.ing-color,.pig-color,.hist-color,.pes-color,.busc-color,.et-color{
   position:relative; box-shadow:var(--sombra-gota);
 }
 .muestra.metal::after{
@@ -726,6 +726,10 @@ button{background:none;border:0;cursor:pointer;padding:0}
 .hero-txt{min-width:0; padding-top:6px}
 .hero-txt h2{font-size:30px; line-height:1.08; margin-bottom:12px; letter-spacing:-.035em; font-weight:700}
 .hero-meta{display:flex; flex-wrap:wrap; gap:6px; align-items:center}
+/* Sin sello ni etiquetas (lo normal en una fórmula sin rectificar) la fila no
+   ocupa sitio y los datos suben a pegarse al nombre. */
+.hero-meta:not(:has(*)){display:none}
+.hero-meta:not(:has(*)) + .hero-datos{margin-top:10px}
 /* El hueco de la derecha del nombre estaba en blanco. Aquí va lo que se
    pregunta uno delante de un bote: de quién es, cuándo la hice la última vez,
    cuántas veces y a quién arrastra si la toco. */
@@ -766,21 +770,8 @@ button{background:none;border:0;cursor:pointer;padding:0}
 .etiqueta.info::before{content:none}
 .etiqueta.ok{color:var(--texto)}
 .etiqueta.avisa{color:var(--texto)}
-/* Cuando el sello ES el botón, tiene que parecerlo: se levanta al pasar por
-   encima y se hunde al pulsarlo. Un sello que no se mueve no se pulsa nunca. */
-.sello-btn{
-  cursor:pointer; max-width:100%; text-align:left;
-  transition:box-shadow .15s var(--salida), border-color .15s var(--salida), scale .12s var(--salida);
-}
-.sello-btn:hover{box-shadow:var(--sombra-1); border-color:currentColor}
-.sello-btn:active{scale:.97}
-/* El texto puede ser largo ("Por revisar: cambió tal y cual"): se deja
-   crecer a dos líneas antes que cortarlo. */
-.sello-btn{height:auto; min-height:28px; padding:5px 12px; line-height:1.35; white-space:normal}
-
 .estado-act{margin:2px 0 0; font-size:14px; line-height:1.55; color:var(--texto-2)}
 .estado-act.ok{color:var(--verde)}
-.estado-act.avisa{color:var(--ambar)}
 .estado-act b{color:inherit; font-weight:640}
 
 /* Lista de pigmentos */
@@ -1523,16 +1514,7 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 }
 .sello-rol svg{width:13px;height:13px}
 
-/* ── Repaso de pigmentos ─────────────────────────────────────────── */
-.rep-cab{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:9px}
-.rep-cab b{font-size:16px; font-weight:700; letter-spacing:-.01em}
-.rep-cab small{font-family:var(--mono); color:var(--texto-3); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase}
-.rep-barra{height:4px; background:var(--linea); border-radius:99px; overflow:hidden; margin-bottom:16px}
-.rep-barra i{display:block; height:100%; background:var(--verde); transition:width .3s var(--salida)}
-.rep-hero{display:flex; gap:15px; align-items:center; margin-bottom:14px}
-.rep-muestra{width:74px;height:74px;flex:0 0 auto;border-radius:22px;overflow:hidden}
-.rep-hero h4{margin:0; font-size:22px; letter-spacing:-.03em; font-weight:700; line-height:1.1}
-.rep-hero small{display:block; color:var(--texto-3); font-size:12.5px; margin-top:4px}
+/* ── Pantalla final / vacía de un diálogo (icono grande y una frase) ── */
 .rep-fin{display:grid; place-items:center; gap:10px; padding:34px 10px; text-align:center}
 .rep-fin svg{width:34px;height:34px;color:var(--verde)}
 .rep-fin b{font-size:16px}
@@ -1725,11 +1707,6 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 .esc-pie span{font-size:14px; color:#c9cbcf; min-width:0}
 .esc-pie .btn-fino{color:#f2f3f4; background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.14); box-shadow:none; flex:0 0 auto}
 .esc-pie .btn-fino[aria-pressed="true"]{background:#f2f3f4; color:#0a0b0d}
-
-/* El sello de "marcar como actualizada" sin marcar: un botón tranquilo, no un
-   aviso ni un fantasma. Se lee, pero no llama. */
-.sello-btn.apagada{opacity:1; color:var(--texto-2); border-style:dashed}
-.sello-btn.apagada::before{content:none}
 /* ═══════════════════════════════════════════════════════════════════
    SELLOS
    ═══════════════════════════════════════════════════════════════════ */
@@ -1956,14 +1933,6 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 .op-p.flojo{font-size:13px; color:var(--texto-3)}
 .op-p b{color:var(--texto)}
 .op-botones{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
-.pig-repaso{
-  display:flex; align-items:center; gap:11px; flex-wrap:wrap;
-  background:var(--ambar-suave); border:1px solid var(--linea);
-  border-radius:var(--r-m); padding:10px 13px; margin-bottom:14px;
-  font-size:13.5px; color:var(--texto-2);
-}
-.pig-repaso span{flex:1 1 auto}
-.pig-repaso b{color:var(--texto)}
 
 /* ── Papelera ────────────────────────────────────────────────────── */
 .pap-cab{
@@ -4480,26 +4449,40 @@ const grupos = new Map(DATOS.grupos_equivalencia.map(g=>[g.id,g]));
 indicesListos = true;
 
 /* ═══════════════════════════════════════════════════════════════════
-   ¿ESTÁ AL DÍA CON LOS PIGMENTOS?
+   ¿RECTIFICADA A LOS PIGMENTOS NUEVOS?
 
-   Antes esto era un interruptor por fórmula y ya está: 860 gestos de uno en
-   uno, escondidos al final de la ficha. Resultado, 0 marcadas.
+   Esto ha dado tres vueltas y conviene dejar escrito dónde ha acabado y
+   por qué, para no volver a las anteriores.
 
-   El planteamiento estaba mal, y no por vaguería suya. En la nave nadie
-   piensa «voy a revisar la fórmula 412»; se piensa «he cambiado ESE pigmento».
-   Así que lo que se marca ahora es EL PIGMENTO, y las fórmulas que lo llevan
-   —también a través de otras fórmulas— pasan solas a «por revisar».
+   1ª: un interruptor por fórmula. 860 gestos escondidos al final de la
+       ficha; resultado, 0 marcadas.
+   2ª: marcar EL PIGMENTO y que todas las que lo llevan pasen solas a «por
+       revisar», con un repaso para irlas confirmando. Sonaba bien y salió
+       mal en la práctica: el 12 de septiembre se marcó un pigmento, salieron
+       191 «por revisar» y se pasó el repaso a golpe de «Está bien» —una por
+       segundo— sin mirar ninguna. La marca dejó de significar nada.
+   3ª (esta): la marca solo dice «esta fórmula YA SE HA RECTIFICADO a los
+       pigmentos nuevos», y la pone únicamente el guardar un cambio en la
+       receta. Juanjo, 12 sep: «cuando haga la fórmula de uno y vea que el
+       rojo está mal porque hemos cambiado de pigmento, lo modifico y
+       entonces esa fórmula sale como modificada; solo esa. El resto que
+       llevan ese rojo se rectificarán a mano cuando se hagan». Sin avisos
+       en cadena, sin repaso, sin botón a mano: «solo al realizar cambios».
 
-   Una fórmula está al día si la marcaste como buena DESPUÉS del último cambio
-   de cualquiera de sus pigmentos. Si mañana cambias el BLANCO, todas las que
-   lo lleven vuelven a la cola sin que tengas que acordarte de nada.
+   Lo que queda de cálculo es trivial: rectificada = tiene la marca. Se deja
+   como función para que lista, ficha, chip y PDF sigan preguntando en un
+   solo sitio.
    ═══════════════════════════════════════════════════════════════════ */
+/** {aldia} — true si la fórmula está rectificada a los pigmentos nuevos. */
+const estadoAct = f => ({aldia: !!f.actualizada_pigmentos});
+
+/* Qué materias primas lleva cada fórmula, resolviendo las fórmulas que van
+   dentro de otras. Es lo que usa el filtro «con este pigmento» y el «ver las
+   N que lo llevan» de Opciones › Pigmentos. */
 let materiasDe = new Map();     // fórmula -> Set de materias primas, ya resueltas
-let formulasDe = new Map();     // fórmula -> Set de fórmulas que lleva dentro
 
 function calcularMateriasDe(){
   materiasDe = new Map();
-  formulasDe = new Map();
   const enCurso = new Set();
   const de = id=>{
     if(materiasDe.has(id)) return materiasDe.get(id);
@@ -4507,77 +4490,16 @@ function calcularMateriasDe(){
     enCurso.add(id);
     const f = porId.get(id);
     const out = new Set();
-    const hijas = new Set();
     if(f) for(const i of f.ingredientes){
       if(i.tipo === 'materia') out.add(i.ref);
-      else if(i.tipo === 'formula'){
-        hijas.add(i.ref);
-        for(const m of de(i.ref)) out.add(m);
-        for(const n of (formulasDe.get(i.ref) || [])) hijas.add(n);
-      }
+      else if(i.tipo === 'formula') for(const m of de(i.ref)) out.add(m);
     }
     enCurso.delete(id);
     materiasDe.set(id, out);
-    formulasDe.set(id, hijas);
     return out;
   };
   for(const f of DATOS.formulas) de(f.id);
 }
-
-/** {aldia, motivo:'nunca'|'pigmento'|'anidada'|null, cambiados, tocadas} */
-function estadoAct(f){
-  const cambiados = [];
-  for(const id of (materiasDe.get(f.id) || [])){
-    const m = materias.get(id);
-    if(m && m.cambiado_el &&
-       (!f.fecha_actualizacion || m.cambiado_el > f.fecha_actualizacion))
-      cambiados.push(m);
-  }
-  /* Y las fórmulas que lleva DENTRO.
-
-     Esto faltaba, y era un agujero de verdad: hay una base que está metida
-     dentro de 45 fórmulas. Si le cambiabas la receta, esas 45 cambiaban de
-     color y seguían con el ✓ verde de "al día". La app te decía que estaban
-     bien cuando ya no lo estaban.
-
-     Se resuelve comparando fechas, no marcando nada: si una fórmula que va
-     dentro se tocó DESPUÉS de que dieras esta por buena, esta hay que volver
-     a mirarla. Sin escribir 45 filas cada vez que tocas una base —que sería
-     una tormenta de sincronización—, funciona hacia atrás con lo que ya hay
-     guardado, y no se puede desincronizar porque no se guarda nada.
-
-     OJO a QUÉ fecha se compara. `fecha_actualizacion` vale para dos cosas —se
-     pone al editar Y al darla por buena— y usarla aquí tenía un efecto que
-     salió en las pruebas: repasando el recetario de arriba abajo, al marcar
-     una base como buena descolocabas a las 45 que la llevan, así que un repaso
-     completo no llegaba nunca a cero. Y no tiene sentido: que alguien
-     CONFIRME una fórmula no cambia su color; solo lo cambia tocarle la receta.
-     De ahí `receta_tocada`, que se pone únicamente al cambiar ingredientes.
-
-     Para las fórmulas de antes de esto no hay `receta_tocada`, así que no
-     disparan la cascada: de una fecha vieja no hay forma de saber si vino de
-     un cambio o de una confirmación, y avisar de más en 860 fórmulas sería
-     enseñar un aviso que nadie va a leer. De aquí en adelante es exacto. */
-  const tocadas = [];
-  for(const id of (formulasDe.get(f.id) || [])){
-    const h = porId.get(id);
-    if(h && h.receta_tocada && f.fecha_actualizacion &&
-       h.receta_tocada > f.fecha_actualizacion)
-      tocadas.push(h);
-  }
-  if(!f.actualizada_pigmentos) return {aldia: false, motivo: 'nunca', cambiados, tocadas};
-  if(cambiados.length) return {aldia: false, motivo: 'pigmento', cambiados, tocadas};
-  if(tocadas.length)   return {aldia: false, motivo: 'anidada', cambiados, tocadas};
-  return {aldia: true, motivo: null, cambiados: [], tocadas: []};
-}
-/* "Por revisar" es SOLO la que ya se dio por buena y después cambió algo que
-   lleva (un pigmento, o una base que va dentro). Una fórmula que nunca se ha
-   marcado no está pendiente de nada: es una fórmula normal, y se marcará el
-   día que se haga el color y se ajuste a los pigmentos nuevos (Juanjo, 12
-   sep: «están todos bien; cuando hagamos un color y veamos que hay que
-   actualizar los pigmentos, entonces lo actualizaré»). Antes las 860 sin
-   marcar contaban como pendientes, y era un reproche sobre todo el recetario. */
-const porRevisar = f => { const e = estadoAct(f); return !e.aldia && e.motivo !== 'nunca'; };
 
 calcularMateriasDe();
 
@@ -4875,7 +4797,7 @@ function pintarLista(reinicia=true){
     const sub = [
       cli ? esc(cli) : '',
       f.solo_referencia ? 'referencia' : (nIng === 1 && f.ingredientes[0].tipo === 'materia' && f.ingredientes[0].cantidad ? 'base' : (nIng ? nIng + ' pigmento' + (nIng===1?'':'s') : 'sin receta')),
-      estadoAct(f).aldia ? '<em>actualizada</em>' : '',
+      estadoAct(f).aldia ? '<em>rectificada</em>' : '',
     ].filter(Boolean).join(' · ');
     b.innerHTML =
       `<div class="muestra${c.metalizado?' metal':''}" style="background:${c.hex}"${marcaFoto(f.id)}></div>`+
@@ -4958,8 +4880,6 @@ function actualizar(tarde = false){
   chip.textContent = soloPendientes ? 'Ver todas' : `${nPend} por decidir`;
   chip.setAttribute('aria-pressed', String(soloPendientes));
 
-  // El repaso trabaja sobre lo que tengas filtrado: si buscas "lezna", repasas
-  // los lezna. Igual que el PDF, que imprime lo que estás viendo.
   const cp = document.getElementById('chip-pigmento');
   cp.hidden = !filtroPigmento;
   if(filtroPigmento){
@@ -4971,11 +4891,8 @@ function actualizar(tarde = false){
 /* Aquí vivía un chip permanente que ponía "Repasar 860 por revisar". Lo pidió
    quitar Juanjo, y con razón: las 860 no son una lista de tareas, son el
    estado de partida. Un aviso que sale todos los días diciendo lo mismo deja
-   de leerse a los dos días y solo estorba.
-
-   El repaso no se pierde: está en Opciones → Pigmentos, que es donde se va a
-   propósito, y se llega solo desde "Ver las N" al marcar un pigmento — que es
-   el único momento en que esa lista es una noticia y no un reproche. */
+   de leerse a los dos días y solo estorba. (El repaso entero se fue después;
+   ver 03-indices.js.) */
   document.getElementById('limpiar').classList.toggle('on', !!$q.value);
   pintarChips();
   pintarLista(true);
@@ -5047,7 +4964,7 @@ function pintarChips(){
     `<button class="chip" data-chip="todos" aria-pressed="${todos}">Todos</button>` +
     lista.map(c=>`<button class="chip" data-chip="cliente" data-cliente="${esc(c.nombre)}"
         aria-pressed="${filtroCliente === c.clave}">${esc(c.nombre)} <span class="n">${c.n}</span></button>`).join('') +
-    (nAct ? `<button class="chip" data-chip="actualizadas" aria-pressed="${soloActualizadas}">Actualizadas <span class="n">${nAct}</span></button>` : '');
+    (nAct ? `<button class="chip" data-chip="actualizadas" aria-pressed="${soloActualizadas}">Rectificadas <span class="n">${nAct}</span></button>` : '');
   // El chip encendido se trae a la vista, que la tira se desplaza.
   $c.querySelector('[aria-pressed="true"]')?.scrollIntoView({block:'nearest', inline:'nearest'});
 }
@@ -5312,38 +5229,14 @@ function haceCuanto(iso){
 /* Idea 4: el hueco de al lado del nombre estaba en blanco. Aquí van las cuatro
    cosas que uno se pregunta con el bote delante. Las dos últimas solo salen si
    tienen algo que decir: una tira de guiones no es información. */
-/* El sello de estado, que ADEMÁS es el botón para cambiarlo.
-
-   Antes eran dos cosas separadas y en extremos opuestos de la ficha: aquí
-   arriba un sello que solo informaba, y abajo del todo, después de la receta y
-   dentro de "Estado y notas", el interruptor que lo cambiaba. La acción que
-   hay que hacer 860 veces estaba escondida detrás de un scroll. */
+/* El sello de estado. Solo informa: la marca la pone guardar un cambio en la
+   receta (ver 10-edicion.js), no se pulsa. Sin marca no sale nada, ni al
+   editor ni al taller: una fórmula sin rectificar es una fórmula normal. */
 function selloActualizacion(f){
-  const e = estadoAct(f);
-  const avisa = e.motivo === 'pigmento' || e.motivo === 'anidada';
-  // Sin marcar no es un aviso: es un botón tranquilo para el día que se marque.
-  const cls = e.aldia ? 'etiqueta ok' : avisa ? 'etiqueta avisa' : 'etiqueta apagada';
-  const icono = e.aldia
-    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>'
-    : avisa
-      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>'
-      : '';
-  const txt = e.aldia
-    ? 'Pigmentos nuevos'
-    : e.motivo === 'pigmento'
-      ? `Por revisar: cambió ${e.cambiados.slice(0,2).map(m=>esc(m.nombre)).join(' y ')}${
-          e.cambiados.length > 2 ? ` y ${e.cambiados.length - 2} más` : ''}`
-      : e.motivo === 'anidada'
-        ? `Por revisar: cambió ${e.tocadas.slice(0,2).map(h=>esc(h.nombre)).join(' y ')}${
-            e.tocadas.length > 2 ? ` y ${e.tocadas.length - 2} más` : ''}`
-        : (puedeEditar ? 'Marcar como actualizada' : 'Pigmentos de siempre');
-  // Al taller se le enseña, pero no se le deja tocar: el sello es un sello.
-  if(!puedeEditar) return `<span class="${cls}">${icono}${txt}</span>` +
-    (e.aldia && f.fecha_actualizacion ? `<span class="etiqueta">${fecha(f.fecha_actualizacion)}</span>` : '');
-  return `<button class="${cls} sello-btn" id="sello-act"
-      title="${e.aldia ? 'Pulsa para quitar la marca' : 'Pulsa para marcarla como hecha con los pigmentos nuevos'}"
-      aria-pressed="${e.aldia}">${icono}${txt}</button>` +
-    (e.aldia && f.fecha_actualizacion ? `<span class="etiqueta">${fecha(f.fecha_actualizacion)}</span>` : '');
+  if(!estadoAct(f).aldia) return '';
+  return `<span class="etiqueta ok" id="sello-act" title="Rectificada a los pigmentos nuevos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>Rectificada</span>` +
+    (f.fecha_actualizacion ? `<span class="etiqueta">${fecha(f.fecha_actualizacion)}</span>` : '');
 }
 
 function datosHero(f, total, usan){
@@ -5548,6 +5441,9 @@ function pintarFicha(){
           ${esc(x.nombre)}${clienteS(x) ? ` <em style="font-style:normal;color:var(--texto-3);font-weight:500">· ${esc(clienteS(x))}</em>` : ''}</button>`).join('')}</div>
       </div></div>`; })()}
 
+    ${/* Si no hay estado, ni notas, ni historial, la tarjeta no sale: una
+          tarjeta vacía con título es peor que ninguna. */
+      (estadoAct(f).aldia || f.notas || (f.historial && f.historial.length)) ? `
     <div class="tarjeta"><div class="tarjeta-cab"><h3>Estado y notas</h3></div>
       <div class="tarjeta-cuerpo">
         ${explicaActualizacion(f)}
@@ -5561,7 +5457,7 @@ function pintarFicha(){
             </summary>
             <ul class="historial">${historialVisual(f)}</ul>
           </details>`:''}
-      </div></div>
+      </div></div>` : ''}
     </div>
 
     <div class="acciones-ficha">
@@ -5597,19 +5493,6 @@ function pintarFicha(){
   document.getElementById('btn-comparar')?.addEventListener('click', ()=>compararColores(f));
   document.getElementById('hist-plegable')?.addEventListener('toggle', e=>{
     histAbierto = e.target.open ? f.id : null;
-  });
-  document.getElementById('sello-act')?.addEventListener('click', ()=>{
-    const marcar = !estadoAct(f).aldia;
-    const antesSello = fotoDe(f);
-    if(anotar(f, {actualizada_pigmentos: marcar,
-                  fecha_actualizacion: marcar ? new Date().toISOString() : null})){
-      apuntar(marcar ? 'marcada' : 'desmarcada', f, {antes: antesSello});
-      const nS = sellosConColor(f.id).length;
-      brindis(marcar
-        ? 'Marcada con los pigmentos nuevos' + (nS ? ` · va en ${nS} sello${nS===1?'':'s'}, míralo${nS===1?'':'s'}` : '')
-        : 'Marca quitada');
-    }
-    pintarFicha(); actualizar();
   });
   for(const b of $ficha.querySelectorAll('[data-sello]'))
     b.addEventListener('click', ()=>{
@@ -5950,26 +5833,13 @@ function resolverIngrediente(f, k, idCand){
   reconstruir(); pintarFicha(); actualizar();
 }
 
-/* El porqué, en palabras. El BOTÓN está arriba, en el sello: aquí solo se
-   cuenta en qué situación está y por qué, que es lo que no cabe en un sello. */
+/* El estado, en palabras, para «Estado y notas». Solo cuando hay algo que
+   decir: la fórmula sin rectificar no lleva ningún texto, que un «sin marcar»
+   en 860 fichas es un reproche, no información. */
 function explicaActualizacion(f){
-  const e = estadoAct(f);
-  if(e.aldia) return `<p class="estado-act ok">Hecha con los pigmentos nuevos${
-    f.fecha_actualizacion ? ', marcada el <b>' + fecha(f.fecha_actualizacion) + '</b>' : ''}.</p>`;
-  if(e.motivo === 'pigmento') return `<p class="estado-act avisa">Estaba dada por buena${
-    f.fecha_actualizacion ? ' el ' + fecha(f.fecha_actualizacion) : ''}, pero después
-    ${e.cambiados.length === 1 ? 'cambió' : 'cambiaron'}
-    ${e.cambiados.map(m=>`<b>${esc(m.nombre)}</b> (${fecha(m.cambiado_el)})`).join(', ')}.
-    Hay que volver a mirarla.</p>`;
-  if(e.motivo === 'anidada') return `<p class="estado-act avisa">Estaba dada por buena${
-    f.fecha_actualizacion ? ' el ' + fecha(f.fecha_actualizacion) : ''}, pero después
-    ${e.tocadas.length === 1 ? 'se tocó la receta de' : 'se tocaron las recetas de'}
-    ${e.tocadas.slice(0,3).map(h=>`<b>${esc(h.nombre)}</b> (${fecha(h.receta_tocada)})`).join(', ')}${
-      e.tocadas.length > 3 ? ` y ${e.tocadas.length - 3} más` : ''}, que
-    ${e.tocadas.length === 1 ? 'va' : 'van'} dentro de esta. Su color ha cambiado,
-    así que el de esta también.</p>`;
-  return `<p class="estado-act">Sin marcar. Cuando hagas este color y ajustes las
-    cantidades a los pigmentos nuevos, márcala y quedará con la fecha.</p>`;
+  if(!estadoAct(f).aldia) return '';
+  return `<p class="estado-act ok">Rectificada a los pigmentos nuevos${
+    f.fecha_actualizacion ? ' el <b>' + fecha(f.fecha_actualizacion) + '</b>' : ''}.</p>`;
 }
 
 /* ── COMPARAR DOS COLORES ─────────────────────────────────────────────
@@ -6939,7 +6809,6 @@ function deshacer(e){
     historial: hist,
     actualizada_pigmentos: !!a.actualizada_pigmentos,
     fecha_actualizacion: a.fecha_actualizacion || null,
-    receta_tocada: new Date().toISOString(),
     total: Math.round((a.ingredientes || f.ingredientes)
              .reduce((s,i)=>s+i.cantidad,0)*10000)/10000,
   });
@@ -7892,7 +7761,7 @@ function seguirFormula(id){
           fecha_actualizacion:null, equivalencia:null}, true);
 }
 
-function editar(f, esNueva=false, alSalir=null){
+function editar(f, esNueva=false){
   if(!puedeEditar) return brindis(SIN_PERMISO);
   $dt.textContent = esNueva ? 'Nueva fórmula' : 'Editar fórmula';
   // ¿Había algo a medias de esta misma fórmula? Se recupera y SE DICE, con un
@@ -7947,7 +7816,7 @@ function editar(f, esNueva=false, alSalir=null){
   document.getElementById('ed-tirar')?.addEventListener('click', ()=>{
     if(!confirm('Se tira lo que tenías a medias y se vuelve a lo guardado. ¿Seguro?')) return;
     escribiendoEnDlg?.parar?.(); escribiendoEnDlg = null;
-    tirarBorradorF(f.id); actualizar(); editar(f, esNueva, alSalir);
+    tirarBorradorF(f.id); actualizar(); editar(f, esNueva);
   });
 
   /* Lo que hay en los campos, tal cual, para el borrador. */
@@ -7984,9 +7853,7 @@ function editar(f, esNueva=false, alSalir=null){
   $ing.addEventListener('click', e=>{ if(e.target.closest('.btn-icono')) apuntarBorradorF(); });
 
   $dp.innerHTML = `<button class="btn" data-cerrar>Cancelar</button><button class="btn btn-1" id="ed-guardar">Guardar</button>`;
-  // Si vienes del repaso, cancelar te devuelve al repaso en vez de cerrarte
-  // el diálogo y hacerte empezar de cero.
-  $dp.querySelector('[data-cerrar]').onclick = alSalir ? ()=>alSalir(false) : ()=>$dlg.close();
+  $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
   document.getElementById('ed-guardar').onclick = ()=>{
     const nombre = document.getElementById('ed-nombre').value.trim().toUpperCase();
     if(!nombre) return brindis('Ponle un nombre');
@@ -8015,12 +7882,20 @@ function editar(f, esNueva=false, alSalir=null){
       nombre, ingredientes: ings, historial: hist,
       notas: document.getElementById('ed-notas').value.trim(),
       total: Math.round(ings.reduce((s,i)=>s+i.cantidad,0)*10000)/10000,
-      fecha_actualizacion: new Date().toISOString(),
-      // Solo se pone al TOCAR LA RECETA, nunca al dar por buena una fórmula.
-      // Es lo que hace que cambiar una base descoloque a las que la llevan
-      // dentro, sin que confirmarla las descoloque también.
-      receta_tocada: new Date().toISOString(),
     };
+    /* La marca de «rectificada a los pigmentos nuevos» se pone AQUÍ y solo
+       aquí: al guardar una fórmula que ya existía con la receta cambiada
+       (ingredientes o cantidades). Renombrarla o tocarle las notas no la
+       rectifica; una fórmula nueva tampoco (no había nada que rectificar).
+       Ver el porqué largo en 03-indices.js. */
+    // Se compara qué lleva y cuánto, no el objeto entero: el nombre del
+    // ingrediente se copia del pigmento y cambiaría si este se renombrase.
+    const huella = l => JSON.stringify((l || []).map(i=>[i.tipo, i.ref, i.cantidad]));
+    const recetaCambiada = !esNueva && huella(ings) !== huella(f.ingredientes);
+    if(recetaCambiada){
+      parche.actualizada_pigmentos = true;
+      parche.fecha_actualizacion = new Date().toISOString();
+    }
     const renombrada = !esNueva && nombre !== f.nombre;
     // La versión de ANTES, para el registro. Hay que cogerla aquí, antes de
     // que anotar() la pise: después ya no hay de dónde sacarla.
@@ -8055,8 +7930,13 @@ function editar(f, esNueva=false, alSalir=null){
     // documento y escribe un borrador de algo que acaba de guardarse.
     escribiendoEnDlg?.parar?.(); escribiendoEnDlg = null;
     tirarBorradorF(f.id);
-    if(alSalir){ if(ok) brindis('Guardado'); actualizar(); return alSalir(true, f); }
-    cerrarDlgYLuego(()=>{ if(ok) brindis('Guardado'); abrir(f.id); actualizar(); });
+    // Si la receta ha cambiado, queda rectificada; y si va en sellos, se
+    // avisa, que esos sellos van a salir de otro color.
+    const nS = recetaCambiada ? sellosConColor(f.id).length : 0;
+    const aviso = !ok ? null : recetaCambiada
+      ? 'Guardada y rectificada' + (nS ? ` · va en ${nS} sello${nS===1?'':'s'}, míralo${nS===1?'':'s'}` : '')
+      : 'Guardado';
+    cerrarDlgYLuego(()=>{ if(aviso) brindis(aviso); abrir(f.id); actualizar(); });
   };
   if(!$dlg.open) $dlg.showModal();
 }
@@ -8142,8 +8022,10 @@ function restaurar(f, k){
   hist.push({fecha:new Date().toISOString(), texto:`Restaurada la versión del ${fecha(h.fecha)}`,
              nombre:f.nombre, ingredientes:f.ingredientes});
   apuntar('restaurada', f, {antes: fotoDe(f), motivo: `Versión del ${fecha(h.fecha)}`});
+  // Volver a una versión de antes no es rectificarla: la marca se quita, y
+  // cuando se vuelva a ajustar a los pigmentos nuevos se pondrá sola.
   anotar(f, {ingredientes:h.ingredientes, nombre:h.nombre||f.nombre, historial:hist,
-             receta_tocada:new Date().toISOString(),
+             actualizada_pigmentos:false, fecha_actualizacion:null,
              total:Math.round(h.ingredientes.reduce((s,i)=>s+i.cantidad,0)*10000)/10000});
   objetivo = Math.round(h.ingredientes.reduce((s,i)=>s+i.cantidad,0));
   objetivoTocado = false;
@@ -8475,7 +8357,7 @@ function pieVolver(volver, texto){
 function abrirOpciones(){
   const n = Object.keys(cambios.formulas).length + cambios.nuevas.length + cambios.borradas.length;
   const pend = MODO === 'nube' ? nube.pendientes() : 0;
-  const porRev = DATOS.formulas.filter(porRevisar).length;
+  const nRect = DATOS.formulas.filter(f=>estadoAct(f).aldia).length;
   const enPapelera = papelera().length;
   const choques = MODO === 'nube' ? nube.choques().length : 0;
   const diasCopia = (()=>{
@@ -8506,9 +8388,9 @@ function abrirOpciones(){
     </div>
 
     ${grupoAjustes('El recetario', [
-      puedeEditar ? filaAjuste('op-pigmentos-ir', 'Pigmentos',
-        porRev ? `${porRev} por revisar` : 'Todas al día',
-        porRev ? 'aj-avisa' : 'aj-bien') : '',
+      filaAjuste('op-pigmentos-ir', 'Pigmentos',
+        nRect ? `${nRect} rectificada${nRect === 1 ? '' : 's'} de ${DATOS.formulas.length}`
+              : 'Ninguna rectificada aún', nRect ? 'aj-bien' : ''),
       filaAjuste('op-historial-ir', 'Historial', 'Todo lo que ha pasado'),
       puedeEditar ? filaAjuste('op-papelera', 'Papelera',
         enPapelera ? `${enPapelera} ${enPapelera === 1 ? 'cosa' : 'cosas'}` : 'Vacía',
@@ -8682,7 +8564,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">f8b12972</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">edbc2c6c</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -8716,34 +8598,16 @@ document.getElementById('btn-cerrar-aviso').onclick = ()=>{
 };
 
 /* ═══════════════════════════════════════════════════════════════════
-   REPASO DE PIGMENTOS
+   PIGMENTOS
 
-   El taller cambió de pigmentos: hay fórmulas cuyas cantidades ya no valen.
-   La app lo sabía marcar desde el primer día, pero marcar 860 fórmulas
-   buscándolas una a una en el buscador no lo hace nadie.
+   Qué pigmentos hay y cuántas fórmulas lleva cada uno, contando las que lo
+   llevan a través de otra fórmula. Desde aquí se ven las N de cada uno.
 
-   Esto las va pasando de una en una, sobre lo que tengas filtrado, saltándose
-   las que ya están marcadas. Dos caminos por fórmula:
-
-     · "Está bien"        -> la marca y pasa a la siguiente
-     · "Hay que cambiarla" -> abre el editor y, al guardar, la marca y sigue
-
-   Y un tercero, "Saltar", para las que no tengas claras: se quedan sin marcar
-   y volverán a salir la próxima vez. Nada se marca por descuido.
-   ═══════════════════════════════════════════════════════════════════ */
-let repaso = null;
-
-/* ═══════════════════════════════════════════════════════════════════
-   HE CAMBIADO UN PIGMENTO
-
-   La pantalla que faltaba. Aquí se apunta lo que pasa de verdad en la nave:
-   llega un bote de un pigmento de otro proveedor, o de otro lote, y a partir de ese
-   día todas las fórmulas que lo llevan hay que volver a mirarlas.
-
-   Marcando el pigmento se marcan de golpe las 47 que lo usan —incluidas las
-   que lo llevan a través de otra fórmula, que a mano no las encuentras—, y
-   además queda apuntado CUÁNDO, que es lo que permite saber si una fórmula
-   que diste por buena en marzo sigue valiendo hoy.
+   Aquí vivían «Lo he cambiado» (marcaba el pigmento y mandaba a «por
+   revisar» todas las que lo llevaban) y el repaso una a una. Se quitaron el
+   12 de septiembre: la marca de rectificada la pone ahora solo el guardar
+   un cambio en la receta, y cada fórmula se rectifica cuando se hace. El
+   porqué largo está en 03-indices.js.
    ═══════════════════════════════════════════════════════════════════ */
 /** Cuántas fórmulas llevan esta materia, contando las anidadas. */
 function cuantasLlevan(idMateria){
@@ -8753,184 +8617,32 @@ function cuantasLlevan(idMateria){
 }
 
 function pantallaPigmentos(volver){
-  if(!puedeEditar) return brindis(SIN_PERMISO);
-  const pintar = ()=>{
-    const lista = DATOS.materias_primas
-      .map(m=>({m, n: cuantasLlevan(m.id)}))
-      .filter(x=>x.n > 0)
-      .sort((a,b)=> b.n - a.n || a.m.nombre.localeCompare(b.m.nombre,'es'));
-    $dt.textContent = 'He cambiado un pigmento';
-    $dc.innerHTML = `
-      <p style="margin:0 0 4px">Marca el pigmento que has cambiado. Las fórmulas que
-        lo llevan —también las que lo llevan dentro de otra fórmula— pasan solas
-        a <b>por revisar</b>.</p>
-      <p style="margin:0 0 14px;font-size:13.5px;color:var(--texto-2)">No se toca
-        ninguna receta: solo se apunta la fecha, para saber cuáles hay que volver a mirar.</p>
-      ${/* El repaso vivía suelto en la pantalla de Opciones. Su sitio es este:
-            se llega desde "hay N por revisar", que es el único momento en que
-            esa lista es una noticia y no un reproche. */''}
-      ${(()=>{ const rev = DATOS.formulas.filter(porRevisar).length;
-        return rev ? `<div class="pig-repaso">
-          <span><b>${rev}</b> fórmula${rev===1?'':'s'} por revisar.</span>
-          <button class="btn btn-fino btn-1" id="op-repaso">Repasarlas una a una</button>
-        </div>` : ''; })()}
-      <div class="pig-lista">${lista.map(({m, n})=>`
-        <div class="pig">
-          <div class="pig-color" style="background:${m.hex_referencia
-            || 'repeating-linear-gradient(45deg,var(--linea),var(--linea) 5px,var(--panel-2) 5px,var(--panel-2) 10px)'}"></div>
-          <div class="pig-nom">${esc(m.nombre)}
-            <small>${n} fórmula${n===1?'':'s'}${m.cambiado_el
-              ? ` · cambiado el <b>${fecha(m.cambiado_el)}</b>` : ''}</small></div>
-          <div class="pig-btns">
-            <button class="btn btn-fino" data-ver="${m.id}">Ver las ${n}</button>
-            <button class="btn btn-fino ${m.cambiado_el?'':'btn-1'}" data-pig="${m.id}">
-              ${m.cambiado_el ? 'Quitar la marca' : 'Lo he cambiado'}</button>
-          </div>
-        </div>`).join('')}</div>`;
-    pieVolver(volver);
-    document.getElementById('op-repaso')?.addEventListener('click', empezarRepaso);
-    for(const b of $dc.querySelectorAll('[data-ver]'))
-      b.onclick = ()=>verPigmento(b.dataset.ver);
-    for(const b of $dc.querySelectorAll('[data-pig]')) b.onclick = ()=>{
-      const m = materias.get(b.dataset.pig);
-      if(!m) return;
-      const quitar = !!m.cambiado_el;
-      if(!anotarMateria(m, {cambiado_el: quitar ? null : new Date().toISOString()})) return;
-      const n = cuantasLlevan(m.id);
-      // Marcar un pigmento manda 45 fórmulas a revisión de golpe. Es de las
-      // cosas que más quieres poder rastrear si un día algo no cuadra.
-      apuntar(quitar ? 'pigmento-quitado' : 'pigmento',
-              {id: null, nombre: m.nombre},
-              {materia: m.id, afectadas: n});
-      actualizar();
-      if(seleccion) pintarFicha();
-      if(quitar){ brindis(`Marca quitada de ${m.nombre}`); return pintar(); }
-      // Marcado el pigmento, lo siguiente que quieres es VERLAS. Antes te daba
-      // el número y ahí te dejaba, a buscarlas por tu cuenta.
-      $dt.textContent = 'Marcado ' + m.nombre;
-      $dc.innerHTML = `<p style="margin-top:0"><b class="num">${n}</b>
-        fórmula${n===1?'':'s'} que ${n===1?'lleva':'llevan'} <b>${esc(m.nombre)}</b>
-        ${n===1?'pasa':'pasan'} a <b>por revisar</b>.</p>
-        <p style="font-size:14px;color:var(--texto-2)">Las que ya estaban dadas por
-        buenas antes de hoy vuelven a la cola solas. No hay que acordarse de cuáles eran.</p>`;
-      $dp.innerHTML = `<button class="btn" id="pig-volver">Marcar otro</button>
-        <button class="btn btn-1" id="pig-ver">Ver las ${n}</button>`;
-      document.getElementById('pig-volver').onclick = pintar;
-      document.getElementById('pig-ver').onclick = ()=>verPigmento(m.id);
-    };
-  };
-  pintar();
-  if(!$dlg.open) $dlg.showModal();
-}
-
-function empezarRepaso(){
-  if(!puedeEditar) return brindis(SIN_PERMISO);
-  const cola = filtradas.filter(porRevisar).map(f=>f.id);
-  if(!cola.length) return brindis('No queda ninguna por revisar');
-  repaso = {cola, i: 0, hechas: 0, total: cola.length};
-  pintarRepaso();
-  if(!$dlg.open) $dlg.showModal();
-}
-
-function siguienteRepaso(){
-  repaso.i++;
-  pintarRepaso();
-}
-
-function marcarRepaso(f){
-  anotar(f, {actualizada_pigmentos: true, fecha_actualizacion: new Date().toISOString()});
-  repaso.hechas++;
-  actualizar();
-  if(seleccion === f.id) pintarFicha();
-  siguienteRepaso();
-}
-
-function pintarRepaso(){
-  if(!repaso) return;
-
-  if(repaso.i >= repaso.cola.length){
-    const n = repaso.hechas;
-    $dt.textContent = 'Repaso terminado';
-    $dc.innerHTML = `<div class="rep-fin">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>
-      <b>${n === 0 ? 'No has marcado ninguna' : n === 1 ? '1 fórmula marcada' : n + ' fórmulas marcadas'}</b>
-      <p>${repaso.total - n > 0
-        ? `Quedan ${repaso.total - n} sin marcar de este repaso. Vuelven a salir cuando quieras seguir.`
-        : 'Todas las de este repaso están al día.'}</p></div>`;
-    $dp.innerHTML = `<button class="btn btn-1" data-cerrar>Cerrar</button>`;
-    $dp.querySelector('[data-cerrar]').onclick = ()=>{ repaso = null; $dlg.close(); };
-    return;
-  }
-
-  const f = porId.get(repaso.cola[repaso.i]);
-  if(!f) return siguienteRepaso();            // la han borrado por el camino
-  const c = color(f);
-  const total = f.ingredientes.reduce((s,i)=>s+i.cantidad,0);
-  const grupo = f.equivalencia ? grupos.get(f.equivalencia) : null;
-  const hermanas = grupo ? grupo.formulas.filter(x=>x!==f.id).map(x=>porId.get(x)).filter(Boolean) : [];
-  const usan = [...(usadaPor.get(f.id)||[])].map(x=>porId.get(x)).filter(Boolean);
-
-  $dt.textContent = 'Repaso de pigmentos';
+  const lista = DATOS.materias_primas
+    .map(m=>({m, n: cuantasLlevan(m.id)}))
+    .filter(x=>x.n > 0)
+    .sort((a,b)=> b.n - a.n || a.m.nombre.localeCompare(b.m.nombre,'es'));
+  const rect = DATOS.formulas.filter(f=>estadoAct(f).aldia).length;
+  $dt.textContent = 'Pigmentos';
   $dc.innerHTML = `
-    <div class="rep-cab">
-      <b>${repaso.i + 1} de ${repaso.total}</b>
-      <small>${repaso.hechas} marcada${repaso.hechas===1?'':'s'} en este repaso</small>
-    </div>
-    <div class="rep-barra"><i style="width:${repaso.i / repaso.total * 100}%"></i></div>
-
-    <div class="rep-hero">
-      <div class="rep-muestra" style="background:${c.hex}"></div>
-      <div style="min-width:0">
-        <h4>${esc(f.nombre)}</h4>
-        <small>${clienteDe(f.nombre) ? esc(clienteDe(f.nombre)) + ' · ' : ''}${fmt(total)} g de receta${
-          (()=>{ const h = prepsDe(f.id);
-            const u = h.length ? h[h.length-1].cuando : f.ultima_preparacion;
-            return u ? ' · preparada ' + haceCuanto(u) : ''; })()}</small>
-      </div>
-    </div>
-
-    ${(()=>{ const e = estadoAct(f);
-      return e.motivo === 'pigmento' ? `<div class="aviso" style="margin-top:12px">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
-        <span>Sale porque ${e.cambiados.length===1?'cambiaste':'cambiaste'}
-        ${e.cambiados.map(m=>`<b>${esc(m.nombre)}</b> (${fecha(m.cambiado_el)})`).join(', ')}
-        después de darla por buena.</span></div>` : ''; })()}
-    ${barraProporcion(f, total)}
-    <div style="margin-top:2px">
-      ${f.ingredientes.map(i=>`<div class="ing">
-        <div class="ing-color" style="background:${
-          (i.tipo==='materia' ? materias.get(i.ref)?.hex_referencia : null)
-          || (i.tipo==='formula' ? color(porId.get(i.ref)||f).hex : null)
+    <p style="margin:0 0 4px">Cada pigmento y cuántas fórmulas lo llevan, también
+      las que lo llevan dentro de otra fórmula.</p>
+    <p style="margin:0 0 14px;font-size:13.5px;color:var(--texto-2)">Una fórmula
+      queda <b>rectificada</b> a los pigmentos nuevos cuando se le cambian las
+      cantidades y se guarda. Van <b>${rect}</b> de ${DATOS.formulas.length}.</p>
+    <div class="pig-lista">${lista.map(({m, n})=>`
+      <div class="pig">
+        <div class="pig-color" style="background:${m.hex_referencia
           || 'repeating-linear-gradient(45deg,var(--linea),var(--linea) 5px,var(--panel-2) 5px,var(--panel-2) 10px)'}"></div>
-        <div class="ing-nom">${esc(i.nombre)}</div>
-        <span class="ing-g num">${fmt(i.cantidad)}<em>g</em></span>
-      </div>`).join('')}
-    </div>
-
-    ${hermanas.length ? `<div class="aviso" style="margin-top:12px">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
-      <span>Hay <b>${hermanas.length}</b> ${hermanas.length===1?'fórmula idéntica':'fórmulas idénticas'} a esta
-      (${hermanas.map(h=>esc(h.nombre)).join(', ')}). Si cambias esta, ${hermanas.length===1?'la otra necesita':'las otras necesitan'} el mismo cambio.</span></div>` : ''}
-    ${usan.length ? `<div class="aviso info" style="margin-top:12px">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 8v.1"/><path d="M12 11v5.5"/><circle cx="12" cy="12" r="9"/></svg>
-      <span>La llevan dentro <b>${usan.length}</b> fórmula${usan.length===1?'':'s'}: si la tocas, ${usan.length===1?'cambia':'cambian'} de color.</span></div>` : ''}`;
-
-  $dp.innerHTML = `
-    <button class="btn" id="rep-salir">Salir</button>
-    <button class="btn" id="rep-saltar">Saltar</button>
-    <button class="btn" id="rep-editar">Hay que cambiarla</button>
-    <button class="btn btn-1" id="rep-ok">Está bien</button>`;
-  document.getElementById('rep-salir').onclick = ()=>{ repaso.i = repaso.cola.length; pintarRepaso(); };
-  document.getElementById('rep-saltar').onclick = siguienteRepaso;
-  document.getElementById('rep-ok').onclick = ()=>marcarRepaso(f);
-  document.getElementById('rep-editar').onclick = ()=>{
-    // Al guardar desde aquí se marca sola: si has tocado las cantidades para
-    // los pigmentos nuevos, es que está actualizada. Si cancelas, no.
-    editar(f, false, (guardado, actual)=>{
-      if(guardado) marcarRepaso(actual || f);
-      else pintarRepaso();
-    });
-  };
+        <div class="pig-nom">${esc(m.nombre)}
+          <small>${n} fórmula${n===1?'':'s'}</small></div>
+        <div class="pig-btns">
+          <button class="btn btn-fino" data-ver="${m.id}">Ver las ${n}</button>
+        </div>
+      </div>`).join('')}</div>`;
+  pieVolver(volver);
+  for(const b of $dc.querySelectorAll('[data-ver]'))
+    b.onclick = ()=>verPigmento(b.dataset.ver);
+  if(!$dlg.open) $dlg.showModal();
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -9966,8 +9678,8 @@ function panelPdf(seg){
     <label class="campo"><span>Subtítulo (opcional)</span>
       <input id="pdf-sub" value="${q?esc(q.toUpperCase()):''}" placeholder="Ej. LEZNA" autocomplete="off"></label>
     <label class="interruptor"><input type="checkbox" id="pdf-solo-act"><span class="pista"></span>
-      <span class="interruptor-txt">Solo las actualizadas a pigmentos nuevos
-        <small>Deja fuera las que aún tienen cantidades antiguas</small></span></label>`;
+      <span class="interruptor-txt">Solo las rectificadas a pigmentos nuevos
+        <small>Deja fuera las que aún no se han vuelto a ajustar</small></span></label>`;
   $dp.innerHTML = `<button class="btn" data-cerrar>Cancelar</button><button class="btn btn-1" id="pdf-ir">Generar</button>`;
   $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
   document.getElementById('pdf-ir').onclick = ()=>{
@@ -12775,8 +12487,8 @@ window.__app = {
   apuntarPreparacion, pantallaHistorial, fundirHistorial,
   get REGISTRO(){ return REGISTRO.slice(); }, apuntar, fundirRegistro, deshacer,
   lineasHist, textoDe,
-  estadoAct, porRevisar, materiasDe: ()=>materiasDe, cuantasLlevan,
-  pantallaPigmentos, empezarRepaso,
+  estadoAct, materiasDe: ()=>materiasDe, cuantasLlevan,
+  pantallaPigmentos,
   preparar, retomarPesaje, guardarPesaje, leerPesajeGuardado,
   tieneFoto, puedeFoto, hacerFoto, verFoto, procesarFoto, HAY_FOTOS,
   prepararFoto, recortarFoto, pantallaFoto, verFotoGrande, cerrarVisor,

@@ -1795,6 +1795,37 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 }
 .s-meta .s-piloto{color:var(--ambar); font-weight:600}
 
+/* ── FALTA INFORMACIÓN ───────────────────────────────────────────────
+   Una marca que se pone A MANO: "a este sello le falta algo" (una presión,
+   la foto del molde, lo que sea). Ámbar en todas partes —lista, muro, ficha
+   y hoja impresa— para que se vea de un vistazo sin tener que entrar. */
+.falta-pin{
+  position:absolute; right:3px; top:3px; z-index:2; width:10px; height:10px;
+  border-radius:50%; background:var(--ambar); box-shadow:0 0 0 2px var(--panel);
+}
+.fila-sub em.falta{color:var(--ambar)}
+.sello-t-falta{
+  position:absolute; left:6px; top:6px; z-index:2; padding:3px 7px; border-radius:99px;
+  font-family:var(--mono); font-size:9px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+  background:var(--ambar); color:#1a1408;
+}
+.s-falta{
+  display:flex; align-items:flex-start; gap:10px; width:100%; margin-top:12px;
+  padding:11px 13px; border-radius:var(--r-m); text-align:left; font:inherit; color:var(--texto);
+  background:var(--ambar-suave); border:1px solid color-mix(in srgb, var(--ambar) 45%, transparent);
+  cursor:pointer; transition:translate calc(.18s * var(--ritmo)) var(--salida);
+}
+.s-falta:active{translate:0 1px}
+.s-falta svg{width:18px; height:18px; flex:0 0 auto; color:var(--ambar); margin-top:1px}
+.s-falta b{
+  display:block; font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ambar); margin-bottom:3px;
+}
+.s-falta p{margin:0; font-size:14px; line-height:1.4; white-space:pre-wrap}
+.s-falta p.flojo{color:var(--texto-3); font-size:13.5px}
+.s-falta small{display:block; margin-top:4px; font-size:12px; color:var(--texto-3)}
+.btn.btn-falta{color:var(--ambar); border-color:color-mix(in srgb, var(--ambar) 45%, transparent)}
+
 /* El cliente, encima de sus sellos: quién es, con qué número, y cuánto le
    hacemos. Pulsándolo se pasa a sus colores. */
 .chip-cliente{
@@ -4790,6 +4821,13 @@ function pintarChips(){
 document.getElementById('chips-cli').addEventListener('click', e=>{
   const b = e.target.closest('[data-chip]');
   if(!b) return;
+  if(SECCION === 'sellos'){
+    soloFaltaS = b.dataset.chip === 'falta' ? !soloFaltaS : false;
+    $q.value = '';
+    if(document.body.dataset.ficha === 'on') cerrarFicha();
+    actualizar();
+    return;
+  }
   soloPendientes = false; filtroPigmento = null; $q.value = '';
   if(b.dataset.chip === 'todos'){ soloActualizadas = false; filtroCliente = null; }
   else if(b.dataset.chip === 'cliente'){
@@ -6267,6 +6305,7 @@ const FAMILIA = {
   desmarcada: 'formula', pigmento: 'formula', 'pigmento-quitado': 'formula',
   'foto-puesta': 'foto', 'foto-cambiada': 'foto', 'foto-quitada': 'foto',
   'sello-creado': 'sello', 'sello-cambiado': 'sello', 'sello-borrado': 'sello',
+  'sello-falta': 'sello', 'sello-completo': 'sello',
   bote: 'bote',
 };
 // Lo que se puede devolver a como estaba. Las fotos no: el archivo de antes ya
@@ -6299,6 +6338,8 @@ function textoDe(e){
     case 'sello-creado':   return 'Sello creado';
     case 'sello-cambiado': return 'Ficha del sello cambiada';
     case 'sello-borrado':  return 'Sello eliminado';
+    case 'sello-falta':    return 'Marcado: falta información' + (d.nota ? ' · ' + d.nota : '');
+    case 'sello-completo': return 'Dado por completo' + (d.nota ? ' · tenía apuntado: ' + d.nota : '');
     default:           return e.que;
   }
 }
@@ -8289,7 +8330,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">1a5be33c</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">f0c41096</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -9887,12 +9928,70 @@ function guardarSello(s, que, detalle){
   return true;
 }
 
+/* ── FALTA INFORMACIÓN ───────────────────────────────────────────── */
+/** La marca de "a este sello le falta algo", o null. Se pone a mano. */
+const faltaInfo = s => (s && s.pendiente && typeof s.pendiente === 'object') ? s.pendiente : null;
+let soloFaltaS = false;     // el chip "Falta información" del listado de sellos
+
+/** Marcar (o cambiar la nota de) un sello al que le falta información. */
+function marcarFalta(s){
+  if(!puedeEditar) return brindis(SIN_PERMISO);
+  const ya = faltaInfo(s);
+  $dt.textContent = ya ? 'Qué le falta' : 'Falta información';
+  $dc.innerHTML = `
+    <p style="margin:0 0 10px;font-size:13.5px;color:var(--texto-2)">El sello se marca en
+      ámbar en el listado hasta que lo des por completo. Apunta qué falta, para
+      saberlo sin tener que repasar la ficha entera:</p>
+    <label class="campo"><span>Qué falta <em>(opcional)</em></span>
+      <textarea id="falta-nota" rows="3" placeholder="Presión de la bandera, foto del molde…">${
+        esc(ya ? ya.nota || '' : '')}</textarea></label>`;
+  $dp.innerHTML = `<button class="btn" data-cerrar>Cancelar</button>
+    ${ya ? '<button class="btn" id="falta-quitar">Ya está completo</button>' : ''}
+    <button class="btn btn-1" id="falta-ok">${ya ? 'Guardar la nota' : 'Marcar'}</button>`;
+  $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
+  document.getElementById('falta-quitar')?.addEventListener('click', ()=>{
+    $dlg.close(); quitarFalta(s);
+  });
+  document.getElementById('falta-ok').onclick = ()=>{
+    const nota = document.getElementById('falta-nota').value.trim().slice(0, 300);
+    const antes = ya ? {...ya} : null;
+    s.pendiente = {nota, desde: ya ? ya.desde : new Date().toISOString()};
+    guardarSello(s, ya ? null : 'sello-falta', {nota});
+    if(ya && (antes.nota || '') !== nota) apuntar('sello-falta', {id:null, nombre:s.nombre}, {sello:s.id, nota});
+    $dlg.close(); actualizar(); pintarFichaSello();
+    brindis(ya ? 'Nota guardada' : 'Marcado: falta información');
+  };
+  $dlg.showModal();
+  setTimeout(()=>document.getElementById('falta-nota')?.focus(), 80);
+}
+function quitarFalta(s){
+  if(!puedeEditar) return brindis(SIN_PERMISO);
+  const antes = faltaInfo(s);
+  if(!antes) return;
+  delete s.pendiente;
+  guardarSello(s, 'sello-completo', {nota: antes.nota || ''});
+  actualizar(); pintarFichaSello();
+  brindis('Sello dado por completo');
+}
+/** Los chips del listado de sellos: solo "Falta información", y solo si hay. */
+function pintarChipsSellos(){
+  const $c = document.getElementById('chips-cli');
+  if(!$c) return;
+  const n = DATOS.sellos.reduce((k,s)=>k + (faltaInfo(s) ? 1 : 0), 0);
+  if(!n){ soloFaltaS = false; $c.hidden = true; return; }
+  $c.hidden = false;
+  $c.innerHTML =
+    `<button class="chip" data-chip="todos" aria-pressed="${!soloFaltaS && !norm($q.value)}">Todos</button>` +
+    `<button class="chip" data-chip="falta" aria-pressed="${soloFaltaS}">Falta información <span class="n">${n}</span></button>`;
+}
+
 /* ── EL LISTADO ──────────────────────────────────────────────────── */
 function filtrarSellos(txt){
   const t = norm(txt);
-  if(!t) return DATOS.sellos.slice();
+  const base = soloFaltaS ? DATOS.sellos.filter(s => faltaInfo(s)) : DATOS.sellos;
+  if(!t) return base.slice();
   const palabras = t.split(' ').filter(Boolean);
-  return DATOS.sellos.filter(s=>{
+  return base.filter(s=>{
     // El número del cliente entra en el pajar: escribir 4021 tiene que traer
     // sus sellos igual que escribir su nombre. Sale del listado de clientes,
     // no del sello, así que no hay nada guardado que pueda ir desfasado.
@@ -9932,11 +10031,14 @@ function pintarListaSellos(){
     b.className = 'fila fila-sello'; b.dataset.id = s.id; b.type = 'button'; b.role = 'option';
     b.setAttribute('aria-current', String(s.id === selloSel));
     const cols = coloresDeSello(s).slice(0, 5);
+    const falta = faltaInfo(s);
     b.innerHTML =
-      `<div class="mini-sello"${marcaFoto(idFotoSello(s,'sello'))}></div>` +
+      `<div class="mini-sello"${marcaFoto(idFotoSello(s,'sello'))}>${falta ? '<i class="falta-pin"></i>' : ''}</div>` +
       `<div class="fila-txt"><div class="fila-nombre">${resaltar(s.nombre, $q.value)}</div>` +
       `<div class="fila-sub">${esc(clienteS(s) || 'Sin cliente')}${
-        s.molde && s.molde.numero ? ' · molde ' + esc(s.molde.numero) : ''}</div></div>` +
+        s.molde && s.molde.numero ? ' · molde ' + esc(s.molde.numero) : ''}</div>${falta
+        ? `<div class="fila-sub"><em class="falta">Falta información</em>${
+            falta.nota ? ' · ' + esc(falta.nota) : ''}</div>` : ''}</div>` +
       `<div class="puntos">${cols.map(c=>
         `<i style="background:${colorHexDe(c.ref)}"></i>`).join('')}</div>`;
     frag.appendChild(b);
@@ -9978,6 +10080,7 @@ function muroDeSellos(){
     <div class="muro-sellos">
       ${v.map(s=>`<button class="sello-t" data-ir-s="${s.id}">
         <div class="sello-t-foto"${marcaFoto(idFotoSello(s,'sello'))}>
+          ${faltaInfo(s) ? '<span class="sello-t-falta">Falta info</span>' : ''}
           ${coloresDeSello(s).slice(0,4).map(c=>
             `<i style="background:${colorHexDe(c.ref)}"></i>`).join('')}
         </div>
@@ -10219,7 +10322,21 @@ function cabeceraCliente(s){
         ? `<span class="s-robot">${esc(robot(s.robot_id)?.nombre || 'Robot')}</span>`
         : '<span>A mano</span>'}
       ${s.tipo === 'piloto' ? '<span class="sep">·</span><span class="s-piloto">Piloto</span>' : ''}
-    </div>`;
+    </div>
+    ${avisoFalta(s)}`;
+}
+/** El aviso ámbar de la ficha cuando el sello está marcado como incompleto. */
+function avisoFalta(s){
+  const falta = faltaInfo(s);
+  if(!falta) return '';
+  const Tag = puedeEditar ? 'button' : 'div';
+  return `<${Tag} class="s-falta" id="s-falta"${puedeEditar ? ' type="button"' : ''}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+    <div><b>Falta información</b>
+      ${falta.nota ? `<p>${esc(falta.nota)}</p>` : '<p class="flojo">Sin apuntar qué falta</p>'}
+      <small>Marcado ${esc(haceCuanto(falta.desde))}${puedeEditar ? ' · toca para cambiarlo' : ''}</small>
+    </div>
+  </${Tag}>`;
 }
 
 function pintarFichaSello(){
@@ -10246,6 +10363,9 @@ function pintarFichaSello(){
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4z"/></svg>
       Editar</button>
     <button class="btn" id="s-duplicar">Nuevo a partir de este</button>
+    ${faltaInfo(s)
+      ? '<button class="btn" id="s-completo">Ya está completo</button>'
+      : '<button class="btn btn-falta" id="s-falta-btn">Falta información</button>'}
     <button class="btn btn-peligro" id="s-borrar">Eliminar</button>` : ''}
   </div>`;
 
@@ -10295,6 +10415,9 @@ function pintarFichaSello(){
   document.getElementById('s-editar')?.addEventListener('click', ()=>editarSello(s));
   document.getElementById('s-duplicar')?.addEventListener('click', ()=>editarSello(s, true));
   document.getElementById('s-borrar')?.addEventListener('click', ()=>borrarSello(s));
+  document.getElementById('s-falta-btn')?.addEventListener('click', ()=>marcarFalta(s));
+  document.getElementById('s-completo')?.addEventListener('click', ()=>quitarFalta(s));
+  if(puedeEditar) document.getElementById('s-falta')?.addEventListener('click', ()=>marcarFalta(s));
 
   for(const b of $ficha.querySelectorAll('[data-pest]'))
     b.onclick = ()=>{
@@ -11430,6 +11553,8 @@ async function hojaSello(s){
   *{box-sizing:border-box}
   body{margin:0;font-family:${tipografiaIncrustada() ? '"Plex",' : ''}ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;
        color:#15171a;font-size:12px}
+  .falta{margin:0 0 10px;padding:7px 10px;border:1.5px solid #b8860b;border-radius:6px;font-size:12px;color:#5a4100;background:#fff8e6}
+  .falta b{font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:10.5px}
   .cab{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
        border-bottom:2px solid #15171a;padding-bottom:9px;margin-bottom:13px}
   .cab h1{margin:0 0 2px;font-size:23px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
@@ -11479,6 +11604,8 @@ async function hojaSello(s){
         numeroDe(s) ? `<b>Nº ${esc(numeroDe(s))}</b>` : ''}</div></div>
     <div class="mk">Goma<br>SeriAdornos</div>
   </div>
+  ${faltaInfo(s) ? `<div class="falta"><b>Falta información</b>${
+      faltaInfo(s).nota ? ' · ' + esc(faltaInfo(s).nota) : ''}</div>` : ''}
   <div class="arriba">
     <div class="fo">${fs ? `<img src="${fs}" alt="">` : '<span>Sin foto del sello</span>'}</div>
     <div class="fo">${fm ? `<img src="${fm}" alt="">` : '<span>Sin foto del molde</span>'}</div>
@@ -11544,7 +11671,7 @@ function actualizarSellos(){
   document.getElementById('contador').innerHTML =
     `<b>${filtradosS.length}</b> de ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}`;
   document.getElementById('chip-pend').hidden = true;
-  const chips = document.getElementById('chips-cli'); if(chips) chips.hidden = true;
+  pintarChipsSellos();
 
   /* Al pulsar el cliente en una ficha, el buscador se queda con su nombre y la
      lista enseña sus sellos. Aquí se le pone encima quién es: su número, sus
@@ -11616,6 +11743,7 @@ function cambiarSeccion(sec){
   seleccion = null; selloSel = null;
   $q.value = '';
   soloPendientes = false; filtroPigmento = null; soloActualizadas = false; filtroCliente = null;
+  soloFaltaS = false;
   cerrarTodo();
   pintarSolapas();
   actualizar();
@@ -11627,9 +11755,9 @@ for(const b of document.querySelectorAll('#solapas [data-sec]'))
        haya abierto y deja la lista limpia, como el botón de inicio. */
     if(SECCION === b.dataset.sec){
       if(document.body.dataset.ficha === 'on' || $dlg.open) cerrarTodo();
-      else if($q.value || soloPendientes || filtroPigmento || soloActualizadas || filtroCliente){
+      else if($q.value || soloPendientes || filtroPigmento || soloActualizadas || filtroCliente || soloFaltaS){
         $q.value = ''; soloPendientes = false; filtroPigmento = null;
-        soloActualizadas = false; filtroCliente = null; actualizar();
+        soloActualizadas = false; filtroCliente = null; soloFaltaS = false; actualizar();
       }
       return;
     }
@@ -11838,6 +11966,7 @@ window.__app = {
   get SECCION(){ return SECCION; }, cambiarSeccion, deslizarSeccion, HAY_SELLOS,
   get SELLOS(){ return DATOS.sellos.slice(); }, porIdS,
   abrirSello, editarSello, borrarSello, guardarSello, hojaSello,
+  faltaInfo, marcarFalta, quitarFalta, get soloFaltaS(){ return soloFaltaS; },
   coloresDeSello, tandasDe, parametrosDe, pantallaAgujas,
   get AGUJAS(){ return AGUJAS; }, TIPOS_PASO, guardarAgujas,
   get CLIENTES(){ return CLIENTES; }, clientesDeSellos, numeroDe, guardarClientes,

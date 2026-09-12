@@ -1808,6 +1808,8 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 .medias-seguir{
   margin-left:auto; flex:none; font-size:12.5px; font-weight:640; color:var(--ambar);
 }
+/* Bajo el nombre: "ya hay otro sello que se llama así". Aviso, no bloqueo. */
+.ed-repe{display:block; margin-top:6px; font-size:12.5px; line-height:1.4; color:var(--ambar)}
 /* El aviso de "esto se ha recuperado", dentro del editor. */
 .ed-recuperado{
   display:flex; align-items:center; gap:10px; flex-wrap:wrap;
@@ -8268,7 +8270,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">869aabf1</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">b217c22a</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -10392,9 +10394,11 @@ function editarSello(base, duplicar, seguirId){
     : {id: seguirId || ('s-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6)),
        nombre:'', cliente:'', molde:{}, tipo:'molde', robot:true, notas:'', pasos:[]};
   if(duplicar){
+    /* "Nuevo a partir de este" es, casi siempre, EL MISMO sello con un color
+       cambiado (Juanjo, 12-sep: "es todo igual menos un color"). Se copia
+       todo, nombre y molde incluidos, y se cambia lo que haga falta. Si el
+       nombre se queda igual, el editor lo avisa, pero no lo impide. */
     s.id = 's-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6);
-    s.nombre = '';
-    s.molde = {...(s.molde||{}), numero:''};
   }
   if(!s.pasos) s.pasos = [];
   if(!s.molde) s.molde = {};
@@ -10424,7 +10428,8 @@ function editarSello(base, duplicar, seguirId){
       <div class="ed-rejilla">
         <label class="campo ancho"><span>Nombre del sello</span>
           <input id="ed-s-nombre" value="${esc(s.nombre)}" autocomplete="off"
-                 placeholder="PLACA OVAL 60"></label>
+                 placeholder="PLACA OVAL 60">
+          <small class="ed-repe" id="ed-s-repe" hidden></small></label>
         <label class="campo ancho"><span>Cliente</span>
           <input id="ed-s-cliente" value="${esc(s.cliente||'')}" autocomplete="off"
                  list="ed-s-clientes" placeholder="Escribe o elige">
@@ -10546,6 +10551,17 @@ function editarSello(base, duplicar, seguirId){
     // moverlo, poner un archivo): todo pasa por pintar().
     escribiendoEnDlg = {guardar: apuntarBorrador, id: s.id,
                         parar: ()=>{ clearTimeout(relojBorrador); relojBorrador = null; }};
+    // Mientras escribes el nombre: si ya hay otro sello que se llama igual, se
+    // dice debajo del campo, con su cliente y molde para reconocerlo.
+    const $nom = document.getElementById('ed-s-nombre'), $repe = document.getElementById('ed-s-repe');
+    const avisarRepe = ()=>{
+      if(!$nom || !$repe) return;
+      const otro = DATOS.sellos.find(x => x.id !== s.id && norm(x.nombre) === norm($nom.value));
+      $repe.hidden = !otro;
+      if(otro) $repe.textContent = `Ya hay otro sello con este nombre (${clienteS(otro) || 'sin cliente'}${
+        otro.molde?.numero ? ' · molde ' + otro.molde.numero : ''}). Se puede guardar igual; si quieres distinguirlos, añade el color al nombre.`;
+    };
+    if($nom){ $nom.addEventListener('input', avisarRepe); avisarRepe(); }
     // En cada repintado se apunta también: añadir un paso o un archivo no
     // dispara "input", pero es un cambio que hay que conservar.
     apuntarBorrador();
@@ -10588,8 +10604,11 @@ function editarSello(base, duplicar, seguirId){
       clearTimeout(relojBorrador); relojBorrador = null;
       recoger(); limpiar();
       if(!s.nombre) return brindis('Ponle un nombre al sello');
+      /* Dos sellos pueden llamarse igual: el mismo sello en otro color, o para
+         otro cliente. Antes esto bloqueaba el guardado, y Juanjo se quedó sin
+         poder guardar una copia con un color cambiado. Ahora se avisa —en el
+         campo mientras escribe y al guardar— y se guarda. */
       const repe = DATOS.sellos.find(x => x.id !== s.id && norm(x.nombre) === norm(s.nombre));
-      if(repe) return brindis(`Ya existe un sello "${repe.nombre}"`);
       const antes = esNuevo ? null : JSON.parse(JSON.stringify(base));
       if(!esNuevo){
         // Object.assign copia claves pero NUNCA las borra. Al pasar un sello a
@@ -10607,7 +10626,8 @@ function editarSello(base, duplicar, seguirId){
       tirarBorrador(s.id);
       escribiendoEnDlg = null;
       selloSel = (esNuevo ? s : base).id;
-      cerrarDlgYLuego(()=>{ actualizar(); abrirSello(selloSel); brindis('Guardado'); });
+      cerrarDlgYLuego(()=>{ actualizar(); abrirSello(selloSel);
+        brindis(repe ? 'Guardado · hay otro sello con el mismo nombre' : 'Guardado'); });
     };
   };
 

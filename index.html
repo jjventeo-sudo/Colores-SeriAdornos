@@ -57,7 +57,7 @@
   --fondo:#0a0b0d;   --panel:#121417;  --panel-2:#181b20;
   --panel-luz:#161920;                  /* arriba de las tarjetas, un pelo más claro */
   --linea:rgba(232,226,212,.14);  --linea-fuerte:rgba(232,226,212,.30);
-  --texto:#e8e2d4;   --texto-2:#a9a498; --texto-3:#7c8086;
+  --texto:#e8e2d4;   --texto-2:#a9a498; --texto-3:#868a91;
   --tinta:#e8e2d4;   --tinta-suave:#1f2227;  --tinta-txt:#0a0b0d;
   --tinta-2:#d9d2c2;                    /* el hueso, en su cara de sombra */
   --marca:#c8161d;   --marca-2:#f0857f;  --marca-suave:#2a1615;
@@ -84,7 +84,7 @@
     --fondo:#f1efe9;   --panel:#fbfaf7;  --panel-2:#f3f1ec;
     --panel-luz:#ffffff;
     --linea:rgba(21,23,26,.12);  --linea-fuerte:rgba(21,23,26,.26);
-    --texto:#15171a;   --texto-2:#5c6167; --texto-3:#878c92;
+    --texto:#15171a;   --texto-2:#5c6167; --texto-3:#63666b;
     --tinta:#15171a;   --tinta-suave:#e9e6df;  --tinta-txt:#f4f1ea;
     --tinta-2:#2a2d31;
     --marca:#b61517;   --marca-2:#a3120f;  --marca-suave:#fbeceb;
@@ -106,7 +106,7 @@
   --fondo:#f1efe9;   --panel:#fbfaf7;  --panel-2:#f3f1ec;
   --panel-luz:#ffffff;
   --linea:rgba(21,23,26,.12);  --linea-fuerte:rgba(21,23,26,.26);
-  --texto:#15171a;   --texto-2:#5c6167; --texto-3:#878c92;
+  --texto:#15171a;   --texto-2:#5c6167; --texto-3:#63666b;
   --tinta:#15171a;   --tinta-suave:#e9e6df;  --tinta-txt:#f4f1ea;
   --tinta-2:#2a2d31;
   --marca:#b61517;   --marca-2:#a3120f;  --marca-suave:#fbeceb;
@@ -274,7 +274,7 @@ button{background:none;border:0;cursor:pointer;padding:0}
 .acciones-ficha #btn-borrar{margin-left:auto}
 @media (max-width:860px){ .acciones-ficha #btn-borrar{margin-left:0} }
 /* Un botón discreto para meter dentro de la cabecera de un apartado. */
-.btn-fino{height:34px; padding:0 13px; font-size:12.5px; box-shadow:inset 0 1px 0 var(--canto), var(--sombra-1)}
+.btn-fino{height:40px; padding:0 13px; font-size:12.5px; box-shadow:inset 0 1px 0 var(--canto), var(--sombra-1)}
 .btn-fino svg{width:14px;height:14px}
 .btn:disabled{opacity:.45; cursor:not-allowed}
 .btn:disabled:active{translate:none}
@@ -334,7 +334,7 @@ button{background:none;border:0;cursor:pointer;padding:0}
   scroll-padding:0 18px;
 }
 .chips-cli::-webkit-scrollbar{display:none}
-.chips-cli .chip{flex:0 0 auto; height:34px}
+.chips-cli .chip{flex:0 0 auto; height:40px}
 .contador{
   flex:0 0 auto; padding:6px 20px 10px; display:flex; justify-content:space-between;
   align-items:center; gap:10px;
@@ -904,7 +904,7 @@ button{background:none;border:0;cursor:pointer;padding:0}
 /* Los porcentajes iban en --texto-3 (#8a8f95 sobre blanco): 2,9 de contraste,
    cuando lo mínimo decente son 4,5. Con la luz de una nave y el móvil a un
    palmo, eso no se lee. Suben a --texto-2 y a 12,5 px. */
-.ing-pct{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--texto-3); width:48px; text-align:right;
+.ing-pct{font-family:var(--mono); font-size:12.5px; letter-spacing:.08em; color:var(--texto-2); width:48px; text-align:right;
   flex:0 0 auto; font-variant-numeric:tabular-nums}
 .ing-g{font-size:19px; font-weight:600; width:84px; text-align:right; flex:0 0 auto; letter-spacing:-.015em; font-variant-numeric:tabular-nums}
 .ing-g em{font-style:normal; font-family:var(--mono); font-size:11px; color:var(--texto-3); font-weight:500; margin-left:3px}
@@ -1162,7 +1162,7 @@ button{background:none;border:0;cursor:pointer;padding:0}
 /* Los chips: pastillas con borde en letra de máquina. Sin color propio; el
    estado lo dice el relleno (activo = hueso). */
 .chip{
-  height:32px; padding:0 13px; border-radius:999px;
+  height:40px; padding:0 13px; border-radius:999px;
   font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.14em; text-transform:uppercase;
   background:linear-gradient(180deg,var(--panel-luz),var(--panel)); color:var(--texto-2);
   border:1px solid var(--linea);
@@ -1594,9 +1594,12 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 .aviso-global svg{width:15px;height:15px;flex:0 0 auto}
 .aviso-global #btn-explicar-cal{margin-left:auto; font-weight:640; color:inherit; text-decoration:underline; font-size:12.5px; white-space:nowrap}
 /* Se puede cerrar: es un recordatorio, no una alarma, y una vez leído estorba
-   todos los días. Vuelve solo cuando las bases estén calibradas de verdad. */
+   todos los días. Vuelve solo cuando las bases estén calibradas de verdad.
+   El botón medía 26×26: de sobra para un ratón, apretado para un dedo. Sube
+   a 36×36 (con más aire respecto al enlace de "explicar") sin engordar la
+   línea del aviso, que tiene que seguir leyéndose como algo discreto. */
 .aviso-global .cerrar-aviso{
-  flex:0 0 auto; width:26px;height:26px; margin-left:2px; border-radius:var(--r-s);
+  flex:0 0 auto; width:36px;height:36px; margin-left:8px; border-radius:var(--r-s);
   display:grid; place-items:center; color:inherit; opacity:.7;
   transition:opacity .15s var(--salida), background-color .15s var(--salida);
 }
@@ -2328,11 +2331,11 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 .aguja-x:hover{border-color:var(--rojo); color:var(--rojo)}
 .aguja-nueva{border-top:1px solid var(--linea-fuerte); padding-top:15px}
 .chips-grupo{display:flex; flex-wrap:wrap; gap:7px; align-items:center}
-.chips-grupo .chip{height:34px; cursor:pointer; text-transform:none; letter-spacing:.02em; font-family:inherit; font-size:13px; font-weight:560}
+.chips-grupo .chip{height:40px; cursor:pointer; text-transform:none; letter-spacing:.02em; font-family:inherit; font-size:13px; font-weight:560}
 .chips-grupo .chip-mas{color:var(--texto-3); border-style:dashed}
 .chip-grupo{padding:0; overflow:hidden}
-.chip-grupo > button{all:unset; cursor:pointer; padding:0 12px; height:34px; display:inline-flex; align-items:center; gap:6px}
-.chip-grupo .chip-x{all:unset; cursor:pointer; padding:0 10px 0 6px; height:34px; display:inline-flex; align-items:center; color:var(--texto-3); font-size:16px}
+.chip-grupo > button{all:unset; cursor:pointer; padding:0 12px; height:40px; display:inline-flex; align-items:center; gap:6px}
+.chip-grupo .chip-x{all:unset; cursor:pointer; padding:0 12px 0 6px; height:40px; display:inline-flex; align-items:center; color:var(--texto-3); font-size:16px}
 .chip-grupo .chip-x:hover{color:var(--rojo)}
 .ag-grupo-nuevo{display:flex; gap:8px; margin-top:8px; align-items:center}
 .ag-grupo-nuevo input{flex:1 1 auto; min-width:0}
@@ -7659,6 +7662,16 @@ function selectorIngrediente(valor){
     return res.slice(0,60).map(r=>r.i);
   }
 
+  /* Los botones de resultado llevan tabindex="-1": quien navega con flechas y
+     Enter (ya programado más abajo) nunca necesita entrar en ellos con Tab, y
+     si lo intentaba se colaba un fallo real: Tab desde un resultado resaltado
+     sacaba el foco al <body> de la página en vez de al siguiente campo,
+     porque justo entonces el blur de $q escondía la lista (120 ms más tarde)
+     con el foco todavía dentro. Con tabindex="-1" el foco de teclado nunca
+     llega a estar en un botón que puede desaparecer: Tab pasa de $q
+     directamente al siguiente campo, tal cual se espera. Al ratón y al dedo
+     no les cambia nada: siguen pudiendo tocarlos (el mousedown de abajo ya
+     evita que el clic les robe el foco). */
   function pintarLista(){
     if(!lista.length){
       $l.innerHTML = `<div class="busc-nada">Ningún color o pigmento con ese nombre</div>`;
@@ -7669,7 +7682,7 @@ function selectorIngrediente(valor){
       if(i.grupo !== grupo){ grupo = i.grupo; html += `<div class="busc-grupo">${grupo}</div>`; }
       const h = colorDe(i);
       html += `<button type="button" class="busc-op${k===activo?' on':''}" data-k="${k}" role="option"
-        aria-selected="${k===activo}"><i style="background:${h||'var(--linea)'}"></i>${esc(i.nombre)}</button>`;
+        tabindex="-1" aria-selected="${k===activo}"><i style="background:${h||'var(--linea)'}"></i>${esc(i.nombre)}</button>`;
     });
     $l.innerHTML = html;
     $l.querySelector('.on')?.scrollIntoView({block:'nearest'});
@@ -8564,7 +8577,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">edbc2c6c</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">7936ff53</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -9574,13 +9587,16 @@ function selectorFormula(alElegir, fuente){
                      a.i.nombre.localeCompare(b.i.nombre,'es'));
     return res.slice(0,60).map(r=>r.i);
   }
+  // tabindex="-1": mismo motivo que en el buscador de ingredientes del editor
+  // (app/codigo/10-edicion.js) — sin esto, Tab podía sacar el foco al <body>
+  // en vez de al siguiente campo. Las flechas y Enter ya navegan la lista.
   function pintarLista(){
     if(!lista.length){
       $l.innerHTML = `<div class="busc-nada">${esc((fuente && fuente.vacio) || 'Ninguna fórmula con ese nombre')}</div>`; return;
     }
     $l.innerHTML = lista.map((i,k)=>
       `<button type="button" class="busc-op${k===activo?' on':''}" data-k="${k}" role="option"
-        aria-selected="${k===activo}">${i.hex ? `<i style="background:${i.hex}"></i>` : ''}${esc(i.nombre)}${
+        tabindex="-1" aria-selected="${k===activo}">${i.hex ? `<i style="background:${i.hex}"></i>` : ''}${esc(i.nombre)}${
         i.sub ? `<small>${esc(i.sub)}</small>` : ''}</button>`
     ).join('');
     $l.querySelector('.on')?.scrollIntoView({block:'nearest'});

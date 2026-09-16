@@ -2767,8 +2767,8 @@ function mezclar(partes, materias, alfa = 0.5) {
 
     pesoConColor += gramos;
     // Solo cuenta como "sin calibrar" un pigmento suelto cuyo color he estimado yo.
-    // Que las 12 bases estén pendientes de medir es un aviso general de la app:
-    // repetirlo en las 860 fichas lo convertiría en ruido que nadie lee.
+    // Que los colores base estén pendientes de medir es un aviso general de la
+    // app: repetirlo en las 860 fichas lo convertiría en ruido que nadie lee.
     if (!m.calibrado && m.familia !== 'base') pesoNoCalibrado += gramos;
     // El realce de saturación solo puede aplicarse cuando SABEMOS de qué color
     // es el fluorescente. Con un "COLOR FLUOR" sin concretar, avivar el resto
@@ -4479,6 +4479,24 @@ indicesListos = true;
 /** {aldia} — true si la fórmula está rectificada a los pigmentos nuevos. */
 const estadoAct = f => ({aldia: !!f.actualizada_pigmentos});
 
+/* ═══════════════════════════════════════════════════════════════════
+   CÓMO ESTÁN LOS COLORES BASE
+
+   Los textos que explican por qué las muestras son orientativas llevaban el
+   número a mano («las 12 bases», «esas 12 fotos»). El 16 de septiembre las
+   bases pasaron a ser 9 —salieron oro, plata, marrón claro y crudo— y esos
+   textos se quedaron mintiendo sin que nada avisara; lo pilló Juanjo leyendo
+   Opciones. Se cuenta aquí, de los datos, y quien quiera decirlo pregunta.
+   Así el día que se calibren las fotos los textos cambian solos.
+   ═══════════════════════════════════════════════════════════════════ */
+/** {total, medidas, faltan} — cuántos colores base hay y cuántos con su color
+ *  tomado de una muestra física, en vez de estimado. */
+function estadoBases(){
+  const bases = DATOS.materias_primas.filter(m=>m.familia==='base');
+  const medidas = bases.filter(m=>m.calibrado).length;
+  return {total: bases.length, medidas, faltan: bases.length - medidas};
+}
+
 /* Qué materias primas lleva cada fórmula, resolviendo las fórmulas que van
    dentro de otras. Es lo que usa el filtro «con este pigmento» y el «ver las
    N que lo llevan» de Opciones › Pigmentos. */
@@ -4795,11 +4813,18 @@ function pintarLista(reinicia=true){
     const pend = c.avisos.some(a=>a.tipo==='pendiente'||a.tipo==='incompleta');
     // La línea pequeña de debajo: cliente, cuántos pigmentos y si ya está
     // pasada a los nuevos. Es lo que se pregunta uno antes de abrirla.
+    //
+    // Aquí ponía «base» a las fórmulas de un solo pigmento sin mezclar, y era
+    // una palabra mal elegida: «base» ya significa otra cosa en la app —los
+    // colores de referencia con los que se calcula todo lo demás—. Juanjo veía
+    // «ORO · base» y entendía, con razón, que el oro seguía contando como color
+    // base después de haberlo sacado. Dice «puro», que es lo que de verdad
+    // quiere decir: el pigmento tal cual, sin mezcla.
     const cli = clienteDe(f.nombre);
     const nIng = (f.ingredientes||[]).length;
     const sub = [
       cli ? esc(cli) : '',
-      f.solo_referencia ? 'referencia' : (nIng === 1 && f.ingredientes[0].tipo === 'materia' && f.ingredientes[0].cantidad ? 'base' : (nIng ? nIng + ' pigmento' + (nIng===1?'':'s') : 'sin receta')),
+      f.solo_referencia ? 'referencia' : (nIng === 1 && f.ingredientes[0].tipo === 'materia' && f.ingredientes[0].cantidad ? 'puro' : (nIng ? nIng + ' pigmento' + (nIng===1?'':'s') : 'sin receta')),
       estadoAct(f).aldia ? '<em>rectificada</em>' : '',
     ].filter(Boolean).join(' · ');
     b.innerHTML =
@@ -8079,6 +8104,9 @@ function reconstruir(){
   calcularMateriasDe();
   indexarBusqueda();
   contarClientes();
+  // Si han cambiado los pigmentos, el aviso de «están estimados» puede haber
+  // dejado de ser verdad: que lo diga con los datos que acaban de llegar.
+  pintarAvisoCal();
   usadaPor.clear();
   for(const f of DATOS.formulas)
     for(const i of f.ingredientes)
@@ -8606,7 +8634,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">10324e4f</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">7502c430</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -8615,12 +8643,25 @@ function pantallaDatos(volver){
   document.getElementById('op-calibracion').onclick = explicarCalibracion;
   if(!$dlg.open) $dlg.showModal();
 }
+/* El número de bases NO se escribe a mano aquí: se cuenta de los datos. La
+   versión anterior decía «las 12 bases» y se quedó mintiendo el día que
+   pasaron a ser 9. Y el segundo párrafo cambia según cuántas estén medidas de
+   verdad, para que este texto no tenga que reescribirse cuando se calibren. */
 function explicarCalibracion(){
+  const {total, medidas, faltan} = estadoBases();
+  const comoEstan =
+    medidas === 0
+      ? `<p>Pero para calcularlo hay que saber de qué color exacto es cada uno de los <b>${total} colores base</b>. Ahora mismo esos valores están <b>estimados a partir de los nombres de tus propias 860 fórmulas</b>: si una se llama «naranja algo», el resultado tiene que salir naranja. Con eso el acierto pasó del 53% al 62%.</p>
+         <p><b>Para afinarlo de verdad</b> hacen falta muestras físicas: una pastilla de cada base sobre goma, fotografiada junto a un papel blanco con la misma luz. Con esas ${total} fotos el cálculo deja de ser una estimación.</p>`
+    : faltan > 0
+      ? `<p>Para calcularlo hay que saber de qué color exacto es cada uno de los <b>${total} colores base</b>. De esos, <b>${medidas}</b> ya están tomados de una muestra cocida de verdad; ${faltan === 1 ? 'queda <b>1</b>' : `quedan <b>${faltan}</b>`} con el color estimado a partir de los nombres de tus 860 fórmulas.</p>
+         <p>Las mezclas que solo llevan bases ya medidas salen finas. ${faltan === 1 ? 'En cuanto se fotografíe la que falta' : 'En cuanto se fotografíen las que faltan'}, el cálculo deja de ser una estimación en ninguna parte.</p>`
+      : `<p>Los <b>${total} colores base</b> están tomados de una muestra cocida de verdad, fotografiada junto a un papel blanco: el color de cada uno no es una estimación, es el que sale del bote.</p>
+         <p>Lo que sigue siendo aproximado es la <b>mezcla</b>: el cálculo supone que los pigmentos se comportan de forma previsible al juntarlos, y la goma de verdad tiene sus manías. Pero el punto de partida ya es real.</p>`;
   $dt.textContent = 'Por qué las muestras son orientativas';
   $dc.innerHTML = `
     <p style="margin-top:0">El color de una mezcla se calcula con mezcla <b>sustractiva</b> (la de la pintura, no la de la pantalla): por eso amarillo y azul dan verde y no gris.</p>
-    <p>Pero para calcularlo hay que saber de qué color exacto es cada una de las 12 bases. Ahora mismo esos valores están <b>estimados a partir de los nombres de tus propias 860 fórmulas</b>: si una se llama «naranja algo», el resultado tiene que salir naranja. Con eso el acierto pasó del 53% al 62%.</p>
-    <p><b>Para afinarlo de verdad</b> hacen falta muestras físicas: una pastilla de cada base sobre goma, fotografiada junto a un papel blanco con la misma luz. Con esas 12 fotos el cálculo deja de ser una estimación.</p>
+    ${comoEstan}
     <p style="color:var(--texto-2);font-size:14px">Lo que no se podrá simular nunca es el <b>brillo</b> de metalizados, nácares y purpurinas, ni los <b>fluorescentes</b>, que emiten luz y se salen de lo que puede mostrar una pantalla. Esas fórmulas van avisadas.</p>`;
   $dp.innerHTML = `<button class="btn btn-1" data-cerrar>Entendido</button>`;
   $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
@@ -8631,8 +8672,28 @@ document.getElementById('btn-explicar-cal').onclick = explicarCalibracion;
 /* El aviso de calibración se puede cerrar y no vuelve. No es una alarma: es un
    recordatorio que, una vez leído, solo quita sitio a la pantalla. */
 const AVISO_CAL = 'aviso-calibracion-visto';
-try{ if(localStorage.getItem(AVISO_CAL)==='1')
-       document.getElementById('aviso-cal').hidden = true; }catch(_){}
+
+/* El texto tampoco se escribe a mano: dice cuántas bases quedan por medir, y
+   el día que no quede ninguna el aviso se va solo —seguir diciendo «están
+   estimados» cuando ya están medidos sería mentir—. Se vuelve a llamar desde
+   reconstruir(), porque los datos buenos llegan de la nube DESPUÉS de pintar
+   la pantalla por primera vez. */
+function pintarAvisoCal(){
+  const caja = document.getElementById('aviso-cal');
+  if(!caja) return;
+  const {total, medidas, faltan} = estadoBases();
+  if(faltan === 0){ caja.hidden = true; return; }
+  const txt = document.getElementById('aviso-cal-txt');
+  if(txt) txt.innerHTML = medidas === 0
+    ? 'Las muestras son <b>orientativas</b>: los colores base están estimados, no medidos.'
+    : faltan === 1
+      ? `Las muestras son <b>orientativas</b>: 1 de los ${total} colores base sigue estimado.`
+      : `Las muestras son <b>orientativas</b>: ${faltan} de los ${total} colores base siguen estimados.`;
+  let visto = false;
+  try{ visto = localStorage.getItem(AVISO_CAL)==='1'; }catch(_){}
+  caja.hidden = visto;
+}
+pintarAvisoCal();
 document.getElementById('btn-cerrar-aviso').onclick = ()=>{
   document.getElementById('aviso-cal').hidden = true;
   try{ localStorage.setItem(AVISO_CAL,'1'); }catch(_){}
@@ -12532,7 +12593,8 @@ window.__app = {
   apuntarPreparacion, pantallaHistorial, fundirHistorial,
   get REGISTRO(){ return REGISTRO.slice(); }, apuntar, fundirRegistro, deshacer,
   lineasHist, textoDe,
-  estadoAct, materiasDe: ()=>materiasDe, cuantasLlevan,
+  estadoAct, estadoBases, explicarCalibracion, pintarAvisoCal,
+  materiasDe: ()=>materiasDe, cuantasLlevan,
   pantallaPigmentos,
   preparar, retomarPesaje, guardarPesaje, leerPesajeGuardado,
   tieneFoto, puedeFoto, hacerFoto, verFoto, procesarFoto, HAY_FOTOS,

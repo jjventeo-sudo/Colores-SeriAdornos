@@ -7083,6 +7083,37 @@ async function aBlob(cv, calidad){
   return await new Promise(ok=>cv.toBlob(ok, 'image/jpeg', calidad));
 }
 
+/* Decodificar el archivo elegido. Fallo real, contado por Juanjo: una foto
+   hecha con la CÁMARA de la propia app siempre decodifica bien —el móvil la
+   entrega como un JPEG normal, recién hecho—, pero una foto elegida desde la
+   GALERÍA puede llevar tiempo guardada en un formato que createImageBitmap()
+   no sabe leer en ese navegador (pasó en Android; varía según el modelo y
+   la app que la guardó: algunas galerías comprimen a WEBP o parecidos para
+   ahorrar sitio). El resultado era el mismo mensaje confuso de "vuelve a
+   hacerla desde la cámara" para un archivo que, de hecho, es una foto válida.
+
+   Por eso hay TRES intentos, de más a menos directo, antes de rendirse:
+     1. El camino normal, con la orientación EXIF ya corregida.
+     2. Igual pero sin pedir esa opción: en algún Android falla solo por eso.
+     3. Pintarla en un <img> y leerla de ahí. Un <img> es lo que CUALQUIER
+        página usa para mostrar una foto, y el navegador sabe decodificar en
+        ese camino formatos que createImageBitmap(archivo) rechaza en según
+        qué versión. Si la foto se vería bien pegada en un mensaje, este paso
+        la lee igual de bien aquí. */
+async function leerImagen(file){
+  try{ return await createImageBitmap(file, {imageOrientation: 'from-image'}); }
+  catch(_){ /* sigue */ }
+  try{ return await createImageBitmap(file); }
+  catch(_){ /* sigue */ }
+  const url = URL.createObjectURL(file);
+  try{
+    const img = new Image();
+    img.decoding = 'async';
+    await new Promise((ok, mal)=>{ img.onload = ok; img.onerror = mal; img.src = url; });
+    return await createImageBitmap(img, {imageOrientation: 'from-image'});
+  } finally { URL.revokeObjectURL(url); }
+}
+
 /* PRIMER PASO: leer la foto y dejarla con el color ya corregido, a un tamaño
    con el que se pueda trabajar.
 
@@ -7100,9 +7131,7 @@ async function prepararFoto(file, crudo){
      el tono. En un sello terminado eso está mal: quieres ver la pieza entera y
      su contexto, y "lo que no es papel blanco" no significa nada en la foto de
      un molde de aluminio. Se reduce y se comprime, y el recorte lo haces tú. */
-  let bmp;
-  try{ bmp = await createImageBitmap(file, {imageOrientation: 'from-image'}); }
-  catch(_){ bmp = await createImageBitmap(file); }
+  const bmp = await leerImagen(file);
 
   // Copia pequeña, solo para estudiar la luz y buscar la pieza.
   const e = Math.min(1, FOTO_ANALISIS / Math.max(bmp.width, bmp.height));
@@ -8577,7 +8606,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">7936ff53</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">10324e4f</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

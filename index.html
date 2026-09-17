@@ -4209,6 +4209,7 @@ const ROL = sesion.rol;
    sin tocar las contraseñas: se vuelve a cifrar con la MISMA clave, así que
    nadie tiene que volver a entrar. */
 const CLAVE_DATOS = sesion.K;
+
 const puedeEditar = ROL === 'editor';
 document.body.dataset.rol = ROL;
 
@@ -8634,7 +8635,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">7502c430</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">f1683785</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -9389,15 +9390,31 @@ function qrSvg(texto){
 
 /* ── PEGATINAS: la impresora de etiquetas ─────────────────────────────
    Desde el 12 de septiembre las etiquetas no van a la impresora normal sino
-   a una Brother QL de rollo, con pegatinas de 10 × 11 cm. Cada pegatina es
-   UNA página: la de un bote lleva una fórmula; la de moldes lleva hasta
-   cuatro tarjetas con línea de corte, para aprovecharla.
+   a una Brother QL de rollo. Cada pegatina es UNA página: la de botes lleva
+   varias fórmulas con línea de corte; la de moldes, varias tarjetas.
 
-   La QL-1100 imprime hasta 101,6 mm de ancho y pide 1–1,5 mm de margen; si
-   el rollo entra un pelín torcido se come más, así que se dejan 5 mm. Es
-   térmica: solo negro, nada de grises finos ni degradados. */
-const PEGATINA = {ancho: 100, alto: 110, margen: 5};   // mm
-const ET_POR_HOJA = 1;                                 // una fórmula por pegatina
+   El 17 de septiembre Juanjo cambió de rollo: las pegatinas pasaron de
+   10 × 11 cm a 10 × 14,5, y pidió TRES etiquetas de bote por pegatina en vez
+   de una. Cortando por la línea salen tres etiquetas de 10 × 4,8 cm.
+
+   Ojo con qué medida es cuál, que es de lo que más se falla aquí: el ANCHO
+   (100 mm) es el del rollo y no se puede tocar —la QL-1100 imprime hasta
+   101,6 mm—; el ALTO (145) es lo que avanza el papel en cada pegatina, y ese
+   sí cambia según el rollo que se compre. Si algún día entra un rollo nuevo,
+   lo único que hay que tocar es este renglón.
+
+   La impresora pide 1–1,5 mm de margen; si el rollo entra un pelín torcido se
+   come más, así que se dejan 5 mm a los lados. Es térmica: solo negro, nada
+   de grises finos ni degradados. */
+const PEGATINA = {ancho: 100, alto: 145, margen: 5};   // mm
+const ET_POR_HOJA = 3;                                 // fórmulas por pegatina
+
+/* «10 × 14,5 cm», sacado de ahí arriba. Los textos de la app NO llevan la
+   medida escrita a mano: ya pasó con «las 12 bases» en Opciones, que se quedó
+   mintiendo el día que pasaron a ser 9 y nadie se enteró hasta que lo leyó
+   Juanjo. Un número a mano en un texto es una mentira con fecha. */
+const cm1 = mm => String(mm / 10).replace('.', ',');
+const medidaPegatina = () => `${cm1(PEGATINA.ancho)} × ${cm1(PEGATINA.alto)} cm`;
 
 function cabeceraPegatinas(titulo){
   return `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
@@ -9444,8 +9461,11 @@ function imprimirEtiquetas(items){
   const w = window.open('','_blank');
   if(!w) return brindis('El navegador ha bloqueado la ventana de las etiquetas');
 
+  /* UNA etiqueta. Ya no ocupa la pegatina entera: ahora van ET_POR_HOJA
+     apiladas y cada una es una franja. El recuadro sigue llevando
+     `data-encaja`, así que la letra se encoge sola si la fórmula es larga. */
   const una = e => { const qr = e.id ? qrSvg(enlaceDe('color', e.id)) : '';
-    return `<section class="peg"><div class="et" data-encaja>
+    return `<div class="et" data-encaja>
       <h1>${esc(e.nombre)}</h1>
       <table>${e.nombres.map((n,k)=>
         `<tr><td class="n">${esc(n)}</td><td class="g">${fmt(e.cantidades[k])}</td></tr>`).join('')}</table>
@@ -9453,31 +9473,53 @@ function imprimirEtiquetas(items){
         <div class="tot"><span>Total</span>${fmt(e.total)} g</div>
         ${qr ? `<div class="qr">${qr}</div>` : '<div class="marca"><b>S</b>ERI<b>A</b>DORNOS</div>'}
       </div>
-    </div></section>`; };
+    </div>`; };
+
+  /* Las etiquetas se reparten de tres en tres. La última pegatina puede ir a
+     medias: se deja el hueco en blanco y NO se rellena con nada, que una
+     etiqueta de relleno se acaba pegando en un bote por error. */
+  const paginas = [];
+  for(let i = 0; i < items.length; i += ET_POR_HOJA)
+    paginas.push(items.slice(i, i + ET_POR_HOJA));
 
   w.document.write(cabeceraPegatinas(items.length === 1
       ? 'Etiqueta — ' + esc(items[0].nombre) : 'Etiquetas (' + items.length + ')') + `
   <style>
-    .et{position:absolute; inset:${PEGATINA.margen}mm; display:flex; flex-direction:column; overflow:hidden}
-    h1{margin:0;font-size:calc(21pt * var(--esc,1));line-height:1.05;letter-spacing:-.02em;font-weight:700;
+    /* Tres franjas iguales, con línea de puntos entre ellas para cortar. La
+       línea va ENTRE etiqueta y etiqueta, nunca arriba del todo ni abajo:
+       ahí está el borde de la pegatina y una raya sobraría. */
+    .tira{position:absolute; inset:0; display:grid;
+          grid-template-rows:repeat(${ET_POR_HOJA}, 1fr)}
+    .et{display:flex; flex-direction:column; overflow:hidden;
+        padding:3.2mm ${PEGATINA.margen}mm;
+        border-bottom:.3mm dashed #000}
+    .et:last-child{border-bottom:0}
+    /* Con tres por pegatina cada una tiene ~48 mm de alto en vez de 110, así
+       que todo baja de tamaño. Son los números que caben dejando sitio a una
+       fórmula de cinco o seis ingredientes sin que el encajador tenga que
+       encogerla; con más, ya encoge él. */
+    h1{margin:0;font-size:calc(14pt * var(--esc,1));line-height:1.05;letter-spacing:-.02em;font-weight:700;
        overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 0 auto}
     table{width:100%;border-collapse:collapse;flex:0 0 auto;
-          margin-top:calc(4mm * var(--esc,1));
-          border-top:.5mm solid #000;padding-top:2mm}
-    td{padding:calc(1.6mm * var(--esc,1)) 0;font-size:calc(13pt * var(--esc,1));vertical-align:baseline}
-    td.n{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:64mm}
+          margin-top:calc(1.6mm * var(--esc,1));
+          border-top:.4mm solid #000;padding-top:1.2mm}
+    td{padding:calc(.5mm * var(--esc,1)) 0;font-size:calc(9.5pt * var(--esc,1));vertical-align:baseline}
+    td.n{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60mm}
     td.g{text-align:right;font-weight:700;white-space:nowrap}
     td.g::after{content:" g";font-weight:400;color:#000;font-size:.8em}
     .pie{display:flex;justify-content:space-between;align-items:flex-end;
-         border-top:.5mm solid #000;padding-top:2.5mm;margin-top:auto;flex:0 0 auto}
-    .pie .tot{font-size:17pt;font-weight:700}
-    .pie .tot span{font-size:8pt;font-weight:600;letter-spacing:.08em;
-                   text-transform:uppercase;margin-right:2mm}
-    /* El QR abre la fórmula en la app al escanearlo con el móvil. */
-    .qr{width:20mm;height:20mm;flex:0 0 auto}
+         border-top:.4mm solid #000;padding-top:1.2mm;margin-top:auto;flex:0 0 auto}
+    .pie .tot{font-size:12pt;font-weight:700}
+    .pie .tot span{font-size:6.5pt;font-weight:600;letter-spacing:.08em;
+                   text-transform:uppercase;margin-right:1.5mm}
+    /* El QR abre la fórmula en la app al escanearlo con el móvil. Bajado de
+       20 a 13 mm al pasar a tres por pegatina: a 13 mm sigue leyéndose con
+       cualquier móvil y deja sitio a la fórmula, que es lo que se mira. */
+    .qr{width:13mm;height:13mm;flex:0 0 auto}
     .qr svg{width:100%;height:100%;display:block}
   </style>
-  ${items.map(una).join('')}
+  ${paginas.map(p => `<section class="peg"><div class="tira">${
+      p.map(una).join('')}</div></section>`).join('')}
   ${PIE_PEGATINAS}`);
   w.document.close();
 }
@@ -9746,7 +9788,7 @@ document.getElementById('btn-pdf').onclick = ()=>{
       s0 ? filaAjuste('imp-hoja', 'Hoja del sello', esc(s0.nombre)) : '',
       filaAjuste('imp-moldes', 'Pegatinas de moldes', `${MOLDES_POR_PEGATINA} por pegatina`),
     ]) + `<p class="op-p flojo" style="margin:12px 0 0">La hoja va a la impresora normal (A4). Las
-      pegatinas, a la impresora de etiquetas de 10 × 11 cm.${s0 ? '' : ' Abre un sello para poder imprimir su hoja.'}</p>`;
+      pegatinas, a la impresora de etiquetas de ${medidaPegatina()}.${s0 ? '' : ' Abre un sello para poder imprimir su hoja.'}</p>`;
     $dp.innerHTML = `<button class="btn" data-cerrar>Cerrar</button>`;
     $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
     document.getElementById('imp-hoja')?.addEventListener('click', ()=>{ $dlg.close(); hojaSello(s0); });
@@ -9840,7 +9882,8 @@ function pintarEtiquetas(){
 
   if(!etiquetasHoja.length){
     $l.innerHTML = `<div class="busc-nada" style="padding:22px 10px">
-      Busca arriba y ve añadiendo colores. Cada color va en su pegatina de 10 × 11 cm.</div>`;
+      Busca arriba y ve añadiendo colores. Van <b>${ET_POR_HOJA}</b> por pegatina
+      de ${medidaPegatina()}, con línea para cortarlas.</div>`;
   }else{
     $l.innerHTML = etiquetasHoja.map((e,k)=>{
       const f = porId.get(e.id);
@@ -9872,8 +9915,10 @@ function pintarEtiquetas(){
 
   const n = etiquetasHoja.length;
   const pegs = Math.ceil(n / ET_POR_HOJA);
+  const huecos = n ? pegs * ET_POR_HOJA - n : 0;
   $p.innerHTML = n
-    ? `<span><b>${n}</b> etiqueta${n===1?'':'s'} · ${pegs} pegatina${pegs===1?'':'s'}</span>
+    ? `<span><b>${n}</b> etiqueta${n===1?'':'s'} · ${pegs} pegatina${pegs===1?'':'s'}${
+         huecos ? ` · ${huecos === 1 ? 'queda 1 hueco' : `quedan ${huecos} huecos`}` : ''}</span>
        <button class="btn btn-fino" id="et-vaciar">Vaciar</button>`
     : `<span>Ninguna etiqueta todavía</span>`;
 

@@ -8635,7 +8635,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">f1683785</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">2a589768</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -9526,10 +9526,36 @@ function imprimirEtiquetas(items){
 
 /* ── Pegatinas de MOLDE ────────────────────────────────────────────────
    Una tarjeta por molde para pegarla en el propio molde: número, sellos,
-   medidas, robot y los archivos del programa. Caben cuatro por pegatina
-   (dos por dos, de 50 × 55 mm) con línea de corte; si en una pegatina van
-   solo una o dos, se hacen a lo ancho (100 × 55 mm) y se lee más grande. */
-const MOLDES_POR_PEGATINA = 4;
+   medidas, robot y los archivos del programa, con línea de corte.
+
+   El 17 de septiembre Juanjo mandó una captura de la vista previa con tres
+   tarjetas y media pegatina en blanco: «mira cómo estás aprovechando la
+   pegatina». Y con razón. Antes la rejilla era fija —cuatro en dos por dos, o
+   dos a lo ancho si había una o dos—, así que con TRES se quedaba una celda
+   muerta: un 34% de rollo a la basura en cada tirada.
+
+   Ahora la rejilla se elige según cuántas tarjetas van en esa pegatina, para
+   que no sobre ninguna celda. Con el rollo de 14,5 cm sale así:
+
+     1 → 1 × 2   tarjeta de 92 × 68 mm   (sobra media: imprimiendo una sola
+                                          no hay forma de no desperdiciar)
+     2 → 1 × 2   92 × 68                 llena
+     3 → 1 × 3   92 × 45                 llena   ← el caso de Juanjo
+     4 → 2 × 2   46 × 68                 llena
+     5 → 2 × 3   46 × 45                 queda una celda
+     6 → 2 × 3   46 × 45                 llena
+
+   Y de paso el máximo por pegatina sube de 4 a 6, que es lo que de verdad
+   cabe en el rollo nuevo. */
+const MOLDES_POR_PEGATINA = 6;
+
+/** Cuántas columnas y filas para N tarjetas, y si van "anchas" (una sola
+    columna, así que caben rótulos y letra más grande). */
+function rejillaDe(n){
+  const cols = n <= 3 ? 1 : 2;
+  const filas = Math.min(3, Math.max(2, Math.ceil(n / cols)));
+  return {cols, filas, ancha: cols === 1, baja: filas === 3};
+}
 
 /** La tarjeta de un molde a partir de un sello. Si hay más sellos con el
     mismo nº de molde (el mismo molde en otro color), sus archivos y robots
@@ -9572,7 +9598,9 @@ function imprimirPegatinasMolde(tarjetas){
   const pegs = [];
   for(let i = 0; i < tarjetas.length; i += MOLDES_POR_PEGATINA){
     const grupo = tarjetas.slice(i, i + MOLDES_POR_PEGATINA);
-    pegs.push(`<section class="peg"><div class="rejilla ${grupo.length <= 2 ? 'tiras' : 'cuatro'}">${
+    const r = rejillaDe(grupo.length);
+    pegs.push(`<section class="peg"><div class="rejilla${r.ancha ? ' ancha' : ''}${r.baja ? ' baja' : ''}"
+      style="grid-template-columns:repeat(${r.cols},1fr);grid-template-rows:repeat(${r.filas},1fr)">${
       grupo.map(una).join('')}</div></section>`);
   }
 
@@ -9580,30 +9608,43 @@ function imprimirPegatinasMolde(tarjetas){
       ? 'Pegatina de molde — ' + esc(tarjetas[0].numero)
       : 'Pegatinas de moldes (' + tarjetas.length + ')') + `
   <style>
+    /* Las columnas y filas las pone rejillaDe() en el style de cada pegatina,
+       porque dependen de cuántas tarjetas lleve esa. Aquí solo va lo común. */
     .rejilla{position:absolute; inset:${PEGATINA.margen - 1}mm; display:grid; gap:0}
-    .rejilla.cuatro{grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr}
-    .rejilla.tiras{grid-template-columns:1fr; grid-template-rows:1fr 1fr}
     /* La línea de corte, discontinua, va entre tarjetas y no en el borde. */
     .tm{padding:2.5mm 3mm 2mm; overflow:hidden; display:flex; flex-direction:column; gap:calc(1.1mm * var(--esc,1));
         border:.3mm dashed #000; margin:-.15mm}
     .cab{display:flex; flex-direction:column; gap:.4mm; margin-bottom:.8mm}
     h1{margin:0; font-size:calc(18pt * var(--esc,1)); line-height:1; letter-spacing:-.02em; font-weight:800;
        overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-    .tiras h1{font-size:calc(26pt * var(--esc,1))}
+    .ancha h1{font-size:calc(26pt * var(--esc,1))}
     /* Rótulo y dato en la misma línea: en 50 mm de ancho caben, y en alto es
        donde no sobra nada. */
     .d{display:flex; align-items:baseline; gap:1.5mm}
     .d .ceja{flex:0 0 13.5mm; font-size:6.5pt}
     .d.med b{white-space:nowrap}
     .d b{font-size:calc(10pt * var(--esc,1)); font-weight:650; line-height:1.15; overflow-wrap:anywhere; min-width:0}
-    .tiras .d{gap:2mm}
-    .tiras .d .ceja{flex:0 0 18mm; font-size:7pt}
-    .tiras .d b{font-size:calc(13pt * var(--esc,1))}
+    .ancha .d{gap:2mm}
+    .ancha .d .ceja{flex:0 0 18mm; font-size:7pt}
+    .ancha .d b{font-size:calc(13pt * var(--esc,1))}
     /* Abajo: el QR (abre la ficha del sello al escanearlo) y la marca. */
     .pie{margin-top:auto; padding-top:.5mm; display:flex; justify-content:space-between; align-items:flex-end}
     .marca{font-size:7pt}
     .qr{width:13mm;height:13mm;flex:0 0 auto}
-    .tiras .qr{width:18mm;height:18mm}
+    .ancha .qr{width:18mm;height:18mm}
+    /* Tres filas: la tarjeta baja de 69 a 46 mm de alto y hay que apretar.
+       Estos números salen de medirlo: con los de la tarjeta alta el contenido
+       se salía 13 px y el encajador no llegaba a arreglarlo (tiene un tope de
+       encogido para no dejar la letra ilegible). */
+    .baja .tm{padding:2mm 3mm 1.5mm; gap:calc(.7mm * var(--esc,1))}
+    .baja h1{font-size:calc(15pt * var(--esc,1))}
+    .baja.ancha h1{font-size:calc(19pt * var(--esc,1))}
+    .baja .cab{margin-bottom:.3mm}
+    .baja .d b{font-size:calc(9pt * var(--esc,1))}
+    .baja.ancha .d b{font-size:calc(11pt * var(--esc,1))}
+    .baja .d .ceja{font-size:6pt}
+    .baja .qr, .baja.ancha .qr{width:11mm;height:11mm}
+    .baja .marca{font-size:6pt}
     .qr svg{width:100%;height:100%;display:block}
   </style>
   ${pegs.join('')}
@@ -9671,8 +9712,13 @@ function pintarPegatinasMolde(){
       </div>`;
     }).join('');
   }
+  /* Los huecos se cuentan sobre la rejilla DE VERDAD, no sobre el máximo de
+     seis: con dos moldes la pegatina se parte en dos celdas, no en seis, así
+     que decir «4 huecos libres» sería mentir y hacer añadir moldes de más. */
   const pegs = Math.ceil(n / MOLDES_POR_PEGATINA);
-  const huecos = n ? pegs * MOLDES_POR_PEGATINA - n : 0;
+  const enUltima = n - (pegs - 1) * MOLDES_POR_PEGATINA;
+  const r = n ? rejillaDe(enUltima) : null;
+  const huecos = r ? r.cols * r.filas - enUltima : 0;
   $p.innerHTML = n
     ? `<span><b>${n}</b> molde${n===1?'':'s'} · ${pegs} pegatina${pegs===1?'':'s'}${
         huecos ? ` · <b>${huecos}</b> hueco${huecos===1?'':'s'} libre${huecos===1?'':'s'}` : ' · pegatina completa'}</span>

@@ -1548,6 +1548,29 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 .et-nom small{display:block; font-size:11.5px; color:var(--texto-3); margin-top:1px}
 .et-nom small.exacta{color:var(--verde); font-weight:560}
 .et-nom small.avisa{color:var(--ambar); font-weight:560}
+/* ── Cuántas copias de un molde ──────────────────────────────────────
+   Juanjo, 17 sep: «hay modelos que tienen 2/3/4 moldes iguales». Menos,
+   cifra y más. Los botones van a 40 px como el resto de la app desde la
+   auditoría de septiembre: esto se toca en la nave, muchas veces con el
+   guante puesto, y 30 px se fallan. */
+.pm-copias{
+  display:flex; align-items:center; gap:2px; flex:0 0 auto;
+  border:1px solid var(--linea); border-radius:var(--r-s); overflow:hidden;
+  background:var(--panel);
+}
+.pm-copias button{
+  width:40px; height:40px; flex:0 0 auto; border:0; background:transparent;
+  font-size:19px; font-weight:600; line-height:1; color:var(--texto-2);
+  transition:color .15s var(--salida), background-color .15s var(--salida);
+}
+.pm-copias button:hover:not(:disabled){color:var(--texto); background:var(--panel-2)}
+.pm-copias button:active:not(:disabled){background:var(--tinta-suave)}
+.pm-copias button:disabled{color:var(--texto-3); opacity:.45}
+.pm-copias .num{
+  min-width:26px; text-align:center; font-size:15px; font-weight:700;
+  font-variant-numeric:tabular-nums; color:var(--texto);
+}
+
 .et-cant{display:flex; gap:4px; flex:0 0 auto; flex-wrap:wrap; justify-content:flex-end}
 .et-cant button{
   min-width:40px; height:30px; padding:0 8px; border-radius:var(--r-s);
@@ -8635,7 +8658,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">2a589768</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">608a07f0</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -9652,14 +9675,21 @@ function imprimirPegatinasMolde(tarjetas){
   w.document.close();
 }
 
-/** La pantalla para elegir qué moldes van en las pegatinas. */
-let pegatinasMolde = [];       // ids de sello elegidos, en orden
+/** La pantalla para elegir qué moldes van en las pegatinas.
+
+    Juanjo, 17 sep: «hay modelos que tienen 2/3/4 moldes iguales». El mismo
+    molde repetido no es un molde distinto —es la misma tarjeta, varias veces—
+    así que en vez de obligar a añadirlo cuatro veces a la lista, cada línea
+    lleva CUÁNTAS copias quiere. La lista sigue teniendo una línea por molde,
+    que es como se piensa en el taller: «el 796, tres». */
+let pegatinasMolde = [];       // [{id, copias}] en orden
 function pantallaPegatinasMolde(s){
-  pegatinasMolde = s ? [s.id] : [];
+  pegatinasMolde = s ? [{id: s.id, copias: 1}] : [];
   $dt.textContent = 'Pegatinas de moldes';
   $dc.innerHTML = `
     <p class="op-p flojo" style="margin:0 0 10px">Caben <b>${MOLDES_POR_PEGATINA}</b> por pegatina,
-      con línea de corte. Añade los moldes que quieras y se reparten solos.</p>
+      con línea de corte. Añade los moldes que quieras, y de cada uno las
+      copias que necesites si tienes varios moldes iguales.</p>
     <div class="campo" style="margin-bottom:10px"><span>Añadir un sello (por nombre, cliente o molde)</span>
       <div id="pm-buscador"></div></div>
     <div class="et-pie" id="pm-pie"></div>
@@ -9670,8 +9700,10 @@ function pantallaPegatinasMolde(s){
     n: norm([x.nombre, x.cliente || '', (x.molde && x.molde.numero) || ''].join(' ')),
   }));
   const busc = selectorFormula(id=>{
-    if(!pegatinasMolde.includes(id)) pegatinasMolde.push(id);
-    else brindis('Ese molde ya está en la lista');
+    // Añadirlo otra vez no lo duplica: sube una copia, que es lo que se quería.
+    const ya = pegatinasMolde.find(x=>x.id === id);
+    if(ya){ ya.copias++; brindis(`Ese molde ya estaba: van ${ya.copias} copias`); }
+    else pegatinasMolde.push({id, copias: 1});
     pintarPegatinasMolde();
   }, {items, vacio: 'Ningún sello con ese nombre', pista: 'Escribe un sello o un nº de molde y pulsa Intro…'});
   document.getElementById('pm-buscador').appendChild(busc.el);
@@ -9680,7 +9712,14 @@ function pantallaPegatinasMolde(s){
                    <button class="btn btn-1" id="pm-ir">Imprimir</button>`;
   $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
   document.getElementById('pm-ir').onclick = ()=>{
-    const tarjetas = pegatinasMolde.map(id => porIdS.get(id)).filter(Boolean).map(tarjetaMolde);
+    // Cada copia es una tarjeta más, y van seguidas: al cortar, las del mismo
+    // molde salen juntas y se reparten sin mirar cuál es cuál.
+    const tarjetas = [];
+    for(const e of pegatinasMolde){
+      const s2 = porIdS.get(e.id); if(!s2) continue;
+      const t = tarjetaMolde(s2);
+      for(let i = 0; i < e.copias; i++) tarjetas.push(t);
+    }
     if(!tarjetas.length) return brindis('Añade algún molde');
     imprimirPegatinasMolde(tarjetas);
     $dlg.close();
@@ -9692,20 +9731,33 @@ function pintarPegatinasMolde(){
   const $l = document.getElementById('pm-lista');
   const $p = document.getElementById('pm-pie');
   if(!$l) return;
-  const n = pegatinasMolde.length;
-  if(!n){
+  // OJO: son dos cuentas distintas y se confunden fácil. `lineas` es cuántos
+  // moldes DISTINTOS hay en la lista; `n` es cuántas TARJETAS se van a
+  // imprimir, sumando las copias. Lo que llena la pegatina es n, no lineas.
+  const lineas = pegatinasMolde.length;
+  const n = pegatinasMolde.reduce((t, e)=>t + e.copias, 0);
+  if(!lineas){
     $l.innerHTML = `<div class="busc-nada" style="padding:22px 10px">Busca arriba y ve añadiendo moldes.</div>`;
   }else{
-    $l.innerHTML = pegatinasMolde.map((id,k)=>{
-      const s = porIdS.get(id); if(!s) return '';
+    $l.innerHTML = pegatinasMolde.map((e,k)=>{
+      const s = porIdS.get(e.id); if(!s) return '';
       const c = tarjetaMolde(s);
       const det = [c.sellos ? c.sellos + ' sellos' : null,
                    c.largo && c.ancho ? `${fmt(c.largo)} × ${fmt(c.ancho)} mm` : null,
                    c.robots.length ? c.robots.join(' · ') : 'A mano',
                    c.archivos.length ? c.archivos.join(' · ') : null].filter(Boolean).join(' · ');
+      /* Cuántos moldes iguales hay de ese modelo. Menos / cifra / más: un
+         toque por copia, botones grandes para el guante, y sin tope escrito
+         a mano —si alguien tiene ocho moldes iguales, que pueda—. */
       return `<div class="et-fila">
         <div class="et-nom"><b>Molde ${esc(c.numero)}</b><small>${esc(det || 'Sin datos del molde')}${
           c.nombres.length > 1 ? ` · ${c.nombres.length} sellos comparten el molde` : ''}</small></div>
+        <div class="pm-copias">
+          <button data-menos="${k}" aria-label="Una copia menos de este molde"${
+            e.copias <= 1 ? ' disabled' : ''}>−</button>
+          <span class="num" aria-label="Copias">${e.copias}</span>
+          <button data-mas="${k}" aria-label="Una copia más de este molde">+</button>
+        </div>
         <button class="et-quitar" data-quitar="${k}" aria-label="Quitar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
         </button>
@@ -9719,13 +9771,25 @@ function pintarPegatinasMolde(){
   const enUltima = n - (pegs - 1) * MOLDES_POR_PEGATINA;
   const r = n ? rejillaDe(enUltima) : null;
   const huecos = r ? r.cols * r.filas - enUltima : 0;
+  /* El vocabulario de siempre, que es el del taller: PEGATINA es la hoja que
+     sale del rollo, y dentro van varias tarjetas que se cortan. Si alguna
+     línea lleva copias hay que decir de dónde sale el total, porque «3
+     moldes» teniendo UN molde en la lista parece un fallo de la app. */
+  const cuantas = n === lineas
+    ? `<b>${n}</b> molde${n===1?'':'s'}`
+    : `<b>${n}</b> tarjetas de ${lineas} molde${lineas===1?'':'s'}`;
   $p.innerHTML = n
-    ? `<span><b>${n}</b> molde${n===1?'':'s'} · ${pegs} pegatina${pegs===1?'':'s'}${
+    ? `<span>${cuantas} · ${pegs} pegatina${pegs===1?'':'s'}${
         huecos ? ` · <b>${huecos}</b> hueco${huecos===1?'':'s'} libre${huecos===1?'':'s'}` : ' · pegatina completa'}</span>
        <button class="btn btn-fino" id="pm-vaciar">Vaciar</button>`
     : `<span>Ningún molde todavía</span>`;
   for(const b of $l.querySelectorAll('[data-quitar]'))
     b.onclick = ()=>{ pegatinasMolde.splice(+b.dataset.quitar, 1); pintarPegatinasMolde(); };
+  for(const b of $l.querySelectorAll('[data-mas]'))
+    b.onclick = ()=>{ pegatinasMolde[+b.dataset.mas].copias++; pintarPegatinasMolde(); };
+  for(const b of $l.querySelectorAll('[data-menos]'))
+    b.onclick = ()=>{ const e = pegatinasMolde[+b.dataset.menos];
+                      if(e.copias > 1){ e.copias--; pintarPegatinasMolde(); } };
   document.getElementById('pm-vaciar')?.addEventListener('click', ()=>{ pegatinasMolde = []; pintarPegatinasMolde(); });
 }
 

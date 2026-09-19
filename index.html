@@ -1548,6 +1548,20 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 .et-nom small{display:block; font-size:11.5px; color:var(--texto-3); margin-top:1px}
 .et-nom small.exacta{color:var(--verde); font-weight:560}
 .et-nom small.avisa{color:var(--ambar); font-weight:560}
+/* ── «como la última vez» ────────────────────────────────────────────
+   La pista de por qué la app propone ESOS gramos y no el total de la receta.
+   Es a la vez el camino de vuelta: pulsándola se recupera la receta entera.
+   Discreta a propósito: informa, no compite con el número grande de al lado. */
+.como-ultima{
+  flex:0 0 auto; height:40px; padding:0 12px; border-radius:999px;
+  font-size:12px; font-weight:600; letter-spacing:.01em;
+  color:var(--texto-2); background:var(--panel-2);
+  border:1px dashed var(--linea-fuerte);
+  transition:color .15s var(--salida), border-color .15s var(--salida);
+}
+.como-ultima:hover{color:var(--texto); border-color:var(--texto-3)}
+.como-ultima:active{background:var(--tinta-suave)}
+
 /* ── Cuántas copias de un molde ──────────────────────────────────────
    Juanjo, 17 sep: «hay modelos que tienen 2/3/4 moldes iguales». Menos,
    cifra y más. Los botones van a 40 px como el resto de la app desde la
@@ -4257,6 +4271,12 @@ let cacheColor = new Map();
 let seleccion = null;
 let objetivo = 0;        // gramos que se quieren preparar
 let objetivoTocado = false;  // ¿ha pedido él otra cantidad, o está tal cual?
+/* El bote que se hizo la última vez de este color, si lo hay: es de donde sale
+   la cantidad que se propone al abrirlo. Vive aquí, con el resto del estado de
+   la ficha, y no junto a su función: la primera pintada llega antes que aquel
+   trozo del guion y una `let` tocada antes de declararse no vale null, revienta
+   («Cannot access before initialization»). Ya pasó con los pigmentos. */
+let comoLaUltima = null;
 let lote = null;         // el reparto en gramos ENTEROS que sale de esos gramos
 let filtradas = [];
 
@@ -5206,8 +5226,27 @@ function abrir(id, origen){
   const cambiar = ()=>{
     seleccion = id;
     const f0 = porId.get(id);
-    objetivo = f0 ? Math.round(f0.ingredientes.reduce((s,i)=>s+i.cantidad,0)) : 0;
-    objetivoTocado = false;
+    /* Cuántos gramos proponer al abrir un color.
+
+       Hasta el 19 de septiembre era siempre el total de la receta tal como
+       está escrita, y eso casi nunca era lo que se iba a hacer. Mirando los
+       botes de verdad: de 19 preparados, las cantidades fueron 65, 101, 105,
+       165, 300, 370, 471, 570, 600, 897, 909 y 2015 g — y uno de los amarillos
+       se preparó SEIS VECES el mismo día, a 300 g cada una, escribiendo 300
+       las seis veces. (Sin nombres de fórmula en el código, que la versión web
+       se cuelga en internet y `construir.py` lo comprueba: este comentario ya
+       tumbó una construcción por citar uno.) Encima la fila de arriba de la lista ya decía «última
+       preparada · 300 g»: se enseñaba el dato y luego no se usaba.
+
+       Ahora manda lo que se hizo la última vez con ESE color, si consta. Es
+       una propuesta, no una imposición: se cambia como siempre, y la pista de
+       al lado dice de dónde sale para que nadie pese 300 g creyendo que es la
+       receta entera. */
+    const ult = ultimaPreparacion(id);
+    const totalReceta = f0 ? Math.round(f0.ingredientes.reduce((s,i)=>s+i.cantidad,0)) : 0;
+    objetivo = ult ? ult.gramos : totalReceta;
+    objetivoTocado = !!ult && Math.abs(objetivo - totalReceta) > 0.5;
+    comoLaUltima = ult || null;
     ultimosGramos = null;      // al cambiar de color no hay nada que destellar
     recalcularLote();
     document.body.dataset.ficha='on';
@@ -5455,6 +5494,9 @@ function pintarFicha(){
                autocomplete="off" enterkeyhint="done" aria-label="Gramos que quieres preparar"
                value="${objetivo}">
         <span style="font-size:13px;color:var(--texto-2)">gramos</span>
+        ${comoLaUltima ? `<button class="como-ultima" id="calc-receta"
+            title="Volver al total de la receta (${fmt(total)} g)">como la última vez${
+              comoLaUltima.cuando ? ' · ' + esc(haceCuanto(comoLaUltima.cuando)) : ''}</button>` : ''}
         <div class="multi">${atajosCantidad(total).map(a=>
           `<button data-cant="${a.g}" data-atajo="${a.c}" title="${a.pista||''}"${a.g===objetivo?' aria-pressed="true"':''}>${a.txt}</button>`).join('')}
         </div>
@@ -5578,6 +5620,14 @@ function pintarFicha(){
      Y mientras se escribe NO se repinta el campo, solo el reparto de abajo.
      Es la diferencia entre poder escribir "900" y ver cómo el número se
      rehace solo a media palabra. */
+  /* «como la última vez» es además el camino de vuelta: pulsándolo se pone el
+     total de la receta. Así la propuesta nunca es un callejón — se ve de dónde
+     sale la cantidad y se deshace de un toque. */
+  document.getElementById('calc-receta')?.addEventListener('click', ()=>{
+    comoLaUltima = null;
+    ponerObjetivo(Math.round(f.ingredientes.reduce((x,i)=>x+i.cantidad,0)), true);
+    pintarFicha();
+  });
   const $ct = document.getElementById('calc-total');
   let tCalc;
   const marcarTodo = ()=>{ try{ $ct.select(); }catch(_){} };
@@ -6873,6 +6923,16 @@ function deshacer(e){
 const CLAVE_HISTORIAL = 'historial-preparaciones';
 const TOPE_HISTORIAL = 1200;      // lo que cabe sin ahogar el navegador
 let HISTORIAL = [];
+
+/** El último bote que se preparó de esta fórmula, o null. Es lo que decide
+    cuántos gramos propone la ficha al abrir un color. */
+function ultimaPreparacion(id){
+  for(let i = HISTORIAL.length - 1; i >= 0; i--){
+    const e = HISTORIAL[i];
+    if(e.formula === id && e.gramos > 0) return {gramos: Math.round(e.gramos), cuando: e.cuando};
+  }
+  return null;
+}
 HISTORIAL = leerHistorialLocal();
 /* La primera descarga de la nube trae el cuaderno dentro de DATOS (ver
    montarDatos en nube.js). Se saca de ahí y se guarda en su sitio: DATOS es
@@ -8658,7 +8718,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">608a07f0</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">db76fdc5</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

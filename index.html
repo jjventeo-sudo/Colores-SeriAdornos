@@ -2706,6 +2706,23 @@ function desarrollar(formulaId, indice, { _visitadas = new Set(), _nivel = 0 } =
   }
   _visitadas.add(formulaId);
 
+  /* UN BOTE es una base preparada en el taller (hoy: crudo 96 + concentrado 4)
+     de la que luego se coge a gramos para las recetas: "negro 40" son 40 g del
+     bote de NEGRO. Su receta dice CÓMO SE PREPARA, pero su color es el del
+     bote, que es lo que se mide en la pastilla (`bote` = la materia con ese
+     perfil de color). Desarrollarlo en crudo + concentrado haría que el motor
+     —ajustado sobre las 860 recetas con el color del bote— viera un 96 % de
+     transparente en cada receta. Así, pasar una receta del pigmento al bote
+     deja su muestra EXACTAMENTE igual: las partes que salen son las mismas. */
+  if (f.bote && indice.materias.has(f.bote)) {
+    _visitadas.delete(formulaId);
+    let total = 0;
+    for (const i of f.ingredientes) total += i.cantidad || 0;
+    if (!(total > 0)) total = 100;
+    partes.set(f.bote, total);
+    return { partes, total, sinResolver, profundidad };
+  }
+
   for (const ing of f.ingredientes) {
     if (ing.tipo === 'materia') {
       partes.set(ing.ref, (partes.get(ing.ref) || 0) + ing.cantidad);
@@ -4567,6 +4584,11 @@ function estadoBases(){
    N que lo llevan» de Opciones › Pigmentos. */
 let materiasDe = new Map();     // fórmula -> Set de materias primas, ya resueltas
 
+/* ¿Lleva dentro alguna fórmula que NO sea un bote? Los botes son el pan de cada
+   día (casi todas las recetas llevan alguno) y no merecen la tarjeta de
+   "desarrollada hasta materias primas": saldría lo mismo que la receta. */
+const llevaAnidada = f => f.ingredientes.some(i=>i.tipo==='formula' && !porId.get(i.ref)?.bote);
+
 function calcularMateriasDe(){
   materiasDe = new Map();
   const enCurso = new Set();
@@ -4576,6 +4598,9 @@ function calcularMateriasDe(){
     enCurso.add(id);
     const f = porId.get(id);
     const out = new Set();
+    // Un bote cuenta como su color (ver motor): si no, el CRUDO con el que se
+    // prepara aparecería "dentro" de casi todas las recetas.
+    if(f && f.bote){ out.add(f.bote); enCurso.delete(id); materiasDe.set(id, out); return out; }
     if(f) for(const i of f.ingredientes){
       if(i.tipo === 'materia') out.add(i.ref);
       else if(i.tipo === 'formula') for(const m of de(i.ref)) out.add(m);
@@ -4889,7 +4914,7 @@ function pintarLista(reinicia=true){
     const nIng = (f.ingredientes||[]).length;
     const sub = [
       cli ? esc(cli) : '',
-      f.solo_referencia ? 'referencia' : (nIng === 1 && f.ingredientes[0].tipo === 'materia' && f.ingredientes[0].cantidad ? 'puro' : (nIng ? nIng + ' pigmento' + (nIng===1?'':'s') : 'sin receta')),
+      f.solo_referencia ? 'referencia' : f.bote ? 'bote' : (nIng === 1 && f.ingredientes[0].cantidad && (f.ingredientes[0].tipo === 'materia' || porId.get(f.ingredientes[0].ref)?.bote) ? 'puro' : (nIng ? nIng + ' pigmento' + (nIng===1?'':'s') : 'sin receta')),
       estadoAct(f).aldia ? '<em>rectificada</em>' : '',
     ].filter(Boolean).join(' · ');
     b.innerHTML =
@@ -5441,7 +5466,7 @@ function pintarFicha(){
   const grupo = f.equivalencia ? grupos.get(f.equivalencia) : null;
   const hermanas = grupo ? grupo.formulas.filter(x=>x!==f.id).map(x=>porId.get(x)).filter(Boolean) : [];
   const usan = [...(usadaPor.get(f.id)||[])].map(x=>porId.get(x)).filter(Boolean);
-  const anidada = f.ingredientes.some(i=>i.tipo==='formula');
+  const anidada = llevaAnidada(f);
   const totalMovido = ultimosGramos && ultimosGramos.total !== undefined
                       && ultimosGramos.total !== (lote?lote.total:0);
 
@@ -5790,7 +5815,7 @@ function pintarLote(){
   const z = document.getElementById('zona-lote');
   if(z) z.innerHTML = zonaLote(f, total, movido);
   const d = document.getElementById('zona-desarrollo');
-  if(d) d.innerHTML = f.ingredientes.some(i=>i.tipo==='formula') ? tarjetaDesarrollo(f) : '';
+  if(d) d.innerHTML = llevaAnidada(f) ? tarjetaDesarrollo(f) : '';
   ultimosGramos = lote ? lote.cantidades.slice() : f.ingredientes.map(i=>i.cantidad);
   ultimosGramos.total = lote ? lote.total : 0;
   enlazarZonaLote(f);
@@ -5904,11 +5929,14 @@ function tarjetaDesarrollo(f){
   if(!total) return '';
   // Se escala al lote que esté puesto en la calculadora, y en gramos enteros.
   const escala = lote ? lote.total/total : 1;
+  // Lo que sale de un bote se llama como el bote (el blanco "de número"), que es lo que
+  // hay en la estantería, no como su concentrado.
+  const boteDe = new Map(DATOS.formulas.filter(x=>x.bote).map(x=>[x.bote, x.nombre]));
   const filas = [...partes.entries()].sort((a,b)=>b[1]-a[1]).map(([id,g])=>{
     const m = materias.get(id);
     return `<div class="ing">
       <div class="ing-color" style="background:${m?.hex_referencia||'var(--linea)'}"></div>
-      <div class="ing-nom">${esc(m?m.nombre:'?')}</div>
+      <div class="ing-nom">${esc(boteDe.get(id) || (m?m.nombre:'?'))}</div>
       <span class="ing-pct num">${Math.round(g/total*100)}%</span>
       <span class="ing-g num">${fmt(Math.round(g*escala))}<em>g</em></span>
     </div>`;
@@ -7762,16 +7790,23 @@ for(const b of document.querySelectorAll('[data-cerrar]')) b.onclick = ()=>$dlg.
    ═══════════════════════════════════════════════════════════════════ */
 function catalogo(){
   const out = [];
+  // Un pigmento que es el concentrado de un bote solo se usa para PREPARAR ese
+  // bote. En una receta normal va el bote: por eso sale el último y con su
+  // nombre de verdad, para no confundirlos como pasó con el azul.
+  const deBote = new Set(DATOS.formulas.map(x=>x.bote).filter(Boolean));
   for(const m of DATOS.materias_primas){
+    const conc = deBote.has(m.id);
     out.push({v:'mp:'+m.id, nombre:m.nombre, hex:m.hex_referencia,
-              grupo: m.familia==='base' ? 'Color base' : 'Pigmento',
-              rango: m.familia==='base' ? 0 : 1,
+              grupo: conc ? 'Concentrado · solo para preparar el bote'
+                          : m.familia==='base' ? 'Color base' : 'Pigmento',
+              rango: conc ? 3 : m.familia==='base' ? 0 : 1,
               // El desplegable los rotula "Color base", así que es natural
               // buscarlos así: "azul base" tiene que encontrar el pigmento AZUL.
               clave: m.familia==='base' ? m.nombre + ' base' : m.nombre});
   }
   for(const x of DATOS.formulas){
-    out.push({v:'f:'+x.id, nombre:x.nombre, formula:x, grupo:'Fórmula', rango:2});
+    out.push({v:'f:'+x.id, nombre:x.nombre, formula:x,
+              grupo: x.bote ? 'Bote' : 'Fórmula', rango: x.bote ? 0 : 2});
   }
   for(const o of out){ o.n = norm(o.nombre); o.k = norm(o.clave || o.nombre); }
   return out;
@@ -8787,7 +8822,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">b4402911</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">de2770b7</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

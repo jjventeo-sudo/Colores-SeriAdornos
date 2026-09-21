@@ -1026,8 +1026,11 @@ button{background:none;border:0;cursor:pointer;padding:0}
 .cmp-ing span{flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600}
 .cmp-ing b{font-family:var(--mono); font-size:11px; font-weight:500; color:var(--texto-2); flex:0 0 auto}
 .enlaces{display:flex; flex-wrap:wrap; gap:6px}
+/* min-height y no height: con un cliente de nombre largo el texto pasaba a
+   dos líneas y se salía por debajo de la píldora. */
 .enlace{
-  display:inline-flex; align-items:center; gap:8px; height:38px; padding:0 14px 0 8px;
+  display:inline-flex; align-items:center; gap:8px; min-height:38px; padding:5px 14px 5px 8px;
+  max-width:100%; text-align:left; line-height:1.25;
   border-radius:999px; background:linear-gradient(180deg,var(--panel-luz),var(--panel)); border:1px solid var(--linea);
   box-shadow:inset 0 1px 0 var(--canto), var(--sombra-1);
   font-size:13.5px; font-weight:600; color:var(--texto);
@@ -1747,6 +1750,11 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 .esc-pie span{font-size:14px; color:#c9cbcf; min-width:0}
 .esc-pie .btn-fino{color:#f2f3f4; background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.14); box-shadow:none; flex:0 0 auto}
 .esc-pie .btn-fino[aria-pressed="true"]{background:#f2f3f4; color:#0a0b0d}
+
+/* Ingrediente que venía apuntando a una fórmula prohibida (ella misma, o una
+   que ya la lleva dentro): la fila sale vacía y en ámbar hasta que se elige. */
+.busc-vetado .busc-q{border-color:color-mix(in srgb,var(--ambar) 70%,transparent)}
+.busc-vetado .busc-q::placeholder{color:var(--ambar); opacity:1}
 /* ═══════════════════════════════════════════════════════════════════
    SELLOS
    ═══════════════════════════════════════════════════════════════════ */
@@ -2712,6 +2720,9 @@ function desarrollar(formulaId, indice, { _visitadas = new Set(), _nivel = 0 } =
           partes.set(mp, (partes.get(mp) || 0) + c * escala);
         }
         sinResolver.push(...sub.sinResolver);
+      } else if (sub.sinResolver.some(s => s.motivo === 'referencia circular')) {
+        // Vacía PORQUE es un bucle: que suba el motivo de verdad, no "vacía".
+        sinResolver.push(...sub.sinResolver);
       } else {
         sinResolver.push({ nombre: ing.nombre, motivo: 'la fórmula enlazada está vacía',
                            cantidad: ing.cantidad });
@@ -2896,7 +2907,17 @@ function saturar([r, g, b], f) {
 function colorDeFormula(formulaId, indice) {
   const { partes, sinResolver, profundidad } = desarrollar(formulaId, indice);
   const res = mezclar(partes, indice.materias, indice.alfa);
-  if (sinResolver.length) {
+  // Un bucle no es un enlace pendiente: no hay nada que elegir, la receta
+  // está mal. Decirlo con su nombre, o se busca el fallo donde no está.
+  const bucle = sinResolver.find(s => s.motivo === 'referencia circular');
+  if (bucle) {
+    res.avisos = res.avisos.filter(a => a.tipo !== 'vacia');   // "Sin ingredientes" sobra: el porqué es el bucle
+    res.avisos.unshift({
+      tipo: 'pendiente',
+      texto: `"${bucle.nombre}" se lleva a sí misma dentro: así no se puede calcular el color. Edítala y elige otro ingrediente.`,
+    });
+    res.fiabilidad = 0;
+  } else if (sinResolver.length) {
     res.avisos.unshift({
       tipo: 'pendiente',
       texto: sinResolver.length === 1
@@ -7744,19 +7765,45 @@ function catalogo(){
   for(const m of DATOS.materias_primas){
     out.push({v:'mp:'+m.id, nombre:m.nombre, hex:m.hex_referencia,
               grupo: m.familia==='base' ? 'Color base' : 'Pigmento',
-              rango: m.familia==='base' ? 0 : 1});
+              rango: m.familia==='base' ? 0 : 1,
+              // El desplegable los rotula "Color base", así que es natural
+              // buscarlos así: "azul base" tiene que encontrar el pigmento AZUL.
+              clave: m.familia==='base' ? m.nombre + ' base' : m.nombre});
   }
   for(const x of DATOS.formulas){
     out.push({v:'f:'+x.id, nombre:x.nombre, formula:x, grupo:'Fórmula', rango:2});
   }
-  for(const o of out) o.n = norm(o.nombre);
+  for(const o of out){ o.n = norm(o.nombre); o.k = norm(o.clave || o.nombre); }
   return out;
 }
 
-function selectorIngrediente(valor){
-  const items = catalogo();
+/* Las fórmulas que NO pueden entrar como ingrediente de `id`: ella misma y
+   todas las que ya la llevan dentro, a cualquier profundidad. Cualquiera de
+   ellas cerraría un bucle (A lleva B y B lleva A) y el color dejaría de
+   poder calcularse: el motor corta el bucle para no colgarse y la muestra
+   sale en blanco. Pasó de verdad (21 sep): un azul de base acabó llevándose
+   a sí mismo porque, al escribir su propio nombre buscando el pigmento, la
+   primera opción era ella. */
+function prohibidasPara(id){
+  const fuera = new Set([id]);
+  const pila = [id];
+  while(pila.length){
+    for(const p of usadaPor.get(pila.pop()) || [])
+      if(!fuera.has(p)){ fuera.add(p); pila.push(p); }
+  }
+  return fuera;
+}
+
+function selectorIngrediente(valor, prohibidas = new Set()){
+  const todo = catalogo();
+  const vetada = i => i.formula && prohibidas.has(i.formula.id);
+  const items = todo.filter(i=>!vetada(i));
+  const ocultas = todo.filter(vetada);
   const porV = new Map(items.map(i=>[i.v,i]));
+  // Un ingrediente que ya viene prohibido (datos de antes de este arreglo) NO
+  // se da por bueno: la fila sale vacía y hay que elegir otro.
   let sel = porV.get(valor) || null;
+  const venia = !sel && valor ? todo.find(i=>i.v===valor) : null;
   let activo = 0, abierto = false, lista = [];
 
   const caja = document.createElement('div');
@@ -7789,9 +7836,10 @@ function selectorIngrediente(valor){
     const pal = q.split(' ');
     const res = [];
     for(const i of items){
-      if(!pal.every(p=>i.n.includes(p))) continue;
-      // exacto primero, luego lo que empieza igual, luego lo que lo contiene
-      const p = i.n === q ? 0 : i.n.startsWith(q) ? 1 : 2;
+      if(!pal.every(p=>i.k.includes(p))) continue;
+      // exacto primero, luego lo que empieza igual (o "rojo 3 base" para un
+      // color base), luego lo que lo contiene
+      const p = i.n === q ? 0 : (i.n.startsWith(q) || i.k === q) ? 1 : 2;
       res.push({i, p});
     }
     res.sort((a,b)=> a.p-b.p || a.i.rango-b.i.rango ||
@@ -7810,9 +7858,20 @@ function selectorIngrediente(valor){
      directamente al siguiente campo, tal cual se espera. Al ratón y al dedo
      no les cambia nada: siguen pudiendo tocarlos (el mousedown de abajo ya
      evita que el clic les robe el foco). */
+  // Si lo escrito coincide con una fórmula que no puede ir aquí, se dice por
+  // qué no sale: si no, parece que el buscador no la encuentra.
+  function porQueNo(){
+    const q = norm($q.value);
+    if(!q) return '';
+    const o = ocultas.find(i=>i.n === q) || ocultas.find(i=>i.n.includes(q));
+    if(!o) return '';
+    const esta = [...prohibidas][0] === o.formula.id;
+    return `<div class="busc-nada">"${esc(o.nombre)}" no puede ir aquí: ${esta
+      ? 'es esta misma fórmula' : 'ya lleva dentro esta fórmula'}.</div>`;
+  }
   function pintarLista(){
     if(!lista.length){
-      $l.innerHTML = `<div class="busc-nada">Ningún color o pigmento con ese nombre</div>`;
+      $l.innerHTML = porQueNo() || `<div class="busc-nada">Ningún color o pigmento con ese nombre</div>`;
       return;
     }
     let grupo = null, html = '';
@@ -7822,7 +7881,7 @@ function selectorIngrediente(valor){
       html += `<button type="button" class="busc-op${k===activo?' on':''}" data-k="${k}" role="option"
         tabindex="-1" aria-selected="${k===activo}"><i style="background:${h||'var(--linea)'}"></i>${esc(i.nombre)}</button>`;
     });
-    $l.innerHTML = html;
+    $l.innerHTML = html + porQueNo();
     $l.querySelector('.on')?.scrollIntoView({block:'nearest'});
   }
 
@@ -7867,6 +7926,11 @@ function selectorIngrediente(valor){
   });
 
   pintarSel();
+  if(venia){
+    caja.classList.add('busc-vetado');
+    $q.placeholder = `Elige otro: "${venia.nombre}" no puede ir aquí`;
+  }
+  $q.addEventListener('input', ()=>caja.classList.remove('busc-vetado'), {once:true});
   return { el: caja, get: ()=> sel ? sel.v : '', foco: ()=>$q.focus() };
 }
 
@@ -7939,10 +8003,11 @@ function editar(f, esNueva=false){
       <input id="ed-motivo" placeholder="Ej. Ajuste a los pigmentos nuevos" autocomplete="off" value="${esc(rec ? rec.motivo || '' : '')}"></label>`;
   const $ing = document.getElementById('ed-ing');
   const selectores = new Map();
+  const prohibidas = prohibidasPara(f.id);
   const addFila = (ref='', cant='', enfocar=false)=>{
     const d = document.createElement('div');
     d.className='fila-ing';
-    const sel = selectorIngrediente(ref);
+    const sel = selectorIngrediente(ref, prohibidas);
     d.appendChild(sel.el);
     d.insertAdjacentHTML('beforeend',
       `<input type="number" inputmode="decimal" step="any" min="0" value="${cant}" placeholder="g" aria-label="Gramos">
@@ -8022,6 +8087,10 @@ function editar(f, esNueva=false){
       ings.push({tipo: t==='mp'?'materia':'formula', ref:id, nombre:nom, cantidad:c});
     }
     if(!ings.length) return brindis('Añade al menos un ingrediente con cantidad');
+    const bucle = ings.find(i=>i.tipo==='formula' && prohibidas.has(i.ref));
+    if(bucle) return brindis(bucle.ref === f.id
+      ? 'Una fórmula no puede llevarse a sí misma'
+      : `"${bucle.nombre}" ya lleva esta fórmula dentro: se haría un bucle`);
 
     const hist = (f.historial||[]).slice();
     if(!esNueva){
@@ -8718,7 +8787,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">db76fdc5</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">b4402911</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

@@ -1755,6 +1755,27 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
    que ya la lleva dentro): la fila sale vacía y en ámbar hasta que se elige. */
 .busc-vetado .busc-q{border-color:color-mix(in srgb,var(--ambar) 70%,transparent)}
 .busc-vetado .busc-q::placeholder{color:var(--ambar); opacity:1}
+
+/* ── EL BOTE DE LA ESTANTERÍA ─────────────────────────────────────────
+   Relleno en hueso cuando lo hay: se ve de lejos, con el móvil en la mesa y
+   las manos ocupadas. Apagado y con el filo de puntos cuando no, que es el
+   estado normal de casi todos y no puede parecer un reproche. Ningún color
+   nuevo: el único color de la pantalla sigue siendo el de las fórmulas, y el
+   verde ya significa "rectificada". */
+.etiqueta.bote{background:var(--tinta); border-color:var(--tinta); color:var(--tinta-txt)}
+.etiqueta.bote::before{content:none}   /* con el icono del bote, el punto sobra */
+.etiqueta.sin-bote{border-style:dashed; color:var(--texto-3)}
+.etiqueta.sin-bote::before{opacity:.45}
+
+/* La misma respuesta, en el momento de pesar. */
+.pes-bote{
+  display:flex; align-items:center; gap:10px; margin:2px 0 12px; padding:10px 13px;
+  border:1px solid var(--linea); border-radius:var(--r-m);
+  font-size:13.5px; line-height:1.4; color:var(--texto-2);
+}
+.pes-bote svg{width:17px; height:17px; flex:0 0 auto; color:var(--texto-3)}
+.pes-bote b{color:var(--texto); font-weight:640}
+.pes-bote.no{border-style:dashed}
 /* ═══════════════════════════════════════════════════════════════════
    SELLOS
    ═══════════════════════════════════════════════════════════════════ */
@@ -4561,6 +4582,17 @@ indicesListos = true;
 /** {aldia} — true si la fórmula está rectificada a los pigmentos nuevos. */
 const estadoAct = f => ({aldia: !!f.actualizada_pigmentos});
 
+/* ── EL BOTE DE LA ESTANTERÍA ─────────────────────────────────────────
+   Se tiran todos los botes de kilo y se empieza de cero: a partir de ahí cada
+   color puede tener SU bote etiquetado en la estantería. La marca contesta a
+   una sola pregunta, la que uno se hace ANTES de ponerse: ¿voy a buscar el
+   bote o cojo uno nuevo? No es cuánto queda —eso habría que pesarlo cada vez
+   y no se haría—: es si existe.
+   Se marca sola al imprimir la etiqueta del bote (si imprimes una etiqueta es
+   porque acabas de estrenar uno) y a mano desde la ficha, porque ya hay botes
+   etiquetados de antes de que esto existiera. */
+const tieneBote = f => !!(f && f.en_estanteria);
+
 /* ═══════════════════════════════════════════════════════════════════
    CÓMO ESTÁN LOS COLORES BASE
 
@@ -4747,6 +4779,9 @@ let soloPendientes = false;
 /* "Actualizadas": solo las que ya están dadas por buenas con los pigmentos
    nuevos. Es el chip del buscador; va aparte de la búsqueda por texto. */
 let soloActualizadas = false;
+/* "Con bote": los colores que tienen su bote en la estantería. Sirve para
+   repasar la estantería de un vistazo sin abrir 861 fichas. */
+let soloConBote = false;
 /* El chip de un cliente filtra por lo que hay entre paréntesis, exacto: no es
    una búsqueda de texto (esa encontraría también "cliente" dentro de otros
    nombres y el número del chip no cuadraría con la lista). */
@@ -4765,6 +4800,7 @@ function filtrar(txt){
   if(filtroPigmento) return DATOS.formulas.filter(f=>materiasDe.get(f.id)?.has(filtroPigmento));
   if(soloPendientes) return DATOS.formulas.filter(tienePendiente);
   if(soloActualizadas) return DATOS.formulas.filter(f=>estadoAct(f).aldia);
+  if(soloConBote) return DATOS.formulas.filter(tieneBote);
   if(filtroCliente) return DATOS.formulas.filter(f=>norm(clienteDe(f.nombre)||'') === filtroCliente);
   if(!t) return DATOS.formulas.slice();
   const palabras = t.split(' ');
@@ -4845,7 +4881,7 @@ function inicial(nombre){
    se quita de en medio. No es una .fila más —cuenta aparte— para que
    "860 de 860" siga siendo verdad. */
 function filaUltima(){
-  if($q.value.trim() || soloPendientes || soloActualizadas || filtroPigmento || filtroCliente) return null;
+  if($q.value.trim() || soloPendientes || soloActualizadas || soloConBote || filtroPigmento || filtroCliente) return null;
   const e = HISTORIAL.length ? HISTORIAL[HISTORIAL.length - 1] : null;
   if(!e) return null;
   const f = porId.get(e.formula);
@@ -5020,7 +5056,7 @@ function actualizar(tarde = false){
 }
 
 $q.addEventListener('input', ()=>{
-  soloPendientes=false; filtroPigmento=null; soloActualizadas=false; filtroCliente=null;
+  soloPendientes=false; filtroPigmento=null; soloActualizadas=false; soloConBote=false; filtroCliente=null;
   actualizar(true);   // el muro, cuando pare de escribir
 });
 document.getElementById('chip-pigmento').onclick = ()=>{ filtroPigmento=null; actualizar(); };
@@ -5030,7 +5066,7 @@ function verPigmento(id){
   const m = materias.get(id);
   if(!m) return;
   filtroPigmento = id;
-  soloPendientes = false; soloActualizadas = false; filtroCliente = null;
+  soloPendientes = false; soloActualizadas = false; soloConBote = false; filtroCliente = null;
   $q.value = '';
   cerrarTodo();
   actualizar();
@@ -5039,7 +5075,7 @@ function verPigmento(id){
 }
 document.getElementById('chip-pend').onclick = ()=>{
   soloPendientes = !soloPendientes;
-  if(soloPendientes){ $q.value=''; soloActualizadas=false; filtroCliente=null; }
+  if(soloPendientes){ $q.value=''; soloActualizadas=false; soloConBote=false; filtroCliente=null; }
   actualizar();
 };
 
@@ -5066,8 +5102,9 @@ function pintarChips(){
   if(!$c) return;
   if(SECCION !== 'colores' || !clientesTop.length){ $c.hidden = true; return; }
   const q = norm($q.value);
-  const todos = !q && !soloActualizadas && !soloPendientes && !filtroPigmento && !filtroCliente;
+  const todos = !q && !soloActualizadas && !soloConBote && !soloPendientes && !filtroPigmento && !filtroCliente;
   const nAct = DATOS.formulas.reduce((n,f)=>n + (estadoAct(f).aldia ? 1 : 0), 0);
+  const nBote = DATOS.formulas.reduce((n,f)=>n + (tieneBote(f) ? 1 : 0), 0);
   $c.hidden = false;
   // Si el filtro es de un cliente que no está entre los cinco (llegó desde el
   // enlace de una ficha), su chip se añade encendido: el filtro tiene que
@@ -5082,7 +5119,10 @@ function pintarChips(){
     `<button class="chip" data-chip="todos" aria-pressed="${todos}">Todos</button>` +
     lista.map(c=>`<button class="chip" data-chip="cliente" data-cliente="${esc(c.nombre)}"
         aria-pressed="${filtroCliente === c.clave}">${esc(c.nombre)} <span class="n">${c.n}</span></button>`).join('') +
-    (nAct ? `<button class="chip" data-chip="actualizadas" aria-pressed="${soloActualizadas}">Rectificadas <span class="n">${nAct}</span></button>` : '');
+    (nAct ? `<button class="chip" data-chip="actualizadas" aria-pressed="${soloActualizadas}">Rectificadas <span class="n">${nAct}</span></button>` : '') +
+    // Mientras no haya ni un bote marcado el chip no sale: un "0" el primer día
+    // es un hueco que no lleva a ninguna parte.
+    (nBote ? `<button class="chip" data-chip="bote" aria-pressed="${soloConBote}">Con bote <span class="n">${nBote}</span></button>` : '');
   // El chip encendido se trae a la vista, que la tira se desplaza.
   $c.querySelector('[aria-pressed="true"]')?.scrollIntoView({block:'nearest', inline:'nearest'});
 }
@@ -5097,12 +5137,15 @@ document.getElementById('chips-cli').addEventListener('click', e=>{
     return;
   }
   soloPendientes = false; filtroPigmento = null; $q.value = '';
-  if(b.dataset.chip === 'todos'){ soloActualizadas = false; filtroCliente = null; }
+  if(b.dataset.chip === 'todos'){ soloActualizadas = false; soloConBote = false; filtroCliente = null; }
   else if(b.dataset.chip === 'cliente'){
-    soloActualizadas = false;
+    soloActualizadas = false; soloConBote = false;
     filtroCliente = b.getAttribute('aria-pressed') === 'true' ? null : norm(b.dataset.cliente);
   }
-  else { filtroCliente = null; soloActualizadas = !soloActualizadas; }
+  else if(b.dataset.chip === 'bote'){
+    soloActualizadas = false; filtroCliente = null; soloConBote = !soloConBote;
+  }
+  else { filtroCliente = null; soloConBote = false; soloActualizadas = !soloActualizadas; }
   if(document.body.dataset.ficha === 'on') cerrarFicha();
   actualizar();
 });
@@ -5376,6 +5419,21 @@ function selloActualizacion(f){
     (f.fecha_actualizacion ? `<span class="etiqueta">${fecha(f.fecha_actualizacion)}</span>` : '');
 }
 
+/* El sello del bote va en la cabecera, pegado al nombre: la pregunta "¿tengo
+   bote de este?" se hace ANTES de nada más. Cuando lo hay se dice desde
+   cuándo; cuando no, se dice qué hacer (coger uno nuevo), que es más útil que
+   un "no" a secas. El botón de cambiarlo va al lado, en pequeño, para que no
+   se toque sin querer con el dedo gordo de la goma. */
+function selloBote(f){
+  if(f.solo_referencia) return '';
+  return tieneBote(f)
+    ? `<span class="etiqueta bote" id="sello-bote" title="Tiene su bote en la estantería${
+        f.estanteria_desde ? ', desde el ' + fecha(f.estanteria_desde) : ''}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10z" fill="currentColor" stroke="none" opacity=".3"/><path d="M7 10a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10z"/><path d="M9.2 8V4.8a1 1 0 0 1 1-1h3.6a1 1 0 0 1 1 1V8"/></svg>
+        Con bote</span>`
+    : `<span class="etiqueta sin-bote" id="sello-bote">Sin bote</span>`;
+}
+
 function datosHero(f, total, usan){
   const cli   = clienteDe(f.nombre);
   // Del cuaderno, no del campo viejo de dentro de la fórmula: ahora también
@@ -5499,6 +5557,9 @@ function pintarFicha(){
       <div class="hero-txt">
         <h2>${esc(f.nombre)}</h2>
         <div class="hero-meta">
+          ${selloBote(f)}
+          ${puedeEditar ? `<button class="rectificar" id="bote-cambiar">${
+            tieneBote(f) ? 'ya no está' : 'marcar que tiene bote'}</button>` : ''}
           ${selloActualizacion(f)}
           ${hermanas.length ? `<span class="etiqueta info">${grupo.tipo==='identica'?'Idéntica a':'Misma proporción que'} ${hermanas.length}</span>`:''}
         </div>
@@ -5631,6 +5692,7 @@ function pintarFicha(){
     $ficha.querySelector('.hero-muestra')?.addEventListener('click',
       ()=>verFotoGrande(f.id, f.nombre));
   document.getElementById('btn-comparar')?.addEventListener('click', ()=>compararColores(f));
+  document.getElementById('bote-cambiar')?.addEventListener('click', ()=>marcarBote(f, !tieneBote(f)));
   document.getElementById('hist-plegable')?.addEventListener('toggle', e=>{
     histAbierto = e.target.open ? f.id : null;
   });
@@ -5984,6 +6046,21 @@ function resolverIngrediente(f, k, idCand){
   reconstruir(); pintarFicha(); actualizar();
 }
 
+/* Marcar (o desmarcar) que este color tiene su bote en la estantería. Queda
+   con fecha y en el registro, como todo lo demás: si la estantería y la app
+   dejan de cuadrar, se puede mirar quién lo tocó y cuándo. */
+function marcarBote(f, hay, callado){
+  if(!puedeEditar) return callado ? false : brindis(SIN_PERMISO);
+  if(tieneBote(f) === !!hay) return false;
+  anotar(f, {en_estanteria: !!hay, estanteria_desde: hay ? new Date().toISOString() : null});
+  apuntar(hay ? 'estanteria-si' : 'estanteria-no', f, null);
+  if(!callado){
+    brindis(hay ? 'Marcado: tiene bote en la estantería' : 'Marcado: ya no tiene bote');
+    pintarFicha(); actualizar();
+  }
+  return true;
+}
+
 /* El estado, en palabras, para «Estado y notas». Solo cuando hay algo que
    decir: la fórmula sin rectificar no lleva ningún texto, que un «sin marcar»
    en 860 fichas es un reproche, no información. */
@@ -6298,6 +6375,15 @@ function pintarPesaje(){
           title="Todo en el mismo bote, sin poner a cero">Sin tarar</button>
       </div>
     </div>
+    ${(()=>{
+      // Lo que hace falta saber AQUÍ, con el bote vacío en la mano: si hay uno
+      // suyo en la estantería o hay que coger uno nuevo y etiquetarlo.
+      if(f.solo_referencia) return '';
+      return tieneBote(f)
+        ? `<div class="pes-bote hay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10z" fill="currentColor" stroke="none" opacity=".3"/><path d="M7 10a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10z"/><path d="M9.2 8V4.8a1 1 0 0 1 1-1h3.6a1 1 0 0 1 1 1V8"/></svg>
+           <span>Tiene bote en la estantería${f.estanteria_desde ? ', desde el <b>' + fecha(f.estanteria_desde) + '</b>' : ''}: búscalo.</span></div>`
+        : `<div class="pes-bote no"><span>No tiene bote: coge uno nuevo y ponle la etiqueta.</span></div>`;
+    })()}
     <div class="pes-barra"><i style="width:${hechas/p.filas.length*100}%"></i></div>
     ${heroePesaje(p, hechas)}
     ${p.crecio ? `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
@@ -6592,6 +6678,8 @@ function textoDe(e){
                               d.afectadas === 1 ? '' : 's'} a revisar`;
     case 'pigmento-quitado': return 'Quitada la marca del pigmento';
     case 'bote':       return 'Bote preparado';
+    case 'estanteria-si': return 'Bote puesto en la estantería';
+    case 'estanteria-no': return 'Bote quitado de la estantería';
     case 'sello-creado':   return 'Sello creado';
     case 'sello-cambiado': return 'Ficha del sello cambiada';
     case 'sello-borrado':  return 'Sello eliminado';
@@ -8822,7 +8910,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">de2770b7</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">288d1f74</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -9645,6 +9733,15 @@ const PIE_PEGATINAS = `<script>
 
 function imprimirEtiquetas(items){
   if(!items.length) return brindis('No hay ninguna etiqueta que imprimir');
+  /* Imprimir la etiqueta del bote ES estrenar bote: se marca solo, sin
+     preguntar. Es la única señal fiable que tiene la app —lo que se gasta no
+     lo sabe— y no cuesta un toque más a nadie. En callado: quien está
+     imprimiendo tres etiquetas no quiere tres avisos. */
+  const marcados = items.reduce((n, e)=>{
+    const f = e.id ? porId.get(e.id) : null;
+    return n + (f && marcarBote(f, true, true) ? 1 : 0);
+  }, 0);
+  if(marcados) actualizar();
   const w = window.open('','_blank');
   if(!w) return brindis('El navegador ha bloqueado la ventana de las etiquetas');
 

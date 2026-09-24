@@ -3288,19 +3288,38 @@ function crearNube({url, clave}){
   // ── Bajar lo que ha cambiado ─────────────────────────────────────────
   const TANDA = 500;
 
+  /* La columna que desempata cuando dos filas comparten marca de tiempo.
+     Todas las tablas usan 'id' menos los ajustes, que van por 'clave'. */
+  const claveDe = tabla => tabla === 'colores_ajustes' ? 'clave' : 'id';
+
   async function bajarTabla(tabla, desde){
     const filas = [];
-    let corte = desde || '1970-01-01T00:00:00Z';
+    const clave = claveDe(tabla);
+    let corte = desde || '1970-01-01T00:00:00Z', corteClave = null;
     for(let vuelta = 0; vuelta < 40; vuelta++){
-      const q = `/rest/v1/${tabla}?select=*&tocada=gt.${encodeURIComponent(corte)}` +
-                `&order=tocada.asc&limit=${TANDA}`;
+      /* FALLO REAL, y gordo (24 sep): aquí se avanzaba con "tocada > la última
+         vista". Un cambio en bloque en el servidor deja cientos de filas con
+         la MISMA marca —una transacción es un solo now()—, la tanda de 500
+         partía ese bloque por la mitad y el resto NO SE BAJABA NUNCA: el móvil
+         enseñaba 504 fórmulas de 861 tan tranquilo. El comentario que había
+         aquí decía que como mucho se repetiría alguna; era al revés.
+
+         El corte son ahora DOS campos, la marca y la clave, y el orden va por
+         los dos: dentro de una misma marca se sigue exactamente por donde se
+         quedó. Da igual cuántas filas compartan milisegundo. */
+      const tope = corteClave === null
+        ? `tocada=gt.${encodeURIComponent(corte)}`
+        : 'or=' + encodeURIComponent(
+            `(tocada.gt."${corte}",and(tocada.eq."${corte}",${clave}.gt."${corteClave}"))`);
+      const q = `/rest/v1/${tabla}?select=*&${tope}` +
+                `&order=tocada.asc,${clave}.asc&limit=${TANDA}`;
       const tanda = await pedir(q);
       if(!tanda?.length) break;
       filas.push(...tanda);
       if(tanda.length < TANDA) break;
-      // Se sigue por la última fecha vista. Si varias filas comparten
-      // milisegundo esto podría repetir alguna, y da igual: se aplica por id.
-      corte = tanda[tanda.length - 1].tocada;
+      const ultima = tanda[tanda.length - 1];
+      corte = ultima.tocada;
+      corteClave = ultima[clave];
     }
     return filas;
   }
@@ -8910,7 +8929,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">288d1f74</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">1daba514</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

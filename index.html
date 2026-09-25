@@ -8929,7 +8929,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">fa45b0d7</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">2e0399e3</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -9773,8 +9773,8 @@ function imprimirEtiquetas(items){
   const una = e => { const qr = e.id ? qrSvg(enlaceDe('color', e.id)) : '';
     return `<div class="et" data-encaja>
       <h1>${esc(e.nombre)}</h1>
-      <table>${e.nombres.map((n,k)=>
-        `<tr><td class="n">${esc(n)}</td><td class="g">${fmt(e.cantidades[k])}</td></tr>`).join('')}</table>
+      <div class="ings">${e.nombres.map((n,k)=>
+        `<div class="ing"><span class="n">${esc(n)}</span><span class="g">${fmt(e.cantidades[k])}</span></div>`).join('')}</div>
       <div class="pie">
         <div class="tot"><span>Total</span>${fmt(e.total)} g</div>
         ${qr ? `<div class="qr">${qr}</div>` : '<div class="marca"><b>S</b>ERI<b>A</b>DORNOS</div>'}
@@ -9806,13 +9806,23 @@ function imprimirEtiquetas(items){
        encoge él. */
     h1{margin:0;font-size:calc(14pt * var(--esc,1));line-height:1.05;letter-spacing:-.02em;font-weight:700;
        overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 0 auto}
-    table{width:100%;border-collapse:collapse;flex:0 0 auto;
-          margin-top:calc(1.6mm * var(--esc,1));
-          border-top:.4mm solid #000;padding-top:1.2mm}
-    td{padding:calc(.5mm * var(--esc,1)) 0;font-size:calc(9.5pt * var(--esc,1));vertical-align:baseline}
-    td.n{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60mm}
-    td.g{text-align:right;font-weight:700;white-space:nowrap}
-    td.g::after{content:" g";font-weight:400;color:#000;font-size:.8em}
+    /* SIN TABLA, a propósito (25 sep). Con <table> el taller imprimió una
+       etiqueta con la columna de gramos corrida UNA FILA: el primer peso
+       aparecía al lado del nombre del color y el último ingrediente se
+       quedaba sin cantidad. En pantalla salía bien; solo pasaba en la
+       impresora de etiquetas. Una receta mal leída es goma tirada, así que
+       cada ingrediente es AHORA UNA FILA suya, con el nombre y los gramos
+       dentro de la misma caja: no hay dos columnas que se puedan descuadrar.
+       (Las tarjetas de molde ya iban así y salieron bien en la misma
+       impresión.) */
+    .ings{flex:0 0 auto; margin-top:calc(1.6mm * var(--esc,1));
+          border-top:.4mm solid #000; padding-top:1.2mm}
+    .ing{display:flex; align-items:center; gap:3mm;
+         padding:calc(.5mm * var(--esc,1)) 0; font-size:calc(9.5pt * var(--esc,1))}
+    .ing .n{font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+            min-width:0; flex:1 1 auto}
+    .ing .g{margin-left:auto; text-align:right; font-weight:700; white-space:nowrap; flex:0 0 auto}
+    .ing .g::after{content:" g";font-weight:400;color:#000;font-size:.8em}
     .pie{display:flex;justify-content:space-between;align-items:flex-end;
          border-top:.4mm solid #000;padding-top:1.2mm;margin-top:auto;flex:0 0 auto}
     .pie .tot{font-size:12pt;font-weight:700}

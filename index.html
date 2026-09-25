@@ -8929,7 +8929,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">1daba514</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">fa45b0d7</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -9700,8 +9700,11 @@ function qrSvg(texto){
    La impresora pide 1–1,5 mm de margen; si el rollo entra un pelín torcido se
    come más, así que se dejan 5 mm a los lados. Es térmica: solo negro, nada
    de grises finos ni degradados. */
-const PEGATINA = {ancho: 100, alto: 145, margen: 5};   // mm
-const ET_POR_HOJA = 3;                                 // fórmulas por pegatina
+/* 25 sep: el rollo pasa de 14,5 cm de largo a 5, así que en cada pegatina va
+   UNA etiqueta de color, no tres. Las medidas viven solo aquí: los textos de
+   la app y las rejillas salen de estos números, nunca escritos a mano. */
+const PEGATINA = {ancho: 100, alto: 50, margen: 5};    // mm
+const ET_POR_HOJA = 1;                                 // fórmulas por pegatina
 
 /* «10 × 14,5 cm», sacado de ahí arriba. Los textos de la app NO llevan la
    medida escrita a mano: ya pasó con «las 12 bases» en Opciones, que se quedó
@@ -9788,19 +9791,19 @@ function imprimirEtiquetas(items){
   w.document.write(cabeceraPegatinas(items.length === 1
       ? 'Etiqueta — ' + esc(items[0].nombre) : 'Etiquetas (' + items.length + ')') + `
   <style>
-    /* Tres franjas iguales, con línea de puntos entre ellas para cortar. La
-       línea va ENTRE etiqueta y etiqueta, nunca arriba del todo ni abajo:
-       ahí está el borde de la pegatina y una raya sobraría. */
+    /* Una franja por pegatina desde el rollo de 5 cm. La rejilla se queda
+       igual porque sigue valiendo si algún día vuelven a caber varias: la
+       línea de puntos va ENTRE etiquetas, nunca en el borde de la pegatina. */
     .tira{position:absolute; inset:0; display:grid;
           grid-template-rows:repeat(${ET_POR_HOJA}, 1fr)}
     .et{display:flex; flex-direction:column; overflow:hidden;
         padding:3.2mm ${PEGATINA.margen}mm;
         border-bottom:.3mm dashed #000}
     .et:last-child{border-bottom:0}
-    /* Con tres por pegatina cada una tiene ~48 mm de alto en vez de 110, así
-       que todo baja de tamaño. Son los números que caben dejando sitio a una
-       fórmula de cinco o seis ingredientes sin que el encajador tenga que
-       encogerla; con más, ya encoge él. */
+    /* La etiqueta tiene ~40 mm de alto (la pegatina entera menos los bordes).
+       Son los números que caben dejando sitio a una fórmula de cinco o seis
+       ingredientes sin que el encajador tenga que encogerla; con más, ya
+       encoge él. */
     h1{margin:0;font-size:calc(14pt * var(--esc,1));line-height:1.05;letter-spacing:-.02em;font-weight:700;
        overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 0 auto}
     table{width:100%;border-collapse:collapse;flex:0 0 auto;
@@ -9838,26 +9841,22 @@ function imprimirEtiquetas(items){
    muerta: un 34% de rollo a la basura en cada tirada.
 
    Ahora la rejilla se elige según cuántas tarjetas van en esa pegatina, para
-   que no sobre ninguna celda. Con el rollo de 14,5 cm sale así:
+   que no sobre ninguna celda. Con el rollo corto (25 sep) solo hay una fila:
 
-     1 → 1 × 2   tarjeta de 92 × 68 mm   (sobra media: imprimiendo una sola
-                                          no hay forma de no desperdiciar)
-     2 → 1 × 2   92 × 68                 llena
-     3 → 1 × 3   92 × 45                 llena   ← el caso de Juanjo
-     4 → 2 × 2   46 × 68                 llena
-     5 → 2 × 3   46 × 45                 queda una celda
-     6 → 2 × 3   46 × 45                 llena
+     1 → 1 × 1   tarjeta de 92 × 41 mm   llena
+     2 → 2 × 1   46 × 41                 llena
 
-   Y de paso el máximo por pegatina sube de 4 a 6, que es lo que de verdad
-   cabe en el rollo nuevo. */
-const MOLDES_POR_PEGATINA = 6;
+   Con dos ya se aprovecha la pegatina entera, así que el máximo baja de 6 a
+   2: meter más obligaría a una letra que no se lee a un metro del molde. */
+const MOLDES_POR_PEGATINA = 2;
 
 /** Cuántas columnas y filas para N tarjetas, y si van "anchas" (una sola
     columna, así que caben rótulos y letra más grande). */
 function rejillaDe(n){
-  const cols = n <= 3 ? 1 : 2;
-  const filas = Math.min(3, Math.max(2, Math.ceil(n / cols)));
-  return {cols, filas, ancha: cols === 1, baja: filas === 3};
+  const cols = n <= 1 ? 1 : 2;
+  // 'baja' siempre: la tarjeta mide ahora ~41 mm de alto, la misma altura para
+  // la que se midieron los tamaños de letra apretados.
+  return {cols, filas: 1, ancha: cols === 1, baja: true};
 }
 
 /** La tarjeta de un molde a partir de un sello. Si hay más sellos con el
@@ -9935,7 +9934,7 @@ function imprimirPegatinasMolde(tarjetas){
     .marca{font-size:7pt}
     .qr{width:13mm;height:13mm;flex:0 0 auto}
     .ancha .qr{width:18mm;height:18mm}
-    /* Tres filas: la tarjeta baja de 69 a 46 mm de alto y hay que apretar.
+    /* Tarjeta baja (~41 mm de alto) y hay que apretar.
        Estos números salen de medirlo: con los de la tarjeta alta el contenido
        se salía 13 px y el encajador no llegaba a arreglarlo (tiene un tope de
        encogido para no dejar la letra ilegible). */
@@ -10044,9 +10043,9 @@ function pintarPegatinasMolde(){
       </div>`;
     }).join('');
   }
-  /* Los huecos se cuentan sobre la rejilla DE VERDAD, no sobre el máximo de
-     seis: con dos moldes la pegatina se parte en dos celdas, no en seis, así
-     que decir «4 huecos libres» sería mentir y hacer añadir moldes de más. */
+  /* Los huecos se cuentan sobre la rejilla DE VERDAD, no sobre el máximo:
+     con un molde la pegatina no se parte, así que decir «1 hueco libre»
+     sería mentir y hacer añadir moldes de más. */
   const pegs = Math.ceil(n / MOLDES_POR_PEGATINA);
   const enUltima = n - (pegs - 1) * MOLDES_POR_PEGATINA;
   const r = n ? rejillaDe(enUltima) : null;

@@ -4692,10 +4692,19 @@ for(const f of DATOS.formulas){
    ═══════════════════════════════════════════════════════════════════ */
 const HAY_FOTOS = MODO === 'nube';
 const tieneFoto  = id => HAY_FOTOS && nube.fotos()[id] !== undefined;
-// El taller puede poner la que falta; reemplazar y borrar, solo el editor. No
-// es un capricho: es exactamente lo que deja hacer el servidor, y enseñar un
-// botón que va a devolver "prohibido" es engañar a quien lo pulsa.
-const puedeFoto  = id => HAY_FOTOS && (puedeEditar || !tieneFoto(id));
+/* Quién puede hacer la foto de un color, y quién rehacerla.
+
+   Desde el 25 de septiembre el taller también puede REHACERLA: es quien tiene
+   la goma en la mano, y si sale movida o con mala luz no tenía forma de
+   corregirla —se quedaba la mala para siempre—. Las de los SELLOS no: esas ni
+   las ve. Borrar sigue siendo cosa del editor: una foto mala se arregla
+   haciendo otra, y una borrada no se recupera.
+
+   Esto es exactamente lo que deja hacer el servidor (colores_fotos_cambiar);
+   enseñar un botón que va a devolver "prohibido" es engañar a quien lo pulsa. */
+const esFotoDeSello = id => String(id).startsWith('s-');
+const puedeFoto  = id => HAY_FOTOS &&
+  (puedeEditar || !tieneFoto(id) || !esFotoDeSello(id));
 
 /* Las fotos se bajan SOLO cuando se van a ver.
 
@@ -5122,8 +5131,12 @@ function pintarChips(){
   if(SECCION !== 'colores' || !clientesTop.length){ $c.hidden = true; return; }
   const q = norm($q.value);
   const todos = !q && !soloActualizadas && !soloConBote && !soloPendientes && !filtroPigmento && !filtroCliente;
-  const nAct = DATOS.formulas.reduce((n,f)=>n + (estadoAct(f).aldia ? 1 : 0), 0);
-  const nBote = DATOS.formulas.reduce((n,f)=>n + (tieneBote(f) ? 1 : 0), 0);
+  // Los dos números, en UNA pasada: esto se repinta con cada tecla del buscador.
+  let nAct = 0, nBote = 0;
+  for(const f of DATOS.formulas){
+    if(estadoAct(f).aldia) nAct++;
+    if(tieneBote(f)) nBote++;
+  }
   $c.hidden = false;
   // Si el filtro es de un cliente que no está entre los cinco (llegó desde el
   // enlace de una ficha), su chip se añade encendido: el filtro tiene que
@@ -7523,7 +7536,7 @@ function enlazarBotonesFoto(pre, f, alTerminar){
 async function hacerFoto(f, fuente, alTerminar){
   if(!puedeFoto(f.id))
     return brindis(tieneFoto(f.id)
-      ? 'Esta ya tiene foto. Cambiarla solo puede el editor.'
+      ? 'La foto de un sello solo la cambia el editor.'
       : SIN_PERMISO);
   const file = await pedirArchivoFoto(fuente === 'camara' ? 'camara' : 'galeria');
   if(!file) return;
@@ -7776,14 +7789,14 @@ function pantallaFoto(f, base, alTerminar){
   };
 }
 
-/** Verla en grande, y quitarla si eres el editor. */
+/** Verla en grande; rehacerla quien pueda, y quitarla solo el editor. */
 function verFoto(f){
   $dt.textContent = f.nombre;
   $dc.innerHTML = `<div class="foto-mirar" id="ver-grande" style="cursor:zoom-in">
       <img alt="Muestra de ${esc(f.nombre)}"></div>
     <p class="foto-notas flojo" style="margin-top:12px">Muestra real de la goma curada.
       Tócala para verla entera.</p>
-    ${puedeEditar ? `<div class="foto-elige">${botonesFoto('cam', true)}</div>` : ''}`;
+    ${puedeFoto(f.id) ? `<div class="foto-elige">${botonesFoto('cam', true)}</div>` : ''}`;
   $dp.innerHTML =
     (puedeEditar ? `<button class="btn btn-peligro" id="foto-fuera">Quitar</button>` : '') +
     `<button class="btn btn-1" data-cerrar>Cerrar</button>`;
@@ -8929,7 +8942,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">2e0399e3</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">d5c134c3</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

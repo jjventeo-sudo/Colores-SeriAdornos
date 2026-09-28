@@ -170,7 +170,6 @@ button{background:none;border:0;cursor:pointer;padding:0}
   display:flex; align-items:baseline; gap:10px;
 }
 .marca-seccion{font-weight:700; letter-spacing:-.045em; color:var(--texto)}
-.cab-ceja{margin-top:-4px}
 /* La marca, como en el logo: la S y la A grandes en rojo y el resto en plata.
    Colores medidos sobre el logo de verdad, no inventados.
    El blanco puro no vale sobre la barra clara —desaparecería—, así que se usa
@@ -212,6 +211,10 @@ button{background:none;border:0;cursor:pointer;padding:0}
   transition:border-color .15s var(--salida), background-color .15s var(--salida), box-shadow .15s var(--salida);
 }
 #q::placeholder{color:var(--texto-3); font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase}
+/* El campo es type="search", así que Chrome pinta SU aspa además de la
+   nuestra: dos cruces pegadas, y la del navegador no vacía la búsqueda
+   como debe. Fuera la del navegador, que la de la app hace más cosas. */
+#q::-webkit-search-cancel-button,#q::-webkit-search-decoration{-webkit-appearance:none; appearance:none}
 #q:focus{outline:none; border-color:var(--texto-2); background:var(--panel-2); box-shadow:inset 0 1px 0 var(--canto), 0 0 0 3px color-mix(in srgb,var(--texto) 10%,transparent)}
 .limpiar{
   position:absolute; right:8px; top:50%; transform:translateY(-50%);
@@ -300,7 +303,11 @@ button{background:none;border:0;cursor:pointer;padding:0}
 }
 @media (max-width:860px){
   body[data-ficha="on"] .barra{translate:0 140%; opacity:0; pointer-events:none}
-  body[data-ficha="on"] .actualiza,body[data-ficha="on"] .brindis{bottom:max(16px,env(safe-area-inset-bottom))}
+  /* Con una ficha abierta la barra de abajo se retira, pero en su sitio está
+     la de la ficha (Preparar · Etiqueta), así que los avisos suben por encima
+     de ELLA: taparle a alguien el botón de preparar con un recordatorio de
+     copia de seguridad es justo lo que no puede pasar. */
+  body[data-ficha="on"] .brindis{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 82px)}
 }
 .barra .btn-icono,.barra #solapas button{
   flex:1 1 0; height:60px; width:auto; border-radius:999px;
@@ -483,6 +490,10 @@ button{background:none;border:0;cursor:pointer;padding:0}
 /* ── Ficha ───────────────────────────────────────────────────────── */
 .columna-ficha{flex:1 1 auto; overflow-y:auto; min-width:0; overscroll-behavior:contain; background:var(--panel)}
 .ficha{max-width:780px; margin:0 auto; padding:26px 26px 96px}
+/* Con la barra pegada al fondo, el hueco de abajo sobra: dejarlo hacía
+   que al llegar al final la barra se despegara y quedara flotando a media
+   altura. El muro sí lo necesita, que ahí la barra flotante no se retira. */
+.ficha:not(.es-muro){padding-bottom:0}
 /* En un monitor de verdad sobraba medio ancho: la ficha eran 780 px centrados
    en 1440 y todo caía en una sola columna kilométrica. A partir de 1180 px se
    parte en dos: la receta a la izquierda —que es lo que se mira— y el estado,
@@ -500,6 +511,35 @@ button{background:none;border:0;cursor:pointer;padding:0}
      "Eliminar" acababa a 600 px de los demás y parecía de otra pantalla. */
   .acciones-ficha{grid-column:1; grid-row:2}
 }
+
+/* ── La barra de la ficha ─────────────────────────────────────────
+   La acción de esta pantalla es PREPARAR, y estaba al final de todo: medido
+   el 28 de septiembre, en el móvil caía en el píxel 970 de una pantalla de
+   664, y en el ordenador en el 1023 de 950. O sea, fuera de la vista en los
+   dos sitios. Con el bote en la mano nadie arrastra buscando un botón.
+
+   Ahora va pegada al fondo de la ficha, con la etiqueta al lado, y los
+   botones que se usan de tarde en tarde —y sobre todo el de eliminar— se
+   quedan al final, que es un sitio al que hay que ir a propósito. En el
+   móvil la barra flotante de abajo ya se retira al abrir una ficha, así que
+   no se pisan. */
+.barra-ficha{
+  position:sticky; bottom:0; z-index:12;
+  --alto-barra:82px;                    /* lo usan los avisos para no taparla */
+  display:flex; gap:10px; align-items:center;
+  margin:20px -26px 0; padding:12px 26px;
+  padding-bottom:calc(12px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,color-mix(in srgb,var(--panel) 0%,transparent),var(--panel) 34%);
+  backdrop-filter:saturate(1.3) blur(10px);
+  border-top:1px solid var(--linea);
+}
+.barra-ficha .btn{height:58px; font-size:16.5px}
+/* La barra tapa los últimos milímetros de la ficha cuando se lleva algo
+   a la vista «lo justo». Con esto, cualquier desplazamiento automático
+   deja el alto de la barra por debajo y nada acaba escondido detrás. */
+.ficha .tarjeta,.ficha .aviso,.acciones-ficha,.acciones-ficha .btn{scroll-margin-bottom:96px}
+.barra-ficha #btn-preparar{flex:1 1 auto; font-size:17px}
+.barra-ficha #btn-etiqueta{flex:0 0 auto}
 
 .hero{display:flex; gap:22px; align-items:flex-start; margin-bottom:6px}
 /* La muestra que tocas en la lista o en el muro CRECE hasta convertirse en
@@ -1274,6 +1314,10 @@ button{background:none;border:0;cursor:pointer;padding:0}
   }
   body[data-ficha="on"] .columna-ficha{transform:none; visibility:visible}
   .ficha{padding:0 16px 110px}
+  .barra-ficha{margin:18px -16px 0; padding-left:16px; padding-right:16px}
+  /* Los atajos de cantidad caen a su propia línea en el móvil: pegados a
+     la derecha quedaban colgando del borde, lejos del campo al que van. */
+  .multi{margin-left:0; width:100%}
   /* "Volver": en letra de máquina, como un rótulo, pegado arriba. */
   .volver{
     display:flex; align-items:center; gap:10px; height:50px;
@@ -1334,6 +1378,7 @@ button{background:none;border:0;cursor:pointer;padding:0}
   /* Los avisos de abajo, a la derecha, donde no hay barra. */
   .actualiza{left:auto; right:20px; translate:0; bottom:20px; max-width:520px}
   .brindis{left:auto; right:20px; translate:0; bottom:20px}
+  body[data-ficha="on"] .brindis{bottom:calc(20px + 82px)}
   .brindis.on{translate:0 -4px}
 }
 
@@ -1531,7 +1576,7 @@ body[data-rol="taller"] .historial .btn{display:none !important}
    siquiera se genera como botón (ver selloActualizacion). Esta regla se queda
    como segunda barrera por si alguna vez se cuela. */
 body[data-rol="taller"] #sello-act{display:none !important}
-body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
+body[data-rol="taller"] .barra-ficha #btn-preparar{flex:1 1 100%}
 .sello-rol{
   display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 11px;
   border-radius:999px; font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.14em; text-transform:uppercase;
@@ -1696,6 +1741,9 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
    puede pulsar. */
 .actualiza{
   position:fixed; left:50%; bottom:calc(max(14px,env(safe-area-inset-bottom)) + 84px); translate:-50% 0; z-index:95;
+  /* Con una ficha abierta hay debajo la barra de Preparar y, encima de ella,
+     los botones del final. Un aviso flotando ahí tapa justo lo que se quiere
+     pulsar —«Eliminar» quedaba debajo—, así que sube lo que mide la barra. */
   display:flex; align-items:center; gap:12px;
   background:var(--texto); color:var(--fondo);
   padding:11px 12px 11px 18px; border-radius:999px; font-size:13.5px; font-weight:560;
@@ -1704,6 +1752,11 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 }
 @keyframes sube-aviso{from{opacity:0; translate:-50% 12px} to{opacity:1; translate:-50% 0}}
 @media (min-width:861px){ @keyframes sube-aviso{from{opacity:0; translate:0 12px} to{opacity:1; translate:0 0}} }
+body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 96px)}
+/* Y además NO se come los toques de lo que tiene detrás: es un aviso que flota
+   encima de la app, no una capa que la bloquee. Sus botones sí responden. */
+.actualiza{pointer-events:none}
+.actualiza button{pointer-events:auto}
 .actualiza button{
   flex:0 0 auto; height:32px; padding:0 14px; border-radius:999px; font-weight:680;
   font-size:13px; background:var(--fondo); color:var(--texto);
@@ -2209,20 +2262,7 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
 .s-paso.hito .s-paso-s{font-size:17px}
 
 /* ── Parámetros ──────────────────────────────────────────────────── */
-.s-bloque{
-  background:linear-gradient(180deg,var(--panel-luz),var(--panel)); border:1px solid var(--linea); border-radius:var(--r-l);
-  box-shadow:inset 0 1px 0 var(--canto), var(--sombra-2); margin-bottom:13px; overflow:hidden;
-}
-.s-bloque-cab{
-  display:flex; align-items:center; justify-content:space-between; gap:10px;
-  padding:10px 13px; border-bottom:1px solid var(--linea); background:var(--panel-2);
-}
-.s-bloque-cab h4{
-  margin:0; font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.18em;
-  text-transform:uppercase; color:var(--texto-3);
-}
 .s-nota{font-size:10.5px; color:var(--texto-3); letter-spacing:.02em; text-align:right}
-.s-bloque-cuerpo{padding:3px 13px 9px}
 /* Un epígrafe, no una cabecera con caja: el título de una tabla no necesita
    fondo propio para saberse que es un título. */
 .s-epigrafe{
@@ -2309,15 +2349,6 @@ body[data-rol="taller"] .acciones-ficha #btn-preparar{flex:1 1 100%}
   text-transform:uppercase; color:var(--texto-2);
   border:1px solid var(--linea); border-radius:99px; padding:2px 8px; white-space:nowrap;
 }
-.s-final{
-  display:flex; align-items:center; justify-content:space-between; gap:10px;
-  padding:14px 18px; background:linear-gradient(180deg,var(--tinta),var(--tinta-2)); color:var(--tinta-txt);
-  border-radius:var(--r-l); margin-bottom:13px;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), var(--sombra-2);
-}
-.s-final .q{font-size:14.5px; font-weight:600}
-.s-final .v{font-size:20px; font-weight:700; font-variant-numeric:tabular-nums}
-.s-final .v em{font-style:normal; font-size:12px; font-weight:500; opacity:.7; margin-left:2px}
 
 /* ── Ancho: sello y molde fijos, dos pestañas ────────────────────── */
 .s-ancho{display:grid; grid-template-columns:300px 1fr; gap:26px; align-items:start}
@@ -4687,16 +4718,23 @@ function calcularMateriasDe(){
 
 calcularMateriasDe();
 
-// Quién usa a quién: para poder avisar de "esta fórmula la llevan otras 12".
+/* Quién usa a quién: para poder avisar de "esta fórmula la llevan otras 12".
+   En una función, y no suelto, porque hay que rehacerlo cada vez que cambia
+   una receta: estaba escrito dos veces —aquí y en reconstruir()— palabra por
+   palabra, que es la forma segura de que un día solo se arregle uno. */
 const usadaPor = new Map();
-for(const f of DATOS.formulas){
-  for(const i of f.ingredientes){
-    if(i.tipo==='formula'){
-      if(!usadaPor.has(i.ref)) usadaPor.set(i.ref, new Set());
-      usadaPor.get(i.ref).add(f.id);
+function calcularUsadaPor(){
+  usadaPor.clear();
+  for(const f of DATOS.formulas){
+    for(const i of (f.ingredientes || [])){
+      if(i.tipo==='formula'){
+        if(!usadaPor.has(i.ref)) usadaPor.set(i.ref, new Set());
+        usadaPor.get(i.ref).add(f.id);
+      }
     }
   }
 }
+calcularUsadaPor();
 
 /* ═══════════════════════════════════════════════════════════════════
    LA FOTO DE VERDAD
@@ -4735,6 +4773,21 @@ const puedeFoto  = id => HAY_FOTOS &&
    gratuito al mes. Así, cada aparato acaba teniendo guardadas las que mira, y
    a partir de la segunda vez salen del propio móvil. */
 let ojoFotos = null;
+/* Al vaciar un contenedor hay que SOLTAR lo que quedó observado dentro. El
+   observador solo deja de mirar un elemento cuando llega a verse, así que las
+   filas que nunca se asomaron seguían observadas para siempre —y un observador
+   se agarra a sus elementos, así que esos nodos ya desenchufados no se
+   liberaban—. Escribir en el buscador vacía la lista en cada tecla: con la app
+   abierta toda la mañana en el móvil del taller, eso se acumula.
+
+   Se suelta por contenedor y no de golpe (`disconnect`) a propósito: el
+   observador es uno para toda la app, y en el ordenador la lista y la ficha
+   están a la vez en pantalla; soltarlo entero dejaría a la otra sin cargar
+   sus fotos hasta el siguiente repintado. */
+function soltarFotos(cont){
+  if(!ojoFotos || !cont) return;
+  for(const el of cont.querySelectorAll('[data-foto]')) ojoFotos.unobserve(el);
+}
 function mirarFoto(el){
   if(!HAY_FOTOS || !el) return;
   if(!ojoFotos){
@@ -4824,34 +4877,44 @@ function indexarBusqueda(){
 }
 indexarBusqueda();
 
-const tienePendiente = f => f.ingredientes.some(i=>i.tipo==='sin_resolver');
-let soloPendientes = false;
-/* "Actualizadas": solo las que ya están dadas por buenas con los pigmentos
-   nuevos. Es el chip del buscador; va aparte de la búsqueda por texto. */
-let soloActualizadas = false;
-/* "Con bote": los colores que tienen su bote en la estantería. Sirve para
-   repasar la estantería de un vistazo sin abrir 861 fichas. */
-let soloConBote = false;
-/* El chip de un cliente filtra por lo que hay entre paréntesis, exacto: no es
-   una búsqueda de texto (esa encontraría también "cliente" dentro de otros
-   nombres y el número del chip no cuadraría con la lista). */
-let filtroCliente = null;
-const TOPE_CHIPS = 5;      // clientes que caben en la tira de chips
-let clientesTop = [];      // los N con más colores; lo rellena contarClientes()
-/* Filtro por pigmento: "enséñame las que llevan ESE pigmento". Es el paso que
-   le faltaba a la pantalla de pigmentos, que te decía el número y ahí te
-   dejaba. Cuenta también las que lo llevan dentro de otra fórmula.
+const tienePendiente = f => (f.ingredientes || []).some(i=>i.tipo==='sin_resolver');
+
+/* ── UN SOLO FILTRO A LA VEZ ──────────────────────────────────────────
+   Antes eran cinco variables sueltas —pendientes, rectificadas, con bote,
+   cliente y pigmento— y `filtrar()` las resolvía en cascada, así que si dos se
+   quedaban encendidas a la vez una ganaba en silencio. No pasaba de milagro:
+   CADA manejador reescribía a mano el apagado de las otras cuatro, en seis
+   sitios distintos. Añadir un sexto filtro era tocar seis sitios y olvidarse
+   de uno no daba error, daba un contador que no cuadraba con la lista.
+
+   Ahora es uno: `filtro.tipo` manda y ponerlo apaga lo demás solo.
+
+   - 'pendientes'   los ingredientes sin resolver
+   - 'actualizadas' las ya dadas por buenas con los pigmentos nuevos
+   - 'bote'         las que tienen su bote en la estantería
+   - 'cliente'      lo que hay entre paréntesis, exacto (no es buscar texto:
+                    eso encontraría el nombre dentro de otros y el número del
+                    chip no cuadraría con la lista)
+   - 'pigmento'     las que llevan ESE pigmento, también dentro de otra fórmula
    (Sin ejemplos reales en los comentarios: este archivo se cuelga en internet
    y el comprobador de construir.py caza cualquier nombre de fórmula.) */
-let filtroPigmento = null;
+const filtro = {tipo: null, valor: null};
+const ponerFiltro = (tipo, valor=null)=>{ filtro.tipo = tipo; filtro.valor = valor; };
+const sinFiltro = ()=> !filtro.tipo;
+const filtroEs = (tipo, valor)=> filtro.tipo === tipo &&
+                                 (valor === undefined || filtro.valor === valor);
+const TOPE_CHIPS = 5;      // clientes que caben en la tira de chips
+let clientesTop = [];      // los N con más colores; lo rellena contarClientes()
 
 function filtrar(txt){
   const t = norm(txt);
-  if(filtroPigmento) return DATOS.formulas.filter(f=>materiasDe.get(f.id)?.has(filtroPigmento));
-  if(soloPendientes) return DATOS.formulas.filter(tienePendiente);
-  if(soloActualizadas) return DATOS.formulas.filter(f=>estadoAct(f).aldia);
-  if(soloConBote) return DATOS.formulas.filter(tieneBote);
-  if(filtroCliente) return DATOS.formulas.filter(f=>norm(clienteDe(f.nombre)||'') === filtroCliente);
+  switch(filtro.tipo){
+    case 'pigmento':     return DATOS.formulas.filter(f=>materiasDe.get(f.id)?.has(filtro.valor));
+    case 'pendientes':   return DATOS.formulas.filter(tienePendiente);
+    case 'actualizadas': return DATOS.formulas.filter(f=>estadoAct(f).aldia);
+    case 'bote':         return DATOS.formulas.filter(tieneBote);
+    case 'cliente':      return DATOS.formulas.filter(f=>norm(clienteDe(f.nombre)||'') === filtro.valor);
+  }
   if(!t) return DATOS.formulas.slice();
   const palabras = t.split(' ');
   const res = [];
@@ -4894,13 +4957,19 @@ function resaltar(nombre, txt){
     let k = cad.indexOf(p);
     while(k>=0){ for(let j=k;j<k+p.length;j++) marcas.add(mapa[j]); k = cad.indexOf(p,k+1); }
   }
-  let out='', dentro=false;
-  const base = nombre.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-  for(let i=0;i<base.length;i++){
-    const m = marcas.has(i);
+  /* Se pinta el nombre DE VERDAD, con sus tildes y su Ñ. Antes se pintaba la
+     versión sin acentos —la que se usa para buscar—, así que en cuanto
+     escribías una letra el único nombre con Ñ del recetario perdía la Ñ; con el
+     buscador vacío salía bien, con lo que parecía un fallo intermitente.
+     El truco: recorrer el descompuesto y soltar cada acento pegado a su
+     letra, sin que cuente como posición. */
+  let out='', dentro=false, k=0;
+  for(let i=0;i<nf.length;i++){
+    if(/[\u0300-\u036f]/.test(nf[i])){ out += esc(nf[i]); continue; }
+    const m = marcas.has(k);
     if(m && !dentro){ out+='<mark>'; dentro=true; }
     if(!m && dentro){ out+='</mark>'; dentro=false; }
-    out += esc(base[i]);
+    out += esc(nf[i]); k++;
   }
   if(dentro) out+='</mark>';
   return out;
@@ -4931,7 +5000,7 @@ function inicial(nombre){
    se quita de en medio. No es una .fila más —cuenta aparte— para que
    "860 de 860" siga siendo verdad. */
 function filaUltima(){
-  if($q.value.trim() || soloPendientes || soloActualizadas || soloConBote || filtroPigmento || filtroCliente) return null;
+  if($q.value.trim() || !sinFiltro()) return null;
   const e = HISTORIAL.length ? HISTORIAL[HISTORIAL.length - 1] : null;
   if(!e) return null;
   const f = porId.get(e.formula);
@@ -4949,7 +5018,7 @@ function filaUltima(){
 }
 
 function pintarLista(reinicia=true){
-  if(reinicia){ $lista.innerHTML=''; pintadas=0; letraActual=null; $lista.scrollTop=0; }
+  if(reinicia){ soltarFotos($lista); $lista.innerHTML=''; pintadas=0; letraActual=null; $lista.scrollTop=0; }
   const hasta = Math.min(pintadas+TANDA, filtradas.length);
   const frag = document.createDocumentFragment();
   if(reinicia){ const u = filaUltima(); if(u) frag.appendChild(u); }
@@ -4968,7 +5037,7 @@ function pintarLista(reinicia=true){
     }
   // Los separadores solo tienen sentido en el orden alfabético. Al buscar, la
   // lista sale por relevancia y una "A" pegada arriba sería mentira.
-  const agrupar = !txt.trim() && !soloPendientes;
+  const agrupar = !txt.trim() && !filtroEs('pendientes');
   for(let i=pintadas;i<hasta;i++){
     const f = filtradas[i];
     const c = color(f);
@@ -5080,14 +5149,15 @@ function actualizar(tarde = false){
   }
   const nPend = DATOS.formulas.filter(tienePendiente).length;
   const chip = document.getElementById('chip-pend');
-  chip.hidden = !nPend && !soloPendientes;
-  chip.textContent = soloPendientes ? 'Ver todas' : `${nPend} por decidir`;
-  chip.setAttribute('aria-pressed', String(soloPendientes));
+  const pend = filtroEs('pendientes');
+  chip.hidden = !nPend && !pend;
+  chip.textContent = pend ? 'Ver todas' : `${nPend} por decidir`;
+  chip.setAttribute('aria-pressed', String(pend));
 
   const cp = document.getElementById('chip-pigmento');
-  cp.hidden = !filtroPigmento;
-  if(filtroPigmento){
-    cp.innerHTML = `Con ${esc(materias.get(filtroPigmento)?.nombre || '?')}
+  cp.hidden = !filtroEs('pigmento');
+  if(filtroEs('pigmento')){
+    cp.innerHTML = `Con ${esc(materias.get(filtro.valor)?.nombre || '?')}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>`;
     cp.title = 'Quitar el filtro y ver todas';
   }
@@ -5106,17 +5176,16 @@ function actualizar(tarde = false){
 }
 
 $q.addEventListener('input', ()=>{
-  soloPendientes=false; filtroPigmento=null; soloActualizadas=false; soloConBote=false; filtroCliente=null;
+  ponerFiltro(null);            // escribir manda: apaga cualquier chip
   actualizar(true);   // el muro, cuando pare de escribir
 });
-document.getElementById('chip-pigmento').onclick = ()=>{ filtroPigmento=null; actualizar(); };
+document.getElementById('chip-pigmento').onclick = ()=>{ ponerFiltro(null); actualizar(); };
 
 /** Enseñar en la lista todas las fórmulas que llevan este pigmento. */
 function verPigmento(id){
   const m = materias.get(id);
   if(!m) return;
-  filtroPigmento = id;
-  soloPendientes = false; soloActualizadas = false; soloConBote = false; filtroCliente = null;
+  ponerFiltro('pigmento', id);
   $q.value = '';
   cerrarTodo();
   actualizar();
@@ -5124,8 +5193,9 @@ function verPigmento(id){
   brindis(`${n} fórmula${n===1?'':'s'} con ${m.nombre}`);
 }
 document.getElementById('chip-pend').onclick = ()=>{
-  soloPendientes = !soloPendientes;
-  if(soloPendientes){ $q.value=''; soloActualizadas=false; soloConBote=false; filtroCliente=null; }
+  const puesto = filtroEs('pendientes');
+  ponerFiltro(puesto ? null : 'pendientes');
+  if(!puesto) $q.value = '';
   actualizar();
 };
 
@@ -5152,7 +5222,7 @@ function pintarChips(){
   if(!$c) return;
   if(SECCION !== 'colores' || !clientesTop.length){ $c.hidden = true; return; }
   const q = norm($q.value);
-  const todos = !q && !soloActualizadas && !soloConBote && !soloPendientes && !filtroPigmento && !filtroCliente;
+  const todos = !q && sinFiltro();
   // Los dos números, en UNA pasada: esto se repinta con cada tecla del buscador.
   let nAct = 0, nBote = 0;
   for(const f of DATOS.formulas){
@@ -5164,19 +5234,20 @@ function pintarChips(){
   // enlace de una ficha), su chip se añade encendido: el filtro tiene que
   // verse en algún sitio para poder quitarlo.
   const lista = clientesTop.slice();
-  if(filtroCliente && !lista.some(c=>c.clave === filtroCliente)){
-    const n = DATOS.formulas.filter(f=>norm(clienteDe(f.nombre)||'') === filtroCliente).length;
-    const nombre = (DATOS.formulas.map(f=>clienteDe(f.nombre)).find(c=>c && norm(c) === filtroCliente)) || filtroCliente;
-    lista.push({nombre, clave: filtroCliente, n});
+  const cli = filtroEs('cliente') ? filtro.valor : null;
+  if(cli && !lista.some(c=>c.clave === cli)){
+    const n = DATOS.formulas.filter(f=>norm(clienteDe(f.nombre)||'') === cli).length;
+    const nombre = (DATOS.formulas.map(f=>clienteDe(f.nombre)).find(c=>c && norm(c) === cli)) || cli;
+    lista.push({nombre, clave: cli, n});
   }
   $c.innerHTML =
     `<button class="chip" data-chip="todos" aria-pressed="${todos}">Todos</button>` +
     lista.map(c=>`<button class="chip" data-chip="cliente" data-cliente="${esc(c.nombre)}"
-        aria-pressed="${filtroCliente === c.clave}">${esc(c.nombre)} <span class="n">${c.n}</span></button>`).join('') +
-    (nAct ? `<button class="chip" data-chip="actualizadas" aria-pressed="${soloActualizadas}">Rectificadas <span class="n">${nAct}</span></button>` : '') +
+        aria-pressed="${cli === c.clave}">${esc(c.nombre)} <span class="n">${c.n}</span></button>`).join('') +
+    (nAct ? `<button class="chip" data-chip="actualizadas" aria-pressed="${filtroEs('actualizadas')}">Rectificadas <span class="n">${nAct}</span></button>` : '') +
     // Mientras no haya ni un bote marcado el chip no sale: un "0" el primer día
     // es un hueco que no lleva a ninguna parte.
-    (nBote ? `<button class="chip" data-chip="bote" aria-pressed="${soloConBote}">Con bote <span class="n">${nBote}</span></button>` : '');
+    (nBote ? `<button class="chip" data-chip="bote" aria-pressed="${filtroEs('bote')}">Con bote <span class="n">${nBote}</span></button>` : '');
   // El chip encendido se trae a la vista, que la tira se desplaza.
   $c.querySelector('[aria-pressed="true"]')?.scrollIntoView({block:'nearest', inline:'nearest'});
 }
@@ -5190,16 +5261,14 @@ document.getElementById('chips-cli').addEventListener('click', e=>{
     actualizar();
     return;
   }
-  soloPendientes = false; filtroPigmento = null; $q.value = '';
-  if(b.dataset.chip === 'todos'){ soloActualizadas = false; soloConBote = false; filtroCliente = null; }
-  else if(b.dataset.chip === 'cliente'){
-    soloActualizadas = false; soloConBote = false;
-    filtroCliente = b.getAttribute('aria-pressed') === 'true' ? null : norm(b.dataset.cliente);
-  }
-  else if(b.dataset.chip === 'bote'){
-    soloActualizadas = false; filtroCliente = null; soloConBote = !soloConBote;
-  }
-  else { filtroCliente = null; soloConBote = false; soloActualizadas = !soloActualizadas; }
+  /* Tocar un chip encendido lo apaga; tocar otro cambia de filtro. Apagar
+     los demás ya no hay que escribirlo: es lo que hace ponerFiltro(). */
+  $q.value = '';
+  const puesto = b.getAttribute('aria-pressed') === 'true';
+  if(b.dataset.chip === 'todos')        ponerFiltro(null);
+  else if(b.dataset.chip === 'cliente') ponerFiltro(puesto ? null : 'cliente', norm(b.dataset.cliente));
+  else if(b.dataset.chip === 'bote')    ponerFiltro(puesto ? null : 'bote');
+  else                                  ponerFiltro(puesto ? null : 'actualizadas');
   if(document.body.dataset.ficha === 'on') cerrarFicha();
   actualizar();
 });
@@ -5391,6 +5460,9 @@ function abrir(id, origen){
     objetivoTocado = !!ult && Math.abs(objetivo - totalReceta) > 0.5;
     comoLaUltima = ult || null;
     ultimosGramos = null;      // al cambiar de color no hay nada que destellar
+    // Y el resolvedor abierto era de la ficha anterior: si el ingrediente que
+    // hace ese número en ESTA está resuelto, salía desplegado sin pedirlo.
+    rectificando = null;
     recalcularLote();
     document.body.dataset.ficha='on';
     for(const el of $lista.querySelectorAll('.fila'))
@@ -5404,13 +5476,14 @@ function cerrarFicha(){
   if(document.body.dataset.ficha !== 'on') return;
   cerrarCapa('ficha');
   document.body.dataset.ficha='';
-  seleccion = null; selloSel = null;
+  seleccion = null; selloSel = null; rectificando = null;
   for(const el of $lista.querySelectorAll('.fila')) el.setAttribute('aria-current','false');
   if(SECCION === 'sellos') muroDeSellos(); else pintarFicha();
 }
 
 const MURO_TOPE = 240;
 function muroDeColores(){
+  soltarFotos($ficha);           // las baldosas de antes ya no están
   $ficha.classList.remove('es-muro');
   if(!filtradas.length){
     $ficha.innerHTML = `<div class="vacio">
@@ -5502,12 +5575,9 @@ function datosHero(f, total, usan){
     ? `<button class="enlace-cliente" data-cliente="${esc(cli)}">${esc(cli)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>`
     : '<span class="flojo">Sin cliente</span>']);
-  d.push(['Receta base', `<span class="num">${fmt(total)} g</span>`]);
   if(ultima)
     d.push(['Última vez', `${haceCuanto(ultima)}<small>${fechaCorta(ultima)}${
       veces>1 ? ' · '+veces+' veces' : ''}</small>`]);
-  if(usan.length)
-    d.push(['La llevan dentro', `${usan.length} fórmula${usan.length===1?'':'s'}`]);
   return `<dl class="hero-datos">${d.map(([k,v])=>
     `<div class="hero-dato"><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
 }
@@ -5567,23 +5637,17 @@ let ultimosGramos = null;
    cerrar en la cara. */
 let histAbierto = null;
 
-function pintarFicha(){
-  if(SECCION === 'sellos') return pintarFichaSello();
-  const f = porId.get(seleccion);
-  if(!f){ muroDeColores(); return; }
-  $ficha.classList.remove('es-muro');
-  const c = color(f);
-  const total = f.ingredientes.reduce((s,i)=>s+i.cantidad,0);
-  recalcularLote();
-  const grupo = f.equivalencia ? grupos.get(f.equivalencia) : null;
-  const hermanas = grupo ? grupo.formulas.filter(x=>x!==f.id).map(x=>porId.get(x)).filter(Boolean) : [];
-  const usan = [...(usadaPor.get(f.id)||[])].map(x=>porId.get(x)).filter(Boolean);
-  const anidada = llevaAnidada(f);
-  const totalMovido = ultimosGramos && ultimosGramos.total !== undefined
-                      && ultimosGramos.total !== (lote?lote.total:0);
+/* ── La ficha, en HTML ────────────────────────────────────────────────
+   Solo la plantilla: ni cuentas ni enganches de eventos. Estaba dentro de
+   pintarFicha, que con esto llegó a 273 líneas haciendo tres oficios a la vez
+   —pintar, enganchar 25 botones y llevar la máquina de estados del campo de
+   gramos—, y tocar cualquier detalle obligaba a leérsela entera.
 
-  const pos = posicionColor();
-  $ficha.innerHTML = `
+   Lo que llega en `x` es lo que se ha calculado arriba; lo demás (objetivo,
+   lote, comoLaUltima, histAbierto…) vive en el módulo, como siempre. */
+function plantillaFicha(f, x){
+  const {c, total, grupo, hermanas, usan, anidada, totalMovido, pos} = x;
+  return `
     <div class="volver-fila">
       <button class="volver" id="volver">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
@@ -5639,11 +5703,7 @@ function pintarFicha(){
 
     <div class="ficha-cuerpo"><div class="ficha-col">
     <div class="tarjeta tarjeta-fm">
-      <div class="tarjeta-cab"><h3>Fórmula</h3>
-        <button class="btn btn-fino" id="btn-etiqueta" title="Imprimir una etiqueta para pegar en el bote">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h6.6c.5 0 1 .2 1.4.6l6.9 6.9a2 2 0 0 1 0 2.8l-4.1 4.1a2 2 0 0 1-2.8 0l-6.9-6.9A2 2 0 0 1 6 11.1V7.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h6.6c.5 0 1 .2 1.4.6l6.9 6.9a2 2 0 0 1 0 2.8l-4.1 4.1a2 2 0 0 1-2.8 0l-6.9-6.9A2 2 0 0 1 6 11.1V7.5z"/><circle cx="8.3" cy="8.3" r="1.2"/></svg>
-          Etiqueta</button>
-      </div>
+      <div class="tarjeta-cab"><h3>Fórmula</h3></div>
       <div class="calc">
         <label for="calc-total">Quiero preparar</label>
         <!-- type="text" y no "number" a propósito: en un campo numérico el
@@ -5696,12 +5756,14 @@ function pintarFicha(){
           ${esc(x.nombre)}${clienteS(x) ? ` <em style="font-style:normal;color:var(--texto-3);font-weight:500">· ${esc(clienteS(x))}</em>` : ''}</button>`).join('')}</div>
       </div></div>`; })()}
 
-    ${/* Si no hay estado, ni notas, ni historial, la tarjeta no sale: una
-          tarjeta vacía con título es peor que ninguna. */
-      (estadoAct(f).aldia || f.notas || (f.historial && f.historial.length)) ? `
+    ${/* Si no hay notas ni historial, la tarjeta no sale: una tarjeta vacía
+          con título es peor que ninguna. Lo de «Rectificada» ya NO cuenta para
+          que salga: se dice arriba, en el sello de la cabecera, con su fecha;
+          repetirlo aquí abajo era decir dos veces lo mismo en la misma
+          pantalla. */
+      (f.notas || (f.historial && f.historial.length)) ? `
     <div class="tarjeta"><div class="tarjeta-cab"><h3>Estado y notas</h3></div>
       <div class="tarjeta-cuerpo">
-        ${explicaActualizacion(f)}
         ${f.notas ? `<p style="margin:6px 0 0;font-size:14px;color:var(--texto-2);white-space:pre-wrap">${esc(f.notas)}</p>`:''}
         ${(f.historial&&f.historial.length) ? `
           <details class="plegable" id="hist-plegable"${histAbierto === f.id ? ' open' : ''}>
@@ -5710,15 +5772,18 @@ function pintarFicha(){
               <em>· último ${esc(haceCuanto(f.historial[f.historial.length-1].fecha))}</em>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
             </summary>
-            <ul class="historial">${historialVisual(f)}</ul>
+            <!-- Vacío si está plegado: pintarlo cuesta una copia del índice
+                 de las 860 fórmulas POR VERSIÓN (el color que daría aquella
+                 receta se calcula de verdad), y eso se pagaba en cada
+                 repintado de la ficha aunque nadie lo estuviera mirando. Se
+                 rellena al abrirlo, ahí abajo. -->
+            <ul class="historial" id="hist-lista">${histAbierto === f.id ? historialVisual(f) : ''}</ul>
           </details>`:''}
       </div></div>` : ''}
     </div>
 
     <div class="acciones-ficha">
-      <button class="btn btn-marca" id="btn-preparar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14a3 3 0 0 0 6 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M16 14a3 3 0 0 0 6 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 4.5v15"/><path d="M8.5 19.5h7"/><path d="M4 8h16"/><path d="M5.5 8l-2.5 6a3 3 0 0 0 6 0L6.5 8"/><path d="M18.5 8l-2.5 6a3 3 0 0 0 6 0L19.5 8"/></svg>
-        Preparar</button>
+      
       <button class="btn" id="btn-editar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5l4 4-2.5 2.5-4-4z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4 20h4l10.5-10.5a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13 7l4 4"/></svg>
         Editar</button>
@@ -5727,7 +5792,105 @@ function pintarFicha(){
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 10h3V14h-3z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4 4.5h9.5V14H4z"/><path d="M10.5 10h9.5v9.5h-9.5z"/></svg>
         Comparar</button>
       <button class="btn btn-peligro" id="btn-borrar">Eliminar</button>
-    </div></div>`;
+    </div></div>
+
+    <!-- La barra pegada al fondo. Lleva SOLO lo que se hace con el bote
+         delante: preparar y sacar la etiqueta. Editar, duplicar, comparar y
+         eliminar siguen al final de la ficha, que es donde se va a propósito. -->
+    <div class="barra-ficha">
+      <button class="btn btn-marca" id="btn-preparar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14a3 3 0 0 0 6 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M16 14a3 3 0 0 0 6 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 4.5v15"/><path d="M8.5 19.5h7"/><path d="M4 8h16"/><path d="M5.5 8l-2.5 6a3 3 0 0 0 6 0L6.5 8"/><path d="M18.5 8l-2.5 6a3 3 0 0 0 6 0L19.5 8"/></svg>
+        Preparar</button>
+      <button class="btn" id="btn-etiqueta" title="Imprimir una etiqueta para pegar en el bote">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h6.6c.5 0 1 .2 1.4.6l6.9 6.9a2 2 0 0 1 0 2.8l-4.1 4.1a2 2 0 0 1-2.8 0l-6.9-6.9A2 2 0 0 1 6 11.1V7.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h6.6c.5 0 1 .2 1.4.6l6.9 6.9a2 2 0 0 1 0 2.8l-4.1 4.1a2 2 0 0 1-2.8 0l-6.9-6.9A2 2 0 0 1 6 11.1V7.5z"/><circle cx="8.3" cy="8.3" r="1.2"/></svg>
+        Etiqueta</button>
+    </div>`;
+}
+
+/* ── El campo de gramos ───────────────────────────────────────────────
+   Toda su máquina de estados junta: marcar el número al tocarlo, deshacer con
+   Escape, limpiar lo que no son cifras, esperar 250 ms antes de rehacer el
+   reparto y dejarlo AL DÍA cuando alguien va a leerlo (Etiqueta, Preparar).
+   Devuelve esa última función, que es lo único que necesita el de fuera. */
+function enlazarCampoGramos(f, total){
+  const $ct = document.getElementById('calc-total');
+  let tCalc;
+  const marcarTodo = ()=>{ try{ $ct.select(); }catch(_){} };
+  // El ratón y el dedo colocan el cursor DESPUÉS de dar el foco, deshaciendo
+  // la marca. Por eso no basta con marcar al enfocar: hay que aguantar hasta
+  // que termine ese toque. Solo la primera vez — si ya está dentro y vuelve a
+  // tocar, es que quiere poner el cursor en un sitio, y ahí no se estorba.
+  let reciénEnfocado = false;
+  // Para poder deshacer con Escape hace falta guardarse la cantidad de ANTES:
+  // `objetivo` cambia con cada tecla, así que a media palabra ya no queda nada
+  // a lo que volver.
+  let antesDeTocar = objetivo;
+  $ct.onfocus = ()=>{ reciénEnfocado = true; antesDeTocar = objetivo; marcarTodo(); };
+  $ct.onmouseup = e=>{ if(reciénEnfocado){ e.preventDefault(); reciénEnfocado = false; } };
+  $ct.ontouchend = ()=>{ if(reciénEnfocado){ reciénEnfocado = false; setTimeout(marcarTodo, 0); } };
+  $ct.oninput = ()=>{
+    // Solo cifras: si escribe una letra o un signo, se quita en el momento en
+    // vez de dejar el campo en un estado que luego no vale.
+    const limpio = String($ct.value).replace(/[^\d]/g, '').replace(/^0+(?=\d)/, '').slice(0, 6);
+    if(limpio !== $ct.value) $ct.value = limpio;
+    if(!limpio) return;                       // campo vacío: no se toca nada
+    const v = parseInt(limpio, 10);
+    if(!(v > 0)) return;
+    objetivo = v;
+    objetivoTocado = Math.abs(v - total) > 0.5;
+    clearTimeout(tCalc);
+    tCalc = setTimeout(()=>{ recalcularLote(); pintarLote(); marcarAtajo(); }, 250);
+  };
+  /* Si se queda en algo que no vale y se va a otra cosa, se devuelve la
+     cantidad que hay puesta. Antes solo miraba el campo VACÍO, y con un 0 la
+     pantalla decía «quiero preparar 0 gramos» mientras `objetivo` seguía con
+     la cantidad de antes: dabas a Preparar y el pesaje arrancaba con otra
+     cifra. Un 0 a medio escribir (ir a por «900») no molesta: esto solo salta
+     al salir del campo. */
+  const campoVale = ()=>{ const v = parseInt(String($ct.value).replace(/[^\d]/g,''), 10);
+                          return v > 0 ? v : null; };
+  $ct.onblur = ()=>{ if(!campoVale()) $ct.value = objetivo; };
+  /* Etiqueta y Preparar TIENEN que leer el mismo reparto. El de abajo se
+     recalcula 250 ms después de la última tecla, así que escribiendo 1200 y
+     pulsando Etiqueta al momento la pegatina salía con la cantidad anterior
+     —comprobado: 595 g en la pegatina y 1190 en el pesaje— y esa pegatina se
+     pega en el bote. Los dos botones pasan ahora por aquí, que vacía la
+     espera antes de leer nada. */
+  const alDia = ()=>{
+    clearTimeout(tCalc);
+    if(!campoVale()) $ct.value = objetivo;
+    recalcularLote(); pintarLote(); marcarAtajo();
+  };
+  $ct.onkeydown = e=>{
+    if(e.key === 'Enter'){ e.preventDefault(); $ct.blur(); }   // cierra el teclado
+    if(e.key === 'Escape'){
+      e.preventDefault();
+      clearTimeout(tCalc);
+      ponerObjetivo(antesDeTocar, Math.abs(antesDeTocar - total) <= 0.5);
+      $ct.blur();
+    }
+  };
+  return alDia;
+}
+
+function pintarFicha(){
+  if(SECCION === 'sellos') return pintarFichaSello();
+  const f = porId.get(seleccion);
+  if(!f){ muroDeColores(); return; }
+  soltarFotos($ficha);
+  $ficha.classList.remove('es-muro');
+  const c = color(f);
+  const total = f.ingredientes.reduce((s,i)=>s+i.cantidad,0);
+  recalcularLote();
+  const grupo = f.equivalencia ? grupos.get(f.equivalencia) : null;
+  const hermanas = grupo ? grupo.formulas.filter(x=>x!==f.id).map(x=>porId.get(x)).filter(Boolean) : [];
+  const usan = [...(usadaPor.get(f.id)||[])].map(x=>porId.get(x)).filter(Boolean);
+  const anidada = llevaAnidada(f);
+  const totalMovido = ultimosGramos && ultimosGramos.total !== undefined
+                      && ultimosGramos.total !== (lote?lote.total:0);
+
+  const pos = posicionColor();
+  $ficha.innerHTML = plantillaFicha(f, {c, total, grupo, hermanas, usan, anidada, totalMovido, pos});
 
   // Foto de los gramos actuales, para poder comparar en el siguiente repintado.
   ultimosGramos = lote ? lote.cantidades.slice() : f.ingredientes.map(i=>i.cantidad);
@@ -5749,6 +5912,11 @@ function pintarFicha(){
   document.getElementById('bote-cambiar')?.addEventListener('click', ()=>marcarBote(f, !tieneBote(f)));
   document.getElementById('hist-plegable')?.addEventListener('toggle', e=>{
     histAbierto = e.target.open ? f.id : null;
+    const ul = document.getElementById('hist-lista');
+    if(e.target.open && ul && !ul.children.length){
+      ul.innerHTML = historialVisual(f);
+      enlazarHistorial();
+    }
   });
   for(const b of $ficha.querySelectorAll('[data-sello]'))
     b.addEventListener('click', ()=>{
@@ -5763,8 +5931,7 @@ function pintarFicha(){
   $ficha.querySelector('[data-cliente]')?.addEventListener('click', e=>{
     const cli = e.currentTarget.dataset.cliente;
     // El enlace del cliente hace lo mismo que su chip: filtro exacto.
-    $q.value = ''; soloPendientes = false; soloActualizadas = false; filtroPigmento = null;
-    filtroCliente = norm(cli);
+    $q.value = ''; ponerFiltro('cliente', norm(cli));
     actualizar();
     if(innerWidth <= 860) cerrarTodo();
     brindis(`Colores de ${cli}`);
@@ -5790,52 +5957,20 @@ function pintarFicha(){
     ponerObjetivo(Math.round(f.ingredientes.reduce((x,i)=>x+i.cantidad,0)), true);
     pintarFicha();
   });
-  const $ct = document.getElementById('calc-total');
-  let tCalc;
-  const marcarTodo = ()=>{ try{ $ct.select(); }catch(_){} };
-  // El ratón y el dedo colocan el cursor DESPUÉS de dar el foco, deshaciendo
-  // la marca. Por eso no basta con marcar al enfocar: hay que aguantar hasta
-  // que termine ese toque. Solo la primera vez — si ya está dentro y vuelve a
-  // tocar, es que quiere poner el cursor en un sitio, y ahí no se estorba.
-  let reciénEnfocado = false;
-  // Para poder deshacer con Escape hace falta guardarse la cantidad de ANTES:
-  // `objetivo` cambia con cada tecla, así que a media palabra ya no queda nada
-  // a lo que volver.
-  let antesDeTocar = objetivo;
-  $ct.onfocus = ()=>{ reciénEnfocado = true; antesDeTocar = objetivo; marcarTodo(); };
-  $ct.onmouseup = e=>{ if(reciénEnfocado){ e.preventDefault(); reciénEnfocado = false; } };
-  $ct.ontouchend = ()=>{ if(reciénEnfocado){ reciénEnfocado = false; setTimeout(marcarTodo, 0); } };
-  $ct.oninput = ()=>{
-    // Solo cifras: si escribe una letra o un signo, se quita en el momento en
-    // vez de dejar el campo en un estado que luego no vale.
-    const limpio = String($ct.value).replace(/[^\d]/g, '').slice(0, 6);
-    if(limpio !== $ct.value) $ct.value = limpio;
-    if(!limpio) return;                       // campo vacío: no se toca nada
-    const v = parseInt(limpio, 10);
-    if(!(v > 0)) return;
-    objetivo = v;
-    objetivoTocado = Math.abs(v - total) > 0.5;
-    clearTimeout(tCalc);
-    tCalc = setTimeout(()=>{ recalcularLote(); pintarLote(); marcarAtajo(); }, 250);
+  const alDia = enlazarCampoGramos(f, total);
+
+  /* Los botones del historial se enganchan aparte porque la lista puede
+     nacer vacía y rellenarse al desplegarla: si esto solo corriera aquí, los
+     "Restaurar" que aparecen después se quedarían sin hacer nada (pasó). */
+  const enlazarHistorial = ()=>{
+    for(const b of $ficha.querySelectorAll('[data-restaurar]'))
+      b.onclick = ()=>restaurar(f, +b.dataset.restaurar);
   };
-  // Si se queda vacío y se va a otra cosa, se devuelve la cantidad que hay
-  // puesta: un campo vacío no dice nada y el reparto de abajo sí existe.
-  $ct.onblur = ()=>{ if(!$ct.value) $ct.value = objetivo; };
-  $ct.onkeydown = e=>{
-    if(e.key === 'Enter'){ e.preventDefault(); $ct.blur(); }   // cierra el teclado
-    if(e.key === 'Escape'){
-      e.preventDefault();
-      clearTimeout(tCalc);
-      ponerObjetivo(antesDeTocar, Math.abs(antesDeTocar - total) <= 0.5);
-      $ct.blur();
-    }
-  };
-  for(const b of $ficha.querySelectorAll('[data-restaurar]'))
-    b.onclick = ()=>restaurar(f, +b.dataset.restaurar);
-  document.getElementById('btn-etiqueta').onclick = ()=>etiqueta(f,
+  enlazarHistorial();
+  document.getElementById('btn-etiqueta').onclick = ()=>{ alDia(); etiqueta(f,
     lote ? lote.cantidades : f.ingredientes.map(i=>i.cantidad),
-    lote ? lote.total : total);
-  document.getElementById('btn-preparar').onclick = ()=>preparar(f);
+    lote ? lote.total : total); };
+  document.getElementById('btn-preparar').onclick = ()=>{ alDia(); preparar(f); };
   document.getElementById('btn-editar').onclick = ()=>editar(f);
   document.getElementById('btn-duplicar').onclick = ()=>duplicar(f);
   document.getElementById('btn-borrar').onclick = ()=>borrar(f);
@@ -5895,15 +6030,23 @@ const TOPE_BOTE = {900: 950, 4500: 4750};
    Antes había dos juegos distintos para la misma decisión: en la ficha
    "×1 ×2 ×3" y en el pesaje "250 g / 500 g". La misma pregunta con botones
    diferentes según por dónde entraras. */
+/* Los tres de siempre y, detrás, hasta dos cantidades aprendidas del cuaderno
+   (ver cantidadesFrecuentes). En un aparato recién puesto no hay cuaderno
+   todavía: salen solo los tres, que es mejor que dos botones que nadie usa. */
 function atajosCantidad(base){
   const r = Math.round(base);
-  return [
+  const out = [
     {c:'bote1',  g: 900,   txt: 'Bote 1 kg', pista: 'Dejando sitio para batir (900 g)'},
     {c:'bote5',  g: 4500,  txt: 'Bote 5 kg', pista: 'Dejando sitio para batir (4500 g)'},
     {c:'receta', g: r,     txt: 'La receta', pista: `${fmt(r)} g, tal como la tienes guardada`},
-    {c:'x2',     g: r * 2, txt: '×2',        pista: `${fmt(r*2)} g`},
-    {c:'x3',     g: r * 3, txt: '×3',        pista: `${fmt(r*3)} g`},
   ];
+  for(const {g, n} of cantidadesFrecuentes()){
+    if(out.length >= 5) break;
+    if(out.some(a=>Math.abs(a.g - g) <= a.g * 0.02)) continue;
+    out.push({c:'frec-'+g, g, txt:`${fmt(g)} g`,
+              pista:`De lo que más preparas · ${n} veces`});
+  }
+  return out;
 }
 
 function zonaLote(f, total, totalMovido){
@@ -5973,9 +6116,11 @@ function notaLote(total){
     return `<div class="calc-nota avisa">Esta es tu receta tal cual la tienes guardada,
       pero lleva cantidades por debajo de 1 g que tu báscula no distingue.
       Para prepararla bien hay que hacer un lote mayor.</div>`;
-  if(lote.exacto && lote.total===objetivo)
-    return `<div class="calc-nota exacta">Salen <b>${fmt(lote.total)} g</b> justos,
-      con la proporción <b>exacta</b>.</div>`;
+  /* Si sale clavado lo que has pedido y con la proporción exacta, no hay nada
+     que contar: una fila entera para decir que no pasa nada era ruido justo
+     encima de la receta, que es lo que se viene a mirar. Se dice solo cuando
+     el número NO es el que pediste, o cuando la proporción se resiente. */
+  if(lote.exacto && lote.total===objetivo) return '';
   if(lote.exacto)
     return `<div class="calc-nota exacta">Con báscula de gramo lo más cercano son
       <b>${fmt(lote.total)} g</b> — proporción <b>exacta</b>
@@ -6036,7 +6181,7 @@ function filaIng(i, total, idx){
         : m && m.familia!=='base' ? `<small>Pigmento</small>` : ''}
     </div>
     <span class="ing-pct num">${Math.round(pct)}%</span>
-    <span class="ing-g num${movido?' cambia':''}" data-ing="${i.cantidad}">${fmt(g)}<em>g</em></span>
+    <span class="ing-g num${movido?' cambia':''}">${fmt(g)}<em>g</em></span>
   </div>`;
 }
 
@@ -6118,12 +6263,6 @@ function marcarBote(f, hay, callado){
 /* El estado, en palabras, para «Estado y notas». Solo cuando hay algo que
    decir: la fórmula sin rectificar no lleva ningún texto, que un «sin marcar»
    en 860 fichas es un reproche, no información. */
-function explicaActualizacion(f){
-  if(!estadoAct(f).aldia) return '';
-  return `<p class="estado-act ok">Rectificada a los pigmentos nuevos${
-    f.fecha_actualizacion ? ' el <b>' + fecha(f.fecha_actualizacion) + '</b>' : ''}.</p>`;
-}
-
 /* ── COMPARAR DOS COLORES ─────────────────────────────────────────────
    Dos pastillas grandes pegadas, para decidir entre dos amarillos sin abrir
    dos fichas y andar de una a otra de memoria. El segundo se busca ahí
@@ -6200,7 +6339,6 @@ function momento(s){
   return d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) +
          (hoy ? '' : ' del ' + fecha(s));
 }
-const fmtPlano = n => String(Math.round(n*100)/100);
 
 /* ═══════════════════════════════════════════════════════════════════
    MODO PESAJE
@@ -6774,6 +6912,11 @@ const FAMILIA = {
   'sello-creado': 'sello', 'sello-cambiado': 'sello', 'sello-borrado': 'sello',
   'sello-falta': 'sello', 'sello-completo': 'sello', 'sello-ajuste': 'sello',
   bote: 'bote',
+  // Poner y quitar el bote de la estantería SON cosa de botes. Sin esto
+  // salían en «Todo» y en ninguna pestaña, y los contadores no cuadraban
+  // con la lista; y como imprimir una etiqueta marca el bote solo, son de
+  // los apuntes más frecuentes que hay.
+  'estanteria-si': 'bote', 'estanteria-no': 'bote',
 };
 // Lo que se puede devolver a como estaba. Las fotos no: el archivo de antes ya
 // no existe en ninguna parte, y un botón que promete y no cumple es peor que
@@ -7053,6 +7196,35 @@ function papelera(){
   return out;   // lineasHist() ya viene de lo más reciente a lo más viejo
 }
 
+/* ── Las fotos de lo borrado ──────────────────────────────────────────
+   Borrar un color no borraba su foto, así que se quedaba en el cubo para
+   siempre: el plan de balde de Supabase es de 1 GB y nadie las va a mirar.
+
+   Pero tampoco se pueden borrar al eliminar el color: mientras esté en la
+   papelera se restaura de un toque, y volver sin su muestra sería un borrado
+   a medias. Se van CUANDO deja de poder restaurarse —30 días, o la papelera
+   vaciada a mano—, y se mira al abrir la papelera, que es el único momento en
+   el que hay datos completos delante y es de esto de lo que va la pantalla. */
+function limpiarFotosDeBorradas(){
+  if(!HAY_FOTOS || !puedeEditar || MODO !== 'nube') return 0;
+  const guardadas = nube.fotos();
+  if(!Object.keys(guardadas).length) return 0;
+  const restaurables = new Set(papelera().filter(c=>!c.esSello).map(c=>c.completa.id));
+  const hechas = new Set();
+  let n = 0;
+  for(const e of lineasHist()){
+    if(e.que !== 'borrada') continue;
+    const id = ((e.detalle || {}).completa || {}).id || e.formula;
+    // Si volvió al recetario, o todavía se puede restaurar, su foto se queda.
+    if(!id || hechas.has(id) || porId.has(id) || restaurables.has(id)) continue;
+    hechas.add(id);
+    if(guardadas[id] === undefined) continue;
+    nube.quitarFoto(id).catch(()=>{});
+    n++;
+  }
+  return n;
+}
+
 function guardarPapeleraHasta(){
   DATOS.papelera_hasta = papeleraHasta;
   if(MODO === 'nube'){
@@ -7067,6 +7239,7 @@ if(MODO !== 'nube'){
 }
 
 function pantallaPapelera(volver){
+  limpiarFotosDeBorradas();      // ver el comentario de esa función
   const pintar = ()=>{
     const cosas = papelera();
     $dt.textContent = 'Papelera';
@@ -7106,6 +7279,7 @@ function pantallaPapelera(volver){
 se podrá${cosas.length===1?'':'n'} restaurar de un toque. El apunte de que se borraron sigue en el historial. ¿Seguro?`)) return;
       papeleraHasta = new Date().toISOString();
       guardarPapeleraHasta();
+      limpiarFotosDeBorradas();
       brindis('Papelera vaciada');
       pintar();
     });
@@ -7319,6 +7493,33 @@ function apuntar(que, f, detalle){
 const fotoDe = f => ({nombre: f.nombre, ingredientes: f.ingredientes,
                       actualizada_pigmentos: !!f.actualizada_pigmentos,
                       fecha_actualizacion: f.fecha_actualizacion || null});
+
+/* ── LAS CANTIDADES QUE MÁS SE PREPARAN ───────────────────────────────
+   Los atajos de la ficha eran fijos: bote de 1 kg, bote de 5 kg, la receta, ×2
+   y ×3. Mirando el cuaderno, los botes de verdad no se parecen a eso —se
+   escribían a mano casi siempre—, así que ×2 y ×3 ocupaban sitio (en el móvil
+   empujaban los otros a una segunda fila) sin que nadie los tocara.
+
+   Ahora los dos últimos los pone el propio taller: las cantidades que más se
+   repiten en el cuaderno. Con una sola vez no basta —eso es una casualidad, no
+   una costumbre—, y no se repite una que ya esté puesta (ni una que se le
+   parezca en un 2%: «897» y «900» son el mismo bote). */
+let cacheFrec = {n: -1, lista: []};
+function cantidadesFrecuentes(){
+  if(cacheFrec.n === HISTORIAL.length) return cacheFrec.lista;
+  const m = new Map();
+  for(const e of HISTORIAL){
+    const g = Math.round(e.gramos || 0);
+    if(!(g > 0)) continue;
+    m.set(g, (m.get(g) || 0) + 1);
+  }
+  const lista = [...m.entries()]
+    .filter(([, n])=> n >= 2)
+    .sort((a, b)=> b[1] - a[1] || b[0] - a[0])
+    .map(([g, n])=> ({g, n}));
+  cacheFrec = {n: HISTORIAL.length, lista};
+  return lista;
+}
 
 function apuntarPreparacion(f, gramos){
   try{ localStorage.removeItem(CLAVE_PESAJE); }catch(_){}
@@ -7649,7 +7850,6 @@ async function hacerFoto(f, fuente, alTerminar){
 const $visor = document.getElementById('visor');
 const $visorImg = document.getElementById('visor-img');
 const $visorMarco = document.getElementById('visor-marco');
-let urlVisor = null;
 
 async function verFotoGrande(idFoto, titulo){
   if(!tieneFoto(idFoto)) return;
@@ -7667,7 +7867,6 @@ async function verFotoGrande(idFoto, titulo){
   }
   // Si mientras se bajaba se cerró el visor, no se pinta nada.
   if($visor.hidden) return;
-  urlVisor = url;
   $visorImg.src = url;
   // Si venía de la caché, 'load' puede haber pasado ya: se mide igualmente.
   if($visorImg.complete && $visorImg.naturalWidth) ajustarVisor();
@@ -7697,7 +7896,6 @@ function cerrarVisorDeVerdad(){
   $visor.hidden = true;
   $visorMarco.classList.remove('mas');
   $visorImg.removeAttribute('src');
-  urlVisor = null;
 }
 function cerrarVisor(){
   if($visor.hidden) return;
@@ -8236,6 +8434,7 @@ function editar(f, esNueva=false){
       <span>Recuperado como lo dejaste ${esc(haceCuanto(new Date(guardado.cuando).toISOString()))}.</span>
       <button class="btn btn-fino" id="ed-tirar">Empezar de cero</button>
     </div>` : ''}
+    <div id="ed-choque"></div>
     <label class="campo"><span>Nombre</span>
       <input id="ed-nombre" value="${esc(rec ? rec.nombre : f.nombre)}" placeholder="Ej. AZUL 123 (CLIENTE)" autocomplete="off"></label>
     <div class="campo"><span>Ingredientes</span>
@@ -8296,6 +8495,15 @@ function editar(f, esNueva=false){
     nombre: f.nombre, notas: f.notas || '', motivo: '',
     ingredientes: f.ingredientes.map(i=>({v: i.tipo==='sin_resolver' ? '' : (i.tipo==='materia'?'mp:':'f:')+i.ref, cantidad: String(i.cantidad)})),
   });
+  /* La misma huella, pero de la fórmula TAL COMO ESTÁ AHORA. La
+     sincronización corre cada 15 s también con el editor abierto y rellena
+     este mismo objeto, así que si otro aparato la ha guardado mientras tanto
+     esto deja de coincidir con `huellaBaseF`, que es como estaba al abrir. */
+  const huellaAhoraF = ()=> huellaF({
+    nombre: f.nombre, notas: f.notas || '', motivo: '',
+    ingredientes: (f.ingredientes || []).map(i=>({v: i.tipo==='sin_resolver' ? '' : (i.tipo==='materia'?'mp:':'f:')+i.ref, cantidad: String(i.cantidad)})),
+  });
+  let choqueAvisado = false;
   let relojBorradorF = null;
   function apuntarBorradorF(){
     clearTimeout(relojBorradorF);
@@ -8322,22 +8530,61 @@ function editar(f, esNueva=false){
     if(!nombre) return brindis('Ponle un nombre');
     const repe = DATOS.formulas.find(x=>x.id!==f.id && norm(x.nombre)===norm(nombre));
     if(repe) return brindis(`Ya existe "${repe.nombre}"`);
+    /* Una fila a medias NO se tira en silencio. Antes, cualquier línea sin
+       cantidad o sin ingrediente se saltaba con un `continue`: abrías una
+       fórmula solo para corregirle el nombre y esa línea desaparecía de la
+       receta, el total cambiaba, y encima la fórmula quedaba marcada como
+       «rectificada» porque la receta «había cambiado». Sin un aviso.
+       Ahora se para y se dice CUÁL es la fila. Una fila del todo vacía sí se
+       ignora: esa es la que se deja al dar a «Añadir ingrediente» y arrepentirse. */
     const ings = [];
+    const pegas = [];
+    const puestos = new Map();
     for(const d of $ing.children){
       const v = selectores.get(d)?.get() || '';
       // Ojo: la fila tiene dos inputs (el buscador y los gramos). Hay que pedir
       // el numérico por su tipo, o se lee el nombre del color como si fuera una cifra.
-      const c = parseFloat(String(d.querySelector('input[type=number]').value).replace(',','.'));
-      if(!v || !isFinite(c) || c<=0) continue;
+      const bruto = String(d.querySelector('input[type=number]').value).trim();
+      const c = parseFloat(bruto.replace(',','.'));
+      if(!v && !bruto) continue;                       // fila en blanco de verdad
+      if(!v){ pegas.push(`hay ${esc(bruto)} g sin ingrediente`); continue; }
       const [t,id] = v.split(':');
       const nom = t==='mp' ? materias.get(id).nombre : porId.get(id).nombre;
+      if(!isFinite(c) || c <= 0){ pegas.push(`${nom} no lleva cantidad`); continue; }
+      // Y el mismo ingrediente dos veces tampoco pasa: el pesaje te haría
+      // pesar el mismo bote dos veces y la etiqueta lo listaría repetido.
+      const clave = t + ':' + id;
+      if(puestos.has(clave)){ pegas.push(`${nom} está dos veces: júntalo en una línea`); continue; }
+      puestos.set(clave, true);
       ings.push({tipo: t==='mp'?'materia':'formula', ref:id, nombre:nom, cantidad:c});
     }
+    if(pegas.length) return brindis(pegas[0][0].toUpperCase() + pegas[0].slice(1));
     if(!ings.length) return brindis('Añade al menos un ingrediente con cantidad');
     const bucle = ings.find(i=>i.tipo==='formula' && prohibidas.has(i.ref));
     if(bucle) return brindis(bucle.ref === f.id
       ? 'Una fórmula no puede llevarse a sí misma'
       : `"${bucle.nombre}" ya lleva esta fórmula dentro: se haría un bucle`);
+
+    /* ¿Ha cambiado la fórmula por debajo mientras la editabas? Pasa de
+       verdad: dos aparatos con la misma cuenta —tú en el ordenador, el taller
+       en el móvil— y la sincronización rellenando este objeto cada 15 s.
+       Guardando sin más se pisaba lo del otro sin que nadie se enterara, y
+       encima el historial apuntaba como «antes» la versión ajena. Se avisa
+       una vez, con lo que ha cambiado, y se guarda solo si insistes. */
+    if(!esNueva && !choqueAvisado && huellaAhoraF() !== huellaBaseF){
+      choqueAvisado = true;
+      const caja = document.getElementById('ed-choque');
+      if(caja){
+        caja.innerHTML = `<div class="aviso">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
+          <span><b>Otro aparato ha cambiado este color</b> mientras lo tenías abierto.
+          Si guardas, se queda lo tuyo; lo suyo se va al historial y se puede restaurar.
+          Dale otra vez si es lo que quieres.</span></div>`;
+        caja.scrollIntoView({block:'nearest'});
+      }
+      document.getElementById('ed-guardar').textContent = 'Guardar lo mío';
+      return;
+    }
 
     const hist = (f.historial||[]).slice();
     if(!esNueva){
@@ -8431,6 +8678,11 @@ function duplicar(f){
   nuevo.id = 'f-nueva-'+Date.now().toString(36);
   nuevo.nombre = f.nombre+' (COPIA)';
   nuevo.historial = []; nuevo.equivalencia = null;
+  /* Y NO hereda la marca de rectificada: la copia nacía «al día» con una fecha
+     anterior a su propia existencia, y se escapaba del filtro de las que aún
+     hay que ajustar. Como las nuevas, empieza sin marca. */
+  nuevo.actualizada_pigmentos = false; nuevo.fecha_actualizacion = null;
+  nuevo.en_estanteria = false; nuevo.estanteria_desde = null;
   editar(nuevo, true);
 }
 function nueva(){
@@ -8501,19 +8753,20 @@ function restaurar(f, k){
 function reconstruir(){
   indice = crearIndice(DATOS);
   cacheColor.clear();
+  /* `porId` también se rehace aquí. Era el ÚNICO índice que no se reconstruía:
+     se mantenía a mano en ocho sitios y, aunque hoy cuadre, el día que uno se
+     olvide la fórmula sale en la lista y al abrirla no hay ficha. Los `set` de
+     esos ocho sitios siguen estando —los necesitan dentro de su propio bucle—,
+     pero ya no son la única red. */
+  porId.clear();
+  for(const f of DATOS.formulas) porId.set(f.id, f);
   calcularMateriasDe();
   indexarBusqueda();
   contarClientes();
   // Si han cambiado los pigmentos, el aviso de «están estimados» puede haber
   // dejado de ser verdad: que lo diga con los datos que acaban de llegar.
   pintarAvisoCal();
-  usadaPor.clear();
-  for(const f of DATOS.formulas)
-    for(const i of f.ingredientes)
-      if(i.tipo==='formula'){
-        if(!usadaPor.has(i.ref)) usadaPor.set(i.ref,new Set());
-        usadaPor.get(i.ref).add(f.id);
-      }
+  calcularUsadaPor();
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -8624,7 +8877,10 @@ function aplicarDeLaNube(res){
       if(!viejo) continue;
       DATOS.formulas = DATOS.formulas.filter(x => x.id !== fila.id);
       porId.delete(fila.id);
-      if(seleccion && seleccion.id === fila.id){ seleccion = null; cerrarFicha(); }
+      // `seleccion` es el id, no la fórmula: con `seleccion.id` esto era
+      // siempre falso y la ficha se quedaba abierta sobre algo que ya no
+      // existe si la borraban desde otro aparato.
+      if(seleccion === fila.id){ seleccion = null; cerrarFicha(); }
       n++;
       continue;
     }
@@ -9034,7 +9290,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">fadcf91a</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">411e103a</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -9666,16 +9922,15 @@ function importar(archivoFile){
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   IDEA 18 · ETIQUETA PARA EL BOTE
+   ETIQUETA PARA EL BOTE
 
-   Se imprime a tamaño de etiqueta de verdad (95 x 62 mm) arriba a la
-   izquierda del folio, con una guía de corte. Una hoja A4 entera para una
-   etiqueta de un bote no la quiere nadie, y estirar el diseño a A4 hace que
-   el nombre salga a cuerpo 60 y la fórmula perdida en medio del folio.
+   Va a la impresora térmica de rollo (una SN 420B) a pegatina completa: una
+   etiqueta de color por pegatina de 10 × 5 cm. Las medidas salen todas de
+   PEGATINA, más abajo; es lo único que hay que tocar si cambia el rollo.
 
-   Lleva lo que hace falta para no tener que abrir la app con el bote en la
-   mano: el color, el nombre, el cliente, la fórmula EN GRAMOS DE ESE LOTE,
-   el total y la fecha.
+   Lleva lo justo para no tener que abrir la app con el bote en la mano: el
+   nombre, la fórmula EN GRAMOS DE ESE LOTE, el total y el QR que abre la
+   ficha. Ni muestra de color (es térmica: solo negro) ni fecha.
    ═══════════════════════════════════════════════════════════════════ */
 /* Las ventanas de impresión son documentos nuevos y vacíos: no heredan nada
    de esta página. Se les pasan las mismas @font-face —con la tipografía ya en
@@ -9788,30 +10043,25 @@ function qrSvg(texto){
 }
 
 /* ── PEGATINAS: la impresora de etiquetas ─────────────────────────────
-   Desde el 12 de septiembre las etiquetas no van a la impresora normal sino
-   a una Brother QL de rollo. Cada pegatina es UNA página: la de botes lleva
-   varias fórmulas con línea de corte; la de moldes, varias tarjetas.
-
-   El 17 de septiembre Juanjo cambió de rollo: las pegatinas pasaron de
-   10 × 11 cm a 10 × 14,5, y pidió TRES etiquetas de bote por pegatina en vez
-   de una. Cortando por la línea salen tres etiquetas de 10 × 4,8 cm.
+   Las etiquetas no van a la impresora normal sino a la térmica de rollo, una
+   SN 420B con el tamaño «goma 100x50» dado de alta en el driver. Cada
+   pegatina es UNA página: la de botes lleva un color; la de moldes, hasta dos
+   tarjetas con su línea de corte.
 
    Ojo con qué medida es cuál, que es de lo que más se falla aquí: el ANCHO
-   (100 mm) es el del rollo y no se puede tocar —la QL-1100 imprime hasta
-   101,6 mm—; el ALTO (145) es lo que avanza el papel en cada pegatina, y ese
-   sí cambia según el rollo que se compre. Si algún día entra un rollo nuevo,
-   lo único que hay que tocar es este renglón.
+   (100 mm) es el del rollo y no se puede tocar; el ALTO (50) es lo que avanza
+   el papel en cada pegatina, y ese sí cambia según el rollo que se compre. Si
+   algún día entra un rollo nuevo, lo de aquí abajo es lo único que se toca:
+   los textos de la app y las rejillas salen de estos números, nunca escritos
+   a mano.
 
    La impresora pide 1–1,5 mm de margen; si el rollo entra un pelín torcido se
    come más, así que se dejan 5 mm a los lados. Es térmica: solo negro, nada
    de grises finos ni degradados. */
-/* 25 sep: el rollo pasa de 14,5 cm de largo a 5, así que en cada pegatina va
-   UNA etiqueta de color, no tres. Las medidas viven solo aquí: los textos de
-   la app y las rejillas salen de estos números, nunca escritos a mano. */
 const PEGATINA = {ancho: 100, alto: 50, margen: 5};    // mm
 const ET_POR_HOJA = 1;                                 // fórmulas por pegatina
 
-/* «10 × 14,5 cm», sacado de ahí arriba. Los textos de la app NO llevan la
+/* «10 × 5 cm», sacado de ahí arriba. Los textos de la app NO llevan la
    medida escrita a mano: ya pasó con «las 12 bases» en Opciones, que se quedó
    mintiendo el día que pasaron a ser 9 y nadie se enteró hasta que lo leyó
    Juanjo. Un número a mano en un texto es una mentira con fecha. */
@@ -9842,15 +10092,38 @@ function cabeceraPegatinas(titulo){
    de reserva, que ocupa distinto, y la cuenta sale mal. Cada recuadro encoge
    su letra hasta que nada se sale. */
 const PIE_PEGATINAS = `<script>
+    /* ¿Se sale algo? Mira el recuadro Y el título aparte: el nombre está
+       limitado a dos líneas, y cuando se pasa de ahí lo corta SIN crecer de
+       alto, así que el recuadro no se entera. */
+    function sale(el){
+      if(el.scrollHeight > el.clientHeight + 1.5) return true;
+      var h = el.querySelector('h1');
+      /* Aquí la tolerancia es mayor (4 px): el título mide por líneas enteras
+         y el redondeo del alto de línea daba uno o dos píxeles de diferencia
+         sin que faltara nada. Una línea de más son doce píxeles largos, así
+         que con 4 no se escapa ninguna. */
+      return !!h && h.scrollHeight - h.clientHeight > 4;
+    }
     function encajar(){
       document.querySelectorAll('[data-encaja]').forEach(function(el){
         var f = 1;
         el.style.removeProperty('--esc');
+        var poner = function(v){ el.style.setProperty('--esc', v.toFixed(2)); };
         /* Tolerancia de 1,5 px, no de medio: con medidas en mm el alto visible
            se redondea hacia abajo y el contenido hacia arriba, y con 0,5 una
            tarjeta que cabe de sobra se encogía hasta el mínimo "por un píxel". */
-        while(el.scrollHeight > el.clientHeight + 1.5 && f > 0.55){
-          f -= 0.04; el.style.setProperty('--esc', f.toFixed(2));
+        while(sale(el) && f > 0.55){ f -= 0.04; poner(f); }
+        /* Y si cabía de sobra, CRECE. Una fórmula de dos ingredientes dejaba
+           media pegatina en blanco con la letra del caso peor, y esto se lee
+           desde la estantería con el bote en la mano. Hasta un 60% más, que a
+           partir de ahí el nombre manda demasiado sobre la receta. */
+        if(f === 1){
+          while(f < 1.6){
+            var s = f + 0.04;
+            poner(s);
+            if(sale(el)){ poner(f); break; }
+            f = s;
+          }
         }
       });
     }
@@ -9864,13 +10137,16 @@ function imprimirEtiquetas(items){
      preguntar. Es la única señal fiable que tiene la app —lo que se gasta no
      lo sabe— y no cuesta un toque más a nadie. En callado: quien está
      imprimiendo tres etiquetas no quiere tres avisos. */
+  /* La ventana PRIMERO. Marcando antes, con el bloqueador de ventanas puesto
+     los colores quedaban marcados «tiene bote» —con su apunte en el registro y
+     subidos a la nube— sin que saliera ninguna pegatina. */
+  const w = window.open('','_blank');
+  if(!w) return brindis('El navegador ha bloqueado la ventana de las etiquetas');
   const marcados = items.reduce((n, e)=>{
     const f = e.id ? porId.get(e.id) : null;
     return n + (f && marcarBote(f, true, true) ? 1 : 0);
   }, 0);
   if(marcados) actualizar();
-  const w = window.open('','_blank');
-  if(!w) return brindis('El navegador ha bloqueado la ventana de las etiquetas');
 
   /* UNA etiqueta. Ya no ocupa la pegatina entera: ahora van ET_POR_HOJA
      apiladas y cada una es una franja. El recuadro sigue llevando
@@ -9886,9 +10162,8 @@ function imprimirEtiquetas(items){
       </div>
     </div>`; };
 
-  /* Las etiquetas se reparten de tres en tres. La última pegatina puede ir a
-     medias: se deja el hueco en blanco y NO se rellena con nada, que una
-     etiqueta de relleno se acaba pegando en un bote por error. */
+  /* Una etiqueta por pegatina: el reparto es de uno en uno. Se deja el bucle
+     por ET_POR_HOJA para que cambiar de rollo siga siendo tocar un número. */
   const paginas = [];
   for(let i = 0; i < items.length; i += ET_POR_HOJA)
     paginas.push(items.slice(i, i + ET_POR_HOJA));
@@ -9901,16 +10176,22 @@ function imprimirEtiquetas(items){
        línea de puntos va ENTRE etiquetas, nunca en el borde de la pegatina. */
     .tira{position:absolute; inset:0; display:grid;
           grid-template-rows:repeat(${ET_POR_HOJA}, 1fr)}
+    /* Sin línea de corte: desde el rollo de 5 cm va UNA etiqueta por
+       pegatina, así que no hay nada que cortar. */
     .et{display:flex; flex-direction:column; overflow:hidden;
-        padding:3.2mm ${PEGATINA.margen}mm;
-        border-bottom:.3mm dashed #000}
-    .et:last-child{border-bottom:0}
+        padding:3.2mm ${PEGATINA.margen}mm}
     /* La etiqueta tiene ~40 mm de alto (la pegatina entera menos los bordes).
        Son los números que caben dejando sitio a una fórmula de cinco o seis
        ingredientes sin que el encajador tenga que encogerla; con más, ya
        encoge él. */
+    /* El nombre puede ocupar DOS líneas. Con una sola línea forzada, el más
+       largo de los 860 (39 caracteres, un amarillo con dos clientes dentro)
+       salía cortado con puntos suspensivos justo por el paréntesis, que es lo
+       que se busca en la estantería; y como no crecía de alto, el encajador ni
+       se enteraba. Así crece, se ve entero, y si estorba encoge él. */
     h1{margin:0;font-size:calc(14pt * var(--esc,1));line-height:1.05;letter-spacing:-.02em;font-weight:700;
-       overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 0 auto}
+       overflow:hidden;flex:0 0 auto;overflow-wrap:anywhere;
+       display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
     /* SIN TABLA, a propósito (25 sep). Con <table> el taller imprimió una
        etiqueta con la columna de gramos corrida UNA FILA: el primer peso
        aparecía al lado del nombre del color y el último ingrediente se
@@ -9933,9 +10214,9 @@ function imprimirEtiquetas(items){
     .pie .tot{font-size:12pt;font-weight:700}
     .pie .tot span{font-size:6.5pt;font-weight:600;letter-spacing:.08em;
                    text-transform:uppercase;margin-right:1.5mm}
-    /* El QR abre la fórmula en la app al escanearlo con el móvil. Bajado de
-       20 a 13 mm al pasar a tres por pegatina: a 13 mm sigue leyéndose con
-       cualquier móvil y deja sitio a la fórmula, que es lo que se mira. */
+    /* El QR abre la fórmula en la app al escanearlo con el móvil. A 13 mm se
+       lee con cualquier móvil y deja sitio a la fórmula, que es lo que se
+       mira; a los 20 de antes se comía media etiqueta. */
     .qr{width:13mm;height:13mm;flex:0 0 auto}
     .qr svg{width:100%;height:100%;display:block}
   </style>
@@ -9965,13 +10246,12 @@ function imprimirEtiquetas(items){
    2: meter más obligaría a una letra que no se lee a un metro del molde. */
 const MOLDES_POR_PEGATINA = 2;
 
-/** Cuántas columnas y filas para N tarjetas, y si van "anchas" (una sola
-    columna, así que caben rótulos y letra más grande). */
+/** Cuántas columnas para N tarjetas. Con una sola va "ancha": ocupa la
+    pegatina entera, así que caben rótulos y letra más grande. Desde el rollo
+    de 5 cm siempre es UNA fila y la tarjeta siempre es baja (~41 mm), así que
+    eso ya no se decide aquí: está en el CSS de una vez. */
 function rejillaDe(n){
-  const cols = n <= 1 ? 1 : 2;
-  // 'baja' siempre: la tarjeta mide ahora ~41 mm de alto, la misma altura para
-  // la que se midieron los tamaños de letra apretados.
-  return {cols, filas: 1, ancha: cols === 1, baja: true};
+  return {cols: n <= 1 ? 1 : 2, ancha: n <= 1};
 }
 
 /** La tarjeta de un molde a partir de un sello. Si hay más sellos con el
@@ -10016,8 +10296,8 @@ function imprimirPegatinasMolde(tarjetas){
   for(let i = 0; i < tarjetas.length; i += MOLDES_POR_PEGATINA){
     const grupo = tarjetas.slice(i, i + MOLDES_POR_PEGATINA);
     const r = rejillaDe(grupo.length);
-    pegs.push(`<section class="peg"><div class="rejilla${r.ancha ? ' ancha' : ''}${r.baja ? ' baja' : ''}"
-      style="grid-template-columns:repeat(${r.cols},1fr);grid-template-rows:repeat(${r.filas},1fr)">${
+    pegs.push(`<section class="peg"><div class="rejilla${r.ancha ? ' ancha' : ''}"
+      style="grid-template-columns:repeat(${r.cols},1fr)">${
       grupo.map(una).join('')}</div></section>`);
   }
 
@@ -10029,39 +10309,25 @@ function imprimirPegatinasMolde(tarjetas){
        porque dependen de cuántas tarjetas lleve esa. Aquí solo va lo común. */
     .rejilla{position:absolute; inset:${PEGATINA.margen - 1}mm; display:grid; gap:0}
     /* La línea de corte, discontinua, va entre tarjetas y no en el borde. */
-    .tm{padding:2.5mm 3mm 2mm; overflow:hidden; display:flex; flex-direction:column; gap:calc(1.1mm * var(--esc,1));
+    .tm{padding:2mm 3mm 1.5mm; overflow:hidden; display:flex; flex-direction:column; gap:calc(.7mm * var(--esc,1));
         border:.3mm dashed #000; margin:-.15mm}
-    .cab{display:flex; flex-direction:column; gap:.4mm; margin-bottom:.8mm}
-    h1{margin:0; font-size:calc(18pt * var(--esc,1)); line-height:1; letter-spacing:-.02em; font-weight:800;
+    .cab{display:flex; flex-direction:column; gap:.4mm; margin-bottom:.3mm}
+    h1{margin:0; font-size:calc(15pt * var(--esc,1)); line-height:1; letter-spacing:-.02em; font-weight:800;
        overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-    .ancha h1{font-size:calc(26pt * var(--esc,1))}
+    .ancha h1{font-size:calc(19pt * var(--esc,1))}
     /* Rótulo y dato en la misma línea: en 50 mm de ancho caben, y en alto es
        donde no sobra nada. */
     .d{display:flex; align-items:baseline; gap:1.5mm}
-    .d .ceja{flex:0 0 13.5mm; font-size:6.5pt}
+    .d .ceja{flex:0 0 13.5mm; font-size:6pt}
     .d.med b{white-space:nowrap}
-    .d b{font-size:calc(10pt * var(--esc,1)); font-weight:650; line-height:1.15; overflow-wrap:anywhere; min-width:0}
+    .d b{font-size:calc(9pt * var(--esc,1)); font-weight:650; line-height:1.15; overflow-wrap:anywhere; min-width:0}
     .ancha .d{gap:2mm}
     .ancha .d .ceja{flex:0 0 18mm; font-size:7pt}
-    .ancha .d b{font-size:calc(13pt * var(--esc,1))}
+    .ancha .d b{font-size:calc(11pt * var(--esc,1))}
     /* Abajo: el QR (abre la ficha del sello al escanearlo) y la marca. */
     .pie{margin-top:auto; padding-top:.5mm; display:flex; justify-content:space-between; align-items:flex-end}
-    .marca{font-size:7pt}
-    .qr{width:13mm;height:13mm;flex:0 0 auto}
-    .ancha .qr{width:18mm;height:18mm}
-    /* Tarjeta baja (~41 mm de alto) y hay que apretar.
-       Estos números salen de medirlo: con los de la tarjeta alta el contenido
-       se salía 13 px y el encajador no llegaba a arreglarlo (tiene un tope de
-       encogido para no dejar la letra ilegible). */
-    .baja .tm{padding:2mm 3mm 1.5mm; gap:calc(.7mm * var(--esc,1))}
-    .baja h1{font-size:calc(15pt * var(--esc,1))}
-    .baja.ancha h1{font-size:calc(19pt * var(--esc,1))}
-    .baja .cab{margin-bottom:.3mm}
-    .baja .d b{font-size:calc(9pt * var(--esc,1))}
-    .baja.ancha .d b{font-size:calc(11pt * var(--esc,1))}
-    .baja .d .ceja{font-size:6pt}
-    .baja .qr, .baja.ancha .qr{width:11mm;height:11mm}
-    .baja .marca{font-size:6pt}
+    .marca{font-size:6pt}
+    .qr{width:11mm;height:11mm;flex:0 0 auto}
     .qr svg{width:100%;height:100%;display:block}
   </style>
   ${pegs.join('')}
@@ -10158,13 +10424,10 @@ function pintarPegatinasMolde(){
       </div>`;
     }).join('');
   }
-  /* Los huecos se cuentan sobre la rejilla DE VERDAD, no sobre el máximo:
-     con un molde la pegatina no se parte, así que decir «1 hueco libre»
-     sería mentir y hacer añadir moldes de más. */
+  /* Con dos por pegatina no quedan huecos que contar: si la última lleva una
+     tarjeta sola, esa tarjeta ocupa la pegatina entera (rejillaDe da una
+     columna). La cuenta de antes daba siempre cero. */
   const pegs = Math.ceil(n / MOLDES_POR_PEGATINA);
-  const enUltima = n - (pegs - 1) * MOLDES_POR_PEGATINA;
-  const r = n ? rejillaDe(enUltima) : null;
-  const huecos = r ? r.cols * r.filas - enUltima : 0;
   /* El vocabulario de siempre, que es el del taller: PEGATINA es la hoja que
      sale del rollo, y dentro van varias tarjetas que se cortan. Si alguna
      línea lleva copias hay que decir de dónde sale el total, porque «3
@@ -10173,8 +10436,7 @@ function pintarPegatinasMolde(){
     ? `<b>${n}</b> molde${n===1?'':'s'}`
     : `<b>${n}</b> tarjetas de ${lineas} molde${lineas===1?'':'s'}`;
   $p.innerHTML = n
-    ? `<span>${cuantas} · ${pegs} pegatina${pegs===1?'':'s'}${
-        huecos ? ` · <b>${huecos}</b> hueco${huecos===1?'':'s'} libre${huecos===1?'':'s'}` : ' · pegatina completa'}</span>
+    ? `<span>${cuantas} · ${pegs} pegatina${pegs===1?'':'s'}</span>
        <button class="btn btn-fino" id="pm-vaciar">Vaciar</button>`
     : `<span>Ningún molde todavía</span>`;
   for(const b of $l.querySelectorAll('[data-quitar]'))
@@ -10324,7 +10586,7 @@ function pintarImprimir(){
 function panelPdf(seg){
   const q = $q.value.trim();
   $dc.innerHTML = seg + `
-    <p style="margin-top:0">Se imprimirán <b class="num">${filtradas.length}</b> fórmulas${q?`, las que coinciden con <b>"${esc(q)}"</b>`:' (todas)'}.</p>
+    <p style="margin-top:0">Se imprimirán <b class="num" id="pdf-cuantas">${filtradas.length}</b> fórmulas${q?`, las que coinciden con <b>"${esc(q)}"</b>`:' (todas)'}.</p>
     <label class="campo"><span>Título de la portada</span>
       <input id="pdf-tit" value="GOMA SERIADORNOS" autocomplete="off"></label>
     <label class="campo"><span>Subtítulo (opcional)</span>
@@ -10334,9 +10596,16 @@ function panelPdf(seg){
         <small>Deja fuera las que aún no se han vuelto a ajustar</small></span></label>`;
   $dp.innerHTML = `<button class="btn" data-cerrar>Cancelar</button><button class="btn btn-1" id="pdf-ir">Generar</button>`;
   $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
+  // El número de arriba tiene que decir la verdad también con el interruptor
+  // puesto: antes se pintaba una vez y se quedaba en el total aunque la lista
+  // real fuera la mitad.
+  const cuales = ()=> document.getElementById('pdf-solo-act').checked
+    ? filtradas.filter(f=>estadoAct(f).aldia) : filtradas;
+  document.getElementById('pdf-solo-act').onchange = ()=>{
+    document.getElementById('pdf-cuantas').textContent = cuales().length;
+  };
   document.getElementById('pdf-ir').onclick = ()=>{
-    const solo = document.getElementById('pdf-solo-act').checked;
-    const lista = solo ? filtradas.filter(f=>estadoAct(f).aldia) : filtradas;
+    const lista = cuales();
     if(!lista.length) return brindis('No hay ninguna fórmula que cumpla eso');
     generarPDF(lista, document.getElementById('pdf-tit').value, document.getElementById('pdf-sub').value);
     $dlg.close();
@@ -10372,7 +10641,13 @@ function panelEtiquetas(seg){
       return {id: f.id, nombre: f.nombre, nombres: ing.map(i=>i.nombre),
               cantidades: l.cantidades, total: l.total};
     }).filter(Boolean);
-    if(!items.length) return brindis('Añade algún color a la hoja');
+    // Las que no se pueden repartir en gramos enteros se caen aquí. Antes se
+    // caían CALLANDO: pedías seis pegatinas, salían cuatro y nadie lo decía.
+    const fuera = etiquetasHoja.length - items.length;
+    if(!items.length) return brindis(etiquetasHoja.length
+      ? 'Ninguna se puede repartir en gramos enteros: cambia las cantidades'
+      : 'Añade algún color a la hoja');
+    if(fuera) brindis(`${fuera} se quedan fuera: esa cantidad no se reparte en gramos enteros`);
     imprimirEtiquetas(items);
     $dlg.close();
   };
@@ -10386,8 +10661,8 @@ function pintarEtiquetas(){
 
   if(!etiquetasHoja.length){
     $l.innerHTML = `<div class="busc-nada" style="padding:22px 10px">
-      Busca arriba y ve añadiendo colores. Van <b>${ET_POR_HOJA}</b> por pegatina
-      de ${medidaPegatina()}, con línea para cortarlas.</div>`;
+      Busca arriba y ve añadiendo colores. Cada uno sale en su pegatina
+      de ${medidaPegatina()}.</div>`;
   }else{
     $l.innerHTML = etiquetasHoja.map((e,k)=>{
       const f = porId.get(e.id);
@@ -10417,12 +10692,11 @@ function pintarEtiquetas(){
     }).join('');
   }
 
+  // Con una etiqueta por pegatina no hay huecos que contar: la cuenta de
+  // antes daba SIEMPRE cero y el texto no salía nunca.
   const n = etiquetasHoja.length;
-  const pegs = Math.ceil(n / ET_POR_HOJA);
-  const huecos = n ? pegs * ET_POR_HOJA - n : 0;
   $p.innerHTML = n
-    ? `<span><b>${n}</b> etiqueta${n===1?'':'s'} · ${pegs} pegatina${pegs===1?'':'s'}${
-         huecos ? ` · ${huecos === 1 ? 'queda 1 hueco' : `quedan ${huecos} huecos`}` : ''}</span>
+    ? `<span><b>${n}</b> etiqueta${n===1?'':'s'} · ${n} pegatina${n===1?'':'s'}</span>
        <button class="btn btn-fino" id="et-vaciar">Vaciar</button>`
     : `<span>Ninguna etiqueta todavía</span>`;
 
@@ -10454,22 +10728,30 @@ function generarPDF(lista, titulo, sub){
   const hoy = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
   const cols = lista.map(f=>{
     const c = color(f);
-    return `<article>
+    return `<article data-ini="${esc(inicial(f.nombre))}">
       <header><i style="background:${c.hex}"></i><h4>${esc(f.nombre)}</h4>
         ${estadoAct(f).aldia?'<b>✓</b>':''}</header>
-      <table>${f.ingredientes.map(i=>`<tr><td>${esc(i.nombre)}</td><td>${fmt(i.cantidad)}</td></tr>`).join('')}
-        <tr class="tot"><td>Total</td><td>${fmt(f.ingredientes.reduce((s,i)=>s+i.cantidad,0))}</td></tr></table>
+      ${(()=>{ /* Los de 0 g fuera, como en la etiqueta y en el pesaje: era el
+                    único sitio que los imprimía, y en el papel un «NEGRO 0» se
+                    lee como un ingrediente más de la receta. */
+        const ing = f.ingredientes.filter(i=>i.cantidad > 0);
+        return `<table>${ing.map(i=>`<tr><td>${esc(i.nombre)}</td><td>${fmt(i.cantidad)}</td></tr>`).join('')}
+        <tr class="tot"><td>Total</td><td>${fmt(ing.reduce((s,i)=>s+i.cantidad,0))}</td></tr></table>`; })()}
     </article>`;
   }).join('');
   const w = window.open('','_blank');
   if(!w) return brindis('El navegador ha bloqueado la ventana del PDF');
   w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>${esc(titulo)}</title>
+  <script>
+    var PIE_TITULO = ${JSON.stringify(sub ? sub.toUpperCase() : titulo.toUpperCase())};
+    var PIE_FECHA  = ${JSON.stringify(hoy)};
+  <\/script>
   <style>
     ${tipografiaIncrustada()}
     @page{size:A4; margin:14mm 12mm}
     *{box-sizing:border-box}
     body{font-family:"Plex",ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;color:#111;margin:0;font-size:9pt;font-variant-numeric:tabular-nums slashed-zero;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .portada{height:calc(100vh - 28mm);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;page-break-after:always}
+    .portada{height:269mm;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;page-break-after:always}
     .portada .arco{width:88mm;height:14mm;border-radius:7mm;margin-bottom:14mm;
       background:linear-gradient(90deg,#e0473a,#e8a13c,#e8dc45,#4aab60,#3d7fd6,#8a54c8)}
     .portada h1{font-size:30pt;letter-spacing:-.02em;margin:0 0 6mm;font-weight:700}
@@ -10481,7 +10763,22 @@ function generarPDF(lista, titulo, sub){
     .portada h2{font-size:15pt;font-weight:500;color:#555;margin:0 0 12mm;letter-spacing:.06em}
     .portada p{font-size:10pt;color:#666;margin:0}
     .portada .n{font-size:11pt;color:#111;font-weight:600;margin-top:3mm}
-    main{column-count:3;column-gap:6mm}
+    /* Las hojas se reparten a mano (ver repartir(), más abajo) en vez de
+       dejar que el navegador corte una columna de 42 páginas. Así cada hoja
+       sabe cuál es y puede llevar pie: si se cae la carpeta, se recompone. */
+    /* 269 mm = A4 menos los 14 de margen de arriba y abajo. */
+    .hoja{height:269mm; display:flex; flex-direction:column; page-break-after:always}
+    .hoja:last-child{page-break-after:auto}
+    .cols{flex:1 1 auto; display:flex; gap:6mm; min-height:0; align-items:stretch}
+    .col{flex:1 1 0; min-width:0; overflow:hidden}
+    /* Sin margen en la última de cada columna: si no, el hueco de abajo
+       cuenta como desbordamiento al medir y se pierde una tarjeta por
+       columna sin motivo. */
+    .col > article:last-child{margin-bottom:0}
+    .pie-hoja{flex:0 0 auto; display:flex; justify-content:space-between; align-items:baseline;
+      gap:6mm; border-top:.4pt solid #ccc; padding-top:1.6mm; margin-top:2.5mm;
+      font-size:7.5pt; color:#777; letter-spacing:.04em}
+    .pie-hoja b{color:#333; font-weight:650}
     article{break-inside:avoid;border:.4pt solid #d5d5d5;border-radius:2mm;padding:2mm 2.4mm;margin-bottom:3mm}
     header{display:flex;align-items:center;gap:2mm;margin-bottom:1.4mm}
     header i{width:6mm;height:6mm;border-radius:1.2mm;flex:0 0 auto;border:.4pt solid rgba(0,0,0,.18)}
@@ -10503,8 +10800,54 @@ function generarPDF(lista, titulo, sub){
     <p class="n">${lista.length} colores</p>
     <p style="margin-top:10mm">Generado el ${hoy}</p>
   </div>
-  <main>${cols}</main>
-  <script>window.onload=()=>setTimeout(()=>window.print(),350)<\/script>
+  <div id="cartas" style="display:none">${cols}</div>
+  <main id="hojas"></main>
+  <script>
+    /* REPARTO A MANO. Con column-count el navegador hacía una columna continua
+       de 40 y pico páginas: ninguna hoja sabía cuál era, así que no podía
+       llevar pie, y una carpeta que se cae no hay quien la recomponga.
+       Aquí se van metiendo tarjetas en cada columna hasta que la siguiente no
+       cabe, y entonces se pasa a la de al lado o a la hoja siguiente. Lo mide
+       el propio navegador, así que no hay cuentas a ojo que se desajusten. */
+    function repartir(){
+      var cartas = [].slice.call(document.querySelectorAll('#cartas > article'));
+      var hojas = document.getElementById('hojas'), i = 0, paginas = [];
+      while(i < cartas.length){
+        var hoja = document.createElement('section');
+        hoja.className = 'hoja';
+        hoja.innerHTML = '<div class="cols"><div class="col"></div><div class="col"></div><div class="col"></div></div><footer class="pie-hoja"></footer>';
+        hojas.appendChild(hoja);
+        var cols = hoja.querySelectorAll('.col');
+        for(var c = 0; c < cols.length && i < cartas.length; c++){
+          while(i < cartas.length){
+            cols[c].appendChild(cartas[i]);
+            if(cols[c].scrollHeight > cols[c].clientHeight){
+              document.getElementById('cartas').appendChild(cartas[i]);   // no cabía
+              break;
+            }
+            i++;
+          }
+        }
+        paginas.push(hoja);
+        // Red de seguridad: si una tarjeta no cabe ni en una columna vacía, se
+        // deja donde esté y se sigue, que un bucle infinito aquí cuelga la
+        // ventana de impresión con 860 fórmulas dentro.
+        if(!hoja.querySelector('article')){ hoja.remove(); paginas.pop(); break; }
+      }
+      var total = paginas.length;
+      paginas.forEach(function(h, k){
+        var arts = h.querySelectorAll('article');
+        var de = arts[0].getAttribute('data-ini'), a = arts[arts.length-1].getAttribute('data-ini');
+        h.querySelector('.pie-hoja').innerHTML =
+          '<span><b>' + PIE_TITULO + '</b></span>' +
+          '<span>' + (de === a ? de : de + '–' + a) + '</span>' +
+          '<span><b>' + (k+1) + '</b> de ' + total + '</span>' +
+          '<span>' + PIE_FECHA + '</span>';
+      });
+    }
+    (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve())
+      .then(function(){ repartir(); setTimeout(function(){ window.print(); }, 250); });
+  <\/script>
   </body></html>`);
   w.document.close();
 }
@@ -12882,7 +13225,7 @@ function actualizarSellos(){
   }else{
     chip.hidden = true;
     chip.className = 'chip chip-filtro';
-    chip.onclick = ()=>{ filtroPigmento = null; actualizar(); };
+    chip.onclick = ()=>{ ponerFiltro(null); actualizar(); };
   }
 
   const av = document.getElementById('aviso-cal');
@@ -12924,7 +13267,7 @@ function cambiarSeccion(sec){
   SECCION = sec;
   seleccion = null; selloSel = null;
   $q.value = '';
-  soloPendientes = false; filtroPigmento = null; soloActualizadas = false; filtroCliente = null;
+  ponerFiltro(null);
   soloFaltaS = false;
   cerrarTodo();
   pintarSolapas();
@@ -12939,9 +13282,8 @@ for(const b of document.querySelectorAll('#solapas [data-sec]'))
        haya abierto y deja la lista limpia, como el botón de inicio. */
     if(SECCION === b.dataset.sec){
       if(document.body.dataset.ficha === 'on' || $dlg.open) cerrarTodo();
-      else if($q.value || soloPendientes || filtroPigmento || soloActualizadas || filtroCliente || soloFaltaS){
-        $q.value = ''; soloPendientes = false; filtroPigmento = null;
-        soloActualizadas = false; filtroCliente = null; soloFaltaS = false; actualizar();
+      else if($q.value || !sinFiltro() || soloFaltaS){
+        $q.value = ''; ponerFiltro(null); soloFaltaS = false; actualizar();
       }
       return;
     }
@@ -13135,7 +13477,8 @@ window.__app = {
   get DATOS(){ return DATOS; }, porId, materias, busq, norm, nube, MODO,
   anotar, anotarMateria, empujar, guardar, reconstruir, actualizar, sincronizar,
   verPigmento, pantallaChoques, avisarCopia, mantenerPantalla,
-  get filtroPigmento(){ return filtroPigmento; },
+  get filtroPigmento(){ return filtro.tipo === 'pigmento' ? filtro.valor : null; },
+  get filtro(){ return {...filtro}; }, ponerFiltro,
   get capas(){ return capas.slice(); }, abrir, cerrarFicha, cerrarTodo,
   get filtradas(){ return filtradas.slice(); },
   get HISTORIAL(){ return HISTORIAL.slice(); },

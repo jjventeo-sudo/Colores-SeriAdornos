@@ -1087,13 +1087,35 @@ button{background:none;border:0;cursor:pointer;padding:0}
   box-shadow:inset 0 1px 0 rgba(255,255,255,.5), var(--sombra-2);
 }
 .pes-ya-txt svg{width:18px; height:18px}
+/* "Me he equivocado" va justo debajo del aro y en grande: es lo que se busca
+   con prisa, con el bote delante y la báscula marcando de más. Antes era una
+   línea fina de 13 px que nadie veía. */
 .pes-pase-fila{display:flex; justify-content:center; margin:0 0 12px}
 .pes-pase{
-  font:inherit; font-size:13px; color:var(--texto-2); background:none; border:1px dashed var(--linea-fuerte);
-  border-radius:999px; padding:8px 14px; cursor:pointer; text-align:center; line-height:1.3; max-width:100%;
+  font:inherit; color:var(--texto-2); background:none; border:1px dashed var(--linea-fuerte);
+  border-radius:var(--r-l); padding:11px 18px; cursor:pointer; text-align:center; line-height:1.25;
+  max-width:100%; min-height:52px; display:flex; flex-direction:column; gap:3px; justify-content:center;
 }
-.pes-pase:hover{color:var(--texto); border-color:var(--texto-3)}
-@media (max-width:420px){ .pes-aro{width:168px; height:168px} .pes-num b{font-size:44px} }
+.pes-pase b{font-size:16px; font-weight:680; color:var(--texto)}
+.pes-pase small{font-size:12.5px; color:var(--texto-3)}
+.pes-pase:hover{border-color:var(--texto-3)}
+.pes-pase:active{translate:0 1px}
+
+/* Un ingrediente que ya estaba hecho y al que, por un exceso de otro, le
+   faltan gramos. Va en ámbar porque hay que volver a él: sin marca parecía
+   que no lo habías echado y se echaba entero otra vez. */
+.pes-fila.rehacer{background:var(--ambar-suave)}
+.pes-fila.rehacer .ojo{color:var(--ambar)}
+.pes-fila.rehacer .pes-g{color:var(--ambar)}
+/* En el móvil el aro y el atajo tienen que caber JUNTOS sin arrastrar: si
+   'Me he equivocado' queda debajo del doblez, no existe. */
+@media (max-width:420px){
+  .pes-aro{width:162px; height:162px} .pes-num b{font-size:42px}
+  .pes-heroe{gap:9px; padding:13px 13px 11px}
+  .pes-heroe-txt .pes-color{width:30px; height:30px}
+  .pes-ya-txt{height:42px; padding:0 18px}
+  .pes-pase{min-height:48px; padding:9px 16px}
+}
 .pes-chips{display:flex; flex-wrap:wrap; gap:7px; margin:-4px 0 14px}
 .pes-chips .btn{height:38px; font-size:13.5px}
 .pes-chips em{font-style:normal; color:var(--texto-3); font-weight:450; margin-left:4px}
@@ -6251,7 +6273,7 @@ function guardarPesaje(){
       return localStorage.removeItem(CLAVE_PESAJE);
     localStorage.setItem(CLAVE_PESAJE, JSON.stringify({
       id: pes.f.id, objetivo: pes.objetivo, modo: pes.modo,
-      hechos: [...pes.hechos], cuando: Date.now(),
+      hechos: [...pes.hechos], exactos: [...(pes.exactos || [])], cuando: Date.now(),
       // Con qué ingredientes se empezó. Si la receta cambia mientras pesas,
       // lo ya marcado deja de querer decir lo mismo y hay que descartarlo.
       huella: pes.ing.map(i=>i.nombre + ':' + i.cantidad).join('|'),
@@ -6282,7 +6304,8 @@ function retomarPesaje(){
   const base = v.ing.reduce((s,i)=>s+i.cantidad,0);
   pes = {f: v.f, ing: v.ing, base, prop: v.ing.map(i=>i.cantidad/base),
          objetivo: v.g.objetivo, modo: v.g.modo || leerModo(),
-         hechos: new Map(v.g.hechos), paso: 2, lote: null, recien: null};
+         hechos: new Map(v.g.hechos), exactos: new Set(v.g.exactos || []),
+         paso: 2, lote: null, recien: null};
   congelarPlan();
   pintarPesaje();
   if(!$dlg.open) $dlg.showModal();
@@ -6298,7 +6321,8 @@ function preparar(f){
   // decisión dos veces. Cambiarla sigue estando, en "Cambiar cantidad".
   pes = {f, ing, base, prop: ing.map(i=>i.cantidad/base),
          objetivo: objetivo > 0 ? objetivo : Math.round(base),
-         modo: leerModo(), hechos: new Map(), paso: 2, lote: null, recien: null};
+         modo: leerModo(), hechos: new Map(), exactos: new Set(),
+         paso: 2, lote: null, recien: null};
   congelarPlan();
   pintarPesaje();
   $dlg.showModal();
@@ -6326,18 +6350,41 @@ function congelarPlan(){
           || {total: pes.objetivo, cantidades: pes.prop.map(p=>Math.max(PRECISION, Math.round(pes.objetivo*p)))};
 }
 
-/** El plan de pesada, ya con los excesos absorbidos y redondeado a gramos. */
+/** El plan de pesada, ya con los excesos absorbidos y redondeado a gramos.
+
+    EL GRAMO FANTASMA (28 sep). Juanjo: «pon 2700 de blanco, le doy a Echado y
+    me pide 1 g más de blanco sin sentido». Pasaba esto: el plan reparte a
+    gramos enteros, así que lo que te pide de un ingrediente está redondeado
+    HACIA ARRIBA respecto a su proporción exacta. Al marcar "Echado" se
+    guardaba esa cifra como si la hubieras MEDIDO, y la cuenta de aquí abajo
+    —«¿algún ingrediente obliga a subir el lote?»— veía ese medio gramo de
+    redondeo como si te hubieras pasado y subía el lote entero. Resultado: un
+    gramo de más en otro ingrediente, salido de la nada.
+
+    Ahora se distingue: marcar "Echado" es echar EXACTAMENTE lo que ponía, y
+    eso no puede mover nada. Solo una cantidad que tú has escrito en "Me he
+    equivocado" cuenta como medida y puede subir el lote. */
 function plan(){
   if(!pes.lote) congelarPlan();
   let T = pes.lote.total;
-  for(const [k, real] of pes.hechos) T = Math.max(T, real / pes.prop[k]);
+  for(const [k, real] of pes.hechos){
+    if(pes.exactos && pes.exactos.has(k)) continue;
+    T = Math.max(T, real / pes.prop[k]);
+  }
 
   // Solo se recalcula si algún exceso obliga a subir el lote. Si no, mandan
   // los números con los que empezaste.
   let obj = pes.lote.cantidades;
   if(T > pes.lote.total + 1e-9){
-    const re = lotePractico(pes.ing.map(i=>i.cantidad), Math.ceil(T),
-                            {paso: PRECISION, abajo: 1, arriba: 1.06});
+    /* EL LOTE SUBE LO JUSTO. Antes se buscaba aquí el lote "bonito" dentro de
+       un 6% por arriba, igual que al empezar, y salía esto: dices que te has
+       pasado con uno y la app te pide MÁS de ese mismo. Encima gastas un 6%
+       más de material. Al corregir manda el mínimo: lo que has echado se da
+       por bueno y solo suben los demás. El margen ancho queda de rescate por
+       si con el lote justo algún ingrediente no llegara al gramo. */
+    const cant = pes.ing.map(i=>i.cantidad);
+    const re = lotePractico(cant, Math.ceil(T), {paso: PRECISION, abajo: 1, arriba: 1})
+            || lotePractico(cant, Math.ceil(T), {paso: PRECISION, abajo: 1, arriba: 1.06});
     obj = re ? re.cantidades : pes.prop.map(p=>Math.round(T*p));
   }
   let acum = 0;
@@ -6348,6 +6395,8 @@ function plan(){
       acum += obj[k];
       const real = pes.hechos.get(k);
       return {i, k, objetivo: obj[k], acumulado: acum, real,
+              previsto: pes.lote.cantidades[k],
+              exacto: !!(pes.exactos && pes.exactos.has(k)),
               falta: real===undefined ? obj[k] : Math.max(0, obj[k]-real),
               impesable: obj[k] < PRECISION};
     }),
@@ -6455,6 +6504,7 @@ function pintarPesaje(){
       pintarPesaje(); };
   const echarUno = k=>{
     pes.hechos.set(k, plan().filas[k].objetivo);
+    pes.exactos.add(k);           // lo que pedía el plan, ni un gramo más
     pes.recien = k;               // solo esta fila hace el barrido verde
     const listo = plan().filas.every(x=>x.falta===0);
     vibrar(listo ? [30, 60, 30] : 25);
@@ -6465,7 +6515,8 @@ function pintarPesaje(){
   const ya = document.getElementById('pes-ya');
   if(ya) ya.onclick = ()=>echarUno(+ya.dataset.ya);
   for(const b of $dc.querySelectorAll('[data-deshacer]'))
-    b.onclick = ()=>{ pes.hechos.delete(+b.dataset.deshacer);
+    b.onclick = ()=>{ const k = +b.dataset.deshacer;
+      pes.hechos.delete(k); pes.exactos.delete(k);
       pes.recien = null; pintarPesaje(); guardarPesaje(); };
   for(const b of $dc.querySelectorAll('[data-ajustar]'))
     b.onclick = ()=>ajustar(+b.dataset.ajustar);
@@ -6546,14 +6597,22 @@ function heroePesaje(p, hechas){
     <div class="pes-heroe-txt">
       <i class="pes-color" style="background:${hex||'var(--linea)'}"></i>
       <div><b>${esc(x.i.nombre)}</b>
-        <small>${hechas + 1} de ${n}${acumulado ? ` · +${fmt(echar)} g de este` : ''}${
-          x.real!==undefined && x.real!==x.objetivo ? ` · echaste ${fmt(x.real)}` : ''}</small></div>
+        <small>${x.real !== undefined
+          ? (x.real < x.previsto - 1e-9
+              ? `echaste ${fmt(x.real)} g · te faltan ${fmt(x.falta)} g`
+              : (x.exacto
+                  ? `ya lo diste por hecho · echa ${fmt(x.falta)} g más`
+                  : `echaste ${fmt(x.real)} g · echa ${fmt(x.falta)} g más`))
+          : `${hechas + 1} de ${n}${acumulado ? ` · +${fmt(echar)} g de este` : ''}`}</small></div>
     </div>
     <div class="pes-ya-txt">Ya está · siguiente
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></div>
   </button>
   <div class="pes-pase-fila">
-    <button class="pes-pase" data-pase="${k}" type="button">¿Te has pasado? Escribe lo que marca y se recalcula el resto</button>
+    <button class="pes-pase" data-pase="${k}" type="button">
+      <b>Me he equivocado</b>
+      <small>Escribe lo que marca la báscula</small>
+    </button>
   </div>`;
 }
 
@@ -6562,26 +6621,40 @@ function filaPesaje(x, modo, recien){
   const sub = x.i.tipo==='formula' ? porId.get(x.i.ref) : null;
   const hex = m?.hex_referencia || (sub ? color(sub).hex : null);
   const listo = x.falta === 0;
+  /* Este ya estaba dado por hecho y, al subir el lote por un exceso de otro,
+     le faltan unos gramos. Se dice con todas las letras: si solo se le quita
+     el ✓ y se le pone "+2 g", parece que no lo marcaste y se echa entero. */
+  const rehacer = !listo && x.real !== undefined;
+  // Quedarse corto y que suba el lote son dos cosas distintas y se dicen
+  // distinto: en una echas lo que te faltaba, en la otra vuelves a un bote
+  // que ya dabas por cerrado.
+  const corto = rehacer && x.real < x.previsto - 1e-9;
 
   // REGLA DE SEGURIDAD: el número grande es SIEMPRE lo que hay que echar de
   // este ingrediente. Antes, en modo sin tarar, el número gordo era lo que
   // marcaría la báscula acumulado (528) y la cantidad real (360) iba en gris
   // y pequeña debajo: quien fuera con prisa echaba 528. Eso no puede pasar.
   const echar = x.falta || x.objetivo;
-  return `<div class="pes-fila${listo?' listo':''}${listo&&recien?' recien':''}">
+  return `<div class="pes-fila${listo?' listo':''}${listo&&recien?' recien':''}${rehacer?' rehacer':''}">
     <div class="pes-color" style="background:${hex||'var(--linea)'}"></div>
     <div class="pes-nom">${esc(x.i.nombre)}
       ${modo==='acumulado' && !listo
         ? `<small class="bascula">la báscula marcará <b>${fmt(x.acumulado)} g</b></small>` : ''}
-      ${x.real!==undefined && x.real!==x.objetivo ? `<small class="ojo">echaste ${fmt(x.real)}</small>` : ''}
+      ${rehacer
+        ? `<small class="ojo">${corto
+            ? `echaste ${fmt(x.real)} g de los ${fmt(x.objetivo)}`
+            : (x.exacto
+                ? `ya estaba hecho con ${fmt(x.real)} g · el lote ha subido`
+                : `echaste ${fmt(x.real)} g · el lote ha subido`)}</small>`
+        : (x.real!==undefined && x.real!==x.objetivo ? `<small class="ojo">echaste ${fmt(x.real)}</small>` : '')}
     </div>
     <div class="pes-g num">${listo ? '<span class="pes-ok">✓</span>'
-        : `<span class="pes-mas">+</span>${fmt(echar)}<em>g a echar</em>`}</div>
+        : `<span class="pes-mas">+</span>${fmt(echar)}<em>${rehacer ? 'g más' : 'g a echar'}</em>`}</div>
     <div class="pes-btn">
       ${listo
         ? `<button class="btn" data-deshacer="${x.k}">Deshacer</button>`
         : `<button class="btn" data-echar="${x.k}">Echado</button>
-           <button class="btn" data-ajustar="${x.k}" title="Me he pasado">Me pasé</button>`}
+           <button class="btn" data-ajustar="${x.k}" title="Escribe lo que marca la báscula">Me equivoqué</button>`}
     </div>
   </div>`;
 }
@@ -6589,23 +6662,42 @@ function filaPesaje(x, modo, recien){
 function ajustar(k){
   const x = plan().filas[k];
   const prev = {t:$dt.textContent, c:$dc.innerHTML, p:$dp.innerHTML};
-  $dt.textContent = '¿Cuánto has echado?';
+  $dt.textContent = 'Me he equivocado';
   $dc.innerHTML = `
     <p style="margin:0 0 12px">De <b>${esc(x.i.nombre)}</b> tocaban <b class="num">${fmt(x.objetivo)} g</b>.
        Pon lo que marca la báscula de verdad.</p>
     <label class="campo"><span>Gramos echados</span>
       <input id="aj-g" class="num" type="number" inputmode="decimal" min="0" step="any"
              value="${fmt(x.objetivo)}" style="font-size:22px;font-weight:700;text-align:right"></label>
-    <p style="margin:0;font-size:13.5px;color:var(--texto-2)">Si te has pasado, subiré el lote entero
-       para que las proporciones sigan cuadrando. No hace falta tirar nada.</p>`;
+    <div id="aj-aviso"></div>
+    <p style="margin:0;font-size:13.5px;color:var(--texto-2)">Si te has pasado subo el lote entero para
+       que las proporciones sigan cuadrando —no hace falta tirar nada— y te digo cuánto más echar de los
+       que ya estaban hechos. Si te has quedado corto, te pido lo que falta.</p>`;
   $dp.innerHTML = `<button class="btn" id="aj-no">Cancelar</button>
                    <button class="btn btn-1" id="aj-si">Guardar</button>`;
   document.getElementById('aj-no').onclick = ()=>{
     $dt.textContent=prev.t; $dc.innerHTML=prev.c; $dp.innerHTML=prev.p; pintarPesaje(); };
+  /* Un dedo gordo aquí sale caro: escribir 200 donde iban 6 dispara el bote a
+     casi 30 kg, porque el resto sube en proporción. Si el lote se va a más del
+     doble, se dice ANTES con el número delante y hay que confirmarlo. */
+  let avisado = false;
   document.getElementById('aj-si').onclick = ()=>{
     const v = parseFloat(String(document.getElementById('aj-g').value).replace(',','.'));
     if(!(v>0)) return brindis('Pon una cantidad');
-    pes.hechos.set(k, v); pintarPesaje(); guardarPesaje();
+    const ahora = plan().total;
+    const nuevo = Math.round(Math.max(ahora, v / pes.prop[k]));
+    if(!avisado && nuevo > ahora * 2){
+      avisado = true;
+      document.getElementById('aj-aviso').innerHTML =
+        `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
+         <span>Con <b>${fmt(v)} g</b> de ${esc(x.i.nombre)} el bote entero se va a
+         <b>${fmt(nuevo)} g</b>. Si es lo que has echado, dale otra vez.</span></div>`;
+      document.getElementById('aj-si').textContent = 'Sí, es eso';
+      return;
+    }
+    // Una cantidad escrita a mano SÍ es una medida: puede subir el lote.
+    pes.hechos.set(k, v); pes.exactos.delete(k);
+    pintarPesaje(); guardarPesaje();
   };
   document.getElementById('aj-g').select();
 }
@@ -8942,7 +9034,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">d5c134c3</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">fadcf91a</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

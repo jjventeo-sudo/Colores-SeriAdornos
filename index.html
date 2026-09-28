@@ -141,6 +141,32 @@ button{background:none;border:0;cursor:pointer;padding:0}
 .num{font-variant-numeric:tabular-nums slashed-zero}
 :focus-visible{outline:2px solid var(--marca); outline-offset:2px; border-radius:4px}
 ::selection{background:var(--marca-hl); color:#15171a}
+/* El palito que parpadea al escribir era lo único de la interfaz que no era
+   de la casa: lo pintaba el navegador con su azul. */
+input,textarea{caret-color:var(--marca)}
+/* Cambiar de claro a oscuro saltaba de golpe. Solo durante el propio cambio
+   —la clase la pone y la quita 12-opciones.js— para no meter transiciones de
+   color en toda la app, que eso sí se nota al usarla. */
+html.cambiando-tema, html.cambiando-tema *{
+  transition:background-color .22s var(--salida), color .22s var(--salida),
+             border-color .22s var(--salida) !important;
+}
+/* Las flechitas que Chrome pega a los campos numéricos no sirven de nada aquí
+   —los gramos se escriben con el teclado de cifras— y de cerca es lo que más
+   hace parecer que la pantalla está sin terminar. */
+input[type=number]{-moz-appearance:textfield; appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none; appearance:none; margin:0}
+/* Y la barra de scroll del navegador, que en oscuro era lo único luminoso al
+   lado de la lista. Fina y de la casa. */
+*{scrollbar-width:thin; scrollbar-color:var(--linea-fuerte) transparent}
+::-webkit-scrollbar{width:10px; height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{
+  background:var(--linea-fuerte); border-radius:999px;
+  border:3px solid transparent; background-clip:content-box;
+}
+::-webkit-scrollbar-thumb:hover{background:var(--texto-3); background-clip:content-box}
 
 /* La "ceja": el rótulo pequeño en letra de máquina y mayúsculas que va
    encima de un dato (CLIENTE, RECETA BASE, 3 PIGMENTOS). Una sola regla para
@@ -352,6 +378,8 @@ button{background:none;border:0;cursor:pointer;padding:0}
 .lista{
   flex:1 1 auto; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
   padding:0 14px 110px;
+  -webkit-mask-image:linear-gradient(180deg, transparent 0, #000 22px);
+  mask-image:linear-gradient(180deg, transparent 0, #000 22px);
 }
 
 /* Con 860 fórmulas en orden alfabético, saber por qué letra vas ahorra
@@ -380,7 +408,19 @@ button{background:none;border:0;cursor:pointer;padding:0}
 .fila:first-child,.letra + .fila{border-top-width:1px; border-radius:var(--r-l) var(--r-l) 0 0}
 .fila:last-child,.fila:has(+ .letra),.fila:has(+ div:not(.fila):not(.letra)){border-radius:0 0 var(--r-l) var(--r-l)}
 .fila:first-child:last-child,.letra + .fila:has(+ .letra){border-radius:var(--r-l)}
-.fila:hover{background:var(--panel-2)}
+/* UNA FORMA PARA CADA COSA. Cuadrado redondeado = una fórmula del recetario
+   (la lista, el muro, la ficha, el historial). Gota = un pigmento (las filas
+   de la receta, el pesaje, la pantalla de pigmentos). Antes el mismo concepto
+   tenía tres formas y tres tamaños según dónde lo miraras. */
+.fila .muestra{border-radius:var(--r-m); width:48px; height:48px}
+
+/* Al pasar por encima, la fila coge SU color. Es el mismo tinte de la ficha
+   llevado al listado: recorrer 860 fórmulas deja de ser gris y va cambiando
+   de temperatura bajo el dedo. Al 7%, que esto no es una muestra. */
+.fila:hover{background:color-mix(in srgb, var(--tono, transparent) 7%, var(--panel-2))}
+/* Y responde al TACTO, que antes no: en el móvil tocabas y no pasaba nada
+   hasta que aparecía la ficha. Es lo que más se toca de la app. */
+.fila:active{background:color-mix(in srgb, var(--tono, transparent) 12%, var(--panel-2)); scale:.995}
 /* Seleccionada: fondo un punto más claro y el filo en hueso. */
 .fila[aria-current="true"]{background:var(--tinta-suave); box-shadow:inset 3px 0 0 var(--tinta)}
 .fila[aria-current="true"] .fila-nombre{font-weight:700}
@@ -488,7 +528,19 @@ button{background:none;border:0;cursor:pointer;padding:0}
 .muro-mas{margin:22px 0 0; font-size:12.5px; color:var(--texto-3)}
 
 /* ── Ficha ───────────────────────────────────────────────────────── */
-.columna-ficha{flex:1 1 auto; overflow-y:auto; min-width:0; overscroll-behavior:contain; background:var(--panel)}
+.columna-ficha{flex:1 1 auto; overflow-y:auto; min-width:0; overscroll-behavior:contain; background:var(--panel);
+  position:relative;
+}
+/* El desvanecido de arriba, SOLO en el ordenador: ahí la columna pasa por
+   debajo de la cabecera y cortaba en seco. En el móvil la ficha ocupa la
+   pantalla entera y su propia barra («todas las fórmulas») va dentro del
+   desplazamiento, así que difuminarla dejaba ver el logo de detrás. */
+@media (min-width:861px){
+  .columna-ficha{
+    -webkit-mask-image:linear-gradient(180deg, transparent 0, #000 26px);
+    mask-image:linear-gradient(180deg, transparent 0, #000 26px);
+  }
+}
 .ficha{max-width:780px; margin:0 auto; padding:26px 26px 96px}
 /* Con la barra pegada al fondo, el hueco de abajo sobra: dejarlo hacía
    que al llegar al final la barra se despegara y quedara flotando a media
@@ -539,7 +591,47 @@ button{background:none;border:0;cursor:pointer;padding:0}
    deja el alto de la barra por debajo y nada acaba escondido detrás. */
 .ficha .tarjeta,.ficha .aviso,.acciones-ficha,.acciones-ficha .btn{scroll-margin-bottom:96px}
 .barra-ficha #btn-preparar{flex:1 1 auto; font-size:17px}
+/* En el móvil ocupa lo que tiene que ocupar. En un monitor, un botón de 709 px
+   parece el reclamo de una web, no una herramienta: se queda en 340 y la
+   pareja se alinea con la receta. */
+@media (min-width:861px){
+  .barra-ficha{justify-content:flex-start}
+  .barra-ficha #btn-preparar{flex:0 0 340px}
+}
 .barra-ficha #btn-etiqueta{flex:0 0 auto}
+
+/* ── EL TINTE DEL COLOR ABIERTO ───────────────────────────────────
+   La interfaz es hueso y negro a propósito: el color lo ponen las muestras.
+   Pero la pantalla entera puede RESPIRAR el color que estás mirando sin
+   falsear ningún dato: un halo detrás de la muestra y un filo en el canto de
+   la tarjeta de la fórmula. Ni el halo ni el filo son una muestra, así que no
+   hay nada que se pueda confundir con el color de verdad.
+   `--tono` lo pone pintarFicha() con el hex de la fórmula abierta. */
+.columna-ficha::before{
+  content:""; position:absolute; inset:0 0 auto 0; height:520px; pointer-events:none;
+  background:radial-gradient(120% 100% at 22% 0%, var(--tono, transparent) 0%, transparent 62%);
+  opacity:0; transition:opacity .45s var(--salida); z-index:0;
+}
+body[data-ficha="on"] .columna-ficha::before{opacity:.085}
+body[data-ficha="on"] .ficha{position:relative; z-index:1}
+body[data-ficha="on"] .tarjeta-fm{border-top:2px solid var(--tono, var(--linea))}
+/* En claro el mismo halo canta el doble: el fondo es casi blanco y cualquier
+   tinte se ve a la primera. La mitad justa. */
+@media (prefers-color-scheme: light){
+  :root:not([data-tema="oscuro"]) body[data-ficha="on"] .columna-ficha::before{opacity:.05}
+}
+:root[data-tema="claro"] body[data-ficha="on"] .columna-ficha::before{opacity:.05}
+
+/* Marcar que un bote está en la estantería es un pequeño logro y el sello
+   cambiaba de golpe, sin que nada lo celebrara. Entra con un pop corto; en el
+   móvil, además, vibra un instante (lo pone marcarBote). */
+@keyframes sello-pop{
+  from{opacity:0; scale:.25; filter:blur(4px)}
+  to  {opacity:1; scale:1;   filter:blur(0)}
+}
+.etiqueta.bote.recien,.etiqueta.sin-bote.recien{
+  animation:sello-pop calc(.34s * var(--ritmo)) cubic-bezier(.2,0,0,1) both;
+}
 
 .hero{display:flex; gap:22px; align-items:flex-start; margin-bottom:6px}
 /* La muestra que tocas en la lista o en el muro CRECE hasta convertirse en
@@ -859,7 +951,9 @@ button{background:none;border:0;cursor:pointer;padding:0}
 .hist-ir:hover{background:var(--panel-2)}
 .hist-ir:active{background:var(--panel-2); scale:.995}
 .hist-mas-icono{width:14px;height:14px;flex:0 0 auto;color:var(--texto-3);opacity:.8}
-.hist-color{width:30px; height:30px; border-radius:50%; flex:0 0 auto}
+/* Cuadrado redondeado: esto es una FÓRMULA (el color que daba aquella
+   versión), no un pigmento. Ver la regla de las formas más arriba. */
+.hist-color{width:30px; height:30px; border-radius:9px; flex:0 0 auto}
 .hist-nom{flex:1 1 auto; min-width:0; font-size:14.5px; font-weight:560}
 .hist-nom small{
   display:block; font-size:12.5px; font-weight:450; color:var(--texto-2);
@@ -890,7 +984,7 @@ button{background:none;border:0;cursor:pointer;padding:0}
 }
 .hist-desh svg{width:16px;height:16px}
 .hist-desh:hover{background:var(--tinta-suave); color:var(--texto); border-color:var(--linea-fuerte)}
-.hist-desh:active{scale:.94}
+.hist-desh:active{scale:.96}   /* como todos los demás: por debajo de .95 se nota exagerado */
 /* Las pestañas del historial, con su cuenta. */
 .seg-hist{margin-bottom:2px}
 .seg-hist em{
@@ -935,6 +1029,20 @@ button{background:none;border:0;cursor:pointer;padding:0}
   display:flex; align-items:center; gap:14px; padding:12px 0;
   border-bottom:1px solid var(--linea);
 }
+/* La receta entra escalonada al ABRIR un color, igual que las baldosas del
+   muro. Solo al abrir: mientras se escribe la cantidad, la zona se repinta
+   cada pocas décimas y animarla ahí sería insoportable. La clase la pone
+   pintarFicha() y la quita el propio repintado del lote. */
+.zona-lote-nueva .ing{
+  animation:sube calc(.34s * var(--ritmo)) var(--salida) both;
+  animation-delay:calc(var(--i,0) * 38ms * var(--ritmo));
+}
+.zona-lote-nueva .proporcion i{
+  animation:crece-tramo calc(.5s * var(--ritmo)) var(--salida) both;
+  animation-delay:calc(var(--i,0) * 38ms * var(--ritmo));
+  transform-origin:left;
+}
+@keyframes crece-tramo{from{transform:scaleX(0)} to{transform:none}}
 .ing:last-child{border-bottom:0}
 .ing-color{width:34px;height:34px;flex:0 0 auto;border-radius:50%}
 .ing-nom{flex:1 1 auto; min-width:0; font-size:16px; font-weight:600}
@@ -967,7 +1075,7 @@ button{background:none;border:0;cursor:pointer;padding:0}
 
 /* Calculadora: la cantidad y las pastillas de atajo (bote de 1 kg, de 5,
    la receta, ×2). La elegida va rellena en hueso, como todo lo activo. */
-.calc{display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:4px 20px 12px; border-bottom:1px solid var(--linea)}
+.calc{display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:16px 20px 12px; border-bottom:1px solid var(--linea)}
 .calc label{font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--texto-3); font-weight:500}
 .calc input{
   width:110px; height:44px; padding:0 14px; text-align:right;
@@ -1132,7 +1240,9 @@ button{background:none;border:0;cursor:pointer;padding:0}
    línea fina de 13 px que nadie veía. */
 .pes-pase-fila{display:flex; justify-content:center; margin:0 0 12px}
 .pes-pase{
-  font:inherit; color:var(--texto-2); background:none; border:1px dashed var(--linea-fuerte);
+  /* Línea continua, no de puntos: en esta app el punteado significa «hueco
+     vacío» —lo usa «Sin bote»— y esto es un botón, no un hueco. */
+  font:inherit; color:var(--texto-2); background:none; border:1px solid var(--linea-fuerte);
   border-radius:var(--r-l); padding:11px 18px; cursor:pointer; text-align:center; line-height:1.25;
   max-width:100%; min-height:52px; display:flex; flex-direction:column; gap:3px; justify-content:center;
 }
@@ -1144,6 +1254,21 @@ button{background:none;border:0;cursor:pointer;padding:0}
 /* Un ingrediente que ya estaba hecho y al que, por un exceso de otro, le
    faltan gramos. Va en ámbar porque hay que volver a él: sin marca parecía
    que no lo habías echado y se echaba entero otra vez. */
+/* «Echado» es lo que se hace veinte veces al día y «Me equivoqué» una vez a
+   la semana: no pueden pesar lo mismo. El primero manda; el segundo se queda
+   en un botón callado, sin fondo. */
+.pes-btn [data-echar]{
+  background:linear-gradient(180deg,var(--tinta),var(--tinta-2)); color:var(--tinta-txt);
+  border-color:var(--tinta); font-weight:680;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5), var(--sombra-2);
+}
+.pes-btn [data-ajustar]{
+  background:none; box-shadow:none; border-color:transparent;
+  color:var(--texto-3); font-weight:560; text-decoration:underline;
+  text-underline-offset:3px; text-decoration-color:var(--linea-fuerte);
+}
+.pes-btn [data-ajustar]:hover{color:var(--texto-2); text-decoration-color:var(--texto-3)}
+
 .pes-fila.rehacer{background:var(--ambar-suave)}
 .pes-fila.rehacer .ojo{color:var(--ambar)}
 .pes-fila.rehacer .pes-g{color:var(--ambar)}
@@ -5008,6 +5133,7 @@ function filaUltima(){
   const c = color(f);
   const b = document.createElement('button');
   b.className = 'fila-ultima'; b.type = 'button'; b.dataset.id = f.id;
+  if(c.hex) b.style.setProperty('--tono', c.hex);
   b.innerHTML =
     `<div class="muestra${c.metalizado?' metal':''}" style="background:${c.hex}"${marcaFoto(f.id)}></div>` +
     `<div class="fila-txt"><div class="fila-sub">Última preparada · ${esc(haceCuanto(e.cuando))}${
@@ -5053,6 +5179,9 @@ function pintarLista(reinicia=true){
     const b = document.createElement('button');
     b.className='fila'; b.dataset.id=f.id; b.type='button'; b.role='option';
     b.setAttribute('aria-current', String(f.id===seleccion));
+    // Su propio color, para que la fila se tiña de ÉL al pasar por encima.
+    // Es una variable de CSS al 7%: no se pinta ninguna muestra con esto.
+    if(c.hex) b.style.setProperty('--tono', c.hex);
     // 'abierto' NO es un pendiente: es una decisión del taller (la receta dice
     // cuánta purpurina lleva y cuál se elige al preparar).
     const pend = c.avisos.some(a=>a.tipo==='pendiente'||a.tipo==='incompleta');
@@ -5703,7 +5832,9 @@ function plantillaFicha(f, x){
 
     <div class="ficha-cuerpo"><div class="ficha-col">
     <div class="tarjeta tarjeta-fm">
-      <div class="tarjeta-cab"><h3>Fórmula</h3></div>
+      <!-- Sin cabecera: al sacar de aquí el botón de la etiqueta quedó un
+           renglón con la palabra «Fórmula» y nada más. Lo que hay debajo
+           —«quiero preparar … gramos» y la receta— se entiende solo. -->
       <div class="calc">
         <label for="calc-total">Quiero preparar</label>
         <!-- type="text" y no "number" a propósito: en un campo numérico el
@@ -5892,6 +6023,13 @@ function pintarFicha(){
   const pos = posicionColor();
   $ficha.innerHTML = plantillaFicha(f, {c, total, grupo, hermanas, usan, anidada, totalMovido, pos});
 
+  /* El color de esta fórmula, para el halo de la columna y el filo de la
+     tarjeta. Es una variable de CSS: no se pinta ninguna muestra con ella. */
+  document.getElementById('columna-ficha')?.style.setProperty('--tono', c.hex);
+  /* Y la receta entra escalonada, como las baldosas del muro. Solo aquí: el
+     repintado del lote (cada vez que se toca la cantidad) la quita. */
+  marcarEntrada();
+
   // Foto de los gramos actuales, para poder comparar en el siguiente repintado.
   ultimosGramos = lote ? lote.cantidades.slice() : f.ingredientes.map(i=>i.cantidad);
   ultimosGramos.total = lote ? lote.total : 0;
@@ -6065,14 +6203,32 @@ function zonaLote(f, total, totalMovido){
    campo desaparecía y volvía a nacer mientras escribías: borrabas el 65 y un
    tercio de segundo después reaparecía solo. De ahí que no hubiera manera de
    escribir una cantidad. */
+/** Pone el escalonado de entrada en la receta y numera las filas. */
+function marcarEntrada(){
+  const z = document.getElementById('zona-lote');
+  if(!z) return;
+  z.classList.add('zona-lote-nueva');
+  const poner = (sel)=>[...z.querySelectorAll(sel)].forEach((e,i)=>e.style.setProperty('--i', i));
+  poner('.ing'); poner('.proporcion i');
+}
+
 function pintarLote(){
   const f = porId.get(seleccion);
   if(!f) return;
   const total = f.ingredientes.reduce((s,i)=>s+i.cantidad,0);
   const movido = ultimosGramos && ultimosGramos.total !== undefined
                  && ultimosGramos.total !== (lote?lote.total:0);
+  // Los gramos de ANTES, para que los números cuenten hasta los nuevos en vez
+  // de saltar. Hay que cogerlos aquí: cuatro líneas más abajo ya se pisan.
+  const previos = ultimosGramos ? ultimosGramos.slice() : null;
   const z = document.getElementById('zona-lote');
-  if(z) z.innerHTML = zonaLote(f, total, movido);
+  if(z){
+    z.innerHTML = zonaLote(f, total, movido);
+    // Repintar el lote NO es abrir la ficha: aquí no hay entrada escalonada,
+    // que esto pasa cada vez que se toca una tecla de la cantidad.
+    z.classList.remove('zona-lote-nueva');
+    contarGramos(previos);
+  }
   const d = document.getElementById('zona-desarrollo');
   if(d) d.innerHTML = llevaAnidada(f) ? tarjetaDesarrollo(f) : '';
   ultimosGramos = lote ? lote.cantidades.slice() : f.ingredientes.map(i=>i.cantidad);
@@ -6103,6 +6259,35 @@ function ponerObjetivo(gramos, esLaReceta){
   pintarLote();
   marcarAtajo();
 }
+/* Los gramos CUENTAN hasta el número nuevo (240 ms) en vez de aparecer ya
+   cambiados. El destello de antes decía «esto se ha movido»; contar dice «te
+   lo estoy recalculando», que es lo que de verdad está pasando. Con el
+   movimiento reducido del sistema no se cuenta nada: se pone el número. */
+function contarGramos(previos){
+  if(!previos || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cajas = [...document.querySelectorAll('#zona-lote .ing-g')];
+  const tot = document.querySelector('#zona-lote .total span:last-child');
+  const pasos = [];
+  cajas.forEach((el, k)=>{
+    const de = previos[k];
+    const a = lote ? lote.cantidades[k] : undefined;
+    if(de === undefined || a === undefined || de === a) return;
+    // Redondeado SIEMPRE: en esta app un gramo es la unidad, y ver «253,8 g»
+    // de paso, aunque sea una décima de segundo, es ver algo que no existe.
+    pasos.push([el.firstChild, de, a, g=>fmt(Math.round(g))]);
+  });
+  if(tot && previos.total !== undefined && lote && previos.total !== lote.total)
+    pasos.push([tot.firstChild, previos.total, lote.total, g=>fmt(Math.round(g)) + ' g']);
+  if(!pasos.length) return;
+  const t0 = performance.now(), dur = 240;
+  (function paso(t){
+    const k = Math.min(1, (t - t0) / dur);
+    const e = 1 - Math.pow(1 - k, 3);
+    for(const [nodo, de, a, pinta] of pasos) nodo.textContent = pinta(de + (a - de) * e);
+    if(k < 1) requestAnimationFrame(paso);
+  })(t0);
+}
+
 /** Deja encendido el atajo que coincide con la cantidad puesta. */
 function marcarAtajo(){
   for(const b of $ficha.querySelectorAll('.multi [data-cant]'))
@@ -6256,6 +6441,10 @@ function marcarBote(f, hay, callado){
   if(!callado){
     brindis(hay ? 'Marcado: tiene bote en la estantería' : 'Marcado: ya no tiene bote');
     pintarFicha(); actualizar();
+    // Que se vea APARECER, y que se note en la mano: marcar un bote es un
+    // pequeño logro y antes el sello cambiaba en silencio.
+    document.getElementById('sello-bote')?.classList.add('recien');
+    vibrar(18);
   }
   return true;
 }
@@ -9149,6 +9338,12 @@ function abrirOpciones(){
 
   document.getElementById('op-tema').value = localStorage.getItem('tema') || 'auto';
   document.getElementById('op-tema').onchange = e=>{
+    /* Que la app se ENCIENDA en vez de dar un corte. La clase vive lo que dura
+       la transición: dejarla puesta metería transiciones de color en toda la
+       app, y eso sí se nota al usarla (una lista que se repinta entera con
+       cada tecla no puede ir animando fondos). */
+    document.documentElement.classList.add('cambiando-tema');
+    setTimeout(()=>document.documentElement.classList.remove('cambiando-tema'), 260);
     const v = e.target.value;
     try{ localStorage.setItem('tema', v); }catch(_){}
     if(v === 'auto') delete document.documentElement.dataset.tema;
@@ -9290,7 +9485,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">411e103a</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">4b03cdbf</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -11682,6 +11877,9 @@ function pintarFichaSello(){
   const s = porIdS.get(selloSel);
   if(!s){ muroDeSellos(); return; }
   $ficha.classList.remove('es-muro');
+  // El halo de la columna es el color de la fórmula abierta. Un sello no tiene
+  // color, así que se quita: si no, se quedaba el del último color mirado.
+  document.getElementById('columna-ficha')?.style.removeProperty('--tono');
   const ancho = innerWidth > 900;
 
   const cabecera = `

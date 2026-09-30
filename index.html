@@ -2229,34 +2229,23 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
   font-variant-numeric:tabular-nums;
 }
 /* ── Listado ─────────────────────────────────────────────────────── */
-.mini-sello{
-  width:50px;height:40px;flex:0 0 auto;border-radius:var(--r-s);
-  background:var(--panel-2); outline:1px solid var(--contorno); outline-offset:-1px;
-  position:relative; overflow:hidden; box-shadow:var(--sombra-1);
+/* Una fila = un molde: el nº, grande y en tipografía de máquina —es lo que va
+   escrito en la pieza—, y debajo el sello y su cliente, pequeños. Sin foto y
+   sin puntos de colores (30-sep). */
+.fila-sello{padding-block:13px}
+.fila-sello .fila-nombre.fn-molde{
+  font-family:var(--mono); font-size:21px; font-weight:650; letter-spacing:-.01em;
+  line-height:1.15; text-transform:uppercase;
 }
-/* Sin foto, un rectángulo en blanco parece un fallo de carga. Se marca con la
-   silueta de una placa para que se lea como "todavía no tiene foto"… salvo si
-   se sabe el nº de molde, que entonces el hueco lo dice y sirve para algo. */
-.mini-sello:not(.con-foto):not(.con-molde)::after{
-  content:""; position:absolute; inset:6px 8px; border-radius:99px;
-  border:1.5px dashed var(--linea-fuerte);
+.fila-sello .fila-sub{
+  display:flex; gap:7px; align-items:baseline; margin-top:4px;
+  font-family:inherit; font-size:13.5px; font-weight:500; letter-spacing:0; text-transform:none;
+  color:var(--texto-2);
 }
-.mini-sello.con-molde{
-  display:flex; align-items:center; justify-content:center; padding:2px 3px;
-}
-.mini-molde{
-  font-family:var(--mono); font-size:9.5px; font-weight:600; letter-spacing:.02em;
-  line-height:1.15; color:var(--texto-2); text-align:center;
-  word-break:break-word; hyphens:none;
-}
-/* El subtítulo, en dos trozos: el cliente se acorta si hace falta, el molde
-   NUNCA. Antes era un solo texto y lo que se perdía era siempre el final, o
-   sea el molde. */
-.fila-sello .fila-sub{display:flex; gap:7px; align-items:baseline}
-.fila-sello .fs-cli{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-.fila-sello .fs-molde{flex:0 0 auto}
-.fila-sello .fs-molde::before{content:"· "; color:var(--texto-3)}
-.fila-sello .fila-falta{display:block}
+.fila-sello .fs-nom{min-width:0; flex:0 1 auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.fila-sello .fs-cli{min-width:0; flex:1 1 0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--texto-3); font-weight:450}
+.fila-sello .fs-nom + .fs-cli::before{content:"· "}
+.fila-sello .fila-falta{display:block; font-size:12.5px; margin-top:3px}
 .sello-t-foto:not(.con-foto):not(.con-molde)::before{
   content:""; position:absolute; inset:16% 20%; border-radius:99px;
   border:2px dashed var(--linea-fuerte);
@@ -2267,11 +2256,6 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
   position:absolute; inset:0; display:grid; place-items:center; padding:0 10px;
   font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.02em;
   color:var(--texto-2); text-align:center; word-break:break-word;
-}
-.puntos{display:flex; gap:4px; flex:0 0 auto}
-.puntos i{
-  width:11px;height:11px;border-radius:50%;display:block;
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14), 0 1px 2px rgba(0,0,0,.5);
 }
 /* ── Muro de sellos ──────────────────────────────────────────────── */
 .muro-sellos{
@@ -2344,8 +2328,8 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
    la foto del molde, lo que sea). Ámbar en todas partes —lista, muro, ficha
    y hoja impresa— para que se vea de un vistazo sin tener que entrar. */
 .falta-pin{
-  position:absolute; right:3px; top:3px; z-index:2; width:10px; height:10px;
-  border-radius:50%; background:var(--ambar); box-shadow:0 0 0 2px var(--panel);
+  display:inline-block; width:9px; height:9px; margin-right:9px; vertical-align:.14em;
+  border-radius:50%; background:var(--ambar);
 }
 .fila-sub em.falta{color:var(--ambar)}
 .sello-t-falta{
@@ -2824,7 +2808,7 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
       </button>
       <button data-sec="sellos" aria-pressed="false" role="tab">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M8.5 4h7v5h-7z"/><path d="M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z"/><path d="M4 19.5h16"/></svg>
-        <span>Sellos</span>
+        <span>Moldes</span>
       </button>
       <!-- Escanear no es una sección: abre la cámara. Va en la barra porque es
            lo que se hace con el móvil en la mano delante del molde o del bote. -->
@@ -7657,7 +7641,7 @@ let topeHist = 60;      // se enseña de poco en poco: son cientos de líneas
 const PESTANAS = [
   {k: 'todo',    t: 'Todo'},
   {k: 'formula', t: 'Fórmulas'},
-  {k: 'sello',   t: 'Sellos'},
+  {k: 'sello',   t: 'Moldes'},
   {k: 'bote',    t: 'Botes'},
   {k: 'foto',    t: 'Fotos'},
 ];
@@ -9905,7 +9889,7 @@ function abrirOpciones(){
 
     ${/* Clientes y robots: dos listas cortas que se tocan cuatro veces al año,
           juntas en una sola pantalla, cada una en su desplegable. */''}
-    ${HAY_SELLOS ? grupoAjustes('Los sellos', [
+    ${HAY_SELLOS ? grupoAjustes('Los moldes', [
       filaAjuste('op-taller', 'Taller',
         [`${clientesDeSellos().length} clientes`,
          ROBOTS.length ? `${ROBOTS.length} robots` : 'sin robots'].join(' · '),
@@ -10093,7 +10077,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">81656bf8</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">f97a528f</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -11077,8 +11061,8 @@ function imprimirPegatinasMolde(tarjetas){
   if(!w) return brindis('El navegador ha bloqueado la ventana de las pegatinas');
 
   /* UN molde por pegatina, entera (30-sep, Juanjo: «cada pegatina completa, no
-     partida»). Arriba: el nombre del molde, cuántos sellos lleva, sus medidas
-     y el nombre del sello, con el QR a la derecha. Debajo de una línea: el
+     partida»). Arriba, en el orden que pidió él: molde, medidas, nº de sellos
+     y nombre del sello, con el QR a la derecha. Debajo de una línea: el
      robot y el nombre de sus archivos, a todo el ancho —incluso por debajo del
      QR—, para que quepan varios. Si un molde lo comparten sellos con nombres
      distintos, salen todos en la misma línea. */
@@ -11089,8 +11073,8 @@ function imprimirPegatinasMolde(tarjetas){
       <div class="arriba">
         <div class="izq">
           <div class="cab"><span class="ceja">Molde</span><h1>${esc(c.numero)}</h1></div>
-          ${fila('Sellos', c.sellos ? fmt(c.sellos) + (c.sellos === 1 ? ' sello' : ' sellos') : '')}
           ${fila('Medidas', c.largo && c.ancho ? `${fmt(c.largo)} × ${fmt(c.ancho)} mm` : '', 'med')}
+          ${fila('Nº sellos', c.sellos ? fmt(c.sellos) : '')}
           ${fila('Sello', c.nombres.length ? esc(c.nombres.join(' · ')) : '')}
         </div>
         ${qr ? `<div class="qr">${qr}</div>` : ''}
@@ -11111,17 +11095,19 @@ function imprimirPegatinasMolde(tarjetas){
       : 'Pegatinas de moldes (' + tarjetas.length + ')') + `
   <style>
     .rejilla{position:absolute; inset:${PEGATINA.margen - 1}mm; display:grid; grid-template-columns:1fr; gap:0}
-    .tm{padding:2.2mm 4mm; overflow:hidden; display:flex; flex-direction:column; gap:calc(1.2mm * var(--esc,1));
+    /* Columna de rótulos: todos los datos arrancan en la misma vertical, y cabe
+       «Nº SELLOS» y «ARCHIVOS» sin partirse. */
+    .tm{--lab:15.5mm; padding:2.2mm 4mm; overflow:hidden; display:flex; flex-direction:column; gap:calc(1.2mm * var(--esc,1));
         border:.3mm dashed #000; margin:-.15mm}
     .arriba{display:flex; justify-content:space-between; gap:4mm}
     .izq{display:flex; flex-direction:column; gap:calc(.6mm * var(--esc,1)); min-width:0; flex:1}
     .cab{display:flex; align-items:baseline; gap:2mm; margin-bottom:.4mm}
-    .cab .ceja{font-size:6.5pt}
+    .cab .ceja{flex:0 0 var(--lab); font-size:6.5pt}
     h1{margin:0; font-size:calc(21pt * var(--esc,1)); line-height:1; letter-spacing:-.02em; font-weight:800;
        overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0}
     /* Rótulo y dato en la misma línea: en 50 mm de alto es donde no sobra nada. */
     .d{display:flex; align-items:baseline; gap:2mm}
-    .d .ceja{flex:0 0 13mm; font-size:6.5pt}
+    .d .ceja{flex:0 0 var(--lab); font-size:6.5pt}
     .d b{font-size:calc(9.5pt * var(--esc,1)); font-weight:650; line-height:1.15; overflow-wrap:anywhere; min-width:0}
     .d.med b{white-space:nowrap}
     .qr{width:23mm; height:23mm; flex:0 0 auto}
@@ -11131,11 +11117,11 @@ function imprimirPegatinasMolde(tarjetas){
     .abajo{border-top:.2mm solid #000; padding-top:1mm; display:grid; grid-template-columns:1fr auto;
            column-gap:3mm; row-gap:.6mm; align-items:start; flex:1; min-height:0}
     .rob{display:flex; align-items:baseline; gap:2mm; grid-column:1; min-width:0}
-    .rob .ceja{flex:0 0 13mm; font-size:6.5pt}
+    .rob .ceja{flex:0 0 var(--lab); font-size:6.5pt}
     .rob b{font-size:calc(9.5pt * var(--esc,1)); font-weight:650}
     .marca{grid-column:2; grid-row:1; font-size:8pt; white-space:nowrap; margin-top:.4mm}
     .arch{display:flex; align-items:baseline; gap:2mm; grid-column:1 / -1}
-    .arch .ceja{flex:0 0 13mm; font-size:6.5pt}
+    .arch .ceja{flex:0 0 var(--lab); font-size:6.5pt}
     .lista{font-size:calc(9.5pt * var(--esc,1)); font-weight:650; line-height:1.2; min-width:0}
     .ar{white-space:nowrap; margin-right:2.5mm}
   </style>
@@ -12016,19 +12002,6 @@ function pintarChipsSellos(){
     `<button class="chip" data-chip="falta" aria-pressed="${soloFaltaS}">Falta información <span class="n">${n}</span></button>`;
 }
 
-/** Los colores del sello cuya fórmula ya no existe.
-
-    La ficha lo decía («Esta fórmula ya no existe») pero el listado no, así que
-    para enterarte tenías que abrir el sello. Es justo la clase de hueco que hay
-    que ver sin buscarlo: un paso que apunta a un color borrado no se puede
-    fabricar. */
-function coloresPerdidos(s){
-  return (s.pasos || [])
-    .filter(p => tipoPaso(p.tipo).color && p.ref && !porId.has(p.ref))
-    .map(p => p.nombre || '?')
-    .filter((x, i, a) => a.indexOf(x) === i);
-}
-
 /** Los nº de molde que ya existen, uno por molde, para sugerirlos al escribir. */
 function moldesConocidos(){
   const m = new Map();
@@ -12043,7 +12016,7 @@ function moldesConocidos(){
 function filtrarSellos(txt){
   const t = norm(txt);
   const base = soloFaltaS ? DATOS.sellos.filter(s => faltaInfo(s)) : DATOS.sellos;
-  if(!t) return base.slice();
+  if(!t) return porMolde(base);
   const palabras = t.split(' ').filter(Boolean);
   return base.filter(s=>{
     // El número del cliente entra en el pajar: escribir 4021 tiene que traer
@@ -12057,8 +12030,19 @@ function filtrarSellos(txt){
       archivosDe(s).map(f=>f.nombre + ' ' + (f.para||'')).join(' '),
       coloresDeSello(s).map(c=>c.nombre).join(' ')].join(' '));
     return palabras.every(p => heno.includes(p));
-  });
+  }).sort(ordenMolde);
 }
+
+/* La lista se lee por el nº de molde (es lo grande de cada fila), así que se
+   ordena por él, con los números de verdad: EGM 796 antes que EGM 1000. Los
+   sellos sin molde van al final, por nombre. */
+function ordenMolde(a, b){
+  const ma = ((a.molde && a.molde.numero) || '').trim();
+  const mb = ((b.molde && b.molde.numero) || '').trim();
+  if(!ma !== !mb) return ma ? -1 : 1;
+  return ma.localeCompare(mb, 'es', {numeric:true}) || a.nombre.localeCompare(b.nombre, 'es');
+}
+function porMolde(l){ return l.slice().sort(ordenMolde); }
 
 function pintarListaSellos(){
   $lista.innerHTML = '';
@@ -12084,40 +12068,25 @@ function pintarListaSellos(){
     const b = document.createElement('button');
     b.className = 'fila fila-sello'; b.dataset.id = s.id; b.type = 'button'; b.role = 'option';
     b.setAttribute('aria-current', String(s.id === selloSel));
-    const cols = coloresDeSello(s).slice(0, 5);
     const falta = faltaInfo(s);
-    const molde = (s.molde && s.molde.numero) || '';
-    const conFoto = tieneFoto(idFotoSello(s, 'sello'));
-    const perdidos = coloresPerdidos(s);
-    /* El nº de molde iba al final del subtítulo y en el móvil se cortaba justo
-       ahí: «TALLER PONIENTE · molde EGM 7…». Buscas por molde, te sale la
-       lista, y la lista no te enseña el molde. Medido: 18 de 22 subtítulos
-       cortados.
-
-       Ahora el molde vive en la miniatura mientras no haya foto —que es el
-       caso de todos los sellos hoy—, en tipografía de máquina y sin
-       posibilidad de cortarse. Y de paso arregla lo otro: dieciocho
-       rectángulos con la misma silueta de puntos no distinguían un sello de
-       otro. El día que haya foto, la foto manda y el molde vuelve al
-       subtítulo, que entonces es la única línea que lo lleva. */
+    const molde = ((s.molde && s.molde.numero) || '').trim();
+    /* Sin foto ni puntos de colores (30-sep, Juanjo: «el nombre del molde en
+       grande y el del sello en pequeño»): la fila es el nº de molde, que es lo
+       que está escrito en la pieza, y debajo el sello y su cliente. Un sello
+       que todavía no tiene molde se presenta con su nombre, para no dejar una
+       fila en blanco. */
+    const titulo = molde || s.nombre;
+    const cli = clienteS(s);
+    const sub = molde
+      ? `<span class="fs-nom">${resaltar(s.nombre, $q.value)}</span>` +
+        (cli ? `<span class="fs-cli">${esc(cli)}</span>` : '')
+      : `<span class="fs-cli">${esc(cli || 'Sin cliente')}</span><em class="falta">sin nº de molde</em>`;
     b.innerHTML =
-      `<div class="mini-sello${!conFoto && molde ? ' con-molde' : ''}"${marcaFoto(idFotoSello(s,'sello'))}>${
-        !conFoto && molde ? `<span class="mini-molde">${esc(molde)}</span>` : ''}${
-        falta ? '<i class="falta-pin"></i>' : ''}</div>` +
-      `<div class="fila-txt"><div class="fila-nombre">${resaltar(s.nombre, $q.value)}</div>` +
-      `<div class="fila-sub"><span class="fs-cli">${esc(clienteS(s) || 'Sin cliente')}</span>${
-        molde && conFoto ? `<span class="fs-molde">molde ${esc(molde)}</span>` : ''}</div>${falta
+      `<div class="fila-txt"><div class="fila-nombre fn-molde">${
+        falta ? '<i class="falta-pin" title="Falta información"></i>' : ''}${resaltar(titulo, $q.value)}</div>` +
+      `<div class="fila-sub">${sub}</div>${falta
         ? `<div class="fila-sub fila-falta"><em class="falta">${
-            /* Con la nota delante ponía «Falta información · Falta la presión de
-               la bandera» y se cortaba justo en la nota, que es lo único que no
-               se sabía ya: el punto ámbar de la miniatura ya dice que falta
-               algo. Si no hay nota, entonces sí se dice. */
-            esc(falta.nota || 'Falta información')}</em></div>` : ''}${
-        perdidos.length ? `<div class="fila-sub fila-falta"><em class="falta">${
-            perdidos.length === 1 ? 'Un color borrado' : perdidos.length + ' colores borrados'
-          }</em> · ${esc(perdidos.join(' · '))}</div>` : ''}</div>` +
-      `<div class="puntos">${cols.map(c=>
-        `<i style="background:${colorHexDe(c.ref)}"></i>`).join('')}</div>`;
+            esc(falta.nota || 'Falta información')}</em></div>` : ''}</div>`;
     frag.appendChild(b);
   }
   $lista.appendChild(frag);
@@ -12138,7 +12107,7 @@ function muroDeSellos(){
   if(!DATOS.sellos.length){
     $ficha.innerHTML = `<div class="vacio">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M8.5 4h7v5h-7z"/><path d="M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z"/><path d="M4 19.5h16"/></svg>
-      <p><b>Todavía no hay sellos</b>Cada ficha guarda las fotos del sello y del
+      <p><b>Todavía no hay moldes</b>Cada ficha guarda las fotos del sello y del
         molde, sus medidas, cuántos sellos lleva el molde y en qué robot está el
         programa.</p>
       ${puedeEditar ? '<button class="btn btn-1" id="sello-primero">Crear el primero</button>' : ''}
@@ -12150,8 +12119,8 @@ function muroDeSellos(){
   const v = filtradosS.slice(0, 120);
   $ficha.innerHTML = `<div class="muro">
     <div class="muro-cab">
-      <h2>${$q.value.trim() ? 'Resultados' : 'Todos los sellos'}</h2>
-      <span>${filtradosS.length === 1 ? '1 sello' : filtradosS.length + ' sellos'} · toca uno para ver su ficha</span>
+      <h2>${$q.value.trim() ? 'Resultados' : 'Todos los moldes'}</h2>
+      <span>${filtradosS.length === 1 ? '1 molde' : filtradosS.length + ' moldes'} · toca uno para ver su ficha</span>
     </div>
     <div class="muro-sellos">
       ${v.map(s=>{
@@ -12344,7 +12313,7 @@ function pintarFichaSello(){
   const cabecera = `
     <button class="volver" id="volver-s">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-      Todos los sellos
+      Todos los moldes
     </button>
     <div class="s-titulo">
       <h2>${esc(s.nombre)}</h2>
@@ -12547,7 +12516,7 @@ function editarSello(base, duplicar, seguirId){
      de aquel editor está guardado en archivo/ficha-completa-30sep por si un
      día se quiere volver. */
   const pintar = ()=>{
-    $dt.textContent = esNuevo ? (duplicar ? 'Nuevo a partir de otro' : 'Nuevo sello') : 'Editar sello';
+    $dt.textContent = esNuevo ? (duplicar ? 'Nuevo a partir de otro' : 'Nuevo molde') : 'Editar molde';
     $dc.innerHTML = `
       ${recuperado ? `<div class="ed-recuperado">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
@@ -13312,7 +13281,7 @@ function actualizarSellos(){
   intentarEnlace();
   filtradosS = filtrarSellos($q.value);
   document.getElementById('contador').innerHTML =
-    `<b>${filtradosS.length}</b> de ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}`;
+    `<b>${filtradosS.length}</b> de ${DATOS.sellos.length} molde${DATOS.sellos.length===1?'':'s'}`;
   document.getElementById('chip-pend').hidden = true;
   pintarChipsSellos();
 
@@ -13374,11 +13343,11 @@ function pintarSolapas(){
      cortaba a media palabra: ahí va la versión corta. */
   const corto = matchMedia('(max-width:860px)').matches;
   $q.placeholder = SECCION === 'sellos'
-    ? (corto ? 'Buscar sello o cliente' : 'Buscar sello, cliente o molde')
+    ? (corto ? 'Buscar molde o sello' : 'Buscar molde, sello o cliente')
     : (corto ? 'Buscar color o cliente' : 'Buscar color, cliente o pigmento');
   const nuevo = document.getElementById('btn-nuevo');
   if(nuevo){
-    nuevo.title = SECCION === 'sellos' ? 'Nuevo sello' : 'Nueva fórmula';
+    nuevo.title = SECCION === 'sellos' ? 'Nuevo molde' : 'Nueva fórmula';
     nuevo.setAttribute('aria-label', nuevo.title);
   }
 }
@@ -13625,7 +13594,7 @@ window.__app = {
   abrirEscaner, cerrarEscaner, procesarQR, get escanerAbierto(){ return !$escaner.hidden; },
   tarjetaMolde, imprimirPegatinasMolde, pantallaPegatinasMolde, imprimirEtiquetas, PEGATINA,
   coloresDeSello, pantallaTaller,
-  coloresPerdidos, sellosDelMismoMolde, tonoDeSello, masDelSello,
+  sellosDelMismoMolde, tonoDeSello, masDelSello,
   get AGUJAS(){ return AGUJAS; }, TIPOS_PASO,
   get CLIENTES(){ return CLIENTES; }, clientesDeSellos, numeroDe, guardarClientes,
   leerBorradores, borradoresNuevos, tirarBorrador,

@@ -81,21 +81,21 @@
 }
 @media (prefers-color-scheme:light){
   :root:not([data-tema="oscuro"]){
-    --fondo:#f1efe9;   --panel:#fbfaf7;  --panel-2:#f3f1ec;
-    --panel-luz:#ffffff;
-    --linea:rgba(21,23,26,.12);  --linea-fuerte:rgba(21,23,26,.26);
-    --texto:#15171a;   --texto-2:#5c6167; --texto-3:#63666b;
-    --tinta:#15171a;   --tinta-suave:#e9e6df;  --tinta-txt:#f4f1ea;
-    --tinta-2:#2a2d31;
+    --fondo:#e8e3d6;   --panel:#fffdf8;  --panel-2:#f4efe3;
+    --panel-luz:#fffefb;
+    --linea:rgba(88,62,22,.14);  --linea-fuerte:rgba(88,62,22,.30);
+    --texto:#1d1b17;   --texto-2:#5d574c; --texto-3:#6b6558;
+    --tinta:#1d1b17;   --tinta-suave:#ece5d3;  --tinta-txt:#f4f1ea;
+    --tinta-2:#34302a;
     --marca:#b61517;   --marca-2:#a3120f;  --marca-suave:#fbeceb;
     --marca-hl:#ffe58a;
     --ambar:#96620f;   --ambar-suave:#fbf2e1;
     --verde:#2f7a3e;   --rojo:#b4231c;
     --contorno:rgba(0,0,0,.12);
-    --canto:rgba(255,255,255,.9);
-    --sombra-1:0 1px 2px rgba(16,18,20,.06);
-    --sombra-2:0 4px 10px rgba(16,18,20,.08), 0 1px 2px rgba(16,18,20,.06);
-    --sombra-3:0 12px 30px rgba(16,18,20,.14), 0 2px 4px rgba(16,18,20,.06);
+    --canto:rgba(255,255,255,.95);
+    --sombra-1:0 1px 2px rgba(78,52,14,.10);
+    --sombra-2:0 7px 16px -5px rgba(78,52,14,.20), 0 1px 2px rgba(78,52,14,.10);
+    --sombra-3:0 18px 36px -10px rgba(78,52,14,.28), 0 2px 4px rgba(78,52,14,.10);
     --sombra-boton:0 5px 12px rgba(16,18,20,.12), 0 1px 2px rgba(16,18,20,.1);
     --sombra-gota:inset 0 -5px 9px rgba(0,0,0,.22), inset 0 0 0 1px rgba(0,0,0,.14),
                   0 4px 9px rgba(16,18,20,.22), 0 1px 2px rgba(16,18,20,.18);
@@ -103,26 +103,40 @@
   }
 }
 :root[data-tema="claro"]{
-  --fondo:#f1efe9;   --panel:#fbfaf7;  --panel-2:#f3f1ec;
-  --panel-luz:#ffffff;
-  --linea:rgba(21,23,26,.12);  --linea-fuerte:rgba(21,23,26,.26);
-  --texto:#15171a;   --texto-2:#5c6167; --texto-3:#63666b;
-  --tinta:#15171a;   --tinta-suave:#e9e6df;  --tinta-txt:#f4f1ea;
-  --tinta-2:#2a2d31;
+  --fondo:#e8e3d6;   --panel:#fffdf8;  --panel-2:#f4efe3;
+  --panel-luz:#fffefb;
+  --linea:rgba(88,62,22,.14);  --linea-fuerte:rgba(88,62,22,.30);
+  --texto:#1d1b17;   --texto-2:#5d574c; --texto-3:#6b6558;
+  --tinta:#1d1b17;   --tinta-suave:#ece5d3;  --tinta-txt:#f4f1ea;
+  --tinta-2:#34302a;
   --marca:#b61517;   --marca-2:#a3120f;  --marca-suave:#fbeceb;
   --marca-hl:#ffe58a;
   --ambar:#96620f;   --ambar-suave:#fbf2e1;
   --verde:#2f7a3e;   --rojo:#b4231c;
   --contorno:rgba(0,0,0,.12);
-  --canto:rgba(255,255,255,.9);
-  --sombra-1:0 1px 2px rgba(16,18,20,.06);
-  --sombra-2:0 4px 10px rgba(16,18,20,.08), 0 1px 2px rgba(16,18,20,.06);
-  --sombra-3:0 12px 30px rgba(16,18,20,.14), 0 2px 4px rgba(16,18,20,.06);
+  --canto:rgba(255,255,255,.95);
+  --sombra-1:0 1px 2px rgba(78,52,14,.10);
+  --sombra-2:0 7px 16px -5px rgba(78,52,14,.20), 0 1px 2px rgba(78,52,14,.10);
+  --sombra-3:0 18px 36px -10px rgba(78,52,14,.28), 0 2px 4px rgba(78,52,14,.10);
   --sombra-boton:0 5px 12px rgba(16,18,20,.12), 0 1px 2px rgba(16,18,20,.1);
   --sombra-gota:inset 0 -5px 9px rgba(0,0,0,.22), inset 0 0 0 1px rgba(0,0,0,.14),
                 0 4px 9px rgba(16,18,20,.22), 0 1px 2px rgba(16,18,20,.18);
   color-scheme:light;
 }
+
+/* Modo claro «papel»: el gris frío pasa a blanco roto cálido. Los grises fríos
+   con un color caliente al lado (una pastilla roja, un ámbar) parecían sucios;
+   con el fondo cálido el color se ve más limpio. Contraste mínimo comprobado:
+   --texto-3 sobre --fondo = 4,52:1 (AA). Y una luz de ventana suave arriba a la
+   izquierda para que el fondo no sea un plano muerto. */
+@media (prefers-color-scheme:light){
+  :root:not([data-tema="oscuro"]) body{background:
+     radial-gradient(90% 55% at 12% -8%, #fff6de 0%, transparent 62%),
+     radial-gradient(70% 50% at 100% 0%, #efe5cf 0%, transparent 60%), var(--fondo)}
+}
+:root[data-tema="claro"] body{background:
+   radial-gradient(90% 55% at 12% -8%, #fff6de 0%, transparent 62%),
+   radial-gradient(70% 50% at 100% 0%, #efe5cf 0%, transparent 60%), var(--fondo)}
 
 *,*::before,*::after{box-sizing:border-box}
 html,body{height:100%}
@@ -475,6 +489,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none; appearanc
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .fila-sub em{font-style:normal; color:var(--verde)}
+/* La tira de proporciones (ver tiraDe() en 05-lista.js). El filo hace que el
+   negro se vea sobre el panel oscuro y el blanco sobre el claro. */
+.tira{display:flex; gap:2px; height:3px; margin-top:6px; width:min(140px,60%); border-radius:3px; overflow:hidden}
+.tira i{display:block; min-width:2px; border-radius:2px; box-shadow:inset 0 0 0 .5px rgba(128,128,128,.4)}
+@media (min-width:861px){ .riel,.burbuja{display:none !important} }
 .fila-flecha{width:18px;height:18px;flex:0 0 auto;color:var(--texto-3)}
 .pin{
   flex:0 0 auto; width:7px;height:7px;border-radius:50%; background:var(--ambar);
@@ -492,6 +511,40 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none; appearanc
 .muro-cab h2{font-size:22px; letter-spacing:-.03em; font-weight:700}
 .muro-cab span{font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--texto-3)}
 .muro-rejilla{display:grid; grid-template-columns:repeat(auto-fill,minmax(108px,1fr)); gap:14px}
+.muro-cab{flex-wrap:wrap}
+.muro-ctl{margin-left:auto; align-self:center; display:flex; align-items:center; gap:8px}
+.seg-orden{display:inline-flex; padding:3px; border-radius:99px; background:var(--panel-2); border:1px solid var(--linea)}
+.seg-orden button{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--texto-3); padding:7px 14px; border-radius:99px;
+  transition:background-color .16s var(--salida), color .16s var(--salida);
+}
+.seg-orden button[aria-pressed="true"]{background:var(--tinta); color:var(--tinta-txt); box-shadow:var(--sombra-1)}
+.muro-mosaico-btn{
+  width:34px; height:34px; display:grid; place-items:center; border-radius:99px; color:var(--texto-3);
+  background:var(--panel-2); border:1px solid var(--linea);
+  transition:background-color .16s var(--salida), color .16s var(--salida);
+}
+.muro-mosaico-btn svg{width:16px; height:16px}
+.muro-mosaico-btn[aria-pressed="true"]{background:var(--tinta); color:var(--tinta-txt)}
+/* Rótulo de familia (Rojos 114 ────) y su sección. content-visibility:auto hace
+   que el navegador no pinte las familias que están fuera de pantalla: con las
+   860 baldosas juntas el muro tardaba medio segundo en aparecer, y así el
+   cambio a «Por tono» sale casi al instante. Implica contención de pintado, por
+   eso la sección lleva aire alrededor (padding con margen negativo): sin él, la
+   luz de color que proyecta una muestra al pasar el ratón se cortaría en el
+   borde de su familia. */
+.muro-fam{content-visibility:auto; contain-intrinsic-size:auto 640px; padding:8px 14px 56px; margin:0 -14px -44px}
+.muro-sep{display:flex; align-items:center; gap:12px; margin:10px 0 14px}
+.muro-sep b{font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.2em; text-transform:uppercase; color:var(--texto-2)}
+.muro-sep span{font-family:var(--mono); font-size:10.5px; color:var(--texto-3)}
+.muro-sep i{flex:1; height:1px; background:linear-gradient(90deg,var(--linea-fuerte),transparent)}
+/* Mosaico: solo las muestras, bien juntas; el nombre queda en el title. */
+.muro-rejilla.mosaico{grid-template-columns:repeat(auto-fill,minmax(30px,1fr)); gap:6px}
+.muro-rejilla.mosaico .muro-t span{display:none}
+.muro-rejilla.mosaico .muro-t i{border-radius:9px}
+@media (max-width:520px){ .muro-rejilla.mosaico{grid-template-columns:repeat(auto-fill,minmax(36px,1fr))} }
+
 .muro-t{
   display:block; width:100%; text-align:left; border-radius:var(--r-m);
   /* Entran escalonadas, no las 240 de golpe. El retraso está topado en la
@@ -501,6 +554,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none; appearanc
   animation-delay:calc(var(--t,0ms) * var(--ritmo));
 }
 @keyframes sube{from{opacity:0; transform:translateY(7px)} to{opacity:1; transform:none}}
+.muro-t.sin-entrada{animation:none}
 .muro-t i{
   display:block; width:100%; aspect-ratio:1; border-radius:var(--r-l);
   box-shadow:var(--sombra-gota);
@@ -511,8 +565,21 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none; appearanc
   content:""; position:absolute; inset:0;
   background:linear-gradient(118deg,rgba(255,255,255,.55) 8%,transparent 34%,transparent 62%,rgba(255,255,255,.34) 88%);
 }
-.muro-t:hover i{scale:1.045; box-shadow:var(--sombra-gota), var(--sombra-3)}
 .muro-t:active i{scale:.99}
+/* MODO FOCO. Con el ratón encima de una muestra, las demás se atenúan y la
+   elegida sube y proyecta su propio color: sirve para comparar dos tonos
+   parecidos sin que el resto de la pared te distraiga. Solo donde hay ratón
+   (en el móvil un «hover» se queda pegado tras tocar). Va con !important
+   porque la animación de entrada mantiene la opacidad en 1 al terminar. */
+.muro-t{transition:opacity .18s var(--salida), translate .18s var(--salida), filter .18s var(--salida)}
+@media (hover:hover){
+  .muro:has(.muro-t:hover) .muro-t:not(:hover){opacity:.4 !important; filter:saturate(.7)}
+  .muro-t:hover{opacity:1 !important; translate:0 -4px}
+  .muro-t:hover i{
+    scale:1.07;
+    box-shadow:0 22px 34px -10px var(--c,transparent), var(--sombra-gota), var(--sombra-3);
+  }
+}
 /* A DOS LÍNEAS, no a una con puntos suspensivos. Cortando, dos colores del
    mismo cliente que solo se diferencian en la última palabra salían con el
    mismo texto y los mismos puntos suspensivos: indistinguibles. Un muro que
@@ -1192,6 +1259,7 @@ body[data-ficha="on"] .tarjeta-fm{border-top:2px solid var(--tono, var(--linea))
 /* ── Modo pesaje: números grandes, para leerlos de un vistazo con el
    móvil en la mesa y las manos ocupadas ───────────────────────────── */
 @property --v{syntax:'<number>'; inherits:false; initial-value:0}
+@property --p{syntax:'<number>'; inherits:true; initial-value:.62}
 /* El bloque grande del ingrediente que toca. Es un botón entero. */
 .pes-heroe{
   display:flex; flex-direction:column; align-items:center; gap:12px; width:100%;
@@ -1211,6 +1279,10 @@ body[data-ficha="on"] .tarjeta-fm{border-top:2px solid var(--tono, var(--linea))
   box-shadow:var(--sombra-2);
   transition:--v .3s var(--salida);
 }
+.pes-aro.receta{box-shadow:var(--sombra-2), 0 0 0 1px var(--linea); animation:pulso-aro 1.6s ease-in-out 6 alternate}
+/* Late unos segundos cada vez que cambia el ingrediente y se queda quieto: un
+   aro repintándose sin parar es batería, y aquí la pantalla no se apaga. */
+@keyframes pulso-aro{from{--p:.5} to{--p:1}}
 .pes-aro::before{
   content:""; position:absolute; inset:12px; border-radius:50%;
   background:linear-gradient(180deg,var(--panel),var(--panel-luz));
@@ -1289,11 +1361,13 @@ body[data-ficha="on"] .tarjeta-fm{border-top:2px solid var(--tono, var(--linea))
   text-decoration:underline; text-underline-offset:2px;
 }
 .pes-cab{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px}
+.pes-cab > div:not(.pes-modo){min-width:0; flex:1 1 auto}
+.pes-meta{flex:0 0 auto; width:44px; height:44px; border-radius:14px; box-shadow:var(--sombra-gota)}
 .pes-cab b{display:block; font-size:24px; letter-spacing:-.03em; line-height:1.1; font-weight:700}
-.pes-cab small{font-family:var(--mono); color:var(--texto-3); font-size:10px; letter-spacing:.14em; text-transform:uppercase}
+.pes-cab small{font-family:var(--mono); color:var(--texto-3); font-size:10px; letter-spacing:.1em; text-transform:uppercase; white-space:nowrap}
 .pes-modo{display:flex; gap:4px; background:var(--panel); padding:4px; border-radius:999px; border:1px solid var(--linea)}
 .pes-modo button{
-  height:34px; padding:0 13px; border-radius:999px; font-size:12.5px; font-weight:600;
+  white-space:nowrap; height:34px; padding:0 13px; border-radius:999px; font-size:12.5px; font-weight:600;
   color:var(--texto-2); transition:background-color .15s var(--salida), color .15s var(--salida);
 }
 .pes-modo button[aria-pressed="true"]{background:linear-gradient(180deg,var(--tinta),var(--tinta-2)); color:var(--tinta-txt); box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
@@ -1423,6 +1497,28 @@ body[data-ficha="on"] .tarjeta-fm{border-top:2px solid var(--tono, var(--linea))
 .hero-nav .btn-icono:disabled:active{translate:none; box-shadow:inset 0 1px 0 var(--canto), var(--sombra-2)}
 @media (min-width:1180px){ .hero-nav{margin-bottom:-40px} }
 
+
+/* ── «Se parece a» (ver tarjetaParecidas en 06-ficha.js) ─────────────── */
+.parecidas .tarjeta-cab{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+.par-sub{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--texto-3)}
+.par-rej{display:flex; flex-direction:column; padding-top:4px}
+.par-i{
+  display:grid; grid-template-columns:44px 1fr auto; column-gap:14px; align-items:center; text-align:left;
+  padding:9px 6px; border-radius:var(--r-m); border:0; border-bottom:1px solid var(--linea);
+  background:none; color:inherit; font:inherit; cursor:pointer;
+  transition:background-color .14s var(--salida);
+}
+.par-i:hover{background:var(--panel-2)}
+.par-i:active{background:color-mix(in srgb,var(--tono,transparent) 12%,var(--panel-2))}
+.par-i i{grid-row:1/3; width:44px; height:44px; border-radius:var(--r-m); box-shadow:var(--sombra-gota)}
+.par-i b{font-size:14px; font-weight:600; letter-spacing:-.01em; line-height:1.2; align-self:end; min-width:0;
+         white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.par-i small{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--texto-3); align-self:start; margin-top:3px}
+.par-i em{grid-column:3; grid-row:1/3; display:flex; align-items:center}
+.par-i em u{display:block; width:44px; height:4px; border-radius:4px; background:var(--linea); position:relative; overflow:hidden}
+.par-i em u::after{content:""; position:absolute; inset:0; width:var(--s); background:var(--tinta); border-radius:4px}
+.par-pie{margin:12px 6px 4px; font-size:12.5px; color:var(--texto-3); line-height:1.5}
+
 /* ── Móvil ───────────────────────────────────────────────────────── */
 @media (max-width:860px){
   /* min-width:0 es obligatorio: sin él la columna no puede encogerse por debajo
@@ -1475,6 +1571,39 @@ body[data-ficha="on"] .tarjeta-fm{border-top:2px solid var(--tono, var(--linea))
   .marca{flex:1 1 0; min-width:0}
   .marca h1{min-width:0; flex:0 1 auto}
   .cabecera{gap:10px}
+  /* CABECERA EN UNA SOLA FILA. El logo de SeriAdornos se va del móvil (sigue en
+     el ordenador, en la pantalla de entrada y en el PDF): ocupaba media
+     pantalla de ancho para decir lo que ya sabes. Queda «Goma» y el buscador al
+     lado, y la lista gana una fila entera de altura. Si el piloto de
+     sincronización tiene algo que decir y no cabe, el buscador baja a su fila. */
+  .cabecera{flex-direction:row; flex-wrap:wrap; align-items:center; gap:8px 12px; padding:8px 14px 6px;
+            padding-top:max(8px,env(safe-area-inset-top))}
+  .cab-fila{flex:0 0 auto; align-items:center}
+  .marca{flex:0 0 auto}
+  .marca h1{font-size:26px}
+  .marca h1 .logo-marca{display:none}
+  .buscador{flex:1 1 180px}
+  #q{height:46px}
+  /* El riel A–Z, pegado al borde. Va fuera de las filas (no tapa su flecha). */
+  .riel{
+    position:fixed; right:2px; top:128px; bottom:96px; z-index:20; width:20px;
+    display:flex; flex-direction:column; justify-content:space-between; align-items:center;
+    padding:6px 3px; touch-action:none; user-select:none; -webkit-user-select:none;
+    font-family:var(--mono); font-size:9.5px; color:var(--texto-3);
+  }
+  .riel[hidden]{display:none}
+  .riel b{font-weight:500; line-height:1; width:100%; text-align:center; padding:1.5px 0; border-radius:99px;
+          transition:background-color .12s var(--salida), color .12s var(--salida)}
+  .riel b.on{color:var(--tinta-txt); background:var(--tinta)}
+  body[data-seccion="sellos"] .riel{display:none}
+  .burbuja{
+    position:fixed; right:38px; top:50%; translate:0 -50%; scale:.8; opacity:0; pointer-events:none; z-index:21;
+    width:64px; height:64px; border-radius:20px; display:grid; place-items:center;
+    background:linear-gradient(180deg,var(--panel-luz),var(--panel)); border:1px solid var(--linea-fuerte);
+    box-shadow:var(--sombra-3); font-size:34px; font-weight:700; letter-spacing:-.03em; color:var(--texto);
+    transition:opacity .12s var(--salida), scale .12s var(--salida);
+  }
+  .burbuja.on{opacity:1; scale:1}
   /* Los botones de la ficha: "Preparar" grande y los demás debajo. */
   /* El principal ocupa su fila; los demás van de dos en dos, y los de texto
      largo ("Nuevo a partir de este") se llevan la fila entera antes que
@@ -1538,6 +1667,7 @@ dialog[open] .hoja{animation:entra .2s var(--salida)}
   *{animation-duration:.01ms !important; transition-duration:.01ms !important;
     animation-delay:0ms !important}
   :root{--ritmo:0}
+  .pes-aro.receta{animation:none}
   ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none !important}
 }
 
@@ -1664,14 +1794,40 @@ dialog[open] .hoja{animation:entra .2s var(--salida)}
 /* ── Candado ─────────────────────────────────────────────────────── */
 .candado{
   position:fixed; inset:0; z-index:100; display:grid; place-items:center;
-  padding:24px; background:var(--fondo);
+  padding:24px; background:var(--fondo); overflow:hidden; isolation:isolate;
 }
+/* Mosaico de pastillas detrás de la caja (lo pone decorarCandado). Inclinado,
+   con una viñeta encima para que la caja siga siendo lo único que se lee. */
+.cand-fondo{
+  position:absolute; inset:-15%; z-index:-1; pointer-events:none;
+  display:grid; grid-auto-rows:min-content; align-content:start;
+  grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:14px; padding:14px;
+  transform:rotate(-8deg); opacity:.9;
+}
+.cand-fondo i{
+  display:block; aspect-ratio:1; border-radius:26px; background:var(--h);
+  box-shadow:inset 0 -12px 20px rgba(0,0,0,.30), inset 0 0 0 1px rgba(255,255,255,.14), 0 10px 20px rgba(0,0,0,.35);
+}
+.cand-fondo i:nth-child(3n+1){transform:translateY(16px)}
+.cand-fondo i:nth-child(5n){transform:translateY(-10px)}
+.candado::after{
+  content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:radial-gradient(52% 52% at 50% 50%,
+    color-mix(in srgb,var(--fondo) 92%,transparent) 0%,
+    color-mix(in srgb,var(--fondo) 70%,transparent) 55%,
+    color-mix(in srgb,var(--fondo) 38%,transparent) 100%);
+}
+@media (max-width:640px){ .cand-fondo i:nth-child(n+61){display:none} }
 .candado-caja{
-  width:min(400px,100%); background:linear-gradient(180deg,var(--panel-luz),var(--panel)); border:1px solid var(--linea-fuerte);
-  border-radius:var(--r-xl); box-shadow:inset 0 1px 0 var(--canto), var(--sombra-3); padding:28px 24px 24px;
+  position:relative; overflow:hidden;
+  width:min(400px,100%); background:color-mix(in srgb,var(--panel) 82%,transparent); border:1px solid var(--linea-fuerte);
+  -webkit-backdrop-filter:blur(20px) saturate(1.15); backdrop-filter:blur(20px) saturate(1.15);
+  border-radius:var(--r-xl); box-shadow:0 30px 80px rgba(0,0,0,.45), inset 0 1px 0 var(--canto); padding:34px 24px 24px;
 }
-.candado h1{font-size:30px; margin-bottom:8px; letter-spacing:-.045em; font-weight:700; display:flex; align-items:baseline; gap:10px}
-.candado h1 .logo-marca{font-size:15px}
+.cand-tira{position:absolute; left:0; right:0; top:0; height:5px; display:flex; gap:2px}
+.cand-tira u{display:block; height:100%}
+.candado h1{font-size:36px; margin-bottom:8px; letter-spacing:-.045em; font-weight:700; display:flex; align-items:baseline; gap:10px}
+.candado h1 .logo-marca{font-size:17px}
 .candado .btn{width:100%; height:54px; font-size:16px}
 /* 16px justos: por debajo, iOS hace zoom al tocar el campo y descoloca todo. */
 .candado .campo input{font-size:16px; height:48px}
@@ -1976,6 +2132,93 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
 .pes-bote svg{width:17px; height:17px; flex:0 0 auto; color:var(--texto-3)}
 .pes-bote b{color:var(--texto); font-weight:640}
 .pes-bote.no{border-style:dashed}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LOS 90/10 EN ROJO
+   Un pigmento rebajado se pesa con la misma cifra que el puro, y coger el
+   bote equivocado tira el color entero. Por eso aquí no hay medias tintas:
+   rojo llamativo y letras blancas, igual en claro y en oscuro, en la receta,
+   en el pesaje y en la pregunta de antes de echarlo.
+   Blanco sobre #c8001b da 5,9:1 (AA hasta en letra pequeña).
+   ═══════════════════════════════════════════════════════════════════ */
+:root{
+  --alarma:#c8001b; --alarma-2:#93000f; --alarma-borde:#5c0009;
+  --alarma-halo:rgba(200,0,27,.42);
+}
+.chip-rojo{
+  display:inline-block; margin-left:8px; padding:2px 7px; border-radius:6px;
+  background:#fff; color:var(--alarma-2); vertical-align:2px;
+  font-family:var(--mono); font-size:11px; font-weight:800; letter-spacing:.1em; line-height:1.4;
+  box-shadow:0 0 0 1px rgba(0,0,0,.18);
+}
+/* En la receta de la ficha */
+.ing.en-rojo{
+  margin:6px -12px; padding:12px; border-radius:var(--r-m); border-bottom-color:transparent;
+  background:linear-gradient(180deg,var(--alarma),var(--alarma-2)); color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 8px 20px -10px var(--alarma-halo);
+}
+.ing.en-rojo .ing-nom{color:#fff; font-weight:760}
+.ing.en-rojo .ing-nom small,.ing.en-rojo .ing-pct,.ing.en-rojo .ing-g em{color:rgba(255,255,255,.88)}
+.ing.en-rojo .ing-nom button{color:#fff}
+.ing.en-rojo .ing-g{color:#fff; font-weight:800}
+.ing.en-rojo .ing-color{box-shadow:0 0 0 2px #fff}
+/* La franja de arriba del pesaje */
+.pes-rojo-aviso{
+  display:flex; align-items:flex-start; gap:12px; margin:2px 0 12px; padding:12px 14px;
+  border-radius:var(--r-l); color:#fff; border:1px solid var(--alarma-borde);
+  background:linear-gradient(180deg,var(--alarma),var(--alarma-2));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 8px 20px -10px var(--alarma-halo);
+}
+.pes-rojo-aviso svg{width:26px; height:26px; flex:0 0 auto; margin-top:1px}
+.pes-rojo-aviso b{display:block; font-size:14.5px; font-weight:800; letter-spacing:.04em; text-transform:uppercase}
+.pes-rojo-aviso span{display:block; margin-top:3px; font-size:15.5px; font-weight:680}
+.pes-rojo-aviso em{font-style:normal; opacity:.92}
+.pes-rojo-aviso small{display:block; margin-top:4px; font-size:12.5px; opacity:.94}
+/* El bloque grande y las filas mientras se pesa */
+.pes-heroe.en-rojo{
+  background:linear-gradient(180deg,var(--alarma),var(--alarma-2)); color:#fff;
+  border-color:var(--alarma-borde); box-shadow:0 0 0 3px var(--alarma-halo), var(--sombra-3);
+}
+.pes-heroe.en-rojo .pes-heroe-txt small,.pes-heroe.en-rojo .pes-ya-txt{color:rgba(255,255,255,.92)}
+.pes-heroe.en-rojo .pes-heroe-txt b{color:#fff}
+/* El centro del aro sigue siendo del color del panel: sin esto heredaba el
+   blanco del bloque y el número desaparecía sobre el fondo claro. */
+.pes-heroe.en-rojo .pes-num{color:var(--texto)}
+.pes-fila.en-rojo{
+  background:linear-gradient(180deg,var(--alarma),var(--alarma-2)); color:#fff; border-color:var(--alarma-borde);
+}
+.pes-fila.en-rojo .pes-nom,.pes-fila.en-rojo .pes-g{color:#fff}
+.pes-fila.en-rojo .pes-nom small,.pes-fila.en-rojo .pes-g em{color:rgba(255,255,255,.9)}
+.pes-fila.en-rojo .pes-color{box-shadow:0 0 0 2px #fff}
+.pes-fila.en-rojo.listo{opacity:.78}
+.pes-fila.en-rojo.listo .pes-nom{text-decoration-color:rgba(255,255,255,.7)}
+/* La pregunta de antes de echarlo */
+.pes-confirma{
+  display:flex; flex-direction:column; align-items:center; gap:10px; margin:2px 0 8px;
+  padding:18px 16px 16px; text-align:center; color:#fff;
+  background:linear-gradient(180deg,var(--alarma),var(--alarma-2)); border:1px solid var(--alarma-borde);
+  border-radius:var(--r-xl); box-shadow:0 0 0 4px var(--alarma-halo), var(--sombra-3);
+  animation:alarma-entra calc(.3s * var(--ritmo)) var(--salida) both;
+}
+@keyframes alarma-entra{from{opacity:0} to{opacity:1}}
+.pc-cab{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:13px; font-weight:800; letter-spacing:.24em; text-transform:uppercase}
+.pc-cab svg{width:22px; height:22px}
+.pc-nom{font-size:clamp(30px,9vw,44px); line-height:1.05; font-weight:850; letter-spacing:-.02em; overflow-wrap:anywhere}
+.pc-g{font-size:30px; font-weight:800}
+.pc-g em{font-style:normal; font-size:16px; margin-left:4px; opacity:.88}
+.pes-confirma p{margin:0; font-size:15.5px; line-height:1.4; max-width:34ch}
+.pc-si{
+  width:100%; min-height:64px; margin-top:4px; padding:0 14px; border:0; border-radius:var(--r-l);
+  background:#fff; color:var(--alarma-2); font:inherit; font-size:18px; font-weight:800;
+  box-shadow:0 3px 0 rgba(0,0,0,.3); transition:translate .1s var(--salida), box-shadow .1s var(--salida);
+}
+.pc-si:active{translate:0 2px; box-shadow:0 1px 0 rgba(0,0,0,.3)}
+.pc-no{padding:8px 10px; color:#fff; font-size:14px; font-weight:600; text-decoration:underline; text-underline-offset:3px}
+/* Los interruptores: en la ficha y en la lista de pigmentos */
+.rectificar.es-rojo{color:var(--rojo); font-weight:700}
+.btn-rojo.puesto{background:var(--alarma); border-color:var(--alarma-borde); color:#fff}
+.pig.en-rojo{box-shadow:inset 4px 0 0 var(--alarma)}
+.pig.en-rojo .pig-nom{color:var(--rojo); font-weight:750}
 /* ═══════════════════════════════════════════════════════════════════
    SELLOS
    ═══════════════════════════════════════════════════════════════════ */
@@ -2204,8 +2447,8 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
 }
 .aj:last-child{border-bottom:0}
 .aj:hover{background:var(--panel-2)}
-.aj-select{cursor:default}
-.aj-select:hover{background:none}
+.aj-tema{display:block; cursor:default}
+.aj-tema:hover{background:none}
 .aj-et{font-size:16px; font-weight:600; letter-spacing:-.006em; flex:0 0 auto}
 .aj-val{
   margin-left:auto; display:flex; align-items:center; gap:9px; min-width:0;
@@ -2217,11 +2460,37 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
 .aj-val .aj-avisa{color:var(--ambar); font-weight:600}
 .aj-val .aj-bien{color:var(--verde); font-weight:600}
 .aj-val .aj-flojo{opacity:.7}
-.aj-select select{
-  margin-left:auto; font:inherit; font-size:13.5px; font-weight:600; color:var(--texto);
-  border:1px solid var(--linea-fuerte); background:var(--panel);
-  border-radius:99px; padding:7px 12px; max-width:60%;
+/* Aspecto: tres miniaturas de pantalla. Cada una lleva sus propios colores
+   fijos (no las variables de la app): tiene que verse claro aunque estés en oscuro. */
+.aj-tema{padding:16px 18px 18px}
+.aj-tema .aj-et{display:block; margin-bottom:12px}
+.tema-tiles{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+.tema-t{
+  border:1.5px solid var(--linea); background:var(--panel-2); border-radius:var(--r-m);
+  padding:8px 8px 10px; cursor:pointer; color:var(--texto-2); text-align:center;
+  display:flex; flex-direction:column; gap:8px; align-items:stretch;
+  transition:border-color .16s var(--salida), transform .16s var(--salida), box-shadow .16s var(--salida);
 }
+.tema-t:hover{transform:translateY(-2px); box-shadow:var(--sombra-2)}
+.tema-t.on{border-color:var(--tinta); color:var(--texto); box-shadow:0 0 0 3px color-mix(in srgb,var(--tinta) 14%,transparent)}
+.tema-t em{font-style:normal; font-size:12.5px; font-weight:600}
+.mini{display:block; position:relative; height:64px; border-radius:9px; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(0,0,0,.14)}
+.mini i{position:absolute; left:8px; height:7px; border-radius:4px}
+.mini i:nth-child(1){top:10px; width:46%}
+.mini i:nth-child(2){top:23px; width:62%}
+.mini i:nth-child(3){top:36px; width:38%}
+.mini b{position:absolute; right:8px; bottom:8px; width:16px; height:16px; border-radius:6px; background:linear-gradient(135deg,#c1121f,#e85d2a)}
+.mini-claro{background:#f1efe9}
+.mini-claro i{background:#15171a; opacity:.72}
+.mini-claro i:nth-child(n+2){opacity:.28}
+.mini-oscuro{background:#0a0b0d}
+.mini-oscuro i{background:#e8e2d4; opacity:.8}
+.mini-oscuro i:nth-child(n+2){opacity:.3}
+.mini-auto{background:linear-gradient(115deg,#f1efe9 0 50%,#0a0b0d 50% 100%)}
+.mini-auto i{background:#15171a; opacity:.5}
+.mini-auto i:nth-child(2){background:linear-gradient(90deg,#15171a 50%,#e8e2d4 50%)}
+.mini-auto i:nth-child(3){background:#e8e2d4}
+@media (max-width:420px){ .tema-tiles{gap:8px} .tema-t em{font-size:11.5px} }
 .op-p{margin:0 0 11px; font-size:14.5px; color:var(--texto-2); line-height:1.55}
 .op-p.flojo{font-size:13px; color:var(--texto-3)}
 .op-p b{color:var(--texto)}
@@ -2913,6 +3182,9 @@ button.s-iny:active{background:color-mix(in srgb, var(--tono, transparent) 14%, 
         <button id="chip-pend" class="chip" hidden></button>
       </div>
       <div class="lista" id="lista" role="listbox" aria-label="Fórmulas"></div>
+      <!-- Riel A–Z (solo móvil): lo pinta 05-lista.js con las letras de lo filtrado. -->
+      <nav class="riel" id="riel" aria-label="Ir a una letra" hidden></nav>
+      <div class="burbuja" id="burbuja" aria-hidden="true"></div>
     </section>
     <section class="columna-ficha" id="columna-ficha">
       <div class="ficha" id="ficha"></div>
@@ -4330,6 +4602,27 @@ function icono(nombre, extra){
    ESTADO
    ═══════════════════════════════════════════════════════════════════ */
 /* ═══════════════════════════════════════════════════════════════════
+   FONDO DEL CANDADO
+   La pantalla de entrada es lo primero que se ve cada mañana: en vez de un
+   fondo liso, un mosaico de pastillas de goma en los colores base, desvaído
+   detrás de la caja. Son solo constantes de color (ningún nombre ni fórmula),
+   así que sirve igual en la copia cifrada y en la web pública. */
+const FONDO_CANDADO_HEX = ['#f3ecd9','#fdfdfd','#1b1b1d','#b3121b','#c8353a','#d6006f','#fff200','#f2b705','#0b4fa8'];
+function decorarCandado(capa){
+  const B = FONDO_CANDADO_HEX;
+  const f = document.createElement('div');
+  f.className = 'cand-fondo'; f.setAttribute('aria-hidden','true');
+  // Reparto fijo (no aleatorio de verdad): siempre el mismo dibujo, sin parpadeos.
+  f.innerHTML = Array.from({length:150}, (_,i)=>
+    `<i style="--h:${B[Math.floor((Math.abs(Math.sin(i*12.9898)*43758.5453)%1)*B.length)]}"></i>`).join('');
+  capa.prepend(f);
+  const caja = capa.querySelector('.candado-caja');
+  if(caja) caja.insertAdjacentHTML('afterbegin',
+    '<div class="cand-tira" aria-hidden="true">' +
+    B.map((h,i)=>`<u style="background:${h};flex:${[3,2,2,3,2,4,2,2,3][i]}"></u>`).join('') + '</div>');
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    ABRIR LOS DATOS
 
    Colgada en internet, la app la puede descargar cualquiera que tenga el
@@ -4409,6 +4702,7 @@ function pantallaClave(sobre){
           <span>Esa contraseña no abre el recetario.</span></div>
         <button class="btn btn-marca" id="cnd-ir" type="submit" style="width:100%;height:48px;margin-top:4px">Abrir</button>
       </form>`;
+    decorarCandado(capa);
     document.body.appendChild(capa);
     const $c = capa.querySelector('#cnd-clave');
     const $b = capa.querySelector('#cnd-ir');
@@ -4470,6 +4764,7 @@ function pantallaImposible(titulo, texto){
     <div class="aviso" style="margin:14px 0 0">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
       <span><b>${titulo}</b><br>${texto}</span></div></div>`;
+  decorarCandado(capa);
   document.body.appendChild(capa);
 }
 
@@ -4537,6 +4832,7 @@ function pantallaEntrar(aviso){
         <p style="margin:14px 0 0;font-size:12.5px;color:var(--texto-3)">
           Queda recordado en este aparato. No hay que escribirlo cada día.</p>
       </form>`;
+    decorarCandado(capa);
     document.body.appendChild(capa);
     const $m = capa.querySelector('#nb-mail');
     const $c = capa.querySelector('#nb-clave');
@@ -4580,6 +4876,7 @@ function pantallaDescarga(){
         transition:width .4s var(--salida)"></div></div>
     <p style="margin:14px 0 0;font-size:12.5px;color:var(--texto-3)">
       Solo la primera vez. A partir de ahora abre al instante, con cobertura o sin ella.</p></div>`;
+  decorarCandado(capa);
   document.body.appendChild(capa);
   return {
     paso(txt, pct){
@@ -4952,6 +5249,38 @@ const estadoAct = f => ({aldia: !!f.actualizada_pigmentos});
 const tieneBote = f => !!(f && f.en_estanteria);
 
 /* ═══════════════════════════════════════════════════════════════════
+   LOS QUE SE RESALTAN EN ROJO (los 90/10)
+
+   Un pigmento «90/10» va rebajado: 90 de crudo y 10 de pigmento. Se pesa igual
+   que el puro, con la misma cifra, y por eso es tan fácil coger el bote
+   equivocado: el 29 de septiembre se echaron 32 g de azul puro donde iban 32 g
+   de AZUL 90/10 y se tiró el bote entero. La única defensa es que NO se pueda
+   pasar por alto, así que en la receta y en el pesaje va con fondo rojo.
+
+   Quién va en rojo:
+     · lo que él marque a mano (`resaltar: true`), sea materia o fórmula;
+     · y, de serie, todo lo que lleve «90/10» en el nombre, para que un futuro
+       «ROJO 90/10» salga solo sin acordarse de marcarlo.
+   `resaltar: false` gana al nombre: si un día una fórmula se llama así pero
+   no hay riesgo, se puede quitar. */
+const RE_9010 = /(^|[^0-9])90\s*\/\s*10([^0-9]|$)/;
+const esNombre9010 = n => RE_9010.test(String(n || ''));
+const resaltado = x => !!x && (typeof x.resaltar === 'boolean' ? x.resaltar : esNombre9010(x.nombre));
+/** ¿Este ingrediente de una receta va en rojo? Mira su materia o su fórmula. */
+function ingResaltado(i){
+  if(!i) return false;
+  const o = i.tipo === 'materia' ? materias.get(i.ref)
+          : i.tipo === 'formula' ? porId.get(i.ref) : null;
+  return o ? resaltado(o) : esNombre9010(i.nombre);
+}
+/** Los ingredientes en rojo de una receta, con su cantidad. */
+const enRojoDe = f => (f && f.ingredientes || []).filter(i=>i.cantidad > 0 && ingResaltado(i));
+/** Lo que dice el aviso: para un 90/10 se explica qué es; para otro, lo genérico. */
+const notaRojo = i => esNombre9010(i.nombre)
+  ? 'No es el puro'
+  : 'Revisa el bote';
+
+/* ═══════════════════════════════════════════════════════════════════
    CÓMO ESTÁN LOS COLORES BASE
 
    Los textos que explican por qué las muestras son orientativas llevaban el
@@ -5304,6 +5633,103 @@ function filaUltima(){
   return b;
 }
 
+/* ── La tira de proporciones ──────────────────────────────────────────
+   Tres píxeles de alto bajo el nombre: un tramo por ingrediente, del color de
+   ese ingrediente y tan ancho como su cantidad. Antes de abrir una fórmula ya
+   se ve de qué va —mucho blanco, un toque de negro—. No lleva texto: es solo
+   para el ojo. */
+function tiraDe(f){
+  const ing = (f.ingredientes||[]).filter(i=>i.cantidad > 0);
+  if(!ing.length) return '';
+  const tramos = ing.map(i=>{
+    const m = i.tipo==='materia' ? materias.get(i.ref) : null;
+    const sub = i.tipo==='formula' ? porId.get(i.ref) : null;
+    const hex = m?.hex_referencia || (sub ? color(sub).hex : null);
+    return `<i style="flex:${i.cantidad} 1 0;background:${/^#[0-9a-f]{3,8}$/i.test(hex||'') ? hex : '#777'}"></i>`;
+  });
+  return `<div class="tira" aria-hidden="true">${tramos.join('')}</div>`;
+}
+
+/* ── El riel A–Z ───────────────────────────────────────────────────────
+   Con 860 fórmulas, pasar de la B a la T a base de dedo es una tarde. Un riel
+   de letras pegado al borde, como la agenda del teléfono: se toca o se
+   arrastra el dedo por él y la lista salta, con la letra grande flotando
+   mientras lo tienes pulsado. Las letras salen de lo FILTRADO (no de lo
+   pintado: la lista va por tandas y solo hay 80 filas en pantalla), y si
+   quedan pocas no sale: un riel de tres letras no ayuda a nadie. */
+const $riel = document.getElementById('riel');
+const $burbuja = document.getElementById('burbuja');
+function pintarRiel(agrupar){
+  if(!$riel) return;
+  const letras = [];
+  if(agrupar) for(const f of filtradas){
+    const l = inicial(f.nombre);
+    if(letras[letras.length-1] !== l && !letras.includes(l)) letras.push(l);
+  }
+  const ver = agrupar && letras.length >= 5;
+  $riel.hidden = !ver;
+  if(!ver){ $riel.innerHTML = ''; return; }
+  $riel.innerHTML = letras.map(l=>`<b data-l="${l}">${l === '0-9' ? '#' : l}</b>`).join('');
+  marcarRiel();
+}
+let letraSalto = null, posSalto = 0;
+function marcarRiel(){
+  if(!$riel || $riel.hidden) return;
+  const tope = $lista.getBoundingClientRect().top + 1;
+  let actual = null;
+  for(const el of $lista.querySelectorAll('.letra'))
+    if(el.getBoundingClientRect().top <= tope) actual = el.textContent;
+  actual = actual || $lista.querySelector('.letra')?.textContent;
+  // Las últimas letras tienen pocas filas y no pueden llegar arriba del todo (no
+  // hay más lista debajo): tras saltar a una, se queda marcada la que has
+  // pulsado hasta que muevas la lista tú.
+  if(letraSalto){
+    if(Math.abs($lista.scrollTop - posSalto) < 3) actual = letraSalto; else letraSalto = null;
+  }
+  for(const b of $riel.children) b.classList.toggle('on', b.dataset.l === actual);
+}
+let relojRiel = 0;
+$lista.addEventListener('scroll', ()=>{
+  if(relojRiel) return;
+  relojRiel = requestAnimationFrame(()=>{ relojRiel = 0; marcarRiel(); });
+}, {passive:true});
+
+function irALetra(l){
+  const i = filtradas.findIndex(f=>inicial(f.nombre) === l);
+  if(i < 0) return;
+  // La lista se pinta por tandas: si esa letra todavía no está en pantalla,
+  // se pintan las que hagan falta hasta llegar a ella.
+  while(pintadas <= i && pintadas < filtradas.length) pintarLista(false);
+  const fila = $lista.querySelector(`.fila[data-id="${CSS.escape(String(filtradas[i].id))}"]`);
+  if(!fila) return;
+  const letra = fila.previousElementSibling?.classList.contains('letra') ? fila.previousElementSibling : null;
+  $lista.scrollTop += fila.getBoundingClientRect().top - $lista.getBoundingClientRect().top - (letra ? letra.offsetHeight : 0);
+  letraSalto = l; posSalto = $lista.scrollTop;
+}
+if($riel){
+  let ultima = null;
+  const letraEn = y=>{
+    const r = $riel.getBoundingClientRect(), n = $riel.children.length;
+    if(!n) return null;
+    const k = Math.max(0, Math.min(n-1, Math.floor((y - r.top) / r.height * n)));
+    return $riel.children[k].dataset.l;
+  };
+  const ir = e=>{
+    const l = letraEn(e.clientY);
+    if(!l || l === ultima) return;
+    ultima = l;
+    $burbuja.textContent = l; $burbuja.classList.add('on');
+    for(const b of $riel.children) b.classList.toggle('on', b.dataset.l === l);
+    irALetra(l);
+    try{ navigator.vibrate && navigator.vibrate(4); }catch(_){}
+  };
+  $riel.addEventListener('pointerdown', e=>{ e.preventDefault(); $riel.setPointerCapture(e.pointerId); ultima = null; ir(e); });
+  $riel.addEventListener('pointermove', e=>{ if($riel.hasPointerCapture(e.pointerId)) ir(e); });
+  const suelta = e=>{ ultima = null; $burbuja.classList.remove('on'); marcarRiel(); };
+  $riel.addEventListener('pointerup', suelta);
+  $riel.addEventListener('pointercancel', suelta);
+}
+
 function pintarLista(reinicia=true){
   if(reinicia){ soltarFotos($lista); $lista.innerHTML=''; pintadas=0; letraActual=null; $lista.scrollTop=0; }
   const hasta = Math.min(pintadas+TANDA, filtradas.length);
@@ -5365,7 +5791,7 @@ function pintarLista(reinicia=true){
     b.innerHTML =
       `<div class="muestra${c.metalizado?' metal':''}" style="background:${c.hex}"${marcaFoto(f.id)}></div>`+
       `<div class="fila-txt"><div class="fila-nombre">${resaltar(f.nombre,txt)}</div>`+
-      `<div class="fila-sub">${sub}</div></div>`+
+      `<div class="fila-sub">${sub}</div>${tiraDe(f)}</div>`+
       (pend?`<span class="pin" title="Tiene algo pendiente de revisar"></span>`:'')+
       `<svg class="fila-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>`;
     frag.appendChild(b);
@@ -5373,6 +5799,8 @@ function pintarLista(reinicia=true){
   $lista.appendChild(frag);
   enlazarFotos($lista);
   pintadas = hasta;
+  if(reinicia) pintarRiel(agrupar);
+  marcarRiel();
   if(pintadas < filtradas.length) observarFinal();
 }
 let centinela;
@@ -5404,7 +5832,7 @@ const ESPERA_MURO = 120;
 let relojMuro = null;
 function muroYa(){
   clearTimeout(relojMuro); relojMuro = null;
-  if(!seleccion) muroDeColores();
+  if(!seleccion && !abriendo) muroDeColores();
 }
 function muroLuego(){
   clearTimeout(relojMuro);
@@ -5412,7 +5840,7 @@ function muroLuego(){
     relojMuro = null;
     // Guardas: en los 120 ms de espera te puede dar tiempo a abrir una ficha o
     // a cambiar a sellos, y el muro se pintaría encima de lo que estés viendo.
-    if(!seleccion && SECCION === 'colores') muroDeColores();
+    if(!seleccion && !abriendo && SECCION === 'colores') muroDeColores();
   }, ESPERA_MURO);
 }
 
@@ -5723,9 +6151,24 @@ function cerrarDlgYLuego(f){
   $dlg.close();   // -> close -> cerrarCapa('dlg') -> history.go -> popstate -> f()
 }
 
+let abriendo = null;
 function abrir(id, origen){
   abrirCapa('ficha');
+  const capaPuesta = capas.includes('ficha');
+  /* «Estoy abriendo esta»: desde el clic hasta que la ficha se pinta pasan unas
+     décimas (la transición de la muestra). En ese hueco `seleccion` todavía no
+     está puesta, y el muro —que espera a que dejes de teclear— se creía con
+     derecho a pintarse encima. Con la máquina cargada se veía. */
+  abriendo = id;
+  setTimeout(()=>{ if(abriendo === id) abriendo = null; }, 1500);
   const cambiar = ()=>{
+    if(abriendo === id) abriendo = null;
+    /* Con la transición de la muestra, esto se ejecuta un instante DESPUÉS del
+       clic. Si en ese instante llega un «atrás», la ficha ya se ha cerrado y su
+       parada del historial está consumida: abrirla ahora dejaría la ficha a la
+       vista SIN parada, y el siguiente «atrás» se saldría de la app. Se dejó de
+       ver en una prueba que abría y volvía casi a la vez (1 de cada 10). */
+    if(capaPuesta && !capas.includes('ficha')) return;
     seleccion = id;
     const f0 = porId.get(id);
     /* Cuántos gramos proponer al abrir un color.
@@ -5772,6 +6215,60 @@ function cerrarFicha(){
 }
 
 const MURO_TOPE = 240;
+
+/* ── El muro por tono ──────────────────────────────────────────────────
+   En orden alfabético, un rojo y otro rojo quedan a cien muestras de
+   distancia. «Por tono» junta las familias (rojos, naranjas, amarillos…) con un
+   rótulo y su cuenta, y dentro de cada una ordena del tono al siguiente. Sirve
+   para lo que más se pregunta aquí: «¿ya tengo algo por esta zona?».
+
+   Las familias salen del color CALCULADO de cada fórmula, así que mientras las
+   bases sean estimadas alguna puede caer en la familia de al lado; al calibrar
+   se recolocan solas. Por tono se enseñan TODAS las filtradas, no solo las
+   primeras 240: cortar un orden por tono a media familia no tiene sentido. */
+const FAMILIAS = ['Rojos','Naranjas','Amarillos','Verdes','Azules','Violetas','Rosas y magentas','Tierras','Neutros'];
+const cacheHsl = new Map();
+function hslDe(hex){
+  let r = cacheHsl.get(hex);
+  if(r) return r;
+  const h = hex.replace('#','');
+  const R = parseInt(h.slice(0,2),16)/255, G = parseInt(h.slice(2,4),16)/255, B = parseInt(h.slice(4,6),16)/255;
+  const mx = Math.max(R,G,B), mn = Math.min(R,G,B), l = (mx+mn)/2, d = mx-mn;
+  let H = 0, S = 0;
+  if(d){ S = d/(1-Math.abs(2*l-1));
+    H = mx===R ? ((G-B)/d)%6 : mx===G ? (B-R)/d+2 : (R-G)/d+4; H = (H*60+360)%360; }
+  r = {h:H, s:S, l};
+  cacheHsl.set(hex, r);
+  return r;
+}
+function familiaDe(c){
+  if(c.s < .16 || c.l > .93) return 8;                    // neutros: blancos, grises, negros
+  if(c.l < .36 && c.h >= 8 && c.h < 55) return 7;         // tierras: marrones oscuros
+  if(c.h >= 345 || c.h < 16) return 0;
+  if(c.h < 42) return 1;
+  if(c.h < 68) return 2;
+  if(c.h < 166) return 3;
+  if(c.h < 258) return 4;
+  if(c.h < 292) return 5;
+  return 6;
+}
+/** Ordena por familia y, dentro de ella, por tono (tierras y neutros, por luz). */
+function ordenarPorTono(lista){
+  const d = lista.map(f=>{
+    const hex = color(f).hex;
+    const c = /^#[0-9a-f]{6}$/i.test(hex||'') ? hslDe(hex) : {h:0, s:0, l:.5};
+    return {f, c, fam: familiaDe(c)};
+  });
+  d.sort((a,b)=> a.fam - b.fam ||
+    (a.fam >= 7 ? b.c.l - a.c.l : (a.c.h > 300 ? a.c.h-360 : a.c.h) - (b.c.h > 300 ? b.c.h-360 : b.c.h)) ||
+    a.f.nombre.localeCompare(b.f.nombre, 'es'));
+  return d;
+}
+const leerOpcion = (k, def)=>{ try{ return localStorage.getItem(k) ?? def; }catch(_){ return def; } };
+const guardarOpcion = (k, v)=>{ try{ localStorage.setItem(k, v); }catch(_){} };
+let ordenMuro = leerOpcion('orden-muro', 'az') === 'tono' ? 'tono' : 'az';
+let mosaicoMuro = leerOpcion('muro-mosaico', '0') === '1';
+
 function muroDeColores(){
   soltarFotos($ficha);           // las baldosas de antes ya no están
   $ficha.classList.remove('es-muro');
@@ -5781,26 +6278,69 @@ function muroDeColores(){
       <p><b>Nada con ese nombre</b>Prueba con menos letras, o con el cliente entre paréntesis. Por ejemplo <em>lezna</em>, <em>fluor</em> o <em>plata</em>.</p></div>`;
     return;
   }
-  const v = filtradas.slice(0, MURO_TOPE);
+  // En el móvil el muro no se ve nunca (la ficha ocupa la pantalla entera cuando
+  // se abre), así que no se gasta en pintar 860 baldosas por tono para nada.
+  const porTono = ordenMuro === 'tono' && !matchMedia('(max-width:860px)').matches;
+  // Con la búsqueda por relevancia (hay texto escrito) el orden por tono sí se
+  // aplica: el muro enseña lo filtrado, no la lista.
+  const v = porTono ? filtradas : filtradas.slice(0, MURO_TOPE);
+  const rej = `muro-rejilla${mosaicoMuro ? ' mosaico' : ''}`;
+  let cuerpo;
+  if(porTono){
+    // Una sección por familia, cada una con su rótulo y su rejilla. Van en
+    // secciones (y no en una sola rejilla con rótulos) para que el navegador
+    // pueda saltarse las que están fuera de pantalla: con 860 baldosas juntas
+    // el pintado costaba medio segundo (ver .muro-fam en el CSS).
+    const o = ordenarPorTono(v), grupos = FAMILIAS.map(()=>[]);
+    o.forEach((x,k)=>grupos[x.fam].push(baldosaMuro(x.f, k)));
+    cuerpo = `<div class="muro-fams">${grupos.map((g,i)=>!g.length ? '' :
+      `<section class="muro-fam"><div class="muro-sep" role="presentation"><b>${FAMILIAS[i]}</b><span>${g.length}</span><i></i></div>
+        <div class="${rej}">${g.join('')}</div></section>`).join('')}</div>`;
+  }else{
+    cuerpo = `<div class="${rej}">${v.map((x,k)=>baldosaMuro(x, k)).join('')}</div>`;
+  }
   $ficha.classList.add('es-muro');
   $ficha.innerHTML = `<div class="muro">
     <div class="muro-cab">
       <h2>${$q.value.trim() ? 'Resultados' : 'Todos los colores'}</h2>
       <span>${filtradas.length === 1 ? '1 fórmula' : filtradas.length + ' fórmulas'} · toca una para ver su receta</span>
+      <div class="muro-ctl">
+        <div class="seg-orden" role="group" aria-label="Orden del muro">
+          <button type="button" data-orden="az" aria-pressed="${ordenMuro !== 'tono'}">A–Z</button>
+          <button type="button" data-orden="tono" aria-pressed="${ordenMuro === 'tono'}">Por tono</button>
+        </div>
+        <button type="button" class="muro-mosaico-btn" id="muro-mosaico" aria-pressed="${mosaicoMuro}"
+                title="Solo las muestras, sin nombres" aria-label="Ver solo las muestras">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg>
+        </button>
+      </div>
     </div>
-    <div class="muro-rejilla">
-      ${v.map((x,k)=>{ const c = color(x);
-        return `<button class="muro-t" data-ir="${x.id}" title="${esc(x.nombre)}"
-                        style="--t:${Math.min(k*9, 260)}ms">
-          <i class="${c.metalizado?'metal':''}" style="background:${c.hex}"${marcaFoto(x.id)}></i>
-          <span>${esc(x.nombre)}</span></button>`; }).join('')}
-    </div>
-    ${filtradas.length > MURO_TOPE
-      ? `<p class="muro-mas">Se ven los ${MURO_TOPE} primeros. Escribe en el buscador para acotar.</p>` : ''}
+    ${cuerpo}
+    ${!porTono && filtradas.length > MURO_TOPE
+      ? `<p class="muro-mas">Se ven los ${MURO_TOPE} primeros. Escribe en el buscador para acotar, o pasa a «Por tono» para verlos todos.</p>` : ''}
   </div>`;
   enlazarFotos($ficha);
   for(const b of $ficha.querySelectorAll('[data-ir]'))
     b.onclick = ()=>abrir(b.dataset.ir, b.querySelector('i'));
+  for(const b of $ficha.querySelectorAll('[data-orden]'))
+    b.onclick = ()=>{
+      if(b.dataset.orden === ordenMuro) return;
+      ordenMuro = b.dataset.orden; guardarOpcion('orden-muro', ordenMuro);
+      muroDeColores();
+    };
+  document.getElementById('muro-mosaico').onclick = ()=>{
+    mosaicoMuro = !mosaicoMuro; guardarOpcion('muro-mosaico', mosaicoMuro ? '1' : '0');
+    muroDeColores();
+  };
+}
+function baldosaMuro(x, k){
+  const c = color(x);
+  // La cascada de entrada solo la hacen las primeras (lo que cabe en pantalla):
+  // 860 baldosas animándose a la vez cada una en su capa cuestan medio segundo.
+  return `<button class="muro-t${k >= 60 ? ' sin-entrada' : ''}" data-ir="${x.id}" title="${esc(x.nombre)}"
+                  style="--t:${Math.min(k*9, 260)}ms;--c:${c.hex}">
+    <i class="${c.metalizado?'metal':''}" style="background:${c.hex}"${marcaFoto(x.id)}></i>
+    <span>${esc(x.nombre)}</span></button>`;
 }
 
 /* El cliente va escrito entre paréntesis dentro del propio nombre: es como
@@ -5968,6 +6508,9 @@ function plantillaFicha(f, x){
           ${selloBote(f)}
           ${puedeEditar ? `<button class="rectificar" id="bote-cambiar">${
             tieneBote(f) ? 'ya no está' : 'marcar que tiene bote'}</button>` : ''}
+          ${puedeEditar ? `<button class="rectificar${resaltado(f)?' es-rojo':''}" id="rojo-cambiar" aria-pressed="${resaltado(f)}"
+            title="Cuando otra fórmula lleve ESTA, saldrá con fondo rojo en la receta y en el pesaje">${
+            resaltado(f) ? 'quitar el rojo' : 'resaltar en rojo'}</button>` : ''}
           ${selloActualizacion(f)}
           ${hermanas.length ? `<span class="etiqueta info">${grupo.tipo==='identica'?'Idéntica a':'Misma proporción que'} ${hermanas.length}</span>`:''}
         </div>
@@ -6019,6 +6562,7 @@ function plantillaFicha(f, x){
 
     <div id="zona-desarrollo">${anidada ? tarjetaDesarrollo(f) : ''}</div>
     </div><div class="ficha-col">
+    ${f.solo_referencia ? '' : tarjetaParecidas(f, hermanas)}
     ${hermanas.length ? `
       <div class="tarjeta"><div class="tarjeta-cab"><h3>${grupo.tipo==='identica'?'Fórmulas idénticas':'Misma proporción, otro tamaño de lote'}</h3></div>
       <div class="tarjeta-cuerpo">
@@ -6209,6 +6753,7 @@ function pintarFicha(){
       ()=>verFotoGrande(f.id, f.nombre));
   document.getElementById('btn-comparar')?.addEventListener('click', ()=>compararColores(f));
   document.getElementById('bote-cambiar')?.addEventListener('click', ()=>marcarBote(f, !tieneBote(f)));
+  document.getElementById('rojo-cambiar')?.addEventListener('click', ()=>marcarRojo(f, !resaltado(f)));
   document.getElementById('hist-plegable')?.addEventListener('toggle', e=>{
     histAbierto = e.target.open ? f.id : null;
     const ul = document.getElementById('hist-lista');
@@ -6516,15 +7061,17 @@ function filaIng(i, total, idx){
   // hecho caso o si te habías equivocado de botón.
   const movido = ultimosGramos && ultimosGramos[idx] !== undefined
                  && ultimosGramos[idx] !== g;
-  return `<div class="ing">
+  const rojo = ingResaltado(i);
+  return `<div class="ing${rojo?' en-rojo':''}">
     <div class="ing-color" style="background:${hex||'repeating-linear-gradient(45deg,var(--linea),var(--linea) 5px,var(--panel-2) 5px,var(--panel-2) 10px)'}"></div>
-    <div class="ing-nom">${esc(i.nombre)}
+    <div class="ing-nom">${esc(i.nombre)}${rojo ? `<span class="chip-rojo">${esNombre9010(i.nombre)?'90/10':'OJO'}</span>` : ''}
+      ${rojo ? `<small class="nota-rojo">${notaRojo(i)}</small>` : ''}
       ${i.resuelto && rectificando!==idx ? resolvedor(i, idx)
         : i.resuelto ? resolvedorAbierto(i, idx)
         : sub ? `<button data-ir="${sub.id}">Ver su fórmula →</button>`
         : i.tipo==='sin_resolver' ? resolvedor(i, idx)
         : m && m.abierto ? `<small>Eliges cuál al preparar</small>`
-        : m && m.familia!=='base' ? `<small>Pigmento</small>` : ''}
+        : m && m.familia!=='base' && !rojo ? `<small>Pigmento</small>` : ''}
     </div>
     <span class="ing-pct num">${Math.round(pct)}%</span>
     <span class="ing-g num${movido?' cambia':''}">${fmt(g)}<em>g</em></span>
@@ -6541,9 +7088,10 @@ function tarjetaDesarrollo(f){
   const boteDe = new Map(DATOS.formulas.filter(x=>x.bote).map(x=>[x.bote, x.nombre]));
   const filas = [...partes.entries()].sort((a,b)=>b[1]-a[1]).map(([id,g])=>{
     const m = materias.get(id);
-    return `<div class="ing">
+    const rojo = resaltado(m);
+    return `<div class="ing${rojo?' en-rojo':''}">
       <div class="ing-color" style="background:${m?.hex_referencia||'var(--linea)'}"></div>
-      <div class="ing-nom">${esc(boteDe.get(id) || (m?m.nombre:'?'))}</div>
+      <div class="ing-nom">${esc(boteDe.get(id) || (m?m.nombre:'?'))}${rojo ? `<span class="chip-rojo">${esNombre9010(m.nombre)?'90/10':'OJO'}</span>` : ''}</div>
       <span class="ing-pct num">${Math.round(g/total*100)}%</span>
       <span class="ing-g num">${fmt(Math.round(g*escala))}<em>g</em></span>
     </div>`;
@@ -6610,6 +7158,25 @@ function marcarBote(f, hay, callado){
   return true;
 }
 
+/* Poner o quitar el rojo de una fórmula (o de una materia: se le pasa la
+   propia materia y `esMateria`). Se guarda EXPLÍCITO, true o false, para que
+   ganen al nombre: quitar el rojo a algo que se llama «90/10» tiene que
+   durar. Queda apuntado en el registro, como todo lo que toca el jefe. */
+function marcarRojo(x, si, esMateria){
+  if(!puedeEditar) return brindis(SIN_PERMISO);
+  if(resaltado(x) === !!si && typeof x.resaltar === 'boolean') return false;
+  const cambiar = esMateria ? anotarMateria : anotar;
+  if(cambiar(x, {resaltar: !!si}) === false) return false;
+  apuntar(si ? 'resaltado-si' : 'resaltado-no', esMateria ? {id: null, nombre: x.nombre} : x,
+          esMateria ? {materia: x.id, nombre: x.nombre} : null);
+  brindis(si ? `${x.nombre} saldrá en rojo cuando una fórmula lo lleve`
+             : `${x.nombre} ya no sale en rojo`);
+  if(esMateria) return true;
+  pintarFicha(); actualizar();
+  vibrar(18);
+  return true;
+}
+
 /* El estado, en palabras, para «Estado y notas». Solo cuando hay algo que
    decir: la fórmula sin rectificar no lleva ningún texto, que un «sin marcar»
    en 860 fichas es un reproche, no información. */
@@ -6673,6 +7240,63 @@ function compararColores(f){
   }
   pintar();
   $dlg.showModal();
+}
+
+/* ── «Se parece a» ─────────────────────────────────────────────────────
+   Antes de hacer un color nuevo, mirar si ya hay uno casi igual. Se compara el
+   color CALCULADO de esta fórmula con el de las demás en el espacio Lab, que
+   es donde la distancia numérica se parece a lo que ve el ojo (ΔE76). Salen
+   las que estén a menos de 12; con menos de 4 el ojo no las distingue.
+
+   Ojo con lo que NO dice: compara colores simulados, y mientras las bases
+   sigan estimadas la simulación es orientativa. Por eso el texto no habla de
+   «igual» sino de «casi igual» y la tarjeta lo avisa. Las hermanas (misma
+   proporción) no se repiten aquí: ya tienen su propia tarjeta. */
+const cacheLab = new Map();
+function labDe(hex){
+  let l = cacheLab.get(hex);
+  if(l) return l;
+  const h = hex.replace('#','');
+  const c = [0,2,4].map(i=>parseInt(h.slice(i,i+2),16)/255)
+                   .map(v=>v <= .04045 ? v/12.92 : Math.pow((v+.055)/1.055, 2.4));
+  const X = (c[0]*.4124 + c[1]*.3576 + c[2]*.1805) / .95047;
+  const Y =  c[0]*.2126 + c[1]*.7152 + c[2]*.0722;
+  const Z = (c[0]*.0193 + c[1]*.1192 + c[2]*.9505) / 1.08883;
+  const g = t => t > .008856 ? Math.cbrt(t) : 7.787*t + 16/116;
+  l = [116*g(Y) - 16, 500*(g(X) - g(Y)), 200*(g(Y) - g(Z))];
+  cacheLab.set(hex, l);
+  return l;
+}
+const PARECIDAS_MAX_DE = 12, PARECIDAS_N = 6;
+function parecidasA(f, hermanas){
+  const hx = color(f).hex;
+  if(!/^#[0-9a-f]{6}$/i.test(hx || '') || !(f.ingredientes||[]).length) return [];
+  const yo = labDe(hx);
+  const excluir = new Set([f.id, ...hermanas.map(h=>h.id)]);
+  const r = [];
+  for(const g of DATOS.formulas){
+    if(excluir.has(g.id) || g.solo_referencia || !(g.ingredientes||[]).length) continue;
+    const gh = color(g).hex;
+    if(!/^#[0-9a-f]{6}$/i.test(gh || '')) continue;
+    const l = labDe(gh);
+    const d = Math.hypot(l[0]-yo[0], l[1]-yo[1], l[2]-yo[2]);
+    if(d < PARECIDAS_MAX_DE) r.push({g, hex:gh, d});
+  }
+  return r.sort((a,b)=>a.d-b.d).slice(0, PARECIDAS_N);
+}
+function tarjetaParecidas(f, hermanas){
+  const r = parecidasA(f, hermanas);
+  if(!r.length) return '';
+  const et = d => d < 4 ? 'casi igual' : d < 8 ? 'muy parecido' : 'parecido';
+  return `<div class="tarjeta parecidas"><div class="tarjeta-cab"><h3>Se parece a</h3>
+      <span class="par-sub">por color calculado</span></div>
+    <div class="tarjeta-cuerpo par-rej">${r.map(x=>
+      `<button class="par-i" data-ir="${x.g.id}" title="${esc(x.g.nombre)}">
+        <i style="background:${x.hex}"></i><b>${esc(x.g.nombre)}</b><small>${et(x.d)}</small>
+        <em aria-hidden="true"><u style="--s:${Math.max(8, Math.round(100 - x.d*6))}%"></u></em></button>`).join('')}
+      <p class="par-pie">¿Necesitas este color? Mira antes si ya tienes uno casi igual hecho.
+        Es una comparación de las muestras calculadas, que son orientativas: mira siempre el bote.</p>
+    </div></div>`;
 }
 
 function botonEnlace(h){
@@ -6793,6 +7417,8 @@ function retomarPesaje(){
   pes = {f: v.f, ing: v.ing, base, prop: v.ing.map(i=>i.cantidad/base),
          objetivo: v.g.objetivo, modo: v.g.modo || leerModo(),
          hechos: new Map(v.g.hechos), exactos: new Set(v.g.exactos || []),
+         // Lo que ya estaba echado antes de cerrar ya se confirmó entonces.
+         confirmados: new Set(v.g.hechos.map(h=>h[0])), confirmar: null,
          paso: 2, lote: null, recien: null};
   congelarPlan();
   pintarPesaje();
@@ -6810,6 +7436,7 @@ function preparar(f){
   pes = {f, ing, base, prop: ing.map(i=>i.cantidad/base),
          objetivo: objetivo > 0 ? objetivo : Math.round(base),
          modo: leerModo(), hechos: new Map(), exactos: new Set(),
+         confirmados: new Set(), confirmar: null,
          paso: 2, lote: null, recien: null};
   congelarPlan();
   pintarPesaje();
@@ -6926,7 +7553,7 @@ function pintarPesaje(){
     document.getElementById('pes-ir').onclick = ()=>{
       const v = Math.round(parseFloat($c.value));
       if(!(v>0)) return brindis('Pon cuántos gramos quieres');
-      pes.objetivo = v; pes.paso = 2; pes.hechos.clear(); congelarPlan(); pintarPesaje();
+      pes.objetivo = v; pes.paso = 2; pes.hechos.clear(); pes.confirmados.clear(); pes.confirmar = null; congelarPlan(); pintarPesaje();
     };
     return;
   }
@@ -6936,6 +7563,7 @@ function pintarPesaje(){
   $dt.textContent = f.nombre;
   $dc.innerHTML = `
     <div class="pes-cab">
+      <i class="pes-meta" style="background:${color(f).hex}" title="El color que estás haciendo"></i>
       <div><b class="num">${fmt(p.total)} g</b><small id="pes-sub">total del lote</small></div>
       <div class="pes-modo">
         <button data-modo="individual" aria-pressed="${pes.modo==='individual'}"
@@ -6953,8 +7581,10 @@ function pintarPesaje(){
            <span>Tiene bote en la estantería${f.estanteria_desde ? ', desde el <b>' + fecha(f.estanteria_desde) + '</b>' : ''}: búscalo.</span></div>`
         : `<div class="pes-bote no"><span>No tiene bote: coge uno nuevo y ponle la etiqueta.</span></div>`;
     })()}
+    ${porConfirmar(p, hechas) !== null ? '' : avisoRojo(p)}
     <div class="pes-barra"><i style="width:${hechas/p.filas.length*100}%"></i></div>
-    ${heroePesaje(p, hechas)}
+    ${(()=>{ const kc = porConfirmar(p, hechas);
+             return kc !== null ? panelConfirmar(p.filas[kc]) : heroePesaje(p, hechas); })()}
     ${p.crecio ? `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
        <span>Te has pasado con algo, así que <b>el lote sube a ${fmt(p.total)} g</b> para que las proporciones sigan bien. Lo de más ya está descontado abajo.</span></div>`:''}
     ${(()=>{ const min = loteMinimo();
@@ -6972,6 +7602,10 @@ function pintarPesaje(){
     <div class="pes-lista">
       ${p.filas.map(x=>filaPesaje(x, pes.modo, x.k === pes.recien)).join('')}
     </div>`;
+  // Con la pregunta en pantalla, el botón de «Sí» tiene que verse entero sin
+  // buscarlo: en un móvil pequeño queda por debajo de la franja de abajo.
+  const $pc = $dc.querySelector('.pc-si');
+  if($pc) requestAnimationFrame(()=>$pc.scrollIntoView({block:'nearest'}));
   // La animación se dispara al crearse la fila, así que el aviso se consume:
   // si no, cada repintado la haría revivir.
   pes.recien = null;
@@ -6990,7 +7624,23 @@ function pintarPesaje(){
     b.onclick = ()=>{ pes.modo = b.dataset.modo;
       try{ localStorage.setItem('modo-pesaje', pes.modo); }catch(_){}
       pintarPesaje(); };
+  // Un 90/10 no se da por echado sin haber confirmado que se ha cogido ESE
+  // bote: es lo que se equivocó con 32 g de azul puro. Devuelve true si ha
+  // frenado el gesto para preguntar.
+  const frenaRojo = k=>{
+    const fila = plan().filas[k];
+    if(!fila || !ingResaltado(fila.i) || pes.confirmados.has(k)) return false;
+    pes.confirmar = k; vibrar([40, 60, 40]); pintarPesaje();
+    $dc.scrollTo?.({top: 0});
+    return true;
+  };
+  for(const b of $dc.querySelectorAll('[data-confirmo]'))
+    b.onclick = ()=>{ pes.confirmados.add(+b.dataset.confirmo); pes.confirmar = null;
+      vibrar(25); pintarPesaje(); };
+  for(const b of $dc.querySelectorAll('[data-noconfirmo]'))
+    b.onclick = ()=>{ pes.confirmar = null; pintarPesaje(); };
   const echarUno = k=>{
+    if(frenaRojo(k)) return;
     pes.hechos.set(k, plan().filas[k].objetivo);
     pes.exactos.add(k);           // lo que pedía el plan, ni un gramo más
     pes.recien = k;               // solo esta fila hace el barrido verde
@@ -7004,14 +7654,15 @@ function pintarPesaje(){
   if(ya) ya.onclick = ()=>echarUno(+ya.dataset.ya);
   for(const b of $dc.querySelectorAll('[data-deshacer]'))
     b.onclick = ()=>{ const k = +b.dataset.deshacer;
-      pes.hechos.delete(k); pes.exactos.delete(k);
+      pes.hechos.delete(k); pes.exactos.delete(k); pes.confirmados.delete(k);
       pes.recien = null; pintarPesaje(); guardarPesaje(); };
   for(const b of $dc.querySelectorAll('[data-ajustar]'))
-    b.onclick = ()=>ajustar(+b.dataset.ajustar);
+    b.onclick = ()=>{ if(!frenaRojo(+b.dataset.ajustar)) ajustar(+b.dataset.ajustar); };
   for(const b of $dc.querySelectorAll('[data-pase]'))
-    b.onclick = ()=>ajustar(+b.dataset.pase);
+    b.onclick = ()=>{ if(!frenaRojo(+b.dataset.pase)) ajustar(+b.dataset.pase); };
   for(const b of $dc.querySelectorAll('[data-subir]'))
     b.onclick = ()=>{ pes.objetivo = +b.dataset.subir; pes.hechos.clear();
+      pes.confirmados.clear(); pes.confirmar = null;
       pes.lote = null; congelarPlan(); pintarPesaje(); };
   document.getElementById('pes-atras').onclick = ()=>{ pes.paso=1; pes.lote=null; pes.recien=null; pintarPesaje(); };
   // Cambiar de cantidad vacía lo pesado, así que ya no hay nada que retomar.
@@ -7058,6 +7709,79 @@ function pintarPesaje(){
    goma no hay que buscar nada pequeño. Y vibra un instante al confirmar,
    para saber que ha cogido el toque sin mirar. */
 function vibrar(patron){ try{ navigator.vibrate && navigator.vibrate(patron); }catch(_){} }
+/* El aro ya no es una barra gris que se llena: es la RECETA. Un arco por
+   ingrediente, de su color y tan ancho como su cantidad. Los que ya están
+   echados van a todo color, el que toca late (--p, ver el CSS) y los que
+   faltan están apagados. De un vistazo se ve cuánto queda y de qué es cada
+   trozo. Un pequeño hueco entre arcos para que se lean por separado. */
+function fondoAro(p){
+  const cant = p.filas.map(x=> Math.max(0, x.previsto ?? x.objetivo ?? 0));
+  const tot = cant.reduce((t,c)=>t+c, 0) || p.filas.length;
+  const gap = p.filas.length > 1 ? 2.4 : 0;
+  const actual = p.filas.findIndex(x=>x.falta !== 0);
+  let a = 0; const st = [];
+  p.filas.forEach((x,k)=>{
+    const span = (tot === p.filas.length && !cant.some(c=>c>0) ? 1 : cant[k]) / tot * 360;
+    const ini = a + gap/2, fin = a + span - gap/2; a += span;
+    const m = x.i.tipo==='materia' ? materias.get(x.i.ref) : null;
+    const sub = x.i.tipo==='formula' ? porId.get(x.i.ref) : null;
+    const hex = m?.hex_referencia || (sub ? color(sub).hex : null) || '#888888';
+    const col = x.falta === 0 ? hex
+      : k === actual ? `color-mix(in srgb, ${hex} calc(var(--p) * 100%), var(--linea))`
+      : `color-mix(in srgb, ${hex} 26%, var(--linea))`;
+    st.push(`var(--panel) ${a-span}deg ${ini}deg`, `${col} ${ini}deg ${fin}deg`, `var(--panel) ${fin}deg ${a}deg`);
+  });
+  return `conic-gradient(from 0deg, ${st.join(',')})`;
+}
+/* ── LOS 90/10 EN ROJO ────────────────────────────────────────────────
+   Tres capas, de menos a más, para que echar 32 g de azul puro donde tocaba el
+   90/10 no vuelva a pasar:
+     1. una franja roja arriba, desde que se abre el pesaje, que dice cuáles son;
+     2. su fila y su bloque grande, con fondo rojo, mientras se pesa;
+     3. una pregunta ANTES de pesarlo, con el nombre enorme: la única barrera
+        que actúa en el instante de coger el bote. */
+const puroDe = n => String(n||'').replace(/\s*90\s*\/\s*10\s*/,' ').trim();
+const ICONO_ALERTA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>`;
+
+function avisoRojo(p){
+  const rojos = p.filas.filter(x=>ingResaltado(x.i));
+  if(!rojos.length) return '';
+  const hay9010 = rojos.some(x=>esNombre9010(x.i.nombre));
+  return `<div class="pes-rojo-aviso" role="note">${ICONO_ALERTA}
+    <div><b>${hay9010 ? 'Lleva rebajado 90/10' : 'Lleva un ingrediente marcado en rojo'}</b>
+      <span>${rojos.map(x=>`${esc(x.i.nombre)} <em class="num">${fmt(x.objetivo)} g</em>`).join(' · ')}</span>
+      ${hay9010 ? '<small>No es el pigmento puro: mira el nombre del bote.</small>' : ''}</div></div>`;
+}
+
+/** El ingrediente que hay que confirmar ahora, o null. Si tocaste «Echado» en
+    una fila en rojo, esa; si no, el que toca si va en rojo y no se ha confirmado. */
+function porConfirmar(p, hechas){
+  if(hechas === p.filas.length) return null;
+  if(pes.confirmar !== null && pes.confirmar !== undefined){
+    const f = p.filas[pes.confirmar];
+    if(f && f.falta !== 0) return pes.confirmar;
+    pes.confirmar = null;
+  }
+  const x = p.filas.find(x=>x.falta !== 0);
+  return x && ingResaltado(x.i) && !pes.confirmados.has(x.k) ? x.k : null;
+}
+
+function panelConfirmar(x){
+  const es9010 = esNombre9010(x.i.nombre);
+  const puro = puroDe(x.i.nombre);
+  return `<div class="pes-confirma" role="alertdialog" aria-live="assertive" aria-label="Confirmar ${esc(x.i.nombre)}">
+    <div class="pc-cab">${ICONO_ALERTA}<span>Atención</span></div>
+    <b class="pc-nom">${esc(x.i.nombre)}</b>
+    <span class="pc-g num">${fmt(x.falta || x.objetivo)}<em>g</em></span>
+    <p>${es9010
+      ? `Es el <b>rebajado</b> (90 de crudo y 10 de ${esc(puro || 'pigmento')}), <b>no el bote de ${esc(puro || 'pigmento')} puro</b>. Mira el nombre en el bote antes de echar.`
+      : `Este ingrediente está <b>marcado en rojo</b>. Comprueba que coges el bote correcto.`}</p>
+    <button class="pc-si" type="button" data-confirmo="${x.k}">Sí, es ${esc(x.i.nombre)}</button>
+    ${pes.confirmar !== null && pes.confirmar !== undefined
+      ? `<button class="pc-no" type="button" data-noconfirmo>Todavía no</button>` : ''}
+  </div>`;
+}
+
 function heroePesaje(p, hechas){
   const n = p.filas.length;
   if(hechas === n){
@@ -7076,15 +7800,16 @@ function heroePesaje(p, hechas){
   const acumulado = pes.modo === 'acumulado';
   const grande = acumulado ? x.acumulado : (x.falta || x.objetivo);
   const echar = x.falta || x.objetivo;
-  return `<button class="pes-heroe" id="pes-ya" data-ya="${k}" type="button"
+  const rojo = ingResaltado(x.i);
+  return `<button class="pes-heroe${rojo?' en-rojo':''}" id="pes-ya" data-ya="${k}" type="button"
       title="Toca en cualquier parte cuando la báscula marque ${fmt(grande)} g">
-    <div class="pes-aro" style="--v:${Math.round(hechas/n*100)}">
+    <div class="pes-aro receta" style="--v:${Math.round(hechas/n*100)};background:${fondoAro(p)}">
       <div class="pes-num"><b class="num">${fmt(grande)}<em>g</em></b>
         <span>${acumulado ? 'La báscula tiene que marcar' : 'A echar · báscula a cero'}</span></div>
     </div>
     <div class="pes-heroe-txt">
       <i class="pes-color" style="background:${hex||'var(--linea)'}"></i>
-      <div><b>${esc(x.i.nombre)}</b>
+      <div><b>${esc(x.i.nombre)}${rojo ? `<span class="chip-rojo">${esNombre9010(x.i.nombre)?'90/10':'OJO'}</span>` : ''}</b>
         <small>${x.real !== undefined
           ? (x.real < x.previsto - 1e-9
               ? `echaste ${fmt(x.real)} g · te faltan ${fmt(x.falta)} g`
@@ -7123,9 +7848,10 @@ function filaPesaje(x, modo, recien){
   // marcaría la báscula acumulado (528) y la cantidad real (360) iba en gris
   // y pequeña debajo: quien fuera con prisa echaba 528. Eso no puede pasar.
   const echar = x.falta || x.objetivo;
-  return `<div class="pes-fila${listo?' listo':''}${listo&&recien?' recien':''}${rehacer?' rehacer':''}">
+  const rojo = ingResaltado(x.i);
+  return `<div class="pes-fila${listo?' listo':''}${listo&&recien?' recien':''}${rehacer?' rehacer':''}${rojo?' en-rojo':''}">
     <div class="pes-color" style="background:${hex||'var(--linea)'}"></div>
-    <div class="pes-nom">${esc(x.i.nombre)}
+    <div class="pes-nom">${esc(x.i.nombre)}${rojo ? `<span class="chip-rojo">${esNombre9010(x.i.nombre)?'90/10':'OJO'}</span>` : ''}
       ${modo==='acumulado' && !listo
         ? `<small class="bascula">la báscula marcará <b>${fmt(x.acumulado)} g</b></small>` : ''}
       ${rehacer
@@ -7267,6 +7993,7 @@ const FAMILIA = {
   // con la lista; y como imprimir una etiqueta marca el bote solo, son de
   // los apuntes más frecuentes que hay.
   'estanteria-si': 'bote', 'estanteria-no': 'bote',
+  'resaltado-si': 'formula', 'resaltado-no': 'formula',
 };
 // Lo que se puede devolver a como estaba. Las fotos no: el archivo de antes ya
 // no existe en ninguna parte, y un botón que promete y no cumple es peor que
@@ -7297,6 +8024,8 @@ function textoDe(e){
     case 'bote':       return 'Bote preparado';
     case 'estanteria-si': return 'Bote puesto en la estantería';
     case 'estanteria-no': return 'Bote quitado de la estantería';
+    case 'resaltado-si':  return 'Marcado para salir en rojo' + (d.materia ? ' (pigmento)' : '');
+    case 'resaltado-no':  return 'Quitado el rojo' + (d.materia ? ' (pigmento)' : '');
     case 'sello-creado':   return 'Sello creado';
     case 'sello-cambiado': return 'Ficha del sello cambiada';
     case 'sello-borrado':  return 'Sello eliminado';
@@ -9465,13 +10194,13 @@ function abrirOpciones(){
   $dt.textContent = 'Opciones';
   $dc.innerHTML = `
     <div class="aj-grupo">
-      <div class="aj aj-select">
-        <span class="aj-et">Aspecto</span>
-        <select id="op-tema" aria-label="Aspecto">
-          <option value="auto">Como el sistema</option>
-          <option value="claro">Siempre claro</option>
-          <option value="oscuro">Siempre oscuro</option>
-        </select>
+      <div class="aj aj-tema">
+        <span class="aj-et" id="op-tema-et">Aspecto</span>
+        <div class="tema-tiles" id="op-tema" role="radiogroup" aria-labelledby="op-tema-et">
+          ${[['auto','Como el sistema'],['claro','Siempre claro'],['oscuro','Siempre oscuro']].map(([k,t])=>
+            `<button type="button" role="radio" class="tema-t" data-tema="${k}" aria-checked="false" tabindex="-1">
+              <span class="mini mini-${k}" aria-hidden="true"><i></i><i></i><i></i><b></b></span><em>${t}</em></button>`).join('')}
+        </div>
       </div>
       ${filaAjuste('op-cuenta', MODO === 'nube' ? 'Cuenta' : 'Sesión',
         (MODO === 'nube' && sesion.email ? esc(sesion.email) + ' · ' : '') +
@@ -9517,19 +10246,39 @@ function abrirOpciones(){
 
     <input type="file" id="op-archivo" accept="application/json,.json" hidden>`;
 
-  document.getElementById('op-tema').value = localStorage.getItem('tema') || 'auto';
-  document.getElementById('op-tema').onchange = e=>{
+  /* Tres miniaturas en vez de un desplegable: se ve lo que vas a elegir. Es un
+     grupo de radio de verdad —flechas para moverse, un solo tabulador dentro—. */
+  const $tema = document.getElementById('op-tema');
+  const marcarTema = v=>{
+    for(const b of $tema.querySelectorAll('.tema-t')){
+      const on = b.dataset.tema === v;
+      b.classList.toggle('on', on); b.setAttribute('aria-checked', on);
+      b.tabIndex = on ? 0 : -1;
+    }
+  };
+  const ponerTema = v=>{
     /* Que la app se ENCIENDA en vez de dar un corte. La clase vive lo que dura
        la transición: dejarla puesta metería transiciones de color en toda la
        app, y eso sí se nota al usarla (una lista que se repinta entera con
        cada tecla no puede ir animando fondos). */
     document.documentElement.classList.add('cambiando-tema');
     setTimeout(()=>document.documentElement.classList.remove('cambiando-tema'), 260);
-    const v = e.target.value;
     try{ localStorage.setItem('tema', v); }catch(_){}
     if(v === 'auto') delete document.documentElement.dataset.tema;
     else document.documentElement.dataset.tema = v;
+    marcarTema(v);
   };
+  marcarTema((()=>{ try{ return localStorage.getItem('tema'); }catch(_){ return null; } })() || 'auto');
+  for(const b of $tema.querySelectorAll('.tema-t')){
+    b.onclick = ()=>ponerTema(b.dataset.tema);
+    b.onkeydown = e=>{
+      const bs = [...$tema.querySelectorAll('.tema-t')], i = bs.indexOf(b);
+      const d = e.key==='ArrowRight'||e.key==='ArrowDown' ? 1 : e.key==='ArrowLeft'||e.key==='ArrowUp' ? -1 : 0;
+      if(!d) return;
+      e.preventDefault();
+      const n = bs[(i+d+bs.length)%bs.length]; n.focus(); ponerTema(n.dataset.tema);
+    };
+  }
   const ir = (id, f) => document.getElementById(id)?.addEventListener('click', f);
   ir('op-cuenta',       ()=>pantallaCuenta(abrirOpciones));
   ir('op-sync-ir',      ()=>pantallaSync(abrirOpciones));
@@ -9664,7 +10413,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">30511d20</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">f6303f34</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -9763,18 +10512,26 @@ function pantallaPigmentos(volver){
       queda <b>rectificada</b> a los pigmentos nuevos cuando se le cambian las
       cantidades y se guarda. Van <b>${rect}</b> de ${DATOS.formulas.length}.</p>
     <div class="pig-lista">${lista.map(({m, n})=>`
-      <div class="pig">
+      <div class="pig${resaltado(m)?' en-rojo':''}">
         <div class="pig-color" style="background:${m.hex_referencia
           || 'repeating-linear-gradient(45deg,var(--linea),var(--linea) 5px,var(--panel-2) 5px,var(--panel-2) 10px)'}"></div>
         <div class="pig-nom">${esc(m.nombre)}
           <small>${n} fórmula${n===1?'':'s'}</small></div>
         <div class="pig-btns">
+          ${puedeEditar ? `<button class="btn btn-fino btn-rojo${resaltado(m)?' puesto':''}" data-rojo="${m.id}"
+            aria-pressed="${resaltado(m)}" title="Con fondo rojo en la receta y en el pesaje, para no confundirlo con el puro">${
+            resaltado(m) ? 'En rojo ✓' : 'Resaltar en rojo'}</button>` : ''}
           <button class="btn btn-fino" data-ver="${m.id}">Ver las ${n}</button>
         </div>
       </div>`).join('')}</div>`;
   pieVolver(volver);
   for(const b of $dc.querySelectorAll('[data-ver]'))
     b.onclick = ()=>verPigmento(b.dataset.ver);
+  for(const b of $dc.querySelectorAll('[data-rojo]'))
+    b.onclick = ()=>{
+      const m = materias.get(b.dataset.rojo);
+      if(m && marcarRojo(m, !resaltado(m), true)) pantallaPigmentos(volver);
+    };
   if(!$dlg.open) $dlg.showModal();
 }
 
@@ -11097,6 +11854,32 @@ function pintarEtiquetas(){
     etiquetasHoja = []; pintarEtiquetas(); });
 }
 
+/* Muestrario de la portada: hasta 66 pastillas con los colores REALES del
+   listado, ordenadas por tono (rojos → violetas, luego tierras, luego neutros).
+   Si el listado es mayor, se toman a intervalos regulares para que se vea la
+   gama entera y no solo los primeros. */
+function muestrarioPortada(lista){
+  const hsl = hex=>{
+    const h = hex.replace('#','');
+    const r = parseInt(h.slice(0,2),16)/255, g = parseInt(h.slice(2,4),16)/255, b = parseInt(h.slice(4,6),16)/255;
+    const mx = Math.max(r,g,b), mn = Math.min(r,g,b), l = (mx+mn)/2, d = mx-mn;
+    let H = 0, S = 0;
+    if(d){ S = d/(1-Math.abs(2*l-1));
+      H = mx===r ? ((g-b)/d)%6 : mx===g ? (b-r)/d+2 : (r-g)/d+4; H = (H*60+360)%360; }
+    return {h:H, s:S, l};
+  };
+  const cs = lista.map(f=>{ const hex = color(f).hex; return {hex, c:hsl(hex)}; })
+    .filter(x=>/^#[0-9a-f]{6}$/i.test(x.hex));
+  if(!cs.length) return '';
+  const grupo = c=> c.s < .16 || c.l > .93 ? 2 : (c.l < .36 && c.h >= 8 && c.h < 55 ? 1 : 0);
+  const tono = c=> c.h > 330 ? c.h - 360 : c.h;
+  cs.sort((a,b)=> grupo(a.c)-grupo(b.c) || tono(a.c)-tono(b.c) || a.c.l-b.c.l);
+  const MAX = 66;
+  const q = cs.length <= MAX ? cs : Array.from({length:MAX}, (_,i)=>cs[Math.floor(i*cs.length/MAX)]);
+  const cols = Math.min(11, q.length);
+  return `<div class="muestrario" style="--cols:${cols}">${q.map(x=>`<i style="background:${x.hex}"></i>`).join('')}</div>`;
+}
+
 function generarPDF(lista, titulo, sub){
   if(!puedeEditar) return brindis(SIN_PERMISO);
   const hoy = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
@@ -11126,9 +11909,12 @@ function generarPDF(lista, titulo, sub){
     *{box-sizing:border-box}
     body{font-family:"Plex",ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;color:#111;margin:0;font-size:9pt;font-variant-numeric:tabular-nums slashed-zero;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .portada{height:269mm;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;page-break-after:always}
-    .portada .arco{width:88mm;height:14mm;border-radius:7mm;margin-bottom:14mm;
-      background:linear-gradient(90deg,#e0473a,#e8a13c,#e8dc45,#4aab60,#3d7fd6,#8a54c8)}
-    .portada h1{font-size:30pt;letter-spacing:-.02em;margin:0 0 6mm;font-weight:700}
+    /* Muestrario: las pastillas del listado, por tono. Cada una mide lo mismo
+       (13,3 mm) tenga el listado 8 colores o 800. */
+    .portada .muestrario{display:grid;grid-template-columns:repeat(var(--cols),13.3mm);gap:2.2mm;margin-bottom:16mm}
+    .portada .muestrario i{display:block;aspect-ratio:1;border-radius:3mm;border:.25mm solid rgba(0,0,0,.14)}
+    .portada::after{content:"";order:99;display:block;width:24mm;height:.9mm;border-radius:1mm;background:#b61517;margin-top:14mm}
+    .portada h1{font-size:34pt;letter-spacing:-.02em;margin:0 0 6mm;font-weight:700}
     /* En papel NO se usa degradado sobre texto: el motor de impresión no
        recorta el fondo a la letra y salen los rectángulos del degradado
        detrás de cada carácter. Colores planos, que además imprimen limpio. */
@@ -11165,7 +11951,7 @@ function generarPDF(lista, titulo, sub){
     @media print{ .noimp{display:none} }
   </style></head><body>
   <div class="portada">
-    <div class="arco"></div>
+    ${muestrarioPortada(lista)}
     ${/^\s*(goma|colores)\s+seriadornos\s*$/i.test(titulo)
       ? `<h1 class="marca-pdf">${titulo.trim().split(/\s+/)[0].toUpperCase()} <span><b>S</b>ERI<b>A</b>DORNOS</span></h1>`
       : `<h1>${esc(titulo)}</h1>`}
@@ -12293,7 +13079,10 @@ function masDelSello(s){
     borrar:   ()=>borrarSello(s),
   };
   for(const b of $dc.querySelectorAll('[data-mas-ir]'))
-    b.onclick = ()=>{ const f = hacer[b.dataset.masIr]; $dlg.close(); setTimeout(f, 60); };
+    // cerrarDlgYLuego espera a que la vuelta atrás del diálogo LLEGUE antes de abrir
+    // lo siguiente. Con un temporizador fijo (antes, 60 ms) bastaba una máquina
+    // lenta para que esa vuelta pendiente se llevara la pantalla nueva.
+    b.onclick = ()=>cerrarDlgYLuego(hacer[b.dataset.masIr]);
   if(!$dlg.open) $dlg.showModal();
 }
 
@@ -14029,15 +14818,23 @@ function pintarSolapas(){
   for(const b of $s.querySelectorAll('[data-sec]'))
     b.setAttribute('aria-pressed', String(b.dataset.sec === SECCION));
   document.body.dataset.seccion = SECCION;
+  /* En el móvil el buscador comparte fila con «Goma» y el texto largo se
+     cortaba a media palabra: ahí va la versión corta. */
+  const corto = matchMedia('(max-width:860px)').matches;
   $q.placeholder = SECCION === 'sellos'
-    ? 'Buscar sello, cliente o molde'
-    : 'Buscar color, cliente o pigmento';
+    ? (corto ? 'Buscar sello o cliente' : 'Buscar sello, cliente o molde')
+    : (corto ? 'Buscar color o cliente' : 'Buscar color, cliente o pigmento');
   const nuevo = document.getElementById('btn-nuevo');
   if(nuevo){
     nuevo.title = SECCION === 'sellos' ? 'Nuevo sello' : 'Nueva fórmula';
     nuevo.setAttribute('aria-label', nuevo.title);
   }
 }
+
+// Girar el móvil o cambiar el tamaño de la ventana cambia qué texto cabe.
+matchMedia('(max-width:860px)').addEventListener('change', ()=>{
+  if(!document.getElementById('q')?.placeholder.startsWith('Elige otro')) pintarSolapas();
+});
 
 function cambiarSeccion(sec){
   if(SECCION === sec) return;
@@ -14262,9 +15059,9 @@ window.__app = {
   apuntarPreparacion, pantallaHistorial, fundirHistorial,
   get REGISTRO(){ return REGISTRO.slice(); }, apuntar, fundirRegistro, deshacer,
   lineasHist, textoDe,
-  estadoAct, estadoBases, explicarCalibracion, pintarAvisoCal,
+  estadoAct, estadoBases, explicarCalibracion, pintarAvisoCal, color, parecidasA,
   materiasDe: ()=>materiasDe, cuantasLlevan,
-  pantallaPigmentos,
+  pantallaPigmentos, resaltado, ingResaltado, esNombre9010, marcarRojo,
   preparar, retomarPesaje, guardarPesaje, leerPesajeGuardado,
   tieneFoto, puedeFoto, hacerFoto, verFoto, procesarFoto, HAY_FOTOS,
   prepararFoto, recortarFoto, pantallaFoto, verFotoGrande, cerrarVisor,

@@ -1486,16 +1486,16 @@ body[data-ficha="on"] .tarjeta-fm{border-top:2px solid var(--tono, var(--linea))
 .volver{display:none}
 .volver-fila{display:none}
 /* En el ordenador: dos botones redondos arriba a la derecha de la ficha, con
-   el "12 de 86" entre ellos. En el móvil no hacen falta: se desliza. */
+   el "12 de 86" entre ellos, en su propia fila (antes se montaban encima del
+   título cuando el nombre era largo). En el móvil no hacen falta: se desliza. */
 .hero-nav{
   display:flex; align-items:center; gap:10px; justify-content:flex-end;
-  margin:0 0 -34px; position:relative; z-index:2;
+  margin:0 0 8px; position:relative; z-index:2;
 }
 .hero-nav .btn-icono{width:40px; height:40px}
 .hero-nav .btn-icono svg{width:18px; height:18px}
 .hero-nav .btn-icono:disabled{opacity:.35; cursor:default}
 .hero-nav .btn-icono:disabled:active{translate:none; box-shadow:inset 0 1px 0 var(--canto), var(--sombra-2)}
-@media (min-width:1180px){ .hero-nav{margin-bottom:-40px} }
 
 
 /* ── «Se parece a» (ver tarjetaParecidas en 06-ficha.js) ─────────────── */
@@ -2770,9 +2770,192 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
 /* El resumen de un cajón del Taller cuando algo falta: el mismo ámbar que en
    todas partes, y visible SIN abrirlo, que es todo el sentido de ponerlo. */
 .ed-b-res.avisa{color:var(--ambar); font-weight:560}
+/* ═══════════════════════════════════════════════════════════════════
+   CRISTAL  (30-sep, propuesta aprobada por Juanjo)
+   Es una OPCIÓN de cada aparato (Opciones › Cristal), apagada de serie:
+   todo lo de aquí va detrás de html[data-cristal="on"], así que apagado la
+   app es exactamente la de siempre.
+
+   Dos ideas:
+   · el cristal es el MATERIAL: las superficies pasan a ser translúcidas
+     (se redefinen --panel* y nada más) y solo lo que flota sobre contenido
+     que se desplaza —barra, hojas— lleva desenfoque, que es lo que cuesta;
+   · la LUZ de detrás es el color que estás mirando (--luz, que pone
+     24-cristal.js). Nunca un color ajeno: aquí el único color es el de la
+     goma. Si el color es muy claro, la luz baja sola para no lavar el texto.
+   ═══════════════════════════════════════════════════════════════════ */
+@property --luz{ syntax:'<color>'; inherits:true; initial-value:#9a8f7a; }
+@property --luz2{ syntax:'<color>'; inherits:true; initial-value:#5a5448; }
+
+#aurora{display:none}
+
+/* ── La luz ──────────────────────────────────────────────────────── */
+html[data-cristal="on"]{ background:#0a0b0d; --base-cristal:#0a0b0d; --luz-f:.36; --fa:1 }
+html[data-cristal="on"] body{ background:transparent }
+html[data-cristal="on"] #aurora{
+  display:block; position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden;
+  transition:--luz .9s cubic-bezier(.2,0,0,1), --luz2 .9s cubic-bezier(.2,0,0,1);
+}
+html[data-cristal="on"] #aurora::before,
+html[data-cristal="on"] #aurora::after{content:""; position:absolute; inset:-20%; will-change:transform}
+html[data-cristal="on"] #aurora::before{
+  background:
+    radial-gradient(58% 42% at 14% 8%, color-mix(in srgb, color-mix(in srgb, var(--luz) 86%, white) calc(96% * var(--luz-f) * var(--fa)), transparent), transparent 74%),
+    radial-gradient(46% 38% at 96% 36%, color-mix(in srgb, var(--luz) calc(62% * var(--luz-f) * var(--fa)), transparent), transparent 72%),
+    radial-gradient(70% 46% at 30% 106%, color-mix(in srgb, var(--luz) calc(85% * var(--luz-f) * var(--fa)), transparent), transparent 74%);
+  filter:blur(20px); animation:cristal-deriva 26s ease-in-out infinite alternate;
+}
+html[data-cristal="on"] #aurora::after{
+  background:radial-gradient(38% 30% at 62% 46%, transparent 62%, color-mix(in srgb, var(--luz) calc(70% * var(--luz-f) * var(--fa)), transparent) 70%, transparent 78%);
+  filter:blur(16px); opacity:.85; animation:cristal-deriva 34s ease-in-out infinite alternate-reverse;
+}
+@keyframes cristal-deriva{from{transform:translate3d(-3%,-2%,0) rotate(-2deg)}to{transform:translate3d(4%,3%,0) rotate(3deg)}}
+@media (prefers-reduced-motion:reduce){
+  html[data-cristal="on"] #aurora::before,html[data-cristal="on"] #aurora::after{animation:none}
+}
+
+/* ── El material ─────────────────────────────────────────────────── */
+/* Oscuro (por defecto) */
+html[data-cristal="on"]{
+  --panel:rgba(16,18,24,.56); --panel-luz:rgba(24,27,34,.5); --panel-2:rgba(255,255,255,.07);
+  --tinta-suave:rgba(255,255,255,.1);
+  --linea:rgba(236,231,218,.15);
+  --canto:rgba(255,255,255,.2);
+}
+/* Claro: «papel esmerilado» */
+@media (prefers-color-scheme:light){
+  html[data-cristal="on"]:not([data-tema="oscuro"]){
+    background:#e9e4d8; --base-cristal:#e9e4d8; --fa:.8;
+    --panel:rgba(255,253,247,.66); --panel-luz:rgba(255,255,255,.6); --panel-2:rgba(255,255,255,.5);
+    --tinta-suave:rgba(255,255,255,.6); --linea:rgba(40,36,28,.14); --canto:rgba(255,255,255,.9);
+  }
+}
+html[data-cristal="on"][data-tema="claro"]{
+  background:#e9e4d8; --base-cristal:#e9e4d8; --fa:.8;
+  --panel:rgba(255,253,247,.66); --panel-luz:rgba(255,255,255,.6); --panel-2:rgba(255,255,255,.5);
+  --tinta-suave:rgba(255,255,255,.6); --linea:rgba(40,36,28,.14); --canto:rgba(255,255,255,.9);
+}
+
+/* Lo que ponía un fondo opaco y tapaba la luz */
+html[data-cristal="on"] .cabecera,
+html[data-cristal="on"] .columna-lista{background:transparent}
+/* El halo propio de la columna sobra: la luz ya es de todo el fondo */
+html[data-cristal="on"] .columna-ficha::before{display:none}
+/* En el móvil la ficha es una pantalla que tapa la lista: si fuera
+   transparente se vería la lista a través. Lleva la misma luz, pero sobre un
+   fondo liso (sin animar: es una capa más, y las capas cuestan). */
+@media (max-width:860px){
+  html[data-cristal="on"] .columna-ficha{
+    background:
+      radial-gradient(58% 34% at 14% 4%, color-mix(in srgb, color-mix(in srgb, var(--luz) 86%, white) calc(90% * var(--luz-f) * var(--fa)), transparent), transparent 74%),
+      radial-gradient(46% 30% at 98% 30%, color-mix(in srgb, var(--luz) calc(55% * var(--luz-f) * var(--fa)), transparent), transparent 72%),
+      radial-gradient(70% 40% at 30% 102%, color-mix(in srgb, var(--luz) calc(80% * var(--luz-f) * var(--fa)), transparent), transparent 74%),
+      var(--base-cristal);
+  }
+}
+/* Las barras que se quedan fijas mientras se desplaza: cristal de verdad */
+html[data-cristal="on"] .volver,
+html[data-cristal="on"] .volver-fila,
+html[data-cristal="on"] .chips-cli,
+html[data-cristal="on"] .contador{
+  background:color-mix(in srgb, var(--panel) 55%, transparent);
+  -webkit-backdrop-filter:blur(18px) saturate(150%); backdrop-filter:blur(18px) saturate(150%);
+}
+html[data-cristal="on"] .barra,
+html[data-cristal="on"] .barra-ficha{
+  background:linear-gradient(150deg, var(--panel-2), transparent 55%), var(--panel);
+  -webkit-backdrop-filter:blur(24px) saturate(150%); backdrop-filter:blur(24px) saturate(150%);
+  border-color:color-mix(in srgb, var(--texto) 18%, transparent);
+  box-shadow:inset 0 1px 0 var(--canto), 0 24px 50px rgba(0,0,0,.45), 0 2px 6px rgba(0,0,0,.35);
+}
+:root[data-cristal="on"] .hoja{
+  background:linear-gradient(150deg, var(--panel-2), transparent 55%), var(--panel);
+  -webkit-backdrop-filter:blur(26px) saturate(150%); backdrop-filter:blur(26px) saturate(150%);
+  border:1px solid color-mix(in srgb, var(--texto) 16%, transparent);
+  box-shadow:inset 0 1px 0 var(--canto), 0 30px 70px rgba(0,0,0,.55);
+}
+/* La fila seleccionada recoge el color de la luz */
+html[data-cristal="on"] .fila[aria-current="true"]{
+  background:linear-gradient(90deg, color-mix(in srgb, var(--tono, var(--luz)) 26%, transparent), transparent 82%);
+}
+/* Sin cristal donde el sistema lo pide */
+@media (prefers-reduced-transparency:reduce){
+  html[data-cristal="on"] .barra,html[data-cristal="on"] .barra-ficha,
+  html[data-cristal="on"] .hoja,html[data-cristal="on"] .volver,html[data-cristal="on"] .volver-fila{
+    -webkit-backdrop-filter:none; backdrop-filter:none;
+    background:color-mix(in srgb, #0a0b0d 92%, var(--luz));
+  }
+}
+
+/* ── La fila de Opciones ─────────────────────────────────────────── */
+.aj-cristal{display:flex; align-items:center; gap:14px; cursor:pointer}
+.aj-cristal .aj-txt{flex:1; min-width:0}
+.aj-cristal .aj-txt small{display:block; margin-top:3px; font-size:12.5px; font-weight:450; color:var(--texto-3); line-height:1.35}
+.aj-cristal .interruptor{padding:0; flex:none}
+
+/* ── En tablet y ordenador: el menú lateral que se pliega ─────────── */
+@media (min-width:861px){
+  html[data-cristal="on"] .app{
+    display:grid; grid-template-columns:auto minmax(0,1fr); grid-template-rows:auto minmax(0,1fr);
+    column-gap:0;
+  }
+  html[data-cristal="on"] .app > .cabecera{grid-column:2; grid-row:1}
+  html[data-cristal="on"] .app > .cuerpo{grid-column:2; grid-row:2}
+  html[data-cristal="on"] .app > .aviso-global{grid-column:2}
+  html[data-cristal="on"] .barra{
+    position:relative; left:auto; right:auto; bottom:auto; width:232px; height:auto;
+    grid-column:1; grid-row:1 / span 2; margin:14px 0 14px 14px; padding:12px 10px; border-radius:26px;
+    flex-direction:column; align-items:stretch; gap:2px; overflow:hidden;
+    transition:width .42s var(--salida);
+  }
+  html[data-cristal="on"][data-lateral="riel"] .barra{width:72px}
+  html[data-cristal="on"] #solapas{display:flex; flex-direction:column; gap:2px}
+  html[data-cristal="on"] .barra #btn-plegar{display:flex}
+  html[data-cristal="on"] .barra .btn-icono,
+  html[data-cristal="on"] .barra #solapas button{
+    flex:none; height:46px; width:100%; justify-content:flex-start; gap:14px; padding:0 13px;
+    border-radius:16px; font-size:15px; font-weight:500; text-align:left;
+    transition:background-color .2s, color .2s, padding .42s var(--salida);
+  }
+  html[data-cristal="on"] .barra #solapas button span{display:block; overflow:hidden; max-width:150px; transition:max-width .42s var(--salida), opacity .25s}
+  html[data-cristal="on"] .barra .btn-icono::after{content:attr(title); overflow:hidden; white-space:nowrap; max-width:150px; transition:max-width .42s var(--salida), opacity .25s}
+  html[data-cristal="on"] .barra #btn-nuevo::after{content:"Nuevo"}
+  html[data-cristal="on"] .barra #btn-pdf::after{content:"Imprimir"}
+  html[data-cristal="on"] .barra #btn-menu::after{content:"Opciones"}
+  html[data-cristal="on"] .barra #btn-plegar::after{content:"Plegar menú"}
+  html[data-cristal="on"] .barra #btn-menu{margin-top:auto}
+  html[data-cristal="on"][data-lateral="riel"] .barra #solapas button span,
+  html[data-cristal="on"][data-lateral="riel"] .barra .btn-icono::after{max-width:0; opacity:0}
+  html[data-cristal="on"][data-lateral="riel"] .barra .btn-icono,
+  html[data-cristal="on"][data-lateral="riel"] .barra #solapas button{gap:0; padding:0 11px}
+  html[data-cristal="on"] #solapas button[aria-pressed="true"]{flex-grow:0}
+  html[data-cristal="on"] .barra #btn-plegar{margin-bottom:8px}
+  html[data-cristal="on"] .barra #btn-plegar svg{transition:rotate .42s var(--salida)}
+  html[data-cristal="on"][data-lateral="riel"] .barra #btn-plegar svg{rotate:180deg}
+  html[data-cristal="on"] .columna-lista{flex-basis:372px}
+  html[data-cristal="on"] .cuerpo{gap:14px; padding:0 14px 14px 14px}
+  html[data-cristal="on"] .columna-lista,
+  html[data-cristal="on"] .columna-ficha{border:1px solid var(--linea); border-radius:26px; box-shadow:inset 0 1px 0 var(--canto)}
+  html[data-cristal="on"] .columna-ficha{background:var(--panel)}
+}
+#btn-plegar{display:none}
+
+/* Con el menú lateral, la ficha gana menos ancho del que creía el CSS de
+   siempre (que reparte en dos columnas desde 1180 px de pantalla): en una sola
+   columna hasta que de verdad sobre sitio. Con el menú plegado, antes. */
+@media (min-width:861px) and (max-width:1559px){
+  html[data-cristal="on"] .ficha-cuerpo{display:block}
+  html[data-cristal="on"] .acciones-ficha{grid-column:auto; grid-row:auto}
+}
+@media (min-width:1360px) and (max-width:1559px){
+  html[data-cristal="on"][data-lateral="riel"] .ficha-cuerpo{display:grid}
+  html[data-cristal="on"][data-lateral="riel"] .acciones-ficha{grid-column:1; grid-row:2}
+}
 </style>
 </head>
 <body>
+<!-- La luz de fondo de la opción Cristal: vacía y oculta si está apagada. -->
+<div id="aurora" aria-hidden="true"></div>
 <div class="app">
 
   <header class="cabecera">
@@ -2801,6 +2984,10 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
   <!-- La barra de abajo: la sección (Colores / Sellos), nuevo, imprimir y
        opciones. Flota sobre todo; en el ordenador va al pie de la lista. -->
   <nav class="barra" id="barra" aria-label="Secciones y acciones">
+    <!-- Solo se ve en tablet y ordenador con Cristal: pliega el menú lateral. -->
+    <button class="btn-icono" id="btn-plegar" aria-label="Plegar el menú" title="Plegar menú">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg>
+    </button>
     <div id="solapas" role="tablist">
       <button data-sec="colores" aria-pressed="true" role="tab">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5C12 3.5 6 10 6 14.5a6 6 0 0 0 12 0C18 10 12 3.5 12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5C12 3.5 6 10 6 14.5a6 6 0 0 0 12 0C18 10 12 3.5 12 3.5z"/><path d="M9.3 14.8a2.7 2.7 0 0 0 2 2.4"/></svg>
@@ -9867,6 +10054,11 @@ function abrirOpciones(){
               <span class="mini mini-${k}" aria-hidden="true"><i></i><i></i><i></i><b></b></span><em>${t}</em></button>`).join('')}
         </div>
       </div>
+      <label class="aj aj-cristal" for="op-cristal">
+        <span class="aj-txt"><span class="aj-et">Cristal</span>
+          <small>Superficies de cristal y una luz de fondo del color que estás mirando. Apagado va más ligero: ideal en móviles lentos.</small></span>
+        <span class="interruptor"><input type="checkbox" id="op-cristal" role="switch" ${cristalActivo() ? 'checked' : ''}><span class="pista"></span></span>
+      </label>
       ${filaAjuste('op-cuenta', MODO === 'nube' ? 'Cuenta' : 'Sesión',
         (MODO === 'nube' && sesion.email ? esc(sesion.email) + ' · ' : '') +
         (puedeEditar ? 'Editor' : 'Solo consulta'))}
@@ -9943,6 +10135,7 @@ function abrirOpciones(){
       const n = bs[(i+d+bs.length)%bs.length]; n.focus(); ponerTema(n.dataset.tema);
     };
   }
+  document.getElementById('op-cristal').onchange = e => ponerCristal(e.target.checked);
   const ir = (id, f) => document.getElementById(id)?.addEventListener('click', f);
   ir('op-cuenta',       ()=>pantallaCuenta(abrirOpciones));
   ir('op-sync-ir',      ()=>pantallaSync(abrirOpciones));
@@ -10077,7 +10270,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">f97a528f</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">db9e0df6</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -13928,6 +14121,86 @@ if(MODO === 'nube' && sesion.vacia){
 // Todo definido: si se ha llegado por el QR de una pegatina, se abre la ficha.
 appLista = true;
 intentarEnlace();
+/* ═══ CRISTAL ═════════════════════════════════════════════════════════
+   Opción de cada aparato (Opciones › Cristal). De serie APAGADA: los
+   teléfonos del taller siguen como siempre y cada uno la enciende en el suyo
+   (Juanjo, 30 sep: «lo activaré yo en mi S25»). Se guarda en localStorage,
+   no en la nube: es una cuestión del aparato, no de la cuenta.
+
+   Los estilos están en 03-cristal.css. Aquí va solo lo que CSS no puede
+   saber: el tono de la luz de fondo (el del color o molde que está abierto)
+   y el estado del menú lateral plegado. */
+const CLAVE_CRISTAL = 'cristal', CLAVE_LATERAL = 'lateral';
+const leerAjusteLocal = k => { try{ return localStorage.getItem(k); }catch(_){ return null; } };
+const escribirAjusteLocal = (k, v) => { try{ localStorage.setItem(k, v); }catch(_){ /* sin almacenamiento: vale por esta sesión */ } };
+
+const cristalActivo = () => document.documentElement.dataset.cristal === 'on';
+
+function aplicarCristal(on){
+  const r = document.documentElement;
+  if(on) r.dataset.cristal = 'on'; else delete r.dataset.cristal;
+  sincronizarLuz();
+}
+function ponerCristal(on){
+  escribirAjusteLocal(CLAVE_CRISTAL, on ? 'on' : 'off');
+  aplicarCristal(on);
+}
+
+/* La luz nunca debe lavar el texto: cuanto más clara la goma, menos luz. */
+function luminancia(hex){
+  const v = [1,3,5].map(i => parseInt(hex.substr(i,2),16)/255)
+    .map(u => u <= .03928 ? u/12.92 : Math.pow((u+.055)/1.055, 2.4));
+  return .2126*v[0] + .7152*v[1] + .0722*v[2];
+}
+const oscurecerHex = hex => '#' + [1,3,5].map(i =>
+  Math.round(parseInt(hex.substr(i,2),16) * .55).toString(16).padStart(2,'0')).join('');
+
+/** Pone el tono de la luz: el de la ficha que se ve, o uno neutro y suave. */
+function sincronizarLuz(){
+  const r = document.documentElement;
+  if(!cristalActivo()) return;
+  const col = document.getElementById('columna-ficha');
+  const fi = document.getElementById('ficha');
+  const visible = !!(col && fi && fi.childElementCount && !fi.classList.contains('es-muro')
+    && (innerWidth > 860 || document.body.dataset.ficha === 'on'));
+  let hex = visible ? col.style.getPropertyValue('--tono').trim() : '';
+  if(!/^#[0-9a-f]{6}$/i.test(hex)) hex = '';
+  const h = hex || '#9a8f7a';
+  const l = luminancia(h);
+  r.style.setProperty('--luz', h);
+  r.style.setProperty('--luz2', oscurecerHex(h));
+  r.style.setProperty('--luz-f', hex ? (l > .55 ? .42 : l > .3 ? .7 : 1) : .36);
+}
+
+/* El menú lateral plegado (solo tablet y ordenador) */
+function ponerLateral(riel, recordar = true){
+  if(riel) document.documentElement.dataset.lateral = 'riel';
+  else delete document.documentElement.dataset.lateral;
+  if(recordar) escribirAjusteLocal(CLAVE_LATERAL, riel ? 'riel' : 'pleno');
+  const b = document.getElementById('btn-plegar');
+  if(b){ b.setAttribute('aria-label', riel ? 'Desplegar el menú' : 'Plegar el menú'); b.title = riel ? 'Desplegar menú' : 'Plegar menú'; }
+}
+
+(function arrancarCristal(){
+  /* Mientras nadie lo haya elegido, el menú decide solo: abierto si la pantalla
+     da de sobra (≥1500 px), plegado si no, para que la ficha no quede estrecha. */
+  const ANCHO_HOLGADO = 1500;
+  const auto = ()=> ponerLateral(innerWidth < ANCHO_HOLGADO, false);
+  const guardadoLateral = ()=> leerAjusteLocal(CLAVE_LATERAL);
+  if(guardadoLateral()) ponerLateral(guardadoLateral() === 'riel', false); else auto();
+  addEventListener('resize', ()=>{ if(!guardadoLateral()) auto(); });
+  document.getElementById('btn-plegar')?.addEventListener('click', ()=>
+    ponerLateral(document.documentElement.dataset.lateral !== 'riel'));
+  /* La luz sigue a la ficha: cuando cambia su tono, se abre o se cierra. */
+  const col = document.getElementById('columna-ficha');
+  const fi = document.getElementById('ficha');
+  const mo = new MutationObserver(sincronizarLuz);
+  if(col) mo.observe(col, {attributes:true, attributeFilter:['style']});
+  if(fi) mo.observe(fi, {attributes:true, attributeFilter:['class'], childList:true});
+  mo.observe(document.body, {attributes:true, attributeFilter:['data-ficha']});
+  addEventListener('resize', sincronizarLuz);
+  aplicarCristal(leerAjusteLocal(CLAVE_CRISTAL) === 'on');
+})();
 </script>
 <script>
 if('serviceWorker' in navigator) addEventListener('load', ()=>

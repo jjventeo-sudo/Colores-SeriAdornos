@@ -2222,27 +2222,12 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
 /* ═══════════════════════════════════════════════════════════════════
    SELLOS
    ═══════════════════════════════════════════════════════════════════ */
-
 /* ── La fila de un color dentro de un sello ──────────────────────── */
-.color-fila{
-  display:flex; align-items:center; gap:11px; padding:9px 0;
-  border-bottom:1px solid var(--linea);
-}
-.color-fila:last-child{border-bottom:0}
 .orden{
   width:22px; flex:0 0 auto; color:var(--texto-3);
   font-family:var(--mono); font-size:11.5px; font-weight:500;
   font-variant-numeric:tabular-nums;
 }
-.color-nom{
-  flex:1 1 auto; min-width:0; font-size:14.5px; font-weight:560; color:var(--texto);
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-}
-.color-nom small{
-  display:block; font-size:11.5px; font-weight:450; color:var(--texto-3);
-  white-space:normal;
-}
-
 /* ── Listado ─────────────────────────────────────────────────────── */
 .mini-sello{
   width:50px;height:40px;flex:0 0 auto;border-radius:var(--r-s);
@@ -2288,7 +2273,6 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
   width:11px;height:11px;border-radius:50%;display:block;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.14), 0 1px 2px rgba(0,0,0,.5);
 }
-
 /* ── Muro de sellos ──────────────────────────────────────────────── */
 .muro-sellos{
   display:grid; gap:14px;
@@ -2315,11 +2299,9 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
 }
 .sello-t b{font-size:13.5px; font-weight:600; letter-spacing:-.008em; color:var(--texto)}
 .sello-t span{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--texto-3)}
-
 /* ── Cabecera de la ficha ────────────────────────────────────────── */
 .s-titulo{margin:2px 0 14px}
 .s-titulo h2{font-size:28px; line-height:1.08; margin:0 0 10px; letter-spacing:-.035em; font-weight:700}
-
 /* La fila del cliente: una sola cosa pulsable, con su número pegado. Nada de
    rojo de marca aquí — el rojo es para la acción, y la acción de esta
    pantalla no es el cliente. */
@@ -2345,7 +2327,6 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
   padding:4px 11px; flex:none;
 }
 .s-cli-ir{width:15px; height:15px; margin-left:auto; flex:none; color:var(--texto-3)}
-
 /* Y debajo, en gris, lo que describe la pieza. */
 .s-meta{
   display:flex; flex-wrap:wrap; gap:6px; align-items:center;
@@ -2358,8 +2339,6 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
 .s-meta .s-robot::before{
   content:""; width:6px; height:6px; border-radius:50%; background:var(--verde);
 }
-.s-meta .s-piloto{color:var(--ambar); font-weight:600}
-
 /* ── FALTA INFORMACIÓN ───────────────────────────────────────────────
    Una marca que se pone A MANO: "a este sello le falta algo" (una presión,
    la foto del molde, lo que sea). Ámbar en todas partes —lista, muro, ficha
@@ -2389,8 +2368,6 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
 .s-falta p{margin:0; font-size:14px; line-height:1.4; white-space:pre-wrap}
 .s-falta p.flojo{color:var(--texto-3); font-size:13.5px}
 .s-falta small{display:block; margin-top:4px; font-size:12px; color:var(--texto-3)}
-.btn.btn-falta{color:var(--ambar); border-color:color-mix(in srgb, var(--ambar) 45%, transparent)}
-
 /* El cliente, encima de sus sellos: quién es, con qué número, y cuánto le
    hacemos. Pulsándolo se pasa a sus colores. */
 .chip-cliente{
@@ -2399,7 +2376,6 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
 }
 .chip-cliente b{font-weight:640; letter-spacing:-.006em}
 .chip-cli-mas{color:var(--texto-3); font-weight:450; font-size:12px}
-
 /* ── Un sello a medias, arriba de la lista ───────────────────────── */
 .fila-medias{
   background:var(--ambar-suave);
@@ -2429,7 +2405,6 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
 }
 .ed-recuperado svg{width:17px; height:17px; flex:none; color:var(--ambar)}
 .ed-recuperado span{flex:1 1 auto; min-width:0}
-
 /* ── Opciones: una lista de ajustes, no una pared de párrafos ─────── */
 .aj-titulo{
   font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.18em; text-transform:uppercase;
@@ -2495,7 +2470,6 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
 .op-p.flojo{font-size:13px; color:var(--texto-3)}
 .op-p b{color:var(--texto)}
 .op-botones{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
-
 /* ── Papelera ────────────────────────────────────────────────────── */
 .pap-cab{
   display:flex; align-items:center; gap:10px; margin:0 0 11px;
@@ -2530,7 +2504,6 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
 .pap-sub{font-size:11.5px; color:var(--texto-3); margin-top:2px}
 .pap-quedan{color:var(--ambar); font-weight:600}
 .pap-rest{flex:none; padding:7px 12px; font-size:13px}
-
 /* ── Clientes ────────────────────────────────────────────────────── */
 .cli-fila{
   display:flex; align-items:center; gap:11px; padding:10px 13px;
@@ -2547,41 +2520,7 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
   border-radius:var(--r-s); padding:7px 9px;
 }
 .cli-num-ed:focus{outline:2px solid var(--marca); outline-offset:-1px; background:var(--panel)}
-
-/* ── Las pestañas y el carrusel ──────────────────────────────────── */
-/* Subrayadas, no en píldoras dentro de una caja: encerradas, "Parámetros" se
-   salía por los lados en un móvil estrecho. Así caben holgadas, la zona que
-   pisa el dedo es más alta y se ahorran 16 px de alto donde todo va justo. */
-.s-pestanas{
-  display:flex; gap:2px; margin:0 0 14px;
-  border-bottom:1px solid var(--linea); background:none; border-radius:0; padding:0;
-}
-.s-pestanas button{
-  flex:1; border:0; background:none; font-family:var(--mono); font-size:10.5px; font-weight:500;
-  letter-spacing:.16em; text-transform:uppercase;
-  color:var(--texto-3); padding:12px 2px 11px; cursor:pointer;
-  border-bottom:2px solid transparent; margin-bottom:-1px;
-  transition:color .16s var(--salida), border-color .16s var(--salida);
-  border-radius:0; box-shadow:none;
-}
-.s-pestanas button:hover{color:var(--texto-2)}
-.s-pestanas button[aria-pressed="true"]{
-  color:var(--texto); border-bottom-color:var(--tinta); background:none; box-shadow:none;
-}
-.s-pestanas button:focus-visible{outline:2px solid var(--marca); outline-offset:-3px; border-radius:5px}
-/* Se deslizan de verdad, con el anclaje del propio navegador: sale más suave
-   que cualquier invento a base de eventos táctiles y no se pelea con el
-   desplazamiento vertical de la página. */
-.s-carrusel{
-  display:grid; grid-auto-flow:column; grid-auto-columns:100%;
-  overflow-x:auto; overscroll-behavior-x:contain;
-  scroll-snap-type:x mandatory; scrollbar-width:none;
-  margin:0 -16px; padding:0 16px; gap:32px;
-}
-.s-carrusel::-webkit-scrollbar{display:none}
-.s-carrusel > .s-panel{scroll-snap-align:center; min-width:0}
 .s-panel{min-width:0}
-
 /* ── Fotos ───────────────────────────────────────────────────────── */
 .s-foto{
   position:relative; overflow:hidden; border-radius:var(--r-l);
@@ -2615,19 +2554,14 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
   .s-fotos-btns .foto-btn{font-size:0; gap:0; padding:10px 0}
   .s-fotos-btns .foto-btn svg{width:17px;height:17px}
 }
-
 /* Cada cosa de la ficha, en su bloque. En pantalla ancha los bloques se
-   reparten en dos columnas: mismas pestañas, mismos nombres, y el ancho
-   aprovechado. Los pasos no entran aquí: son una lista numerada. */
+   reparten en dos columnas y el ancho se aprovecha. */
 .s-bloque{min-width:0; break-inside:avoid}
 .s-bloque + .s-bloque{margin-top:18px}
-.s-dos .s-panel[data-panel="params"],
 .s-dos .s-panel[data-panel="ficha"]{
   display:grid; grid-template-columns:1fr 1fr; gap:18px 26px; align-items:start;
 }
-.s-dos .s-panel[data-panel="params"] .s-bloque + .s-bloque,
 .s-dos .s-panel[data-panel="ficha"] .s-bloque + .s-bloque{margin-top:0}
-
 /* Los otros sellos que salen de este mismo molde. */
 .s-mismo-molde{display:flex; flex-wrap:wrap; align-items:center; gap:7px; margin-top:12px}
 .s-mismo-molde > span{
@@ -2640,19 +2574,8 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
   transition:background-color calc(.14s * var(--ritmo)) var(--salida);
 }
 .s-otro:hover{background:var(--panel-luz)}
-
 /* ── Rótulos y datos ─────────────────────────────────────────────── */
-.s-rotulo{
-  font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.18em; text-transform:uppercase;
-  color:var(--texto-3); margin:20px 0 6px;
-  display:flex; justify-content:space-between; align-items:baseline; gap:10px;
-}
-.s-rotulo em{font-style:normal; font-size:10px; letter-spacing:.03em; text-transform:none; opacity:.9}
 .s-nada{font-size:14px; color:var(--texto-3); margin:10px 0; line-height:1.5}
-/* Una aguja apuntada que no está en la lista NO es lo mismo que "sin aguja":
-   se marca en ámbar para que se vea que falta un dato, no que no lo lleva. */
-.falta-aguja{color:var(--ambar); font-weight:600}
-.s-notas{font-size:14px; color:var(--texto-2); white-space:pre-wrap; margin:4px 0 0}
 .s-datos{display:grid; grid-template-columns:1fr 1fr; gap:0 18px; margin:14px 0 0}
 .s-datos .dato{padding:10px 0; border-bottom:1px solid var(--linea)}
 .s-datos .dato.ancho{grid-column:1 / -1}
@@ -2665,9 +2588,6 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
   font-variant-numeric:tabular-nums;
 }
 .s-datos dd small{font-weight:450; color:var(--texto-3); font-size:12px}
-/* (El bloque de etiquetas Molde/Piloto/Robot/A mano se quitó: decía lo mismo
-   que la línea gris de la cabecera, con cuatro etiquetas de las que dos
-   siempre salían apagadas.) */
 .s-ir{
   width:30px;height:30px;flex:0 0 auto;border-radius:var(--r-s); cursor:pointer;
   border:1px solid var(--linea); background:var(--panel-2); color:var(--texto-3);
@@ -2676,48 +2596,6 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
 }
 .s-ir svg{width:14px;height:14px}
 .s-ir:hover{background:var(--tinta-suave); color:var(--texto); border-color:var(--linea-fuerte)}
-
-/* ── Pasos ───────────────────────────────────────────────────────── */
-.s-paso{
-  display:flex; gap:11px; align-items:center; padding:11px 0;
-  border-bottom:1px solid var(--linea);
-}
-.s-paso:last-child{border-bottom:0}
-.s-paso-n{
-  width:24px;flex:0 0 auto; color:var(--texto-3);
-  font-family:var(--mono); font-size:11.5px; font-weight:500;
-  font-variant-numeric:tabular-nums;
-}
-.s-paso-q{
-  flex:1 1 auto; min-width:0; font-size:15px; font-weight:560; color:var(--texto);
-  display:flex; align-items:center; gap:9px;
-}
-.s-paso-q i{
-  width:22px;height:22px;border-radius:50%;display:inline-block;flex:0 0 auto;
-  box-shadow:var(--sombra-gota);
-}
-.s-paso-s{
-  flex:0 0 auto; font-size:15.5px; font-weight:680; color:var(--texto);
-  font-variant-numeric:tabular-nums;
-}
-.s-paso-s em{font-style:normal; font-size:11px; font-weight:500; color:var(--texto-3); margin-left:2px}
-/* Los horneados y los vulcanizados, remarcados: son las pausas del proceso.
-   Caja rellena con borde y una llama delante; el vulcanizado final, que
-   cierra la ficha, lleva el borde fuerte. */
-.s-paso.hito{
-  background:linear-gradient(180deg,var(--panel-luz),var(--panel-2)); border:1px solid var(--linea);
-  border-radius:var(--r-m); padding:12px 14px; margin:4px 0;
-  box-shadow:inset 0 1px 0 var(--canto), var(--sombra-1);
-}
-.s-paso.hito .s-paso-n{color:var(--texto)}
-.s-paso.hito .s-paso-q{font-weight:700}
-.s-paso-ic{width:17px; height:17px; flex:0 0 auto; color:var(--ambar); margin-right:2px}
-.s-paso.hito.final{border-color:var(--linea-fuerte); background:linear-gradient(180deg,var(--tinta-suave),var(--panel-2))}
-.s-paso.hito.final .s-paso-ic{color:var(--texto)}
-.s-paso.hito .s-paso-s{font-size:17px}
-
-/* ── Parámetros ──────────────────────────────────────────────────── */
-.s-nota{font-size:10.5px; color:var(--texto-3); letter-spacing:.02em; text-align:right}
 /* Un epígrafe, no una cabecera con caja: el título de una tabla no necesita
    fondo propio para saberse que es un título. */
 .s-epigrafe{
@@ -2735,67 +2613,11 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
   box-shadow:inset 0 1px 0 var(--canto), var(--sombra-2); overflow:hidden;
 }
 .s-tabla > .s-nada{padding:12px 13px; margin:0}
-/* El ciclo: tres números grandes (tiempo por molde, sellos por molde, sellos
-   por hora). Salen de los segundos de los pasos: no hay nada que rellenar. */
-.s-ciclo{display:grid; grid-template-columns:repeat(3,1fr); padding:12px 13px 10px; gap:8px}
-.s-ciclo-n{display:flex; flex-direction:column; gap:3px; min-width:0}
-.s-ciclo-n b{font-size:22px; font-weight:640; letter-spacing:-.02em; line-height:1; color:var(--texto); font-variant-numeric:tabular-nums; white-space:nowrap}
-.s-ciclo-n b small{font-size:13px; font-weight:500; color:var(--texto-2); letter-spacing:0}
-.s-ciclo-n span{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--texto-3)}
-.s-ciclo-n.flojo b{color:var(--texto-3)}
-.s-ciclo-nota{grid-column:1/-1; margin:2px 0 0; font-size:12.5px; color:var(--texto-3); line-height:1.4}
-@media (max-width:400px){ .s-ciclo-n b{font-size:19px} }
-.s-notas{padding:12px 13px}
-.s-notas p{margin:0; font-size:14px; line-height:1.5; color:var(--texto)}
-.s-notas p.flojo{font-size:13.5px}
-
-/* UNA fila por inyección: color, parte, aguja, presión y segundos juntos. */
-.s-iny{
-  display:grid; grid-template-columns:22px 30px 1fr; gap:4px 12px;
-  align-items:center; padding:12px 15px; border-bottom:1px solid var(--linea);
-  width:100%; text-align:left; background:none; border-left:0; border-right:0; border-top:0;
-  color:inherit; font:inherit;
-}
-.s-iny:last-child{border-bottom:0}
-/* Pulsable solo cuando de verdad lleva a algún sitio. */
-button.s-iny{cursor:pointer; transition:background-color calc(.12s * var(--ritmo)) var(--salida)}
-button.s-iny:hover{background:color-mix(in srgb, var(--tono, transparent) 8%, var(--panel-2))}
-button.s-iny:active{background:color-mix(in srgb, var(--tono, transparent) 14%, var(--panel-2))}
-.s-iny-n{
-  font-family:var(--mono); font-size:11.5px; font-weight:500; color:var(--texto-3); text-align:center;
-  font-variant-numeric:tabular-nums;
-}
-.s-iny-nom{
-  font-size:14.5px; font-weight:560; color:var(--texto); min-width:0;
-  display:flex; align-items:center; gap:6px; flex-wrap:wrap;
-}
-.s-iny-datos{
-  grid-column:3 / -1; display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-  font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--texto-3);
-}
-.s-iny-datos .d{display:inline-flex; align-items:center; gap:5px; white-space:nowrap}
-.s-iny-datos b{font-weight:500; color:var(--texto); font-variant-numeric:tabular-nums}
-.s-iny-datos .sep{color:var(--linea-fuerte)}
 .muestra.s{width:30px;height:30px;border-radius:50%}
 .punta{
   width:13px;height:13px;border-radius:99px;display:inline-block; flex:0 0 auto;
   outline:1px solid var(--contorno); outline-offset:-1px;
 }
-.s-tanda{padding:10px 13px; border-bottom:1px solid var(--linea)}
-.s-tanda:last-child{border-bottom:0}
-.s-tanda-top{display:flex; align-items:center; justify-content:space-between; gap:10px}
-.s-tanda-et{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:500; color:var(--texto-3)}
-.s-tanda-t{
-  flex:0 0 auto; font-size:16.5px; font-weight:700; color:var(--texto);
-  font-variant-numeric:tabular-nums;
-}
-.s-tanda-t em{font-style:normal; font-size:11px; font-weight:500; color:var(--texto-3); margin-left:2px}
-.s-tanda-cols{display:flex; align-items:center; gap:6px; flex-wrap:wrap; min-width:0; margin-top:7px}
-.s-tanda-cols.flojo{font-size:12.5px}
-/* El vulcanizado cierra la ficha: es el último horneado y el más largo. */
-.s-tanda.vulca{background:var(--tinta-suave)}
-.s-tanda.vulca .s-tanda-et{color:var(--texto); font-weight:700}
-.s-tanda.avisa .s-tanda-et{color:var(--ambar)}
 .s-chip{
   display:inline-flex; align-items:center; gap:6px; padding:3px 9px 3px 4px;
   border-radius:99px; background:var(--panel-2); border:1px solid var(--linea);
@@ -2803,14 +2625,6 @@ button.s-iny:active{background:color-mix(in srgb, var(--tono, transparent) 14%, 
 }
 .s-chip i{width:18px;height:18px;border-radius:99px;box-shadow:var(--sombra-gota)}
 .s-chip em{font-style:normal; color:var(--texto-3); font-weight:450; font-size:11.5px}
-/* La parte del sello: en gris y algo más pequeña que el nombre del color, para
-   que se lea como un apellido y no compita con él. */
-.s-parte{
-  font-style:normal; font-family:var(--mono); font-weight:500; font-size:10px; letter-spacing:.1em;
-  text-transform:uppercase; color:var(--texto-2);
-  border:1px solid var(--linea); border-radius:99px; padding:2px 8px; white-space:nowrap;
-}
-
 /* ── La barra de acciones del sello ──────────────────────────────── */
 /* Contenida y pegada abajo, igual que en los colores. Lo de diario a la vista
    —imprimir y editar—; lo de una vez al mes, detrás del botón de los tres
@@ -2824,13 +2638,12 @@ button.s-iny:active{background:color-mix(in srgb, var(--tono, transparent) 14%, 
 }
 .menu-mas .mas-peligro{color:var(--rojo)}
 .menu-mas .mas-peligro .ic{color:var(--rojo)}
-
 /* ── Editor ──────────────────────────────────────────────────────── */
 .ed-rejilla{display:grid; grid-template-columns:1fr 1fr; gap:0 12px}
 .ed-rejilla .campo.ancho{grid-column:1 / -1}
-/* ── El editor, en desplegables ──────────────────────────────────────
-   Cuatro bloques con su resumen a la derecha. Cerrados ocupan una línea; el de
-   los pasos sale abierto porque es a lo que se entra casi siempre. */
+/* ── Los cajones del Taller ──────────────────────────────────────────
+   Cada lista (clientes, robots) es un desplegable con su resumen a la derecha:
+   cerrado ocupa una línea y el aviso de lo que falta se ve sin abrirlo. */
 .ed-bloque{
   border:1px solid var(--linea); border-radius:var(--r-l); background:var(--panel);
   box-shadow:inset 0 1px 0 var(--canto); overflow:hidden;
@@ -2863,71 +2676,8 @@ button.s-iny:active{background:color-mix(in srgb, var(--tono, transparent) 14%, 
 /* A un bloque le falta algo obligatorio: se abre solo y lo dice. */
 .ed-bloque.avisa{border-color:var(--ambar)}
 .ed-bloque.avisa .ed-b-tit{color:var(--ambar)}
-.ed-seg{margin:2px 0 14px}
 .ed-b-cuerpo > .campo:last-child{margin-bottom:0}
 .ed-b-cuerpo > .btn-anadir:last-child{margin-bottom:0}
-
-/* Mover un paso desde dentro del propio paso, que es donde no estorba. */
-.p-mover{display:flex; align-items:center; gap:9px; margin-top:16px; flex-wrap:wrap}
-.p-mover > span{
-  font-family:var(--mono); font-size:10px; font-weight:500; letter-spacing:.16em;
-  text-transform:uppercase; color:var(--texto-3); flex:1 1 auto;
-}
-
-.ed-pasos{display:flex; flex-direction:column}
-/* Altura fija de fila: la lista se ordena arrastrando, y con filas de 47, 67 y
-   125 px —medido— arrastrar se convertía en puntería. El nombre largo se corta
-   con puntos suspensivos; entero está en el propio paso al abrirlo. */
-.ed-paso{
-  display:flex; align-items:center; gap:9px; padding:0; min-height:56px;
-  border-bottom:1px solid var(--linea);
-}
-.ed-paso:last-child{border-bottom:0}
-.ed-paso-n{
-  width:34px;height:40px;flex:0 0 auto;border-radius:var(--r-s);
-  background:linear-gradient(180deg,var(--panel-luz),var(--panel)); border:1px solid var(--linea); color:var(--texto-2);
-  font-family:var(--mono); font-size:11.5px; font-weight:500;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
-  font-variant-numeric:tabular-nums;
-  cursor:grab; touch-action:none;   /* si no, el móvil desplaza en vez de mover */
-  user-select:none; -webkit-user-select:none;
-}
-/* Los tres puntitos del asa: sin ellos, nadie adivina que el número se arrastra. */
-.asa-puntos{
-  width:10px; height:3px; display:block; opacity:.55;
-  background:radial-gradient(circle, currentColor 45%, transparent 46%) 0 0/3.4px 3.4px repeat-x;
-}
-.ed-paso-n:active{cursor:grabbing}
-.ed-paso.arrastrando{opacity:.55; background:var(--panel-2); border-radius:var(--r-m)}
-.ed-paso.arrastrando .ed-paso-n{background:var(--tinta); color:var(--tinta-txt)}
-.ed-paso-cuerpo{
-  flex:1 1 auto; min-width:0; text-align:left; cursor:pointer; align-self:stretch;
-  padding:7px 9px; border-radius:var(--r-m); background:transparent; border:0;
-  transition:background-color .14s var(--salida);
-}
-.ed-paso-cuerpo:hover{background:var(--panel-2)}
-.ed-paso-q{
-  font-size:14.5px; font-weight:560; color:var(--texto);
-  display:flex; align-items:center; gap:8px; min-width:0;
-}
-/* El que se acorta es el NOMBRE, no la parte: saber que esa inyección es la de
-   la bandera importa tanto como el color, y era justo lo que desaparecía. */
-.ed-paso-q .q-txt{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-.ed-paso-q .s-parte{flex:0 0 auto}
-.ed-paso-q i{width:14px;height:14px;border-radius:4px;flex:0 0 auto;outline:1px solid var(--contorno);outline-offset:-1px}
-.ed-paso-cuerpo small{
-  display:block; font-size:11.5px; color:var(--texto-3); margin-top:2px;
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-}
-.ed-paso-btns{display:flex; gap:3px; flex:0 0 auto}
-.ed-paso-btns button{
-  width:34px;height:34px;border-radius:var(--r-s); cursor:pointer;
-  border:1px solid var(--linea); background:var(--panel); color:var(--texto-3);
-  display:grid; place-items:center;
-}
-.ed-paso-btns button svg{width:15px;height:15px}
-.ed-paso-btns button:hover:not(:disabled){background:var(--panel-2); color:var(--texto)}
-.ed-paso-btns button:disabled{opacity:.3; cursor:default}
 .btn-anadir{
   display:flex; align-items:center; justify-content:center; gap:7px; width:100%;
   padding:10px; border-radius:var(--r-m); border:1px dashed var(--linea-fuerte);
@@ -2936,7 +2686,6 @@ button.s-iny:active{background:color-mix(in srgb, var(--tono, transparent) 14%, 
 }
 .btn-anadir:hover{background:var(--panel-2); color:var(--texto); border-color:var(--texto-3)}
 .btn-anadir svg{width:14px;height:14px}
-
 .menu-pasos{display:grid; gap:2px}
 .menu-pasos button{
   display:flex; align-items:center; gap:11px; cursor:pointer; text-align:left;
@@ -2953,21 +2702,6 @@ button.s-iny:active{background:color-mix(in srgb, var(--tono, transparent) 14%, 
 }
 .menu-pasos button:hover .ic{background:var(--tinta); color:var(--tinta-txt)}
 .menu-pasos .ic svg{width:15px;height:15px}
-
-.sug-colores{
-  margin-top:5px; border:1px solid var(--linea); border-radius:var(--r-m);
-  overflow:hidden; background:var(--panel); box-shadow:var(--sombra-2);
-  max-height:230px; overflow-y:auto;
-}
-.sug-colores button{
-  display:flex; align-items:center; gap:10px; width:100%; text-align:left;
-  padding:9px 11px; border:0; border-bottom:1px solid var(--linea);
-  background:transparent; font-size:14.5px; color:var(--texto); cursor:pointer;
-  font-family:inherit;
-}
-.sug-colores button:last-child{border-bottom:0}
-.sug-colores button:hover{background:var(--tinta-suave)}
-
 /* ── Agujas ──────────────────────────────────────────────────────── */
 .agujas-lista{display:flex; flex-direction:column; margin-bottom:16px}
 .aguja-fila{
@@ -2985,16 +2719,6 @@ button.s-iny:active{background:color-mix(in srgb, var(--tono, transparent) 14%, 
 .aguja-x svg{width:14px;height:14px}
 .aguja-x:hover{border-color:var(--rojo); color:var(--rojo)}
 .aguja-nueva{border-top:1px solid var(--linea-fuerte); padding-top:15px}
-.chips-grupo{display:flex; flex-wrap:wrap; gap:7px; align-items:center}
-.chips-grupo .chip{height:40px; cursor:pointer; text-transform:none; letter-spacing:.02em; font-family:inherit; font-size:13px; font-weight:560}
-.chips-grupo .chip-mas{color:var(--texto-3); border-style:dashed}
-.chip-grupo{padding:0; overflow:hidden}
-.chip-grupo > button{all:unset; cursor:pointer; padding:0 12px; height:40px; display:inline-flex; align-items:center; gap:6px}
-.chip-grupo .chip-x{all:unset; cursor:pointer; padding:0 12px 0 6px; height:40px; display:inline-flex; align-items:center; color:var(--texto-3); font-size:16px}
-.chip-grupo .chip-x:hover{color:var(--rojo)}
-.ag-grupo-nuevo{display:flex; gap:8px; margin-top:8px; align-items:center}
-.ag-grupo-nuevo input{flex:1 1 auto; min-width:0}
-.ag-grupos{border-top:1px solid var(--linea-fuerte); padding-top:15px; margin-top:16px}
 .aj-titulo .n{opacity:.55; margin-left:4px}
 .ag-form input[type="color"]{
   padding:3px; height:42px; cursor:pointer;
@@ -3022,29 +2746,12 @@ button.s-iny:active{background:color-mix(in srgb, var(--tono, transparent) 14%, 
 }
 .ag-form-btns{display:flex; gap:8px}
 .ag-form-btns .btn{flex:1}
-/* Sin medida no se puede colocar por tamaño: se dice, en vez de dejarla
-   caída al final sin explicación. */
-.sin-medida{color:var(--ambar); font-weight:560}
-
 /* ── El programa del robot ───────────────────────────────────────── */
 .s-prog-cab{
   display:flex; align-items:center; gap:10px; padding:11px 13px;
   border-bottom:1px solid var(--linea);
 }
 .s-prog-robot{font-size:14.5px; font-weight:640; letter-spacing:-.008em}
-.s-prog-cupo{
-  margin-left:auto; flex:none; font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.08em;
-  font-variant-numeric:tabular-nums; color:var(--texto);
-  border:1px solid var(--linea-fuerte); border-radius:99px; padding:4px 10px;
-}
-.s-prog-cupo.no-cabe{background:var(--ambar-suave); color:var(--ambar)}
-.s-prog-aviso{
-  display:flex; gap:9px; align-items:flex-start; padding:10px 13px;
-  background:var(--ambar-suave); border-bottom:1px solid var(--linea);
-  font-size:13px; color:var(--texto-2); line-height:1.45;
-}
-.s-prog-aviso svg{width:16px; height:16px; flex:none; color:var(--ambar); margin-top:1px}
-.s-prog-aviso b{color:var(--texto)}
 .s-arch{
   display:flex; align-items:center; gap:9px; padding:10px 13px;
   border-bottom:1px solid var(--linea);
@@ -3058,7 +2765,6 @@ button.s-iny:active{background:color-mix(in srgb, var(--tono, transparent) 14%, 
 /* En el editor: nombre y "para qué es" en la misma fila. */
 .ed-archivo{display:flex; align-items:center; gap:8px; margin-bottom:8px}
 .ed-arch-n{flex:2 1 0; min-width:0}
-.ed-arch-p{flex:1 1 0; min-width:0}
 .ed-archivo input{
   font:inherit; font-size:14px; color:var(--texto); padding:9px 11px;
   border:1px solid var(--linea-fuerte); background:var(--panel);
@@ -3068,42 +2774,18 @@ button.s-iny:active{background:color-mix(in srgb, var(--tono, transparent) 14%, 
 @media (max-width:520px){
   .ed-archivo{flex-wrap:wrap}
   .ed-arch-n{flex:1 1 100%}
-  .ed-arch-p{flex:1 1 0}
 }
-
 @media (max-width:520px){
   .ed-rejilla{grid-template-columns:1fr}
   .s-datos{grid-template-columns:1fr}
   .muro-sellos{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
 }
-
-/* El icono de cada fila de Opciones, y el de cada paso de la ficha del
-   sello (antes solo lo llevaban los horneados). */
+/* El icono de cada fila de Opciones. */
 .aj-ic{width:22px; height:22px; flex:0 0 auto; color:var(--texto-2); display:grid; place-items:center; margin-right:-2px}
 .aj-ic svg{width:22px; height:22px}
-.s-paso:not(.hito) .s-paso-ic{color:var(--texto-3)}
-
 /* El resumen de un cajón del Taller cuando algo falta: el mismo ámbar que en
    todas partes, y visible SIN abrirlo, que es todo el sentido de ponerlo. */
 .ed-b-res.avisa{color:var(--ambar); font-weight:560}
-.ag-grupos > summary{
-  list-style:none; cursor:pointer; display:flex; align-items:center; gap:8px;
-  user-select:none; -webkit-user-select:none;
-}
-.ag-grupos > summary::-webkit-details-marker{display:none}
-
-/* En el móvil, cada píxel del ancho es del NOMBRE del color: medido, la fila
-   se queda en 314 px y al nombre le llegaban 90 cuando pedía 97. Se aprieta lo
-   que no se lee —el relleno del bloque, el del cuerpo de la fila y los dos
-   botones— y el nombre cabe. */
-@media (max-width:560px){
-  .ed-b-cuerpo{padding:12px 10px 13px}
-  .ed-paso-cuerpo{padding:7px 6px}
-  .ed-paso{gap:7px}
-  .ed-paso-btns{gap:2px}
-  .ed-paso-btns button{width:31px;height:31px}
-  .ed-paso-q .s-parte{max-width:96px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-}
 </style>
 </head>
 <body>
@@ -5011,7 +4693,6 @@ if(!Array.isArray(DATOS.sellos)) DATOS.sellos = [];
 let porIdS = new Map(DATOS.sellos.map(s => [s.id, s]));
 let SECCION = 'colores';          // 'colores' | 'sellos'
 let selloSel = null;
-let pestanaSello = 0;
 let filtradosS = [];
 let soloFaltaS = false;     // el chip "Falta información" del listado de sellos
 let enlacePendiente = leerEnlace(location.hash);   // el #sello=… / #color=… de un QR
@@ -10157,7 +9838,7 @@ document.getElementById('btn-nuevo').onclick =
    sale sin él, como antes. */
 const ICONO_AJUSTE = {
   'op-cuenta':'cuenta', 'op-sync-ir':'nube', 'op-pigmentos-ir':'pigmentos', 'op-historial-ir':'historial',
-  'op-papelera':'papelera', 'op-clientes':'clientes', 'op-agujas':'agujas', 'op-robots':'robots',
+  'op-papelera':'papelera', 'op-clientes':'clientes', 'op-robots':'robots',
   'op-publicar-ir':'publicar', 'op-copia':'copia', 'op-datos':'info',
 };
 function filaAjuste(id, etiqueta, valor, clase){
@@ -10222,14 +9903,13 @@ function abrirOpciones(){
         enPapelera ? '' : 'aj-flojo') : '',
     ])}
 
-    ${/* Clientes, agujas y robots eran tres filas y tres pantallas. Son tres
-          listas cortas que se tocan cuatro veces al año: van juntas en una
-          sola pantalla, cada una en su desplegable. */''}
+    ${/* Clientes y robots: dos listas cortas que se tocan cuatro veces al año,
+          juntas en una sola pantalla, cada una en su desplegable. */''}
     ${HAY_SELLOS ? grupoAjustes('Los sellos', [
       filaAjuste('op-taller', 'Taller',
-        [`${clientesDeSellos().length} clientes`, `${AGUJAS.length} agujas`,
+        [`${clientesDeSellos().length} clientes`,
          ROBOTS.length ? `${ROBOTS.length} robots` : 'sin robots'].join(' · '),
-        (!ROBOTS.length || ROBOTS.some(r=>!r.inyectores) || !AGUJAS.length) ? 'aj-avisa' : ''),
+        !ROBOTS.length ? 'aj-avisa' : ''),
     ]) : ''}
 
     ${grupoAjustes('Mantenimiento', [
@@ -10413,7 +10093,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">f6303f34</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">81656bf8</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -11233,7 +10913,10 @@ const PIE_PEGATINAS = `<script>
          y el redondeo del alto de línea daba uno o dos píxeles de diferencia
          sin que faltara nada. Una línea de más son doce píxeles largos, así
          que con 4 no se escapa ninguna. */
-      return !!h && h.scrollHeight - h.clientHeight > 4;
+      /* Y de ancho: un título de una sola línea (el nombre del molde) que no
+         cabe se corta con puntos suspensivos sin crecer de alto, y hasta hoy
+         nadie se enteraba. */
+      return !!h && (h.scrollHeight - h.clientHeight > 4 || h.scrollWidth - h.clientWidth > 1);
     }
     function encajar(){
       document.querySelectorAll('[data-encaja]').forEach(function(el){
@@ -11249,7 +10932,8 @@ const PIE_PEGATINAS = `<script>
            desde la estantería con el bote en la mano. Hasta un 60% más, que a
            partir de ahí el nombre manda demasiado sobre la receta. */
         if(f === 1){
-          while(f < 1.6){
+          var tope = parseFloat(el.getAttribute('data-encaja-max')) || 1.6;
+          while(f < tope){
             var s = f + 0.04;
             poner(s);
             if(sale(el)){ poner(f); break; }
@@ -11358,32 +11042,12 @@ function imprimirEtiquetas(items){
 }
 
 /* ── Pegatinas de MOLDE ────────────────────────────────────────────────
-   Una tarjeta por molde para pegarla en el propio molde: número, sellos,
-   medidas, robot y los archivos del programa, con línea de corte.
+   UNA pegatina entera por molde (30-sep), para pegarla en el propio molde:
+   nombre del molde, cuántos sellos lleva, sus medidas, el nombre del sello, el
+   robot y los archivos del programa, y un QR que abre la ficha.
 
-   El 17 de septiembre Juanjo mandó una captura de la vista previa con tres
-   tarjetas y media pegatina en blanco: «mira cómo estás aprovechando la
-   pegatina». Y con razón. Antes la rejilla era fija —cuatro en dos por dos, o
-   dos a lo ancho si había una o dos—, así que con TRES se quedaba una celda
-   muerta: un 34% de rollo a la basura en cada tirada.
-
-   Ahora la rejilla se elige según cuántas tarjetas van en esa pegatina, para
-   que no sobre ninguna celda. Con el rollo corto (25 sep) solo hay una fila:
-
-     1 → 1 × 1   tarjeta de 92 × 41 mm   llena
-     2 → 2 × 1   46 × 41                 llena
-
-   Con dos ya se aprovecha la pegatina entera, así que el máximo baja de 6 a
-   2: meter más obligaría a una letra que no se lee a un metro del molde. */
-const MOLDES_POR_PEGATINA = 2;
-
-/** Cuántas columnas para N tarjetas. Con una sola va "ancha": ocupa la
-    pegatina entera, así que caben rótulos y letra más grande. Desde el rollo
-    de 5 cm siempre es UNA fila y la tarjeta siempre es baja (~41 mm), así que
-    eso ya no se decide aquí: está en el CSS de una vez. */
-function rejillaDe(n){
-  return {cols: n <= 1 ? 1 : 2, ancha: n <= 1};
-}
+   Hasta el 29-sep iban dos tarjetas por pegatina, con línea de corte en medio.
+   Juanjo: «cada pegatina completa, no partida; ese tamaño es el que tengo». */
 
 /** La tarjeta de un molde a partir de un sello. Si hay más sellos con el
     mismo nº de molde (el mismo molde en otro color), sus archivos y robots
@@ -11397,10 +11061,10 @@ function tarjetaMolde(s){
   const unicos = xs => [...new Set(xs.filter(Boolean))];
   return {
     id: s.id,
-    numero: num || 'Sin nº de molde',
+    numero: num || 'Sin nombre de molde',
     sellos: m.sellos || null,
     largo: m.largo || null, ancho: m.ancho || null,
-    robots: unicos(hermanos.map(x => x.robot ? (robot(x.robot_id)?.nombre || 'Robot') : null)),
+    robots: unicos(hermanos.map(x => robot(x.robot_id)?.nombre || null)),
     archivos: unicos(hermanos.flatMap(x => archivosDe(x).map(a => a.nombre.trim()))),
     nombres: unicos(hermanos.map(x => x.nombre)),
     enlace: enlaceDe('sello', s.id),
@@ -11412,54 +11076,68 @@ function imprimirPegatinasMolde(tarjetas){
   const w = window.open('','_blank');
   if(!w) return brindis('El navegador ha bloqueado la ventana de las pegatinas');
 
+  /* UN molde por pegatina, entera (30-sep, Juanjo: «cada pegatina completa, no
+     partida»). Arriba: el nombre del molde, cuántos sellos lleva, sus medidas
+     y el nombre del sello, con el QR a la derecha. Debajo de una línea: el
+     robot y el nombre de sus archivos, a todo el ancho —incluso por debajo del
+     QR—, para que quepan varios. Si un molde lo comparten sellos con nombres
+     distintos, salen todos en la misma línea. */
   const fila = (ceja, v, clase) => v ? `<div class="d${clase ? ' ' + clase : ''}"><span class="ceja">${ceja}</span><b>${v}</b></div>` : '';
-  const una = c => `<div class="tm" data-encaja>
-      <div class="cab"><span class="ceja">Molde</span><h1>${esc(c.numero)}</h1></div>
-      ${fila('Sellos', c.sellos ? fmt(c.sellos) + (c.sellos === 1 ? ' sello' : ' sellos') : '')}
-      ${fila('Medidas', c.largo && c.ancho ? `${fmt(c.largo)} × ${fmt(c.ancho)} mm` : '', 'med')}
-      ${fila('Robot', c.robots.length ? esc(c.robots.join(' · ')) : 'A mano')}
-      ${fila('Archivos', c.archivos.length ? esc(c.archivos.join(' · ')) : '')}
-      <div class="pie">${(q => q ? `<div class="qr">${q}</div>` : '')(qrSvg(c.enlace))}
-        <div class="marca"><b>S</b>ERI<b>A</b>DORNOS</div></div>
+  const una = c => {
+    const qr = qrSvg(c.enlace);
+    return `<div class="tm" data-encaja data-encaja-max="1.1">
+      <div class="arriba">
+        <div class="izq">
+          <div class="cab"><span class="ceja">Molde</span><h1>${esc(c.numero)}</h1></div>
+          ${fila('Sellos', c.sellos ? fmt(c.sellos) + (c.sellos === 1 ? ' sello' : ' sellos') : '')}
+          ${fila('Medidas', c.largo && c.ancho ? `${fmt(c.largo)} × ${fmt(c.ancho)} mm` : '', 'med')}
+          ${fila('Sello', c.nombres.length ? esc(c.nombres.join(' · ')) : '')}
+        </div>
+        ${qr ? `<div class="qr">${qr}</div>` : ''}
+      </div>
+      <div class="abajo">
+        ${c.robots.length ? `<div class="rob"><span class="ceja">Robot</span><b>${esc(c.robots.join(' · '))}</b></div>` : '<div class="rob"></div>'}
+        <div class="marca"><b>S</b>ERI<b>A</b>DORNOS</div>
+        ${c.archivos.length ? `<div class="arch"><span class="ceja">Archivos</span><div class="lista">${
+          c.archivos.map(a=>`<span class="ar">${esc(a)}</span>`).join(' ')}</div></div>` : ''}
+      </div>
     </div>`;
+  };
 
-  const pegs = [];
-  for(let i = 0; i < tarjetas.length; i += MOLDES_POR_PEGATINA){
-    const grupo = tarjetas.slice(i, i + MOLDES_POR_PEGATINA);
-    const r = rejillaDe(grupo.length);
-    pegs.push(`<section class="peg"><div class="rejilla${r.ancha ? ' ancha' : ''}"
-      style="grid-template-columns:repeat(${r.cols},1fr)">${
-      grupo.map(una).join('')}</div></section>`);
-  }
+  const pegs = tarjetas.map(c => `<section class="peg"><div class="rejilla">${una(c)}</div></section>`);
 
   w.document.write(cabeceraPegatinas(tarjetas.length === 1
       ? 'Pegatina de molde — ' + esc(tarjetas[0].numero)
       : 'Pegatinas de moldes (' + tarjetas.length + ')') + `
   <style>
-    /* Las columnas y filas las pone rejillaDe() en el style de cada pegatina,
-       porque dependen de cuántas tarjetas lleve esa. Aquí solo va lo común. */
-    .rejilla{position:absolute; inset:${PEGATINA.margen - 1}mm; display:grid; gap:0}
-    /* La línea de corte, discontinua, va entre tarjetas y no en el borde. */
-    .tm{padding:2mm 3mm 1.5mm; overflow:hidden; display:flex; flex-direction:column; gap:calc(.7mm * var(--esc,1));
+    .rejilla{position:absolute; inset:${PEGATINA.margen - 1}mm; display:grid; grid-template-columns:1fr; gap:0}
+    .tm{padding:2.2mm 4mm; overflow:hidden; display:flex; flex-direction:column; gap:calc(1.2mm * var(--esc,1));
         border:.3mm dashed #000; margin:-.15mm}
-    .cab{display:flex; flex-direction:column; gap:.4mm; margin-bottom:.3mm}
-    h1{margin:0; font-size:calc(15pt * var(--esc,1)); line-height:1; letter-spacing:-.02em; font-weight:800;
-       overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-    .ancha h1{font-size:calc(19pt * var(--esc,1))}
-    /* Rótulo y dato en la misma línea: en 50 mm de ancho caben, y en alto es
-       donde no sobra nada. */
-    .d{display:flex; align-items:baseline; gap:1.5mm}
-    .d .ceja{flex:0 0 13.5mm; font-size:6pt}
+    .arriba{display:flex; justify-content:space-between; gap:4mm}
+    .izq{display:flex; flex-direction:column; gap:calc(.6mm * var(--esc,1)); min-width:0; flex:1}
+    .cab{display:flex; align-items:baseline; gap:2mm; margin-bottom:.4mm}
+    .cab .ceja{font-size:6.5pt}
+    h1{margin:0; font-size:calc(21pt * var(--esc,1)); line-height:1; letter-spacing:-.02em; font-weight:800;
+       overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0}
+    /* Rótulo y dato en la misma línea: en 50 mm de alto es donde no sobra nada. */
+    .d{display:flex; align-items:baseline; gap:2mm}
+    .d .ceja{flex:0 0 13mm; font-size:6.5pt}
+    .d b{font-size:calc(9.5pt * var(--esc,1)); font-weight:650; line-height:1.15; overflow-wrap:anywhere; min-width:0}
     .d.med b{white-space:nowrap}
-    .d b{font-size:calc(9pt * var(--esc,1)); font-weight:650; line-height:1.15; overflow-wrap:anywhere; min-width:0}
-    .ancha .d{gap:2mm}
-    .ancha .d .ceja{flex:0 0 18mm; font-size:7pt}
-    .ancha .d b{font-size:calc(11pt * var(--esc,1))}
-    /* Abajo: el QR (abre la ficha del sello al escanearlo) y la marca. */
-    .pie{margin-top:auto; padding-top:.5mm; display:flex; justify-content:space-between; align-items:flex-end}
-    .marca{font-size:6pt}
-    .qr{width:11mm;height:11mm;flex:0 0 auto}
-    .qr svg{width:100%;height:100%;display:block}
+    .qr{width:23mm; height:23mm; flex:0 0 auto}
+    .qr svg{width:100%; height:100%; display:block}
+    /* Debajo de la línea: robot a la izquierda, marca a la derecha, y los
+       archivos en su propia fila a todo el ancho. */
+    .abajo{border-top:.2mm solid #000; padding-top:1mm; display:grid; grid-template-columns:1fr auto;
+           column-gap:3mm; row-gap:.6mm; align-items:start; flex:1; min-height:0}
+    .rob{display:flex; align-items:baseline; gap:2mm; grid-column:1; min-width:0}
+    .rob .ceja{flex:0 0 13mm; font-size:6.5pt}
+    .rob b{font-size:calc(9.5pt * var(--esc,1)); font-weight:650}
+    .marca{grid-column:2; grid-row:1; font-size:8pt; white-space:nowrap; margin-top:.4mm}
+    .arch{display:flex; align-items:baseline; gap:2mm; grid-column:1 / -1}
+    .arch .ceja{flex:0 0 13mm; font-size:6.5pt}
+    .lista{font-size:calc(9.5pt * var(--esc,1)); font-weight:650; line-height:1.2; min-width:0}
+    .ar{white-space:nowrap; margin-right:2.5mm}
   </style>
   ${pegs.join('')}
   ${PIE_PEGATINAS}`);
@@ -11478,8 +11156,8 @@ function pantallaPegatinasMolde(s){
   pegatinasMolde = s ? [{id: s.id, copias: 1}] : [];
   $dt.textContent = 'Pegatinas de moldes';
   $dc.innerHTML = `
-    <p class="op-p flojo" style="margin:0 0 10px">Caben <b>${MOLDES_POR_PEGATINA}</b> por pegatina,
-      con línea de corte. Añade los moldes que quieras, y de cada uno las
+    <p class="op-p flojo" style="margin:0 0 10px">Sale <b>un molde por pegatina</b>,
+      entera (${medidaPegatina()}). Añade los moldes que quieras, y de cada uno las
       copias que necesites si tienes varios moldes iguales.</p>
     <div class="campo" style="margin-bottom:10px"><span>Añadir un sello (por nombre, cliente o molde)</span>
       <div id="pm-buscador"></div></div>
@@ -11535,13 +11213,13 @@ function pintarPegatinasMolde(){
       const c = tarjetaMolde(s);
       const det = [c.sellos ? c.sellos + ' sellos' : null,
                    c.largo && c.ancho ? `${fmt(c.largo)} × ${fmt(c.ancho)} mm` : null,
-                   c.robots.length ? c.robots.join(' · ') : 'A mano',
+                   c.robots.length ? c.robots.join(' · ') : null,
                    c.archivos.length ? c.archivos.join(' · ') : null].filter(Boolean).join(' · ');
       /* Cuántos moldes iguales hay de ese modelo. Menos / cifra / más: un
          toque por copia, botones grandes para el guante, y sin tope escrito
          a mano —si alguien tiene ocho moldes iguales, que pueda—. */
       return `<div class="et-fila">
-        <div class="et-nom"><b>Molde ${esc(c.numero)}</b><small>${esc(det || 'Sin datos del molde')}${
+        <div class="et-nom"><b>${esc(c.numero)}</b><small>${esc(det || 'Sin datos del molde')}${
           c.nombres.length > 1 ? ` · ${c.nombres.length} sellos comparten el molde` : ''}</small></div>
         <div class="pm-copias">
           <button data-menos="${k}" aria-label="Una copia menos de este molde"${
@@ -11555,19 +11233,14 @@ function pintarPegatinasMolde(){
       </div>`;
     }).join('');
   }
-  /* Con dos por pegatina no quedan huecos que contar: si la última lleva una
-     tarjeta sola, esa tarjeta ocupa la pegatina entera (rejillaDe da una
-     columna). La cuenta de antes daba siempre cero. */
-  const pegs = Math.ceil(n / MOLDES_POR_PEGATINA);
-  /* El vocabulario de siempre, que es el del taller: PEGATINA es la hoja que
-     sale del rollo, y dentro van varias tarjetas que se cortan. Si alguna
-     línea lleva copias hay que decir de dónde sale el total, porque «3
-     moldes» teniendo UN molde en la lista parece un fallo de la app. */
+  /* Una pegatina por molde y por copia. Si alguna línea lleva copias hay que
+     decir de dónde sale el total, porque «3 pegatinas» teniendo UN molde en la
+     lista parece un fallo de la app. */
   const cuantas = n === lineas
-    ? `<b>${n}</b> molde${n===1?'':'s'}`
-    : `<b>${n}</b> tarjetas de ${lineas} molde${lineas===1?'':'s'}`;
+    ? `<b>${n}</b> pegatina${n===1?'':'s'}`
+    : `<b>${n}</b> pegatinas de ${lineas} molde${lineas===1?'':'s'}`;
   $p.innerHTML = n
-    ? `<span>${cuantas} · ${pegs} pegatina${pegs===1?'':'s'}</span>
+    ? `<span>${cuantas}</span>
        <button class="btn btn-fino" id="pm-vaciar">Vaciar</button>`
     : `<span>Ningún molde todavía</span>`;
   for(const b of $l.querySelectorAll('[data-quitar]'))
@@ -11683,7 +11356,7 @@ document.getElementById('btn-pdf').onclick = ()=>{
     $dt.textContent = 'Imprimir';
     $dc.innerHTML = grupoAjustes('', [
       s0 ? filaAjuste('imp-hoja', 'Hoja del sello', esc(s0.nombre)) : '',
-      filaAjuste('imp-moldes', 'Pegatinas de moldes', `${MOLDES_POR_PEGATINA} por pegatina`),
+      filaAjuste('imp-moldes', 'Pegatinas de moldes', 'Una por molde'),
     ]) + `<p class="op-p flojo" style="margin:12px 0 0">La hoja va a la impresora normal (A4). Las
       pegatinas, a la impresora de etiquetas de ${medidaPegatina()}.${s0 ? '' : ' Abre un sello para poder imprimir su hoja.'}</p>`;
     $dp.innerHTML = `<button class="btn" data-cerrar>Cerrar</button>`;
@@ -12165,39 +11838,6 @@ const TIPOS_PASO = [
 ];
 const tipoPaso = k => TIPOS_PASO.find(x => x.k === k) || {k, t:k};
 
-// El icono de cada paso sale del juego común (00-iconos.js): inyectar,
-// hornear, enfriar, engomar, limpiar, pinchar, vulcanizar, soporte, velcro,
-// sacar y envasar tienen el suyo, con el mismo nombre que el tipo.
-const svgPaso = (k, extra) => icono(ICONOS[k] ? k : 'lista', extra);
-
-// ── Las agujas: una lista tuya, guardada con los demás ajustes ────────
-// Va en colores_ajustes y no en una tabla nueva: son cuatro líneas de texto y
-// esa tabla ya se sincroniza sola.
-const aguja = id => AGUJAS.find(a => a.id === id) || null;
-function guardarAgujas(){
-  DATOS.agujas = AGUJAS;
-  if(MODO === 'nube')
-    nube.subirAjustes([{clave:'agujas', datos: AGUJAS}]).catch(e=>falloNube(e));
-  if(MODO === 'nube') nube.guardarEspejo(DATOS, ultimaSync, ROL);
-}
-function guardarTiposAguja(){
-  DATOS.tipos_agujas = TIPOS_AGUJA;
-  if(MODO === 'nube')
-    nube.subirAjustes([{clave:'tipos_agujas', datos: TIPOS_AGUJA}]).catch(e=>falloNube(e));
-  if(MODO === 'nube') nube.guardarEspejo(DATOS, ultimaSync, ROL);
-}
-const tipoAguja = k => TIPOS_AGUJA.find(x => x.k === k) || null;
-const nombreTipoAguja = k => (tipoAguja(k) || {}).nombre || (k ? k : 'Sin grupo');
-/** Las agujas por grupo, en el orden de los grupos y cada grupo por medida.
-    Una aguja cuyo grupo ya no existe no se pierde: va al final, en "Sin grupo". */
-function agujasPorGrupo(){
-  const orden = agujasOrdenadas();
-  const grupos = TIPOS_AGUJA.map(tp => ({k: tp.k, nombre: tp.nombre, agujas: orden.filter(a => (a.tipo || 'conica') === tp.k)}));
-  const sueltas = orden.filter(a => !tipoAguja(a.tipo || 'conica'));
-  if(sueltas.length) grupos.push({k: '', nombre: 'Sin grupo', agujas: sueltas});
-  return grupos.filter(g => g.agujas.length);
-}
-const claveGrupo = nombre => norm(nombre).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'g';
 
 /* ── LOS CLIENTES ─────────────────────────────────────────────────────
    El número de cliente NO se guarda en cada sello, y no es un detalle: si
@@ -12281,67 +11921,6 @@ function coloresDeSello(s){
   }
   return out;
 }
-
-/** Las tandas de horneado: qué colores entraron antes de cada horneado.
-
-    OJO con el VULCANIZADO: también cierra tanda. Es un horneado, solo que más
-    largo. Al principio lo trataba aparte y el resultado era que los colores
-    inyectados justo antes de vulcanizar salían marcados como "inyectados y sin
-    hornear después", que es falso: sí se hornearon, en el vulcanizado. */
-function tandasDe(s){
-  const pasos = s.pasos || [];
-  const ultimoVul = pasos.map(p => p.tipo).lastIndexOf('vulcanizar');
-  const tandas = [];
-  let acumulado = [];
-  let vulcanizado = null;
-  pasos.forEach((p, i)=>{
-    const t = tipoPaso(p.tipo);
-    if(t.color && p.ref){
-      /* Aquí NO se juntan los repetidos: si en una misma tanda entra el blanco
-         de la bandera y el blanco de las letras, son dos inyecciones y en la
-         máquina se hacen las dos. Juntarlos escondía una. */
-      acumulado.push({ref: p.ref, nombre: p.nombre || (porId.get(p.ref)?.nombre) || '?',
-                      parte: p.parte || '', paso: i + 1});
-    }
-    else if(p.tipo === 'hornear'){
-      tandas.push({colores: acumulado, segundos: p.segundos});
-      acumulado = [];
-    }
-    else if(p.tipo === 'vulcanizar'){
-      tandas.push({colores: acumulado, segundos: p.segundos,
-                   vul: true, ultimo: i === ultimoVul});
-      acumulado = [];
-      vulcanizado = p.segundos;
-    }
-  });
-  // Colores inyectados que no llegaron a hornearse NI a vulcanizarse: eso sí
-  // es un hueco de verdad en la receta y se dice.
-  if(acumulado.length) tandas.push({colores: acumulado, segundos: null, sinHornear: true});
-  return {tandas, vulcanizado};
-}
-
-/** UNA LÍNEA POR INYECCIÓN, no por color.
-
-    Antes se agrupaba, y en un sello con dos blancos —el de la bandera y el de
-    las letras— salían dos filas llamadas igual, con agujas y presiones
-    distintas y sin forma de saber cuál era cuál. Delante de la máquina eso es
-    adivinar. Ahora cada inyección es su fila, con su parte y su número de
-    paso. */
-function parametrosDe(s){
-  const out = [];
-  (s.pasos || []).forEach((p, i)=>{
-    if(p.tipo !== 'inyectar' || !p.ref) return;
-    out.push({ref: p.ref, nombre: p.nombre || (porId.get(p.ref)?.nombre) || '?',
-              parte: p.parte || '', paso: i + 1,
-              aguja: p.aguja || null, bar: p.bar ?? null, segundos: p.segundos ?? null});
-  });
-  return out;
-}
-
-/** Las partes ya escritas en este sello, para ofrecerlas al escribir otra: con
-    dos formas de escribir "bandera" el listado deja de servir. */
-const partesUsadas = s => [...new Set((s.pasos || [])
-  .map(p => (p.parte || '').trim()).filter(Boolean))].sort();
 
 const clienteS = s => (s.cliente || '').trim();
 const colorHexDe = ref => { const f = porId.get(ref); return f ? color(f).hex : '#c9c9c9'; };
@@ -12548,7 +12127,6 @@ function pintarListaSellos(){
 function abrirSello(id){
   abrirCapa('ficha');
   selloSel = id;
-  pestanaSello = 0;
   document.body.dataset.ficha = 'on';
   pintarFichaSello();
   pintarListaSellos();
@@ -12561,8 +12139,8 @@ function muroDeSellos(){
     $ficha.innerHTML = `<div class="vacio">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M8.5 4h7v5h-7z"/><path d="M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z"/><path d="M4 19.5h16"/></svg>
       <p><b>Todavía no hay sellos</b>Cada ficha guarda las fotos del sello y del
-        molde, los colores que lleva, los pasos de fabricación y los parámetros
-        del robot.</p>
+        molde, sus medidas, cuántos sellos lleva el molde y en qué robot está el
+        programa.</p>
       ${puedeEditar ? '<button class="btn btn-1" id="sello-primero">Crear el primero</button>' : ''}
       </div>`;
     document.getElementById('sello-primero')?.addEventListener('click', ()=>editarSello(null));
@@ -12597,22 +12175,13 @@ function muroDeSellos(){
 }
 
 /* ── LA FICHA ─────────────────────────────────────────────────────────
-   TRES PESTAÑAS, LAS MISMAS EN EL MÓVIL Y EN EL ORDENADOR.
+   UNA SOLA PÁGINA, SIN PESTAÑAS (30-sep).
 
-   Antes eran cuatro en el móvil (Sello · Molde · Pasos · Parámetros) y dos en
-   el PC, con Sello y Molde clavados en una columna aparte. O sea: quien
-   aprendía la ficha en el móvil abría el PC y las pestañas que buscaba ya no
-   estaban. Una ficha que se llama igual tiene que ser la misma.
-
-   Sello y Molde eran además la misma cosa dicha en dos sitios: la descripción
-   de la pieza. Van juntos en «Ficha», y la pestaña que entra elegida es
-   «Pasos», que es a lo que se abre un sello.
-
-   En pantalla ancha no se esconde nada ni se cambian los nombres: lo que
-   cambia es que los bloques de dentro se ponen de dos en dos, aprovechando el
-   ancho sin tocar la cabeza de nadie. Los pasos no, que son una lista
-   ordenada y se leen de arriba abajo. */
-const PESTANAS_S = ['Pasos', 'Parámetros', 'Ficha'];
+   Antes había tres pestañas —Pasos, Parámetros y Ficha— para guardar la
+   fabricación entera. Juanjo pidió quedarse con lo que se usa: las fotos, el
+   molde, el sello, el robot y el nombre de su archivo. Cabe en una pantalla,
+   así que ya no hay nada que deslizar. Los pasos de los sellos que ya los
+   tenían siguen guardados, sin enseñarse. */
 
 /** Las dos fotos, en miniatura y una al lado de la otra.
 
@@ -12653,20 +12222,21 @@ function sellosDelMismoMolde(s){
 }
 
 function panelFicha(s){
-  const m = s.molde || {};
-  const cols = coloresDeSello(s);
+  const m = s.molde || {}, me = s.medidas || {};
   const otros = sellosDelMismoMolde(s);
+  const r = robot(s.robot_id);
+  const archivos = archivosDe(s);
+  const nada = '<span class="flojo">—</span>';
+  const medida = (l, a) => l && a ? `${fmt(l)} × ${fmt(a)} <small>mm</small>` : nada;
   return `<div class="s-panel" data-panel="ficha">
     <section class="s-bloque">${fotosDeSello(s)}</section>
 
     <section class="s-bloque">
       <p class="s-epigrafe">Molde</p>
       <dl class="s-datos">
-        <div class="dato"><dt>Número</dt><dd>${m.numero ? esc(m.numero) : '<span class="flojo">—</span>'}</dd></div>
-        <div class="dato"><dt>Sellos por molde</dt><dd>${m.sellos ? fmt(m.sellos) : '<span class="flojo">—</span>'}</dd></div>
-        <div class="dato ancho"><dt>Medidas</dt><dd>${
-          m.largo && m.ancho ? `${fmt(m.largo)} × ${fmt(m.ancho)} <small>mm</small>`
-                             : '<span class="flojo">—</span>'}</dd></div>
+        <div class="dato ancho"><dt>Nombre</dt><dd>${m.numero ? esc(m.numero) : nada}</dd></div>
+        <div class="dato"><dt>Número de sellos</dt><dd>${m.sellos ? fmt(m.sellos) : nada}</dd></div>
+        <div class="dato"><dt>Medidas del molde</dt><dd>${medida(m.largo, m.ancho)}</dd></div>
       </dl>
       ${otros.length ? `<div class="s-mismo-molde">
         <span>Mismo molde que</span>
@@ -12675,209 +12245,27 @@ function panelFicha(s){
     </section>
 
     <section class="s-bloque">
-      <p class="s-epigrafe">Colores <span>salen de los pasos</span></p>
-      ${cols.length ? `<div class="s-tabla">${cols.map((c,i)=>{
-        const f = porId.get(c.ref);
-        return `<div class="color-fila">
-          <div class="orden">${i+1}</div>
-          <div class="muestra" style="background:${colorHexDe(c.ref)}"${f?marcaFoto(f.id):''}></div>
-          <div class="color-nom">${esc(c.nombre)}${
-            c.partes.length ? `<small>${esc(c.partes.join(' · '))}</small>` : ''}${
-            f ? '' : '<small class="falta-aguja">Esta fórmula ya no existe</small>'}</div>
-          ${f ? `<button class="s-ir" data-ir-f="${c.ref}" aria-label="Ver la fórmula">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
-          </button>` : ''}
-        </div>`;
-      }).join('')}</div>` : `<p class="s-nada">Aún no hay colores. Salen solos al añadir
-        pasos de inyectar o engomar.</p>`}
+      <p class="s-epigrafe">Sello</p>
+      <dl class="s-datos">
+        <div class="dato"><dt>Nombre</dt><dd>${esc(s.nombre)}</dd></div>
+        <div class="dato"><dt>Medidas del sello</dt><dd>${medida(me.largo, me.ancho)}</dd></div>
+      </dl>
     </section>
 
-    ${(s.notas || '').trim() ? `<section class="s-bloque">
-      <p class="s-epigrafe">Notas a mano</p>
-      <div class="s-tabla s-notas"><p>${esc(s.notas).replace(/\n/g, '<br>')}</p></div>
-    </section>` : ''}
-  </div>`;
-}
-function panelPasos(s){
-  const pasos = s.pasos || [];
-  const ultimoVul = pasos.map(p => p.tipo).lastIndexOf('vulcanizar');
-  return `<div class="s-panel" data-panel="pasos">
-    ${pasos.length ? pasos.map((p, i)=>{
-      const t = tipoPaso(p.tipo);
-      /* Los horneados y los vulcanizados se remarcan: son las pausas del
-         proceso, los puntos donde el sello entra al horno y se para todo lo
-         demás. Al seguir la lista con prisa, son lo que hay que ver. El
-         vulcanizado final, además, cierra la ficha. */
-      const hito = p.tipo === 'vulcanizar' || p.tipo === 'hornear';
-      const final = p.tipo === 'vulcanizar' && i === ultimoVul;
-      const nombreHito = p.tipo === 'vulcanizar' ? (final ? 'Vulcanizado final' : 'Vulcanizado') : t.t;
-      return `<div class="s-paso${hito ? ' hito' : ''}${final ? ' final' : ''}">
-        <div class="s-paso-n">${i+1}</div>
-        <div class="s-paso-q">${t.color && p.ref
-          ? `<i style="background:${colorHexDe(p.ref)}"></i>${esc(t.t)} ${esc(p.nombre || '')}${
-              p.parte ? ` <em class="s-parte">${esc(p.parte)}</em>` : ''}`
-          : `${hito ? icono('fuego', 'class="s-paso-ic"') : svgPaso(p.tipo, 'class="s-paso-ic"')}${esc(hito ? nombreHito : t.t)}`}</div>
-        ${p.segundos != null && p.segundos !== ''
-          ? `<div class="s-paso-s">${fmt(p.segundos)}<em>s</em></div>` : ''}
-      </div>`;
-    }).join('') : `<p class="s-nada">Todavía no hay pasos. Se añaden desde
-      <b>Editar</b>.</p>`}
-  </div>`;
-}
-
-/* ── PARÁMETROS ───────────────────────────────────────────────────────
-   Aquí había tres bloques —Agujas, Presiones y Horneados— y cada inyección
-   salía en los tres, con el mismo color, la misma parte y el mismo "Paso N".
-   Para leer la presión de la bandera había que buscar la misma fila por
-   segunda vez en otro sitio de la pantalla.
-
-   Una inyección es UNA fila: su color, su parte, su aguja, su presión y sus
-   segundos juntos. Es como se hace en la máquina y es como se lee.
-
-   Los horneados siguen aparte, y ahí sí tiene sentido: no describen una
-   inyección, dicen qué se mete al horno junto. */
-/* ── EL CICLO ────────────────────────────────────────────────────────
-   Suma de los segundos de los pasos que llevan tiempo (inyectar, hornear,
-   enfriar, vulcanizar). Los pasos a mano no tienen tiempo apuntado y no se
-   cuentan: es tiempo de máquina, y así se dice. Con los sellos por molde
-   sale sellos/hora, que es lo que hace falta para el escandallo. */
-function cicloDe(s){
-  let segundos = 0, pasos = 0, sinTiempo = 0;
-  for(const p of (s.pasos || [])){
-    if(!tipoPaso(p.tipo).segundos) continue;
-    const v = +p.segundos;
-    if(v > 0){ segundos += v; pasos++; } else sinTiempo++;
-  }
-  const piezas = (s.molde && +s.molde.sellos > 0) ? +s.molde.sellos : null;
-  return {segundos, pasos, sinTiempo, piezas,
-          porHora: segundos > 0 && piezas ? Math.round(piezas * 3600 / segundos) : null};
-}
-function tiempoLegible(seg){
-  const m = Math.floor(seg / 60), s = Math.round(seg % 60);
-  if(!m) return `${s} s`;
-  return s ? `${m} min ${s} s` : `${m} min`;
-}
-function panelCiclo(s){
-  const c = cicloDe(s);
-  if(!c.segundos) return '';
-  const tiempo = tiempoLegible(c.segundos).replace(/ (s|min)\b/g, ' <small>$1</small>');
-  return `<section class="s-bloque">
-    <p class="s-epigrafe">Ciclo <span>suma de los tiempos apuntados</span></p>
-    <div class="s-tabla s-ciclo" id="s-ciclo">
-      <div class="s-ciclo-n"><b>${tiempo}</b><span>por molde</span></div>
-      <div class="s-ciclo-n${c.piezas ? '' : ' flojo'}"><b>${c.piezas ? fmt(c.piezas) : '—'}</b><span>sellos por molde</span></div>
-      <div class="s-ciclo-n${c.porHora ? '' : ' flojo'}"><b>${c.porHora ? '≈' + fmt(c.porHora) : '—'}</b><span>sellos por hora</span></div>
-      <p class="s-ciclo-nota">Tiempo de máquina: ${c.pasos} paso${c.pasos === 1 ? '' : 's'} con tiempo, sin contar los que
-        se hacen a mano${c.sinTiempo ? ` · <b>${c.sinTiempo}</b> paso${c.sinTiempo === 1 ? '' : 's'} sin segundos apuntados` : ''}${
-        c.piezas ? '' : ' · sin sellos por molde no se puede calcular por hora'}</p>
-    </div></section>`;
-}
-
-function panelParametros(s){
-  const {tandas} = tandasDe(s);
-  const pars = parametrosDe(s);
-
-  const dato = (v, u) => v != null && v !== ''
-    ? `<span class="d"><b>${fmt(v)}</b> ${u}</span>` : '';
-
-  const inyeccion = p => {
-    const a = aguja(p.aguja);
-    /* Tres estados, no dos. "Sin aguja" y "la aguja no está en la lista" son
-       cosas distintas, y confundirlas escondió un fallo de verdad: el móvil no
-       recibía las agujas nuevas y ponía "Sin aguja" tan tranquilo, como si el
-       paso no llevara ninguna. */
-    const ag = a
-      ? `<span class="d"><span class="punta" style="background:${esc(a.color||'#8a8f95')}"></span>${esc(a.nombre)}</span>`
-      : p.aguja
-        ? '<span class="d falta-aguja">Aguja no encontrada</span>'
-        : '<span class="d flojo">Sin aguja</span>';
-    const trozos = [ag, dato(p.bar, 'bar'), dato(p.segundos, 's')].filter(Boolean);
-    /* La fila se pulsa y abre ESE paso. Corregir la presión de la bandera eran
-       seis pasos y dos diálogos —Editar, bajar, tocar el paso, cambiar,
-       Guardar, Guardar—; ahora son dos. Solo para el editor: en consulta la
-       fila no es un botón, que un botón que no hace nada es peor que no
-       tenerlo. */
-    const T = puedeEditar ? 'button' : 'div';
-    return `<${T} class="s-iny"${puedeEditar
-        ? ` type="button" data-iny-paso="${p.paso - 1}" aria-label="Corregir el paso ${p.paso}"` : ''}>
-      <span class="s-iny-n">${p.paso}</span>
-      <span class="muestra s" style="background:${colorHexDe(p.ref)}"></span>
-      <span class="s-iny-nom">${esc(p.nombre)}${
-        p.parte ? ` <em class="s-parte">${esc(p.parte)}</em>` : ''}</span>
-      <span class="s-iny-datos">${trozos.join('<span class="sep">|</span>')}</span>
-    </${T}>`;
-  };
-
-  /* El programa: en qué robot está y con qué archivos. Va ARRIBA del todo,
-     antes de las inyecciones, porque es lo primero que hace falta: sin saber
-     en qué máquina está el programa, los bares y los segundos no sirven. */
-  const cabe = cabeEnRobot(s);
-  const r = robot(s.robot_id);
-  const archivos = archivosDe(s);
-  const programa = !s.robot ? '' : `
     <section class="s-bloque">
-    <p class="s-epigrafe">Programa${r && r.inyectores
-      ? `<span>colores inyectados / inyectores</span>` : ''}</p>
-    <div class="s-tabla">
-      <div class="s-prog-cab">
-        <span class="s-prog-robot">${r
-          ? esc(r.nombre)
-          : '<span class="flojo">Sin robot apuntado</span>'}</span>
-        ${cabe ? `<span class="s-prog-cupo${cabe.cabe ? '' : ' no-cabe'}">${
-          cabe.colores} de ${cabe.inyectores}</span>` : ''}
+      <p class="s-epigrafe">Robot</p>
+      <div class="s-tabla">
+        <div class="s-prog-cab">
+          <span class="s-prog-robot">${r ? esc(r.nombre) : '<span class="flojo">Sin robot apuntado</span>'}</span>
+        </div>
+        ${archivos.length
+          ? archivos.map(f=>`<div class="s-arch">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v5h5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+              <span class="s-arch-n">${esc(f.nombre)}</span>
+            </div>`).join('')
+          : '<p class="s-nada" style="margin:6px 2px 2px">Sin archivos apuntados.</p>'}
       </div>
-      ${cabe && !cabe.cabe ? `<div class="s-prog-aviso">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
-        <span>Inyecta <b>${cabe.colores} colores</b> y ${esc(cabe.robot.nombre)} tiene
-          <b>${cabe.inyectores} inyectores</b>. O no cabe, o hay que cambiar de color
-          a mitad.</span></div>` : ''}
-      ${/* Sin archivos no se dice nada: un hueco vacío no necesita anunciarse. */''}
-      ${archivos.length
-        ? archivos.map(f=>`<div class="s-arch">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v5h5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
-            <span class="s-arch-n">${esc(f.nombre)}</span>
-            ${f.para ? `<em class="s-parte">${esc(f.para)}</em>` : ''}
-          </div>`).join('')
-        : ''}
-    </div></section>`;
-
-  return `<div class="s-panel" data-panel="params">
-    ${panelCiclo(s)}
-    ${!s.robot ? `<section class="s-bloque"><p class="s-nada">Este sello está guardado como hecho
-      <b>a mano</b>. Los parámetros del robot solo salen en los de robot.</p></section>` : `
-    ${programa}
-    <section class="s-bloque">
-    <p class="s-epigrafe">Inyecciones
-      <span>${pars.length}${puedeEditar ? ' · toca para corregir' : ' · en orden de paso'}</span></p>
-    <div class="s-tabla">
-      ${pars.length ? pars.map(inyeccion).join('')
-        : '<p class="s-nada">No hay inyecciones apuntadas.</p>'}
-    </div></section>`}
-
-    ${/* Sin pasos no hay horneados que enseñar, y decirlo aquí sería repetir
-          lo que ya dice la pestaña de al lado. */''}
-    ${!(s.pasos || []).length ? '' : `<section class="s-bloque">
-    <p class="s-epigrafe">Horneados <span>salen de los pasos</span></p>
-    <div class="s-tabla">
-      ${tandas.length ? tandas.map((t, i)=>`
-        <div class="s-tanda${t.vul ? ' vulca' : ''}${t.sinHornear ? ' avisa' : ''}">
-          <div class="s-tanda-top">
-            <span class="s-tanda-et">${
-              t.sinHornear ? 'Sin hornear después'
-              : t.vul ? (t.ultimo ? 'Vulcanizado final' : 'Vulcanizado')
-              : (i === 0 ? '1ª tanda' : (i+1) + 'ª tanda')}</span>
-            <span class="s-tanda-t">${t.segundos != null
-              ? `${fmt(t.segundos)}<em>s</em>` : '<span class="flojo">—</span>'}</span>
-          </div>
-          ${t.colores.length ? `<div class="s-tanda-cols">${
-            /* Cada inyección, aunque el color se repita: si el blanco entra dos
-               veces —bandera y letras— tienen que salir las dos. Juntarlas
-               escondía media tanda. */
-            t.colores.map(c=>`<span class="s-chip"><i style="background:${colorHexDe(c.ref)}"></i>${esc(c.nombre)}${
-              c.parte ? `<em>${esc(c.parte)}</em>` : ''}</span>`).join('')
-          }</div>` : '<div class="s-tanda-cols flojo">Sin colores nuevos en esta tanda</div>'}
-        </div>`).join('') : '<p class="s-nada">Los pasos no llevan ningún horneado.</p>'}
-    </div></section>`}
+    </section>
   </div>`;
 }
 
@@ -12904,11 +12292,7 @@ function cabeceraCliente(s){
     <div class="s-meta">
       ${molde ? `<span>Molde ${esc(molde)}</span>` : '<span class="flojo">Sin molde</span>'}
       ${piezas ? `<span class="sep">·</span><span>${piezas} ${piezas === 1 ? 'sello' : 'sellos'}</span>` : ''}
-      <span class="sep">·</span>
-      ${s.robot
-        ? `<span class="s-robot">${esc(robot(s.robot_id)?.nombre || 'Robot')}</span>`
-        : '<span>A mano</span>'}
-      ${s.tipo === 'piloto' ? '<span class="sep">·</span><span class="s-piloto">Piloto</span>' : ''}
+      ${robot(s.robot_id) ? `<span class="sep">·</span><span class="s-robot">${esc(robot(s.robot_id).nombre)}</span>` : ''}
     </div>
     ${avisoFalta(s)}`;
 }
@@ -12985,24 +12369,10 @@ function pintarFichaSello(){
     </button>` : ''}
   </div>`;
 
-  const paneles = {pasos: panelPasos, params: panelParametros, ficha: panelFicha};
-  const clave = ['pasos', 'params', 'ficha'];
-  const k = Math.max(0, Math.min(2, pestanaSello));
-  const barra = `<div class="seg s-pestanas" role="tablist">${PESTANAS_S.map((pe,i)=>
-    `<button data-pest="${i}" aria-pressed="${k===i}">${pe}</button>`).join('')}</div>`;
-
-  if(ancho){
-    /* En pantalla ancha NO cambian ni las pestañas ni sus nombres: lo que
-       cambia es que el panel elegido reparte sus bloques en dos columnas. Los
-       pasos no, que son una lista numerada y se leen de arriba abajo. */
-    $ficha.innerHTML = cabecera + barra +
-      `<div class="s-paneles s-dos">${paneles[clave[k]](s)}</div>` + acciones;
-  }else{
-    $ficha.innerHTML = cabecera + barra + `
-      <div class="s-carrusel" id="s-carrusel">
-        ${panelPasos(s)}${panelParametros(s)}${panelFicha(s)}
-      </div>` + acciones;
-  }
+  /* En pantalla ancha los bloques se reparten en dos columnas (.s-dos);
+     en el móvil, uno debajo de otro. Mismo contenido, misma pantalla. */
+  $ficha.innerHTML = cabecera +
+    `<div class="s-paneles${ancho ? ' s-dos' : ''}">${panelFicha(s)}</div>` + acciones;
 
   enlazarFotos($ficha);
   document.getElementById('volver-s').onclick = cerrarFicha;
@@ -13021,39 +12391,12 @@ function pintarFichaSello(){
                       cerrarTodo(); setTimeout(()=>{ actualizar(); abrir(id); }, 60); };
   for(const b of $ficha.querySelectorAll('[data-ir-s2]'))
     b.onclick = ()=>abrirSello(b.dataset.irS2);
-  for(const b of $ficha.querySelectorAll('[data-iny-paso]'))
-    b.onclick = ()=>editarPasoSuelto(s, +b.dataset.inyPaso);
   enlazarBotonesFoto('sf', objFoto(s, 'sello'));
   enlazarBotonesFoto('mf', objFoto(s, 'molde'));
   document.getElementById('s-imprimir').onclick = ()=>hojaSello(s);
   document.getElementById('s-editar')?.addEventListener('click', ()=>editarSello(s));
   document.getElementById('s-mas')?.addEventListener('click', ()=>masDelSello(s));
   if(puedeEditar) document.getElementById('s-falta')?.addEventListener('click', ()=>marcarFalta(s));
-
-  for(const b of $ficha.querySelectorAll('[data-pest]'))
-    b.onclick = ()=>{
-      pestanaSello = +b.dataset.pest;
-      const car = document.getElementById('s-carrusel');
-      if(car) car.scrollTo({left: car.clientWidth * pestanaSello, behavior:'smooth'});
-      else pintarFichaSello();
-      if(car) marcarPestana();
-    };
-
-  /* Las pestañas se deslizan de verdad, con el dedo: es un carrusel con anclaje
-     nativo del navegador, no un invento a base de eventos táctiles. Sale más
-     suave y no se pelea con el desplazamiento vertical de la página. */
-  const car = document.getElementById('s-carrusel');
-  if(car){
-    car.scrollLeft = car.clientWidth * pestanaSello;
-    let t = null;
-    car.addEventListener('scroll', ()=>{
-      clearTimeout(t);
-      t = setTimeout(()=>{
-        const i = Math.round(car.scrollLeft / Math.max(1, car.clientWidth));
-        if(i !== pestanaSello){ pestanaSello = i; marcarPestana(); }
-      }, 90);
-    });
-  }
 }
 
 /** Lo que se usa una vez al mes, detrás del botón de más.
@@ -13084,34 +12427,6 @@ function masDelSello(s){
     // lenta para que esa vuelta pendiente se llevara la pantalla nueva.
     b.onclick = ()=>cerrarDlgYLuego(hacer[b.dataset.masIr]);
   if(!$dlg.open) $dlg.showModal();
-}
-
-/** Corregir UN paso desde la ficha, sin abrir el editor entero.
-
-    Se trabaja sobre una copia y solo se guarda si de verdad cambió algo: así
-    "Cancelar" no deja rastro y el historial no se llena de cambios vacíos. */
-function editarPasoSuelto(s, i){
-  if(!puedeEditar) return brindis(SIN_PERMISO);
-  if(!s.pasos || !s.pasos[i]) return;
-  const antes = JSON.parse(JSON.stringify(s));
-  const copia = JSON.parse(JSON.stringify(s));
-  const huella = JSON.stringify(copia.pasos[i]);
-  editarPaso(copia, i, ()=>{
-    const cambio = JSON.stringify(copia.pasos[i]) !== huella;
-    if(cambio){
-      s.pasos[i] = copia.pasos[i];
-      guardarSello(s, 'sello-cambiado', {antes});
-    }
-    $dlg.close();
-    actualizar(); pintarFichaSello();
-    if(cambio) brindis('Paso corregido');
-  });
-  if(!$dlg.open) $dlg.showModal();
-}
-
-function marcarPestana(){
-  for(const b of $ficha.querySelectorAll('[data-pest]'))
-    b.setAttribute('aria-pressed', String(+b.dataset.pest === pestanaSello));
 }
 
 /* ── BORRAR ──────────────────────────────────────────────────────── */
@@ -13200,14 +12515,14 @@ function editarSello(base, duplicar, seguirId){
     : {id: seguirId || ('s-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6)),
        nombre:'', cliente:'', molde:{}, tipo:'molde', robot:true, notas:'', pasos:[]};
   if(duplicar){
-    /* "Nuevo a partir de este" es, casi siempre, EL MISMO sello con un color
-       cambiado (Juanjo, 12-sep: "es todo igual menos un color"). Se copia
-       todo, nombre y molde incluidos, y se cambia lo que haga falta. Si el
-       nombre se queda igual, el editor lo avisa, pero no lo impide. */
+    /* "Nuevo a partir de este" es, casi siempre, EL MISMO sello con otro nombre
+       (Juanjo, 12-sep: "es todo igual menos un color"). Se copia todo, nombre
+       y molde incluidos, y se cambia lo que haga falta. Si el nombre se queda
+       igual, el editor lo avisa, pero no lo impide. */
     s.id = 's-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6);
   }
-  if(!s.pasos) s.pasos = [];
   if(!s.molde) s.molde = {};
+  if(!s.medidas) s.medidas = {};
 
   /* ¿Había algo a medias de este mismo sello? Se recupera sin preguntar —como
      hace cualquier editor de texto— pero SE DICE, con un botón al lado para
@@ -13217,75 +12532,22 @@ function editarSello(base, duplicar, seguirId){
   const guardado = leerBorradores()[s.id];
   if(guardado && guardado.s){
     Object.assign(s, guardado.s);
-    if(!s.pasos) s.pasos = [];
     if(!s.molde) s.molde = {};
+    if(!s.medidas) s.medidas = {};
     recuperado = guardado.cuando;
   }
 
-
-  /* ── EL EDITOR, EN CUATRO DESPLEGABLES ──────────────────────────────
-     Era una cuesta: 1.660 px de formulario en una ventana de 642 en el móvil
-     —dos pantallas y media— y 65 controles. Abrías «Editar» para tocar la
-     presión de la bandera y lo primero que veías era el nombre del sello, el
-     cliente, el nº de molde, los sellos por molde, el largo y el ancho. Los
-     pasos, que es lo que de verdad se cambia, estaban a 800 px.
-
-     Ahora son cuatro bloques con su resumen a la derecha, y LOS PASOS SALEN
-     ABIERTOS: es a lo que se entra casi siempre. Los otros tres se escriben
-     una vez en la vida del sello.
-
-     Con una regla que es la que hace que esto no sea esconder cosas: un
-     bloque al que le FALTA algo obligatorio se abre solo y se marca en ámbar.
-     Un desplegable que tapa un campo vacío que hay que rellenar es peor que
-     no tener desplegables. Y en un sello nuevo salen los cuatro abiertos, que
-     ahí sí es un formulario de principio a fin. */
-  /* Se mira SIEMPRE el sello, nunca el campo de la pantalla: al pintar, lo que
-     hay en el documento todavía puede ser el editor anterior —el diálogo no se
-     vacía al cerrarse— y entonces el aviso miraría el nombre de otro sello.
-     `recoger()` deja el objeto al día antes de cada repintado, así que con el
-     objeto basta. */
-  const falta = {
-    id:    ()=> !(s.nombre || '').trim(),
-    molde: ()=> false,          // ningún dato del molde es obligatorio
-    robot: ()=> !!s.robot && !s.robot_id,
-    pasos: ()=> !s.pasos.length,
-  };
-  // Qué bloques están abiertos. Se conserva entre repintados: añadir un paso
-  // no puede cerrarte el bloque en el que estabas.
-  const abierto = {id: esNuevo, molde: esNuevo, robot: esNuevo, pasos: true};
-
-  const bloque = (k, titulo, resumen, cuerpo) => {
-    const av = falta[k]();
-    const ab = abierto[k] || av;
-    return `<details class="ed-bloque${av ? ' avisa' : ''}" data-bloque="${k}"${ab ? ' open' : ''}>
-      <summary>
-        <span class="ed-b-tit">${titulo}</span>
-        <span class="ed-b-res">${resumen}</span>
-        <svg class="ed-b-v" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-      </summary>
-      <div class="ed-b-cuerpo">${cuerpo}</div>
-    </details>`;
-  };
-
+  /* ── EL EDITOR, UNA SOLA PANTALLA ───────────────────────────────────
+     30-sep: la ficha se queda en lo que se usa de verdad. Nombre del sello y
+     del molde, cuántos sellos lleva el molde, las medidas de los dos, en qué
+     robot está el programa y cómo se llama el archivo. Los pasos de
+     fabricación, el ciclo, las agujas y los parámetros ya no se enseñan ni se
+     editan, PERO NO SE BORRAN: los 24 sellos que ya los tienen escritos siguen
+     guardándolos (Object.assign conserva lo que este editor no toca). El código
+     de aquel editor está guardado en archivo/ficha-completa-30sep por si un
+     día se quiere volver. */
   const pintar = ()=>{
     $dt.textContent = esNuevo ? (duplicar ? 'Nuevo a partir de otro' : 'Nuevo sello') : 'Editar sello';
-    const r0 = robot(s.robot_id);
-    const nArch = (s.archivos || []).filter(f => (f.nombre||'').trim()).length;
-    const flojo = t => `<span class="flojo">${t}</span>`;
-    const resIdentidad = [s.nombre || null, s.cliente || null,
-                          s.tipo === 'piloto' ? 'piloto' : null]
-      .filter(Boolean).map(esc).join(' · ') || flojo('sin nombre');
-    const resMolde = [s.molde.numero ? esc(s.molde.numero) : null,
-                      s.molde.sellos ? fmt(s.molde.sellos) + ' sellos' : null,
-                      s.molde.largo && s.molde.ancho ? `${fmt(s.molde.largo)} × ${fmt(s.molde.ancho)} mm` : null]
-      .filter(Boolean).join(' · ') || flojo('sin apuntar');
-    const resRobot = !s.robot ? 'A mano'
-      : [r0 ? esc(r0.nombre) : flojo('sin robot'),
-         nArch ? `${nArch} archivo${nArch === 1 ? '' : 's'}` : null].filter(Boolean).join(' · ');
-    const resPasos = s.pasos.length
-      ? `${s.pasos.length} paso${s.pasos.length === 1 ? '' : 's'}`
-      : flojo('ninguno');
-
     $dc.innerHTML = `
       ${recuperado ? `<div class="ed-recuperado">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
@@ -13293,7 +12555,8 @@ function editarSello(base, duplicar, seguirId){
         <button class="btn btn-fino" id="ed-s-tirar">Empezar de cero</button>
       </div>` : ''}
 
-      ${bloque('id', 'Identidad', resIdentidad, `
+      <section class="ed-sec">
+        <p class="s-epigrafe">Sello</p>
         <div class="ed-rejilla">
           <label class="campo ancho"><span>Nombre del sello</span>
             <input id="ed-s-nombre" value="${esc(s.nombre)}" autocomplete="off"
@@ -13306,44 +12569,42 @@ function editarSello(base, duplicar, seguirId){
                  Taller → Clientes, para que el nuevo salga con su número. -->
             <datalist id="ed-s-clientes">${clientesDeSellos().map(c=>`<option value="${esc(c.nombre)}"${c.numero ? ` label="Nº ${esc(c.numero)}"` : ''}>`).join('')}</datalist>
           </label>
+          <label class="campo"><span>Largo del sello (mm)</span>
+            <input id="ed-s-slargo" type="number" inputmode="decimal" min="0" step="0.1"
+                   value="${s.medidas.largo ?? ''}" autocomplete="off"></label>
+          <label class="campo"><span>Ancho del sello (mm)</span>
+            <input id="ed-s-sancho" type="number" inputmode="decimal" min="0" step="0.1"
+                   value="${s.medidas.ancho ?? ''}" autocomplete="off"></label>
         </div>
-        <div class="seg ed-seg" role="tablist">
-          <button data-tipo="molde" aria-pressed="${s.tipo !== 'piloto'}">Molde</button>
-          <button data-tipo="piloto" aria-pressed="${s.tipo === 'piloto'}">Piloto</button>
-        </div>
-        <label class="campo"><span>Notas</span>
-          <textarea id="ed-s-notas" placeholder="Lo que haga falta recordar">${esc(s.notas||'')}</textarea></label>`)}
+      </section>
 
-      ${bloque('molde', 'Molde', resMolde, `
+      <section class="ed-sec">
+        <p class="s-epigrafe">Molde</p>
         <div class="ed-rejilla">
-          <label class="campo ancho"><span>Nº de molde</span>
+          <label class="campo ancho"><span>Nombre del molde</span>
             <input id="ed-s-molde" value="${esc(s.molde.numero||'')}" autocomplete="off"
-                   list="ed-s-moldes">
+                   list="ed-s-moldes" placeholder="EGM 900">
             <datalist id="ed-s-moldes">${moldesConocidos().map(m=>`<option value="${esc(m.numero)}">`).join('')}</datalist>
             <small class="ed-repe ed-molde" id="ed-s-molde-aviso" hidden></small></label>
-          <label class="campo"><span>Sellos por molde</span>
+          <label class="campo ancho"><span>Número de sellos</span>
             <input id="ed-s-piezas" type="number" inputmode="numeric" min="1"
                    value="${s.molde.sellos ?? ''}" autocomplete="off"></label>
-          <label class="campo"><span>Largo (mm)</span>
+          <label class="campo"><span>Largo del molde (mm)</span>
             <input id="ed-s-largo" type="number" inputmode="decimal" min="0" step="0.1"
                    value="${s.molde.largo ?? ''}" autocomplete="off"></label>
-          <label class="campo"><span>Ancho (mm)</span>
+          <label class="campo"><span>Ancho del molde (mm)</span>
             <input id="ed-s-ancho" type="number" inputmode="decimal" min="0" step="0.1"
                    value="${s.molde.ancho ?? ''}" autocomplete="off"></label>
-        </div>`)}
-
-      ${bloque('robot', 'Robot y programa', resRobot, `
-        <div class="seg ed-seg" role="tablist">
-          <button data-robot="1" aria-pressed="${!!s.robot}">Robot</button>
-          <button data-robot="0" aria-pressed="${!s.robot}">A mano</button>
         </div>
-        ${s.robot ? `
+      </section>
+
+      <section class="ed-sec">
+        <p class="s-epigrafe">Robot</p>
         <label class="campo"><span>¿En qué robot está?</span>
           <select id="ed-s-robot">
             <option value="">Sin apuntar</option>
             ${robotsOrdenados().map(r=>`<option value="${esc(r.id)}"${
-              r.id === s.robot_id ? ' selected' : ''}>${esc(r.nombre)}${
-              r.inyectores ? ` · ${r.inyectores} inyectores` : ''}</option>`).join('')}
+              r.id === s.robot_id ? ' selected' : ''}>${esc(r.nombre)}</option>`).join('')}
           </select></label>
         ${ROBOTS.length ? '' : `<p class="s-nada" style="margin:4px 0 10px">
           Todavía no hay robots dados de alta.
@@ -13351,34 +12612,16 @@ function editarSello(base, duplicar, seguirId){
         <div class="ed-archivos" id="ed-archivos"></div>
         <button class="btn-anadir" id="ed-add-archivo">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-          Añadir archivo</button>`
-        : `<p class="s-nada" style="margin:6px 0 2px">Este sello se hace <b>a mano</b>:
-             no lleva programa de robot, así que no hay nada que apuntar aquí.</p>`}`)}
-
-      ${bloque('pasos', 'Pasos de fabricación', resPasos, `
-        <div class="ed-pasos" id="ed-pasos">
-          ${s.pasos.length ? s.pasos.map((p,i)=>filaPasoEditor(p, i, s)).join('')
-            : '<p class="s-nada">Sin pasos todavía.</p>'}
-        </div>
-        <button class="btn-anadir" id="ed-add-paso">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-          Añadir paso</button>`)}`;
-
-    // Lo que esté abierto se apunta, para que un repintado no lo cierre.
-    for(const d of $dc.querySelectorAll('[data-bloque]'))
-      d.addEventListener('toggle', ()=>{ abierto[d.dataset.bloque] = d.open; });
+          Añadir archivo</button>
+      </section>`;
 
     $dp.innerHTML = `<button class="btn" data-cerrar>Cancelar</button>
       <button class="btn btn-1" id="ed-s-guardar">Guardar</button>`;
     $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
 
-    for(const b of $dc.querySelectorAll('[data-tipo]'))
-      b.onclick = ()=>{ recoger(); s.tipo = b.dataset.tipo; pintar(); };
-    for(const b of $dc.querySelectorAll('[data-robot]'))
-      b.onclick = ()=>{ recoger(); s.robot = b.dataset.robot === '1'; pintar(); };
-    /* Los archivos del programa. Se repintan solos aquí dentro en vez de
-       repintar el editor entero: repintarlo perdería el foco y lo escrito a
-       medias en los demás campos. */
+    /* Los archivos del programa: solo el nombre. Se repintan solos aquí dentro
+       en vez de repintar el editor entero: repintarlo perdería el foco y lo
+       escrito a medias en los demás campos. */
     const pintarArchivos = ()=>{
       const $a = document.getElementById('ed-archivos');
       if(!$a) return;
@@ -13388,30 +12631,20 @@ function editarSello(base, duplicar, seguirId){
           <input class="ed-arch-n" data-arch-n="${i}" value="${esc(f.nombre || '')}"
                  placeholder="Nombre del archivo" autocomplete="off"
                  aria-label="Nombre del archivo ${i+1}">
-          <input class="ed-arch-p" data-arch-p="${i}" value="${esc(f.para || '')}"
-                 placeholder="para qué es" autocomplete="off" list="ed-arch-partes"
-                 aria-label="Para qué es el archivo ${i+1}">
           <button class="aguja-x" data-arch-x="${i}" aria-label="Quitar archivo">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
           </button>
-        </div>`).join('') + `<datalist id="ed-arch-partes">${
-          // Las mismas partes que ya usas en las inyecciones: si el archivo es
-          // el de la bandera, que se escriba igual que la inyección de la
-          // bandera y no "banderas" o "bander".
-          partesUsadas(s).map(p=>`<option value="${esc(p)}">`).join('')}
-          <option value="completo"></datalist>`
+        </div>`).join('')
         : '<p class="s-nada" style="margin:2px 0 8px">Sin archivos apuntados.</p>';
       for(const inp of $a.querySelectorAll('[data-arch-n]'))
         inp.oninput = ()=>{ const f = (s.archivos||[])[+inp.dataset.archN]; if(f) f.nombre = inp.value; };
-      for(const inp of $a.querySelectorAll('[data-arch-p]'))
-        inp.oninput = ()=>{ const f = (s.archivos||[])[+inp.dataset.archP]; if(f) f.para = inp.value; };
       for(const b of $a.querySelectorAll('[data-arch-x]'))
         b.onclick = ()=>{ s.archivos.splice(+b.dataset.archX, 1); pintarArchivos(); };
     };
     pintarArchivos();
     document.getElementById('ed-add-archivo')?.addEventListener('click', ()=>{
       if(!Array.isArray(s.archivos)) s.archivos = [];
-      s.archivos.push({nombre:'', para:''});
+      s.archivos.push({nombre:''});
       pintarArchivos();
       $dc.querySelector('.ed-archivo:last-of-type .ed-arch-n')?.focus();
     });
@@ -13421,8 +12654,8 @@ function editarSello(base, duplicar, seguirId){
       pantallaTaller(()=>{ $dt.textContent = ''; pintar(); }, 'robots');
     });
 
-    // Al escribir, y también en cada cambio de estructura (añadir un paso,
-    // moverlo, poner un archivo): todo pasa por pintar().
+    // Al escribir, y también en cada cambio de estructura (añadir o quitar un
+    // archivo): todo pasa por pintar() o por apuntarBorrador().
     escribiendoEnDlg = {guardar: apuntarBorrador, id: s.id,
                         parar: ()=>{ clearTimeout(relojBorrador); relojBorrador = null; }};
     // Mientras escribes el nombre: si ya hay otro sello que se llama igual, se
@@ -13430,9 +12663,6 @@ function editarSello(base, duplicar, seguirId){
     const $nom = document.getElementById('ed-s-nombre'), $repe = document.getElementById('ed-s-repe');
     const avisarRepe = ()=>{
       if(!$nom || !$repe) return;
-      // El ámbar del bloque se quita en cuanto escribes, sin esperar a un
-      // repintado: si no, seguirías viendo «falta el nombre» con el nombre puesto.
-      $dc.querySelector('[data-bloque="id"]')?.classList.toggle('avisa', !$nom.value.trim());
       const otro = DATOS.sellos.find(x => x.id !== s.id && norm(x.nombre) === norm($nom.value));
       $repe.hidden = !otro;
       if(otro) $repe.textContent = `Ya hay otro sello con este nombre (${clienteS(otro) || 'sin cliente'}${
@@ -13440,10 +12670,10 @@ function editarSello(base, duplicar, seguirId){
     };
     if($nom){ $nom.addEventListener('input', avisarRepe); avisarRepe(); }
     /* El molde, la versión barata de "el molde existe una vez": al escribir un
-       nº que ya tiene otro sello, sus datos (sellos, medidas) se rellenan solos
-       si los campos están vacíos; y si están rellenos y no coinciden, se avisa
-       con un botón para copiarlos. Así dos sellos del mismo molde no acaban
-       diciendo 8 sellos uno y 10 el otro sin que nadie se entere. */
+       nombre que ya tiene otro sello, sus datos (sellos, medidas) se rellenan
+       solos si los campos están vacíos; y si están rellenos y no coinciden, se
+       avisa con un botón para copiarlos. Así dos sellos del mismo molde no
+       acaban diciendo 8 sellos uno y 10 el otro sin que nadie se entere. */
     const $mol = document.getElementById('ed-s-molde'), $molAviso = document.getElementById('ed-s-molde-aviso');
     const campoM = {sellos:'ed-s-piezas', largo:'ed-s-largo', ancho:'ed-s-ancho'};
     const copiarMolde = otro => {
@@ -13495,8 +12725,8 @@ function editarSello(base, duplicar, seguirId){
       for(const id of Object.values(campoM)) document.getElementById(id)?.addEventListener('change', avisarMolde);
       avisarMolde();
     }
-    // En cada repintado se apunta también: añadir un paso o un archivo no
-    // dispara "input", pero es un cambio que hay que conservar.
+    // En cada repintado se apunta también: añadir un archivo no dispara
+    // "input", pero es un cambio que hay que conservar.
     apuntarBorrador();
 
     document.getElementById('ed-s-tirar')?.addEventListener('click', ()=>{
@@ -13509,35 +12739,6 @@ function editarSello(base, duplicar, seguirId){
       setTimeout(()=>editarSello(base, duplicar), 60);   // sin seguirId: en blanco
     });
 
-    document.getElementById('ed-add-paso').onclick = ()=>{ recoger(); elegirTipoPaso(s, pintar); };
-    for(const b of $dc.querySelectorAll('[data-paso-ed]'))
-      b.onclick = ()=>{
-        recoger();
-        const i = +b.dataset.pasoEd;
-        const abrirPaso = k => editarPaso(s, k, pintar, false, dir=>{
-          const j = k + dir;
-          if(j < 0 || j >= s.pasos.length) return;
-          [s.pasos[j], s.pasos[k]] = [s.pasos[k], s.pasos[j]];
-          abrirPaso(j);          // el paso sigue abierto, ya en su sitio nuevo
-          brindis(dir < 0 ? 'Subido' : 'Bajado');
-        });
-        abrirPaso(i);
-      };
-    for(const b of $dc.querySelectorAll('[data-paso-fuera]'))
-      b.onclick = ()=>{ recoger(); s.pasos.splice(+b.dataset.pasoFuera, 1); pintar(); };
-    /* Duplicar: la copia va JUSTO DEBAJO, no al final. En un sello los bloques
-       inyectar-hornear-enfriar se repiten casi iguales, y lo que se quiere es
-       copiar el de al lado y cambiarle el color. */
-    for(const b of $dc.querySelectorAll('[data-paso-copia]'))
-      b.onclick = ()=>{
-        recoger();
-        const i = +b.dataset.pasoCopia;
-        s.pasos.splice(i + 1, 0, JSON.parse(JSON.stringify(s.pasos[i])));
-        pintar();
-        brindis('Paso duplicado');
-      };
-    enlazarArrastre(s, pintar);
-
     document.getElementById('ed-s-guardar').onclick = ()=>{
       clearTimeout(relojBorrador); relojBorrador = null;
       recoger(); limpiar();
@@ -13549,9 +12750,8 @@ function editarSello(base, duplicar, seguirId){
       const repe = DATOS.sellos.find(x => x.id !== s.id && norm(x.nombre) === norm(s.nombre));
       const antes = esNuevo ? null : JSON.parse(JSON.stringify(base));
       if(!esNuevo){
-        // Object.assign copia claves pero NUNCA las borra. Al pasar un sello a
-        // "a mano" se quitan robot_id y archivos de la copia de trabajo... y en
-        // el sello guardado seguían. Se quita primero lo que ya no está.
+        // Object.assign copia claves pero NUNCA las borra: se quita primero lo
+        // que ya no está en la copia de trabajo.
         for(const k of Object.keys(base)) if(!(k in s)) delete base[k];
         Object.assign(base, s);
       }
@@ -13571,8 +12771,8 @@ function editarSello(base, duplicar, seguirId){
 
   function recoger(){
     /* Si los campos no están puestos —porque encima hay una pantalla de las de
-       dentro, como la de elegir paso— NO se recoge nada. Sin esta guarda, cada
-       casilla se leería como vacía y se llevaría por delante lo escrito. */
+       dentro— NO se recoge nada. Sin esta guarda, cada casilla se leería como
+       vacía y se llevaría por delante lo escrito. */
     if(!document.getElementById('ed-s-nombre')) return false;
     const v = id => (document.getElementById(id)?.value ?? '').trim();
     const n = id => { const x = parseFloat(String(v(id)).replace(',','.'));
@@ -13583,7 +12783,7 @@ function editarSello(base, duplicar, seguirId){
     s.molde.sellos = n('ed-s-piezas');
     s.molde.largo = n('ed-s-largo');
     s.molde.ancho = n('ed-s-ancho');
-    s.notas = v('ed-s-notas');
+    s.medidas = {largo: n('ed-s-slargo'), ancho: n('ed-s-sancho')};
     const r = document.getElementById('ed-s-robot');
     if(r) s.robot_id = r.value || null;
     /* Y NADA MÁS. recoger() LEE, no limpia.
@@ -13591,38 +12791,41 @@ function editarSello(base, duplicar, seguirId){
        Esto era un fallo de verdad, contado por Juanjo: aquí se quitaban los
        archivos sin nombre, que parecía lo natural... hasta que el borrador
        automático empezó a llamar a recoger() cada 400 ms. Escribías primero
-       "para qué es", te lo pensabas, y al ir a escribir el nombre la fila ya
-       no existía por debajo: lo tecleado no iba a ningún sitio y el sello se
-       guardaba sin archivo. Dos intentos y dos guardados para que saliera.
-
-       Todo lo que quita, ordena o normaliza va en limpiar(), que solo corre al
-       guardar de verdad. Lo que corre mientras se escribe no puede tirar nada. */
+       el nombre a medias, y al ir a escribirlo la fila ya no existía por
+       debajo: lo tecleado no iba a ningún sitio y el sello se guardaba sin
+       archivo. Todo lo que quita, ordena o normaliza va en limpiar(), que solo
+       corre al guardar de verdad. Lo que corre mientras se escribe no puede
+       tirar nada. */
     return true;
   }
 
-  /** Lo que se hace SOLO al guardar: quitar lo vacío y lo que no aplica. */
+  /** Lo que se hace SOLO al guardar: quitar lo vacío. */
   function limpiar(){
-    // El robot solo si el sello se hace en robot: si se pasa a "a mano", el
-    // programa deja de tener sentido y guardarlo sería dejar un dato muerto
-    // que luego contradice a la ficha.
-    if(s.robot){
-      s.archivos = (s.archivos || [])
-        .map(f=>({nombre: (f.nombre||'').trim(), para: (f.para||'').trim()}))
-        .filter(f=>f.nombre);
-      if(!s.archivos.length) delete s.archivos;
-    }else{
-      delete s.robot_id;
-      delete s.archivos;
-    }
+    // Siempre hay un robot (Juanjo, 30-sep: «siempre será 1 robot y 1 o más
+    // archivos»): el interruptor «a mano» ya no existe.
+    s.robot = true;
+    s.archivos = (s.archivos || [])
+      .map(f=>({...f, nombre: (f.nombre||'').trim()}))
+      .filter(f=>f.nombre);
+    if(!s.archivos.length) delete s.archivos;
+    if(s.medidas && s.medidas.largo == null && s.medidas.ancho == null) delete s.medidas;
   }
 
   /* Lo escrito se guarda según se escribe, con un respiro: guardar en cada
-     tecla serían cien escrituras por campo. 400 ms es de sobra —lo que tarda
-     en pasar cualquier cosa de las que antes se lo llevaban todo— y no se
-     nota. */
+     tecla serían cien escrituras por campo. 400 ms es de sobra y no se nota. */
   let relojBorrador = null;
-  const huella = x => JSON.stringify(x);
-  const huellaBase = huella(base ? {...JSON.parse(JSON.stringify(base)), pasos: base.pasos || [], molde: base.molde || {}} : null);
+  /* La «forma» de un sello: solo lo que este editor toca, y escrito siempre
+     igual (un campo que falta = vacío). Se compara la del borrador con la del
+     guardado: si no ha cambiado nada no hay nada que recuperar. */
+  const forma = x => JSON.stringify({
+    n: (x.nombre || '').trim().toUpperCase(), c: (x.cliente || '').trim().toUpperCase(),
+    m: [(x.molde && x.molde.numero) || '', (x.molde && x.molde.sellos) ?? null,
+        (x.molde && x.molde.largo) ?? null, (x.molde && x.molde.ancho) ?? null],
+    s: [(x.medidas && x.medidas.largo) ?? null, (x.medidas && x.medidas.ancho) ?? null],
+    r: x.robot_id || null,
+    a: (x.archivos || []).map(f => (f.nombre || '').trim()).filter(Boolean),
+  });
+  const huellaBase = base ? forma(base) : null;
   function apuntarBorrador(){
     clearTimeout(relojBorrador);
     relojBorrador = setTimeout(()=>{
@@ -13630,10 +12833,10 @@ function editarSello(base, duplicar, seguirId){
       if(!recoger()) return;
       // Un formulario totalmente en blanco no se guarda: si no, abrir "Nuevo
       // sello" y cerrarlo dejaría un borrador vacío molestando en la lista.
-      if(!(s.nombre || s.cliente || s.pasos.length || s.molde.numero)) return;
+      if(!(s.nombre || s.cliente || s.molde.numero)) return;
       // Y un sello que ya existe, SOLO si de verdad ha cambiado algo: abrirlo
       // para mirar y cerrarlo no puede dejar un "recuperado" fantasma.
-      if(!esNuevo && huella(s) === huellaBase){ tirarBorrador(s.id); return; }
+      if(!esNuevo && forma(s) === huellaBase){ tirarBorrador(s.id); return; }
       guardarBorrador(s, esNuevo);
     }, 400);
   }
@@ -13641,234 +12844,11 @@ function editarSello(base, duplicar, seguirId){
   pintar();
   if(!$dlg.open) $dlg.showModal();
 }
-
-/* Reordenar arrastrando, además de con las flechas.
-
-   Las flechas se quedan: con guantes y con prisa, un botón grande no falla, y
-   arrastrar en una lista dentro de un diálogo que ya se desplaza es
-   resbaladizo. Pero subir un paso seis posiciones son seis toques, y eso metiendo
-   doscientas fichas se nota.
-
-   Va con eventos de puntero —valen igual para el dedo y para el ratón— y
-   MOVIENDO EL NODO en el documento, no repintando en cada milímetro: repintar
-   destruiría el elemento que se está arrastrando y se perdería el gesto a
-   medias. Al soltar se rehace la lista leyendo el orden que quedó. */
-function enlazarArrastre(s, pintar){
-  const $lista = document.getElementById('ed-pasos');
-  if(!$lista) return;
-  let fila = null, id = null;
-
-  $lista.addEventListener('pointerdown', e=>{
-    const asa = e.target.closest('[data-asa]');
-    if(!asa) return;
-    fila = asa.closest('.ed-paso');
-    if(!fila) return;
-    id = e.pointerId;
-    fila.classList.add('arrastrando');
-    try{ asa.setPointerCapture(id); }catch(_){}
-    e.preventDefault();
-  });
-
-  $lista.addEventListener('pointermove', e=>{
-    if(!fila || e.pointerId !== id) return;
-    for(const otra of $lista.querySelectorAll('.ed-paso')){
-      if(otra === fila) continue;
-      const r = otra.getBoundingClientRect();
-      if(e.clientY < r.top || e.clientY > r.bottom) continue;
-      $lista.insertBefore(fila, e.clientY < r.top + r.height / 2 ? otra : otra.nextSibling);
-      break;
-    }
-    e.preventDefault();
-  });
-
-  const soltar = ()=>{
-    if(!fila) return;
-    fila.classList.remove('arrastrando');
-    fila = null; id = null;
-    const orden = [...$lista.querySelectorAll('.ed-paso')].map(el => +el.dataset.i);
-    // Si nada se movió, no se toca el array ni se repinta.
-    if(orden.every((v, k) => v === k)) return;
-    s.pasos = orden.map(k => s.pasos[k]);
-    pintar();
-  };
-  $lista.addEventListener('pointerup', soltar);
-  $lista.addEventListener('pointercancel', soltar);
-}
-
-function filaPasoEditor(p, i, s){
-  const t = tipoPaso(p.tipo);
-  const a = aguja(p.aguja);
-  const trozos = [];
-  /* En un paso de color, la línea de arriba es EL COLOR y la parte; el verbo
-     («Inyectar», «Engomar») baja a la línea de detalle. En el móvil quedan unos
-     200 px para el nombre, y con el verbo delante se cortaba en «Inyectar A…»:
-     la bolita ya dice que es un color, y lo que hay que reconocer es cuál. */
-  if(t.color && p.ref) trozos.push(t.t);
-  if(p.segundos != null && p.segundos !== '') trozos.push(`${fmt(p.segundos)} s`);
-  if(t.robot && s.robot){
-    if(a) trozos.push(a.nombre);
-    else if(p.aguja) trozos.push('aguja no encontrada');
-    if(p.bar != null && p.bar !== '') trozos.push(`${fmt(p.bar)} bar`);
-  }
-  /* DOS botones por fila, no cuatro. Las flechas de subir y bajar sobraban
-     desde que la lista se arrastra: con ocho pasos eran 32 botoncitos en una
-     pantalla de móvil, y la mitad no hacían nada que no hiciera el dedo. Se
-     quedan duplicar y quitar, que no tienen otra forma de hacerse.
-
-     El asa de arrastre es el número, y ahora lo dice: con el cursor de mover y
-     los tres puntitos al lado, para que se vea que se puede coger. */
-  return `<div class="ed-paso" data-i="${i}">
-    <div class="ed-paso-n" data-asa title="Arrastra para mover" aria-label="Arrastra para mover">
-      <b>${i+1}</b><i class="asa-puntos" aria-hidden="true"></i>
-    </div>
-    <button class="ed-paso-cuerpo" data-paso-ed="${i}">
-      <span class="ed-paso-q">${t.color && p.ref
-        ? `<i style="background:${colorHexDe(p.ref)}"></i><span class="q-txt">${esc(p.nombre||'')}</span>${
-            p.parte ? `<em class="s-parte">${esc(p.parte)}</em>` : ''}`
-        : `<span class="q-txt">${esc(t.t)}</span>`}</span>
-      ${trozos.length ? `<small>${esc(trozos.join(' · '))}</small>` : ''}
-    </button>
-    <div class="ed-paso-btns">
-      <button data-paso-copia="${i}" aria-label="Duplicar" title="Duplicar este paso">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 9h11v11H9z" fill="currentColor" stroke="none" opacity=".3"/><path d="M9 9h11v11H9z"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg></button>
-      <button data-paso-fuera="${i}" aria-label="Quitar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
-    </div>
-  </div>`;
-}
-
-/** El desplegable de los once tipos. */
-function elegirTipoPaso(s, volver){
-  $dt.textContent = 'Añadir paso';
-  $dc.innerHTML = `<div class="menu-pasos">${TIPOS_PASO.map(t=>
-    `<button data-nuevo="${t.k}"><span class="ic">${svgPaso(t.k)}</span>${t.t}</button>`).join('')}</div>`;
-  $dp.innerHTML = `<button class="btn" id="paso-cancelar">Cancelar</button>`;
-  document.getElementById('paso-cancelar').onclick = volver;
-  for(const b of $dc.querySelectorAll('[data-nuevo]'))
-    b.onclick = ()=>{
-      s.pasos.push({tipo: b.dataset.nuevo});
-      editarPaso(s, s.pasos.length - 1, volver, true);
-    };
-}
-
-/** Las casillas de un paso. Solo salen las que ese tipo guarda.
-
-    `mover` es lo que sustituye a las flechas que había en cada fila de la
-    lista: allí eran 32 botoncitos para ocho pasos y la mitad no hacían nada
-    que no hiciera el dedo arrastrando. Aquí son dos botones grandes, dentro
-    del paso que ya has abierto, y quedan como red de seguridad para el día
-    que arrastrar no salga —con guantes, con prisa o con la pantalla mojada—. */
-function editarPaso(s, i, volver, esNuevo, mover){
-  const p = s.pasos[i];
-  if(!p) return volver();
-  const t = tipoPaso(p.tipo);
-  const conRobot = t.robot && s.robot;
-  $dt.textContent = `Paso ${i+1} · ${t.t}`;
-  $dc.innerHTML =
-    (t.color ? `<label class="campo"><span>Color</span>
-        <input id="p-color" autocomplete="off" placeholder="Escribe y elige de la lista"
-               value="${esc(p.nombre||'')}">
-        <div class="sug-colores" id="p-sug" hidden></div></label>
-      <label class="campo"><span>Parte del sello</span>
-        <input id="p-parte" autocomplete="off" list="p-partes"
-               placeholder="bandera, letras, fondo…" value="${esc(p.parte||'')}">
-        <datalist id="p-partes">${partesUsadas(s).map(x=>
-          `<option value="${esc(x)}">`).join('')}</datalist></label>` : '')
-    + (t.segundos ? `<label class="campo"><span>Tiempo (segundos)</span>
-        <input id="p-seg" type="number" inputmode="numeric" min="0" step="1"
-               value="${p.segundos ?? ''}"></label>` : '')
-    + (conRobot ? `<label class="campo"><span>Aguja</span>
-        <select id="p-aguja">
-          <option value="">Sin aguja</option>
-          ${/* Ordenadas por medida, igual que la pantalla de agujas: eligiendo
-                 aguja en mitad de una ficha, el desplegable tiene que estar en el
-                 mismo orden que la lista o se elige la de al lado. */''}
-          ${agujasPorGrupo().map(g=>`<optgroup label="${esc(g.nombre)}">${g.agujas.map(a=>
-            `<option value="${esc(a.id)}"${a.id===p.aguja?' selected':''}>${esc(a.nombre)}</option>`).join('')}</optgroup>`).join('')}
-        </select></label>
-      <label class="campo"><span>Presión (bar)</span>
-        <input id="p-bar" type="number" inputmode="decimal" min="0" step="0.1"
-               value="${p.bar ?? ''}"></label>
-      <button class="btn btn-fino" id="p-agujas">Gestionar agujas</button>` : '')
-    + (!t.color && !t.segundos && !conRobot
-        ? '<p class="s-nada">Este paso no guarda ningún dato.</p>' : '');
-  if(mover && !esNuevo && s.pasos.length > 1)
-    $dc.insertAdjacentHTML('beforeend', `<div class="p-mover">
-      <span>Mover el paso</span>
-      <button class="btn btn-fino" id="p-sube" ${i === 0 ? 'disabled' : ''}>Arriba</button>
-      <button class="btn btn-fino" id="p-baja" ${i === s.pasos.length - 1 ? 'disabled' : ''}>Abajo</button>
-    </div>`);
-  document.getElementById('p-sube')?.addEventListener('click', ()=>mover(-1));
-  document.getElementById('p-baja')?.addEventListener('click', ()=>mover(1));
-
-  $dp.innerHTML = `<button class="btn" id="p-cancelar">${esNuevo?'Quitar':'Cancelar'}</button>
-    <button class="btn btn-1" id="p-ok">${esNuevo?'Añadir':'Guardar'}</button>`;
-
-  document.getElementById('p-cancelar').onclick = ()=>{
-    if(esNuevo) s.pasos.splice(i, 1);
-    volver();
-  };
-  /* A la pantalla del taller, con el cajón de las agujas ya abierto, y de
-     vuelta a este mismo paso al salir. */
-  document.getElementById('p-agujas')?.addEventListener('click',
-    ()=>pantallaTaller(()=>editarPaso(s, i, volver, esNuevo, mover), 'agujas'));
-
-  // El buscador de colores: el mismo criterio que el de las fórmulas.
-  const $c = document.getElementById('p-color');
-  const $sug = document.getElementById('p-sug');
-  let elegido = p.ref || null;
-  if($c){
-    const pintarSug = ()=>{
-      const t2 = norm($c.value);
-      if(!t2){ $sug.hidden = true; return; }
-      const res = DATOS.formulas.filter(f => norm(f.nombre).includes(t2)).slice(0, 8);
-      if(!res.length){ $sug.hidden = true; return; }
-      $sug.hidden = false;
-      $sug.innerHTML = res.map(f=>`<button data-f="${f.id}">
-        <span class="muestra s" style="background:${color(f).hex}"></span>
-        ${resaltar(f.nombre, $c.value)}</button>`).join('');
-      for(const b of $sug.querySelectorAll('[data-f]'))
-        b.onclick = ()=>{
-          elegido = b.dataset.f;
-          $c.value = porId.get(elegido).nombre;
-          $sug.hidden = true;
-        };
-    };
-    $c.addEventListener('input', ()=>{ elegido = null; pintarSug(); });
-    $c.addEventListener('focus', pintarSug);
-  }
-
-  document.getElementById('p-ok').onclick = ()=>{
-    if(t.color){
-      if(!elegido){
-        // Si escribió el nombre exacto sin pulsar en la lista, vale igual.
-        const f = DATOS.formulas.find(x => norm(x.nombre) === norm($c.value));
-        if(f) elegido = f.id;
-      }
-      if(!elegido) return brindis('Elige un color de la lista');
-      p.ref = elegido;
-      p.nombre = porId.get(elegido).nombre;
-      p.parte = (document.getElementById('p-parte').value || '').trim();
-    }
-    if(t.segundos){
-      const v = parseFloat(String(document.getElementById('p-seg').value).replace(',','.'));
-      p.segundos = isFinite(v) ? v : null;
-    }
-    if(conRobot){
-      p.aguja = document.getElementById('p-aguja').value || null;
-      const v = parseFloat(String(document.getElementById('p-bar').value).replace(',','.'));
-      p.bar = isFinite(v) ? v : null;
-    }
-    volver();
-  };
-}
-
-/* ── LAS AGUJAS ──────────────────────────────────────────────────── */
 /* ── LOS CLIENTES ─────────────────────────────────────────────────────
    La lista sale de los sellos, no al revés: aquí solo se le pone el número a
    cada uno. Así un cliente no puede quedarse huérfano ni desaparecer de la app
    porque alguien lo borre de este listado. */
-/* Las tres listas del taller —clientes, agujas y robots— se pintan igual
+/* Las dos listas del taller —clientes y robots— se pintan igual
    dentro de su propia pantalla o dentro de un desplegable de la pantalla
    «Taller». `caja` es dónde: si no viene, mandan $dc y el pie del diálogo,
    como toda la vida. `alCambiar` sirve para que el resumen del desplegable se
@@ -14026,13 +13006,9 @@ ORIGEN Y COMUNICACIÓN, S.L.&#9;4088
   setTimeout(()=>$t.focus(), 50);
 }
 
-/** Cuántos sellos usan esta aguja. */
-const sellosConAguja = id => DATOS.sellos.filter(s=>(s.pasos||[]).some(p=>p.aguja === id)).length;
-
 /* ── LOS ROBOTS ───────────────────────────────────────────────────────
-   Mismo planteamiento que las agujas: el sello guarda el ID del robot, no su
-   nombre ni sus inyectores. Si un día le cambias el nombre a uno o le montan
-   inyectores, se corrige aquí y todos sus sellos lo enseñan al día. */
+   El sello guarda el ID del robot, no su nombre. Si un día le cambias el
+   nombre a uno, se corrige aquí y todos sus sellos lo enseñan al día. */
 const robot = id => ROBOTS.find(r => r.id === id) || null;
 const sellosEnRobot = id => DATOS.sellos.filter(s => s.robot_id === id).length;
 const robotsOrdenados = () =>
@@ -14049,32 +13025,6 @@ function guardarRobots(){
 /** Los archivos del programa, ya limpios. */
 const archivosDe = s => (s.archivos || []).filter(a => a && (a.nombre || '').trim());
 
-/* ¿Cabe el sello en su robot?
-
-   Dos decisiones, y las dos cambian el número:
-
-   1. Se cuentan COLORES DISTINTOS, no inyecciones. Un inyector lleva un color,
-      y el mismo color inyectado dos veces —bandera y letras— sale del mismo
-      inyector. Contar inyecciones daría avisos falsos justo en los sellos más
-      trabajados, que son los que más repiten color.
-
-   2. Solo cuentan los colores que se INYECTAN. El engomado también es un
-      color del sello y sale en la lista de colores, pero no entra por un
-      inyector, así que sumarlo aquí sería inflar la cuenta y avisar de que no
-      cabe un sello que cabe. */
-function coloresInyectados(s){
-  const vistos = new Set();
-  for(const p of (s.pasos || []))
-    if(p.tipo === 'inyectar' && p.ref) vistos.add(p.ref);
-  return vistos.size;
-}
-function cabeEnRobot(s){
-  const r = robot(s.robot_id);
-  if(!r || !r.inyectores) return null;              // sin robot o sin dato, no se opina
-  const colores = coloresInyectados(s);
-  return {robot: r, colores, inyectores: r.inyectores, cabe: colores <= r.inyectores};
-}
-
 function pantallaRobots(volver, caja, alCambiar){
   let editando = null;
   let dando = false;        // ¿está desplegado el formulario de alta?
@@ -14085,9 +13035,6 @@ function pantallaRobots(volver, caja, alCambiar){
         <label class="campo ancho"><span>Nombre del robot</span>
           <input id="rb-nombre" value="${esc(r.nombre || '')}"
                  placeholder="Robot 1" autocomplete="off"></label>
-        <label class="campo"><span>Inyectores</span>
-          <input id="rb-iny" type="number" inputmode="numeric" min="1" step="1"
-                 value="${r.inyectores ?? ''}" autocomplete="off"></label>
       </div>
       <div class="ag-form-btns">
         ${cual === 'nuevo'
@@ -14102,8 +13049,7 @@ function pantallaRobots(volver, caja, alCambiar){
     if(!caja) $dt.textContent = 'Robots';
     $z.innerHTML = `
       <p style="margin:0 0 14px;font-size:13.5px;color:var(--texto-2);line-height:1.5">
-        Cada sello dice en qué robot está su programa. Los inyectores sirven para
-        avisarte si un sello lleva más colores de los que caben.
+        Cada sello dice en qué robot está su programa.
         ${puedeEditar ? '<br>Pulsa uno para corregirlo: <b>los sellos que lo usan se actualizan solos</b>.' : ''}</p>
       ${ROBOTS.length ? `<div class="agujas-lista">${robotsOrdenados().map(r=>{
         if(editando === r.id) return formulario(r, r.id);
@@ -14111,10 +13057,7 @@ function pantallaRobots(volver, caja, alCambiar){
         return `<div class="aguja-fila robot-fila${puedeEditar ? ' editable' : ''}"${
           puedeEditar ? ` data-rb-ed="${esc(r.id)}" role="button" tabindex="0"` : ''}>
           <div class="aguja-nom">${esc(r.nombre)}
-            <small>${r.inyectores
-              ? `<b>${r.inyectores}</b> inyectores`
-              : '<span class="sin-medida">sin inyectores apuntados</span>'}${
-              n ? ` · ${n} sello${n===1?'':'s'}` : ''}</small></div>
+            <small>${n ? `${n} sello${n===1?'':'s'}` : 'sin sellos todavía'}</small></div>
           ${puedeEditar ? `<span class="aguja-lapiz" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5l4 4-2.5 2.5-4-4z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4 20h4l10.5-10.5a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13 7l4 4"/></svg>
           </span>
@@ -14141,8 +13084,7 @@ function pantallaRobots(volver, caja, alCambiar){
 
     const leerForm = ()=>{
       const nombre = (document.getElementById('rb-nombre').value || '').trim();
-      const iny = parseInt(String(document.getElementById('rb-iny').value), 10);
-      return {nombre, inyectores: isFinite(iny) && iny > 0 ? iny : null};
+      return {nombre};
     };
 
     for(const el of $z.querySelectorAll('[data-rb-ed]')){
@@ -14164,12 +13106,11 @@ function pantallaRobots(volver, caja, alCambiar){
       const r = ROBOTS.find(x => x.id === editando);
       if(!r){ editando = null; return pintar(); }
       const n = sellosEnRobot(r.id);
-      const antes = {nombre: r.nombre, inyectores: r.inyectores};
+      const antes = {nombre: r.nombre};
       Object.assign(r, d);
       guardarRobots();
       apuntar('sello-ajuste', {id:null, nombre: r.nombre}, {que:'robot', accion:'corregido',
         antes: antes.nombre !== r.nombre ? antes.nombre : undefined,
-        cambio: antes.inyectores !== r.inyectores ? `inyectores ${antes.inyectores ?? '—'} → ${r.inyectores ?? '—'}` : undefined,
         sellos: n});
       editando = null; pintar(); alCambiar?.();
       if(SECCION === 'sellos' && selloSel) pintarFichaSello();
@@ -14193,8 +13134,7 @@ function pantallaRobots(volver, caja, alCambiar){
       ROBOTS.push({id: 'rb-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,5), ...d});
       dando = false;
       guardarRobots(); pintar(); alCambiar?.();
-      apuntar('sello-ajuste', {id:null, nombre: d.nombre}, {que:'robot', accion:'añadido',
-        cambio: d.inyectores ? `${d.inyectores} inyectores` : undefined});
+      apuntar('sello-ajuste', {id:null, nombre: d.nombre}, {que:'robot', accion:'añadido'});
       brindis('Robot añadido');
     });
     if(!$dlg.open) $dlg.showModal();
@@ -14202,299 +13142,10 @@ function pantallaRobots(volver, caja, alCambiar){
   pintar();
 }
 
-/* ── El orden de las agujas ───────────────────────────────────────────
-   Juanjo pidió poder mover cada aguja de sitio para tenerlas siempre por
-   tamaño. Pero la aguja YA guarda su medida, así que el orden por tamaño no
-   hay que mantenerlo: se calcula. Colocarlas a mano daría el mismo resultado
-   una vez y se rompería a la siguiente, porque la aguja nueva caería al final
-   y habría que volver a arrastrarla.
-
-   Se ordena al PINTAR, no se reordena lo guardado: así no hay un "orden"
-   escrito en ningún sitio que pueda contradecir a las medidas, ni nada que
-   migrar. Las que no tienen medida no se pueden colocar por tamaño, así que
-   van al final; a igual medida, por nombre, para que el orden no baile entre
-   dos aparatos. */
-function agujasOrdenadas(){
-  return AGUJAS.slice().sort((a, b)=>{
-    const ma = a.medida == null || a.medida === '' ? Infinity : +a.medida;
-    const mb = b.medida == null || b.medida === '' ? Infinity : +b.medida;
-    return ma - mb || String(a.nombre).localeCompare(String(b.nombre), 'es');
-  });
-}
-
-function pantallaAgujas(volver, caja, alCambiar){
-  // Qué fila está abierta para editar. null = ninguna, 'nueva' = el formulario
-  // de dar de alta.
-  let editando = null;
-  let renombrando = null;     // la clave del grupo cuyo nombre se está cambiando
-  let dando = false;          // ¿está desplegado el formulario de alta?
-  let verGrupos = false;      // ¿está desplegado el cajón de los grupos?
-
-  /* El formulario, uno solo, que sirve para alta y para edición. Tener dos
-     copias del mismo formulario acabaría con uno de los dos desactualizado el
-     día que se añada un campo. */
-  const formulario = (a, cual) => `
-    <div class="ag-form" data-form="${cual}">
-      <div class="ed-rejilla">
-        <label class="campo ancho"><span>Nombre</span>
-          <input id="ag-nombre" value="${esc(a.nombre || '')}"
-                 placeholder="Cónica 0,84 azul" autocomplete="off"></label>
-        <label class="campo"><span>Medida (mm)</span>
-          <input id="ag-medida" type="number" inputmode="decimal" min="0" step="0.01"
-                 value="${a.medida ?? ''}" autocomplete="off"></label>
-        <label class="campo"><span>Color de la punta</span>
-          <input id="ag-color" type="color" value="${esc(a.color || '#2f66c4')}"></label>
-      </div>
-      <div class="campo" style="margin-bottom:10px"><span>Grupo</span>
-        <div class="chips-grupo" role="radiogroup" aria-label="Grupo de la aguja">
-          ${TIPOS_AGUJA.map(tp => `<button type="button" class="chip" data-ag-tipo="${esc(tp.k)}"
-              aria-pressed="${(a.tipo || 'conica') === tp.k}">${esc(tp.nombre)}</button>`).join('')}
-          <button type="button" class="chip chip-mas" id="ag-grupo-mas">+ Grupo nuevo</button>
-        </div>
-        <div class="ag-grupo-nuevo" id="ag-grupo-nuevo" hidden>
-          <input id="ag-grupo-nombre" placeholder="Nombre del grupo (p. ej. Teflón)" autocomplete="off">
-          <button type="button" class="btn btn-fino" id="ag-grupo-ok">Crear</button>
-        </div>
-      </div>
-      <div class="ag-form-btns">
-        ${cual === 'nueva'
-          ? `<button class="btn btn-1" id="ag-add" style="width:100%">Añadir aguja</button>`
-          : `<button class="btn" id="ag-cancelar">Cancelar</button>
-             <button class="btn btn-1" id="ag-guardar">Guardar cambios</button>`}
-      </div>
-    </div>`;
-
-  const pintar = ()=>{
-    const $z = caja || $dc;
-    if(!caja) $dt.textContent = 'Agujas';
-    $z.innerHTML = `
-      <p style="margin:0 0 14px;font-size:13.5px;color:var(--texto-2);line-height:1.5">
-        Tu lista. Se dan de alta aquí una vez y luego se eligen de un desplegable en
-        cada inyección, así no acaban escritas de cuatro maneras distintas.
-        ${puedeEditar ? `<br>Van <b>ordenadas por medida</b> ellas solas: al corregir una,
-          se coloca donde le toca. Pulsa una para corregirla —
-          <b>los sellos que la usan se actualizan solos</b>.` : ''}</p>
-      ${AGUJAS.length ? agujasPorGrupo().map(g => `
-        <p class="aj-titulo">${esc(g.nombre)} <span class="n">${g.agujas.length}</span></p>
-        <div class="agujas-lista">${g.agujas.map(a=>{
-        // Por id y no por posición en el array: lo que se pinta va ordenado por
-        // medida, así que la posición de la fila ya no es la del array.
-        if(editando === a.id) return formulario(a, a.id);
-        const usada = sellosConAguja(a.id);
-        return `<div class="aguja-fila${puedeEditar ? ' editable' : ''}"${
-          puedeEditar ? ` data-aguja-ed="${esc(a.id)}" role="button" tabindex="0"` : ''}>
-          <span class="punta" style="background:${esc(a.color||'#8a8f95')}"></span>
-          <div class="aguja-nom">${esc(a.nombre)}
-            <small>${a.medida ? esc(fmt(a.medida)) + ' mm' : '<span class="sin-medida">sin medida</span>'}${
-              usada ? ` · <b>${usada}</b> sello${usada===1?'':'s'}` : ''}</small></div>
-          ${puedeEditar ? `<span class="aguja-lapiz" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5l4 4-2.5 2.5-4-4z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4 20h4l10.5-10.5a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13 7l4 4"/></svg>
-          </span>
-          <button class="aguja-x" data-aguja-fuera="${esc(a.id)}" aria-label="Quitar ${esc(a.nombre)}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
-          </button>` : ''}
-        </div>`;
-      }).join('')}</div>`).join('')
-        : '<p class="s-nada">Todavía no hay ninguna aguja dada de alta.</p>'}
-      ${/* El alta, plegada. Desplegada de serie se comía 460 px de los 1.127 de
-            la pantalla en el móvil —medido— mientras las cuatro agujas que hay
-            de verdad ocupaban 232. El formulario vacío pesaba el doble que los
-            datos. */''}
-      ${puedeEditar && editando === null
-        ? (dando
-            ? `<div class="aguja-nueva">${formulario({}, 'nueva')}</div>`
-            : `<button class="btn-anadir" id="ag-desplegar">
-                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-                 Añadir una aguja</button>`)
-        : ''}
-      ${puedeEditar ? `<details class="ag-grupos"${verGrupos ? ' open' : ''} id="ag-caja-grupos">
-        <summary class="aj-titulo">Grupos <span class="n">${TIPOS_AGUJA.length}</span></summary>
-        <p class="op-p flojo">Metal, cónica… lo que te sirva para encontrar la aguja. Un grupo
-          con agujas dentro no se puede quitar; pulsa su nombre para renombrarlo.</p>
-        <div class="chips-grupo">${TIPOS_AGUJA.map(tp => { const n = AGUJAS.filter(a => (a.tipo || 'conica') === tp.k).length;
-          return `<span class="chip chip-grupo${renombrando === tp.k ? ' on' : ''}"><button type="button" data-grupo-ren="${esc(tp.k)}">${esc(tp.nombre)} <span class="n">${n}</span></button>${
-            n ? '' : `<button type="button" class="chip-x" data-grupo-fuera="${esc(tp.k)}" aria-label="Quitar el grupo ${esc(tp.nombre)}">×</button>`}</span>`; }).join('')}
-        </div>
-        ${renombrando ? `<div class="ag-grupo-nuevo">
-          <input id="ag-grupo-ren-nombre" value="${esc((tipoAguja(renombrando) || {}).nombre || '')}" autocomplete="off" aria-label="Nuevo nombre del grupo">
-          <button type="button" class="btn btn-fino" id="ag-grupo-ren-ok">Renombrar</button>
-          <button type="button" class="btn btn-fino" id="ag-grupo-ren-no">Cancelar</button>
-        </div>` : ''}</details>` : ''}`;
-    if(!caja){
-      $dp.innerHTML = `<button class="btn btn-1" id="ag-volver">${volver ? 'Volver' : 'Cerrar'}</button>`;
-      document.getElementById('ag-volver').onclick = ()=>{ if(volver) volver(); else $dlg.close(); };
-    }
-    $z.querySelector('#ag-desplegar')?.addEventListener('click', ()=>{
-      dando = true; pintar(); document.getElementById('ag-nombre')?.focus();
-    });
-    $z.querySelector('#ag-caja-grupos')?.addEventListener('toggle', e=>{ verGrupos = e.target.open; });
-
-    // El grupo elegido en el formulario que esté abierto.
-    let tipoAg = editando === null || editando === 'nueva'
-      ? (TIPOS_AGUJA[0] || {}).k || 'conica'
-      : (AGUJAS.find(x => x.id === editando)?.tipo || 'conica');
-    if(!tipoAguja(tipoAg) && TIPOS_AGUJA.length && (editando === null || editando === 'nueva')) tipoAg = TIPOS_AGUJA[0].k;
-    for(const b of $z.querySelectorAll('[data-ag-tipo]'))
-      b.onclick = ()=>{
-        tipoAg = b.dataset.agTipo;
-        for(const o of $z.querySelectorAll('[data-ag-tipo]'))
-          o.setAttribute('aria-pressed', String(o === b));
-      };
-    /* Un grupo nuevo desde el propio formulario: se crea y queda elegido, sin
-       salir de lo que estabas dando de alta. */
-    document.getElementById('ag-grupo-mas')?.addEventListener('click', ()=>{
-      const caja = document.getElementById('ag-grupo-nuevo');
-      caja.hidden = !caja.hidden;
-      if(!caja.hidden) document.getElementById('ag-grupo-nombre').focus();
-    });
-    const crearGrupo = ()=>{
-      const nombre = (document.getElementById('ag-grupo-nombre').value || '').trim();
-      if(!nombre) return brindis('Ponle un nombre al grupo');
-      if(TIPOS_AGUJA.some(x => norm(x.nombre) === norm(nombre))) return brindis('Ese grupo ya existe');
-      let k = claveGrupo(nombre), i = 2;
-      while(tipoAguja(k)) k = claveGrupo(nombre) + '-' + i++;
-      TIPOS_AGUJA.push({k, nombre});
-      guardarTiposAguja();
-      apuntar('sello-ajuste', {id:null, nombre}, {que:'grupo-agujas', accion:'creado'});
-      // Se guarda lo escrito en el formulario para no perderlo al repintar.
-      const f = leerForm(); f.tipo = k;
-      pintar();
-      const n = document.getElementById('ag-nombre'); if(n){ n.value = f.nombre; }
-      const m = document.getElementById('ag-medida'); if(m){ m.value = f.medida ?? ''; }
-      const c = document.getElementById('ag-color'); if(c){ c.value = f.color; }
-      $z.querySelector(`[data-ag-tipo="${k}"]`)?.click();
-      brindis(`Grupo «${nombre}» creado`);
-    };
-    document.getElementById('ag-grupo-ok')?.addEventListener('click', crearGrupo);
-    document.getElementById('ag-grupo-nombre')?.addEventListener('keydown', e=>{
-      if(e.key === 'Enter'){ e.preventDefault(); crearGrupo(); }
-    });
-    for(const b of $z.querySelectorAll('[data-grupo-ren]'))
-      b.onclick = ()=>{
-        renombrando = renombrando === b.dataset.grupoRen ? null : b.dataset.grupoRen;
-        pintar();
-        const i = document.getElementById('ag-grupo-ren-nombre'); if(i){ i.focus(); i.select(); }
-      };
-    const renombrarGrupo = ()=>{
-      const tp = tipoAguja(renombrando); if(!tp){ renombrando = null; return pintar(); }
-      const nombre = (document.getElementById('ag-grupo-ren-nombre').value || '').trim();
-      if(!nombre) return brindis('Ponle un nombre al grupo');
-      if(TIPOS_AGUJA.some(x => x !== tp && norm(x.nombre) === norm(nombre))) return brindis('Ese grupo ya existe');
-      if(nombre !== tp.nombre){
-        const antes = tp.nombre; tp.nombre = nombre;
-        guardarTiposAguja();
-        apuntar('sello-ajuste', {id:null, nombre}, {que:'grupo-agujas', accion:'renombrado', antes});
-      }
-      renombrando = null; pintar();
-    };
-    document.getElementById('ag-grupo-ren-ok')?.addEventListener('click', renombrarGrupo);
-    document.getElementById('ag-grupo-ren-no')?.addEventListener('click', ()=>{ renombrando = null; pintar(); });
-    document.getElementById('ag-grupo-ren-nombre')?.addEventListener('keydown', e=>{
-      if(e.key === 'Enter'){ e.preventDefault(); renombrarGrupo(); }
-    });
-    for(const b of $z.querySelectorAll('[data-grupo-fuera]'))
-      b.onclick = ()=>{
-        const k = TIPOS_AGUJA.findIndex(x => x.k === b.dataset.grupoFuera);
-        if(k < 0) return;
-        if(AGUJAS.some(a => (a.tipo || 'conica') === TIPOS_AGUJA[k].k)) return brindis('Ese grupo tiene agujas dentro');
-        const [ido] = TIPOS_AGUJA.splice(k, 1);
-        guardarTiposAguja();
-        apuntar('sello-ajuste', {id:null, nombre: ido.nombre}, {que:'grupo-agujas', accion:'quitado'});
-        pintar();
-      };
-
-    const leerForm = ()=>{
-      const nombre = (document.getElementById('ag-nombre').value || '').trim();
-      const med = parseFloat(String(document.getElementById('ag-medida').value).replace(',','.'));
-      return {nombre, tipo: tipoAg,
-              medida: isFinite(med) ? med : null,
-              color: document.getElementById('ag-color').value || '#8a8f95'};
-    };
-
-    // Abrir una fila para editarla.
-    for(const el of $z.querySelectorAll('[data-aguja-ed]')){
-      const abrir = e=>{
-        if(e.target.closest('.aguja-x')) return;     // la X es otra cosa
-        editando = el.dataset.agujaEd; pintar();
-        document.getElementById('ag-nombre')?.focus();
-      };
-      el.onclick = abrir;
-      el.onkeydown = e=>{ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); abrir(e); } };
-    }
-    $z.querySelector('#ag-cancelar')?.addEventListener('click', ()=>{
-      editando = null; dando = false; pintar();
-    });
-    document.getElementById('ag-guardar')?.addEventListener('click', ()=>{
-      const d = leerForm();
-      if(!d.nombre) return brindis('Ponle un nombre a la aguja');
-      /* Se cambian los CAMPOS y NUNCA el id.
-         Es toda la clave de que esto funcione: los pasos de los sellos guardan
-         el id de la aguja, no sus medidas. Cambiando los campos, los sellos que
-         la usan enseñan lo nuevo en cuanto se repintan, sin tocar ni un sello y
-         sin nada que migrar. Si aquí se generara un id nuevo, cada sello se
-         quedaría apuntando a una aguja que ya no existe. */
-      const a = AGUJAS.find(x => x.id === editando);
-      if(!a){ editando = null; return pintar(); }
-      const usada = sellosConAguja(a.id);
-      const antes = {nombre: a.nombre, medida: a.medida, tipo: a.tipo};
-      Object.assign(a, d);
-      guardarAgujas();
-      apuntar('sello-ajuste', {id:null, nombre: a.nombre}, {que:'aguja', accion:'corregida',
-        antes: antes.nombre !== a.nombre ? antes.nombre : undefined,
-        cambio: [antes.medida !== a.medida ? `medida ${fmt(antes.medida ?? 0)} → ${fmt(a.medida ?? 0)} mm` : '',
-                 antes.tipo !== a.tipo ? `grupo ${nombreTipoAguja(antes.tipo)} → ${nombreTipoAguja(a.tipo)}` : ''].filter(Boolean).join(' · ') || undefined,
-        sellos: usada});
-      editando = null; pintar(); alCambiar?.();
-      // Y lo que ya está pintado por detrás, al día.
-      if(SECCION === 'sellos' && selloSel) pintarFichaSello();
-      brindis(usada
-        ? `Corregida · ${usada} sello${usada===1?'':'s'} al día`
-        : 'Aguja corregida');
-    });
-
-    for(const b of $z.querySelectorAll('[data-aguja-fuera]'))
-      b.onclick = e=>{
-        e.stopPropagation();
-        const k = AGUJAS.findIndex(x => x.id === b.dataset.agujaFuera);
-        if(k < 0) return;
-        const a = AGUJAS[k];
-        // Si está en uso, se avisa: quitarla dejaría pasos señalando a nada.
-        // Corregirla sí se puede, y es lo que casi siempre se quiere.
-        const usada = sellosConAguja(a.id);
-        if(usada) return brindis(
-          `No se puede quitar: la usan ${usada} sello${usada===1?'':'s'}. Púlsala para corregirla.`);
-        AGUJAS.splice(k, 1);
-        guardarAgujas(); pintar(); alCambiar?.();
-        apuntar('sello-ajuste', {id:null, nombre: a.nombre}, {que:'aguja', accion:'quitada'});
-      };
-
-    $z.querySelector('#ag-add')?.addEventListener('click', ()=>{
-      const d = leerForm();
-      if(!d.nombre) return brindis('Ponle un nombre a la aguja');
-      AGUJAS.push({
-        id: 'ag-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,5),
-        ...d,
-      });
-      dando = false;
-      guardarAgujas(); pintar(); alCambiar?.();
-      apuntar('sello-ajuste', {id:null, nombre: d.nombre}, {que:'aguja', accion:'añadida',
-        cambio: `${nombreTipoAguja(d.tipo)}${d.medida != null ? ' · ' + fmt(d.medida) + ' mm' : ''}`});
-      brindis('Aguja añadida');
-    });
-  };
-  pintar();
-  if(!$dlg.open) $dlg.showModal();
-}
-
-
 /* ── LA PANTALLA DEL TALLER ───────────────────────────────────────────
-   Clientes, agujas y robots vivían en tres pantallas separadas dentro de
-   Opciones → Los sellos: menú, bajar, elegir, entrar. Cuatro toques para ver
-   una lista de cuatro líneas, y otros cuatro para la siguiente.
-
-   Ahora son tres desplegables en una sola pantalla, con el resumen a la vista
-   aunque estén cerrados: así el aviso de «a un robot le falta un dato» se ve
-   sin entrar, que antes había que ir a buscarlo. Y se llega desde la propia
+   Clientes y robots, en una sola pantalla con un desplegable cada uno y el
+   resumen a la vista aunque estén cerrados. (Las agujas salieron el 30-sep con
+   la ficha simple; su pantalla está en archivo/ficha-completa-30sep.) Y se llega desde la propia
    sección de Sellos, no desde el menú general.
 
    Cada lista se pinta con la misma función que su pantalla de siempre —las de
@@ -14505,20 +13156,13 @@ function pantallaTaller(volver, abrir){
      resumen: ()=>{ const l = clientesDeSellos(), n = l.filter(c=>c.numero).length;
        if(!l.length) return {txt:'ninguno todavía', flojo:true};
        return {txt: `${l.length} · ${n} con número`, avisa: n < l.length}; }},
-    {k:'agujas', t:'Agujas', pintar: pantallaAgujas,
-     resumen: ()=>{ if(!AGUJAS.length) return {txt:'ninguna dada de alta', avisa:true};
-       const sinMedida = AGUJAS.filter(a => a.medida == null || a.medida === '').length;
-       return {txt: `${AGUJAS.length} · ` + agujasPorGrupo().map(g=>`${g.nombre.toLowerCase()} ${g.agujas.length}`).join(' · '),
-               avisa: !!sinMedida}; }},
     {k:'robots', t:'Robots', pintar: pantallaRobots,
      resumen: ()=>{ if(!ROBOTS.length) return {txt:'ninguno dado de alta', avisa:true};
-       const sin = ROBOTS.filter(r=>!r.inyectores).length;
-       return {txt: sin ? `${ROBOTS.length} · a ${sin === 1 ? 'uno le falta un dato' : sin + ' les faltan datos'}`
-                        : `${ROBOTS.length}`, avisa: !!sin}; }},
+       return {txt: `${ROBOTS.length}`}; }},
   ];
-  // Qué cajones están abiertos. Si se llega desde un sitio concreto (el botón
-  // de agujas de una inyección, por ejemplo), ese sale abierto.
-  const abierto = {clientes:false, agujas:false, robots:false};
+  // Qué cajones están abiertos. Si se llega desde un sitio concreto (el aviso
+  // de «darlos de alta» del editor, por ejemplo), ese sale abierto.
+  const abierto = {clientes:false, robots:false};
   if(abrir) abierto[abrir] = true;
 
   const resumir = b => {
@@ -14532,9 +13176,8 @@ function pantallaTaller(volver, abrir){
   const montar = ()=>{
     $dt.textContent = 'Taller';
     $dc.innerHTML = `
-      <p class="op-p flojo">Lo que comparten todos los sellos: quién los pide, con
-        qué aguja se inyectan y en qué robot están. Se escribe aquí una vez y
-        todas las fichas lo enseñan al día.</p>
+      <p class="op-p flojo">Lo que comparten todos los sellos: quién los pide y en
+        qué robot están. Se escribe aquí una vez y todas las fichas lo enseñan al día.</p>
       ${bloques.map(b=>`<details class="ed-bloque" data-tl="${b.k}"${abierto[b.k] ? ' open' : ''}>
         <summary>
           <span class="ed-b-tit">${b.t}</span>
@@ -14555,10 +13198,11 @@ function pantallaTaller(volver, abrir){
   montar();
 }
 /* ── LA HOJA IMPRESA ─────────────────────────────────────────────── */
+/* Una hoja A4 con lo que hay en la ficha: las dos fotos, el molde, el sello,
+   el robot y los archivos. (La de antes llevaba los pasos, los horneados y las
+   inyecciones; se fue con ellos el 30-sep.) */
 async function hojaSello(s){
-  const {tandas, vulcanizado} = tandasDe(s);
-  const pars = parametrosDe(s);
-  const m = s.molde || {};
+  const m = s.molde || {}, me = s.medidas || {};
   const hoy = new Date().toLocaleDateString('es-ES',
     {day:'numeric', month:'long', year:'numeric'});
 
@@ -14577,20 +13221,9 @@ async function hojaSello(s){
   };
   brindis('Preparando la hoja…');
   const [fs, fm] = await Promise.all([dataDe('sello'), dataDe('molde')]);
-
-  const ultimoVulHoja = (s.pasos || []).map(p => p.tipo).lastIndexOf('vulcanizar');
-  const paso = (p, i)=>{
-    const t = tipoPaso(p.tipo);
-    const q = t.color && p.ref
-      ? `<i style="background:${colorHexDe(p.ref)}"></i>${t.t} ${esc(p.nombre||'')}${
-          p.parte ? ` <b class="pt">${esc(p.parte)}</b>` : ''}`
-      : esc(p.tipo === 'vulcanizar'
-          ? (i === ultimoVulHoja ? 'Vulcanizado final' : 'Vulcanizado') : t.t);
-    const v = p.segundos != null && p.segundos !== '' ? `${fmt(p.segundos)} s` : '';
-    const hito = p.tipo === 'hornear' || p.tipo === 'vulcanizar';
-    return `<div class="hp${hito ? ' hito' : ''}"><span class="n">${String(i+1).padStart(2,'0')}</span>
-      <span class="q">${q}</span><span class="v">${v}</span></div>`;
-  };
+  const medida = (l, a) => l && a ? `${fmt(l)} × ${fmt(a)} mm` : '—';
+  const r = robot(s.robot_id);
+  const archivos = archivosDe(s);
 
   const w = window.open('', '_blank');
   if(!w) return brindis('El navegador ha bloqueado la ventana de impresión');
@@ -14607,69 +13240,29 @@ async function hojaSello(s){
        border-bottom:2px solid #15171a;padding-bottom:9px;margin-bottom:13px}
   .cab h1{margin:0 0 2px;font-size:23px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
   .cab .cli{font-size:12.5px;color:#5c6167;font-weight:500}
+  .cab .cli b{font-weight:600;color:#15171a;margin-left:2mm}
   .cab .mk{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
            color:#b61517;text-align:right;white-space:nowrap}
-  .arriba{display:grid;grid-template-columns:52mm 52mm 1fr;gap:6mm;margin-bottom:6mm}
-  .fo{height:38mm;border:1px solid #d3d0c9;border-radius:4px;overflow:hidden;background:#faf9f7;
+  .fotos{display:grid;grid-template-columns:1fr 1fr;gap:6mm;margin-bottom:7mm}
+  .fo{height:78mm;border:1px solid #d3d0c9;border-radius:4px;overflow:hidden;background:#faf9f7;
       display:flex;align-items:center;justify-content:center}
   /* La foto entera, sin recortar: en el papel hace falta ver el sello completo,
      aunque quede margen. Con "cover" se ampliaba y cortaba los bordes. */
   .fo img{width:100%;height:100%;object-fit:contain;display:block}
   .fo span{font-size:10px;color:#8a8f95}
-  dl{display:grid;grid-template-columns:1fr 1fr;gap:1px 5mm;margin:0;align-content:start}
-  dt{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8a8f95;margin:0}
-  dd{margin:0 0 3mm;font-size:14px;font-weight:650}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:7mm;align-items:start}
   h2{margin:0 0 3mm;font-size:9px;font-weight:700;letter-spacing:.13em;
      text-transform:uppercase;color:#5c6167}
-  .cols{display:grid;grid-template-columns:1fr 72mm;gap:7mm;align-items:start}
-  .hp{display:flex;gap:4mm;align-items:baseline;padding:1.6mm 0;border-bottom:1px solid #ececea}
-  .hp .n{font-size:11px;font-weight:600;width:7mm;flex:0 0 auto;color:#8a8f95;
-         font-variant-numeric:tabular-nums}
-  .hp .q{flex:1 1 auto;font-size:13.5px;font-weight:600}
-  .hp .q i{width:3mm;height:3mm;border-radius:1px;display:inline-block;margin-right:2mm;
-           border:.4px solid rgba(0,0,0,.2)}
-  .hp .v{font-size:12px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
-  /* Horneados y vulcanizados remarcados también en el papel: son las pausas. */
-  .hp.hito{background:#f1efe9;border:1px solid #d3d0c9;border-radius:3px;padding:1.6mm 2mm;margin:.8mm 0}
-  .hp.hito .q{font-weight:700}
-  .par{border:1px solid #d3d0c9;border-radius:4px;overflow:hidden;margin-bottom:4mm}
-  .par h3{margin:0;padding:1.5mm 3mm;font-size:8px;font-weight:700;letter-spacing:.11em;
-          text-transform:uppercase;color:#5c6167;background:#f4f3f0;border-bottom:1px solid #e6e4df}
-  .par .r{display:flex;justify-content:space-between;gap:3mm;padding:1.3mm 3mm;
-          border-bottom:1px solid #f0efec;font-size:11px}
-  .par .r:last-child{border-bottom:0}
-  .par .r b{font-weight:600}
-  .par .r i{font-style:normal;font-weight:500;color:#8a8f95}
-  .hp .q .pt{font-weight:500;color:#5c6167;font-size:12.5px}
-  .par .r span{font-variant-numeric:tabular-nums;color:#3f4348;white-space:nowrap}
-  .par h3 em{font-style:normal;font-weight:500;letter-spacing:.04em;text-transform:none;color:#8a8f95;margin-left:2mm}
-  /* LAS INYECCIONES VAN A TODO EL ANCHO, ABAJO.
-     Antes compartían la columna estrecha de la derecha (78 mm) con los
-     horneados, y con la aguja en «auto» al nombre del color le quedaban unos
-     12 mm: salía «ACER…». Una hoja que va a la máquina y no dice qué color hay
-     que inyectar es la hoja mal. Y el folio tenía la mitad de abajo en blanco.
-     Ahora el nombre tiene unos 79 mm —caben los 39 caracteres del nombre más
-     largo de las 860 fórmulas— y si algún día no cabe, PARTE EN DOS LÍNEAS en
-     vez de cortarse: la fila crece, que papel hay. */
-  .iny-ancho{margin-top:2mm}
-  .iny-ancho .par{margin-bottom:0}
-  .par .ri{display:grid;grid-template-columns:8mm 4mm 1fr 26mm 30mm 14mm 12mm;
-           gap:2mm;align-items:center;padding:1.8mm 3mm}
-  .par .ri .np{color:#8a8f95;font-weight:600;font-size:10px}
-  .par .ri .sw{width:3.4mm;height:3.4mm;border-radius:1px;border:.4px solid rgba(0,0,0,.2);display:block}
-  .par .ri b{min-width:0;font-size:13px;font-weight:650;line-height:1.2}
-  .par .ri .pa{color:#5c6167;font-weight:500;font-size:11px;
-               overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .par .ri .ag{color:#15171a;font-weight:500;font-size:11px;
-               overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .par .ri .nu{text-align:right;font-size:12px;font-weight:600}
-  .par .cab-ri{background:#f4f3f0;border-bottom:1px solid #e6e4df;font-size:8px;
-               font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8a8f95}
-  .par .cab-ri b,.par .cab-ri .pa,.par .cab-ri .ag,.par .cab-ri .nu{
-    font-size:8px;font-weight:700;letter-spacing:.1em;color:#8a8f95}
-  .par .r b i{font-weight:400}
-  .cab .cli b{font-weight:600;color:#15171a;margin-left:2mm}
-  .pie{margin-top:5mm;padding-top:2mm;border-top:1px solid #d3d0c9;
+  dl{display:grid;grid-template-columns:1fr 1fr;gap:1px 5mm;margin:0 0 6mm;align-content:start}
+  dt{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8a8f95;margin:0}
+  dd{margin:0 0 3mm;font-size:15px;font-weight:650}
+  dd.ancho{grid-column:1 / -1}
+  .arch{border:1px solid #d3d0c9;border-radius:4px;overflow:hidden}
+  .arch .r{padding:2mm 3mm;border-bottom:1px solid #f0efec;font-size:13px;font-weight:600}
+  .arch .r:last-child{border-bottom:0}
+  .arch .cab-r{background:#f4f3f0;border-bottom:1px solid #e6e4df;font-size:8px;
+               font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:#5c6167}
+  .pie{margin-top:8mm;padding-top:2mm;border-top:1px solid #d3d0c9;
        display:flex;justify-content:space-between;font-size:9px;color:#8a8f95}
 </style></head><body>
   <div class="cab">
@@ -14680,72 +13273,31 @@ async function hojaSello(s){
   </div>
   ${faltaInfo(s) ? `<div class="falta"><b>Falta información</b>${
       faltaInfo(s).nota ? ' · ' + esc(faltaInfo(s).nota) : ''}</div>` : ''}
-  <div class="arriba">
+  <div class="fotos">
     <div class="fo">${fs ? `<img src="${fs}" alt="">` : '<span>Sin foto del sello</span>'}</div>
     <div class="fo">${fm ? `<img src="${fm}" alt="">` : '<span>Sin foto del molde</span>'}</div>
-    <dl>
-      <div><dt>Nº de molde</dt><dd>${esc(m.numero || '—')}</dd></div>
-      <div><dt>Sellos por molde</dt><dd>${m.sellos ? fmt(m.sellos) : '—'}</dd></div>
-      <div><dt>Medidas</dt><dd>${m.largo && m.ancho ? `${fmt(m.largo)} × ${fmt(m.ancho)} mm` : '—'}</dd></div>
-      <div><dt>Tipo</dt><dd>${s.tipo === 'piloto' ? 'Piloto' : 'Molde'}</dd></div>
-      <div><dt>Fabricación</dt><dd>${s.robot
-        ? esc(robot(s.robot_id)?.nombre || 'Robot') : 'A mano'}</dd></div>
-      ${(c => c.segundos ? `<div><dt>Ciclo</dt><dd>${tiempoLegible(c.segundos)}${
-          c.porHora ? ` · ≈${fmt(c.porHora)} sellos/h` : ''}</dd></div>` : '')(cicloDe(s))}
-      <div><dt>Colores</dt><dd>${coloresDeSello(s).length}${(()=>{
-        const c = cabeEnRobot(s);
-        return c ? ` · ${c.colores} inyectados de ${c.inyectores}` : '';
-      })()}</dd></div>
-    </dl>
   </div>
   <div class="cols">
     <div>
-      <h2>Pasos</h2>
-      ${(s.pasos||[]).map(paso).join('') || '<p>Sin pasos apuntados.</p>'}
+      <h2>Molde</h2>
+      <dl>
+        <div class="ancho"><dt>Nombre</dt><dd class="ancho">${esc(m.numero || '—')}</dd></div>
+        <div><dt>Número de sellos</dt><dd>${m.sellos ? fmt(m.sellos) : '—'}</dd></div>
+        <div><dt>Medidas del molde</dt><dd>${medida(m.largo, m.ancho)}</dd></div>
+      </dl>
+      <h2>Sello</h2>
+      <dl>
+        <div><dt>Medidas del sello</dt><dd>${medida(me.largo, me.ancho)}</dd></div>
+      </dl>
     </div>
     <div>
-      ${/* El título solo si hay algo debajo: un «Parámetros del robot» con nada
-            detrás era papel gastado en anunciar un hueco. */''}
-      ${s.robot && archivosDe(s).length ? `<h2>Programa del robot</h2>
-      <div class="par"><h3>Archivos</h3>
-        ${archivosDe(s).map(f=>`<div class="r"><b>${esc(f.nombre)}</b><span>${
-          f.para ? esc(f.para) : '—'}</span></div>`).join('')}
-      </div>` : ''}
-      <h2>Horneados</h2>
-      <div class="par"><h3>Horneados y vulcanizados</h3>
-        ${tandas.map((t, i)=>`<div class="r"><b>${
-            t.vul ? (t.ultimo ? 'Vulcanizado final' : 'Vulcanizado')
-                  : t.sinHornear ? 'Sin hornear después' : (i === 0 ? '1ª tanda' : (i + 1) + 'ª tanda')}${
-            t.colores.length ? ` <i>${t.colores.map(c=>
-              esc(c.nombre) + (c.parte ? ' (' + esc(c.parte) + ')' : '')).join(' + ')}</i>` : ''}</b>
-          <span>${t.segundos != null ? fmt(t.segundos) + ' s' : '—'}</span></div>`).join('')
-          || '<div class="r"><span>—</span></div>'}
+      <h2>Robot</h2>
+      <div class="arch"><div class="r cab-r">${r ? esc(r.nombre) : 'Sin robot apuntado'}</div>
+        ${archivos.length ? archivos.map(f=>`<div class="r">${esc(f.nombre)}</div>`).join('')
+          : '<div class="r" style="font-weight:400;color:#8a8f95">Sin archivos apuntados</div>'}
       </div>
     </div>
   </div>
-
-  ${/* UNA fila por inyección: color, parte, aguja, presión y segundos juntos,
-        que es como se hace en la máquina. A todo el ancho del folio para que el
-        nombre del color quepa entero. */''}
-  ${s.robot ? `<div class="iny-ancho">
-    <div class="par"><h3>Inyecciones <em>${pars.length} · en orden de paso</em></h3>
-      <div class="r ri cab-ri"><span class="np">Paso</span><i></i><b>Color</b>
-        <span class="pa">Parte</span><span class="ag">Aguja</span>
-        <span class="nu">Presión</span><span class="nu">Tiempo</span></div>
-      ${pars.map(p=>{ const a = aguja(p.aguja);
-        return `<div class="r ri">
-          <span class="np">${String(p.paso).padStart(2,'0')}</span>
-          <i class="sw" style="background:${colorHexDe(p.ref)}"></i>
-          <b>${esc(p.nombre)}</b>
-          <span class="pa">${p.parte ? esc(p.parte) : '—'}</span>
-          <span class="ag">${a ? esc(a.nombre) : (p.aguja ? 'aguja no encontrada' : 'sin aguja')}</span>
-          <span class="nu">${p.bar != null && p.bar !== '' ? fmt(p.bar) + ' bar' : '—'}</span>
-          <span class="nu">${p.segundos != null && p.segundos !== '' ? fmt(p.segundos) + ' s' : '—'}</span>
-        </div>`;
-      }).join('') || '<div class="r"><span>Sin inyecciones apuntadas.</span></div>'}
-    </div>
-  </div>` : ''}
-
   <div class="pie">
     <span>Hoja impresa el ${hoy}</span>
     <span>${esc(s.nombre)}${m.numero ? ' · molde ' + esc(m.numero) : ''}</span>
@@ -14897,7 +13449,7 @@ function escucharDeslizar(zona, {puede, izquierda, derecha}){
     const t = e.touches[0];
     if(t.clientX < BORDE || t.clientX > innerWidth - BORDE) return;
     // Sobre un campo de texto o algo que ya se desplaza de lado, el gesto es suyo.
-    if(e.target.closest('input, textarea, select, .s-carrusel, .chips-cli')) return;
+    if(e.target.closest('input, textarea, select, .chips-cli')) return;
     x0 = t.clientX; y0 = t.clientY; t0 = Date.now();
   }, {passive: true});
   zona.addEventListener('touchend', e=>{
@@ -15069,19 +13621,17 @@ window.__app = {
   get SELLOS(){ return DATOS.sellos.slice(); }, porIdS,
   abrirSello, editarSello, borrarSello, guardarSello, hojaSello,
   faltaInfo, marcarFalta, quitarFalta, get soloFaltaS(){ return soloFaltaS; },
-  cicloDe, tiempoLegible,
   enlaceDe, leerEnlace, intentarEnlace, qrSvg,
   abrirEscaner, cerrarEscaner, procesarQR, get escanerAbierto(){ return !$escaner.hidden; },
   tarjetaMolde, imprimirPegatinasMolde, pantallaPegatinasMolde, imprimirEtiquetas, PEGATINA,
-  coloresDeSello, tandasDe, parametrosDe, pantallaAgujas, pantallaTaller,
-  coloresPerdidos, sellosDelMismoMolde, tonoDeSello, editarPasoSuelto, masDelSello,
-  get AGUJAS(){ return AGUJAS; }, TIPOS_PASO, guardarAgujas,
-  get TIPOS_AGUJA(){ return TIPOS_AGUJA; }, guardarTiposAguja, agujasPorGrupo,
+  coloresDeSello, pantallaTaller,
+  coloresPerdidos, sellosDelMismoMolde, tonoDeSello, masDelSello,
+  get AGUJAS(){ return AGUJAS; }, TIPOS_PASO,
   get CLIENTES(){ return CLIENTES; }, clientesDeSellos, numeroDe, guardarClientes,
   leerBorradores, borradoresNuevos, tirarBorrador,
   leerBorradoresF, borradoresNuevosF, tirarBorradorF, seguirFormula, editar, nueva,
   get ROBOTS(){ return ROBOTS; }, guardarRobots, pantallaRobots, robot,
-  cabeEnRobot, archivosDe, agujasOrdenadas,
+  archivosDe,
   papelera, pantallaPapelera, pantallaClientes, abrirOpciones,
   get pes(){ return pes; },
   get ultimaSync(){ return ultimaSync; },

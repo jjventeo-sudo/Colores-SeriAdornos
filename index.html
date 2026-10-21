@@ -3096,10 +3096,9 @@ body[data-seccion="gramos"] #btn-pdf{display:none}
 .g-res{margin-bottom:6px}
 .g-fila-r{
   display:grid; grid-template-columns:36px minmax(0,1fr) auto 22px; gap:0 13px; align-items:center;
-  width:100%; padding:9px 18px; text-align:left; color:inherit; border-top:1px solid var(--linea);
+  width:100%; padding:9px 18px; text-align:left; color:inherit;
   transition:background-color .12s var(--salida);
 }
-.g-fila-r:first-of-type{border-top:0}
 .g-fila-r:hover:not(:disabled){background:var(--panel-2)}
 .g-fila-r:active:not(:disabled){background:var(--tinta-suave)}
 .g-fila-r:disabled{cursor:default; opacity:.6}
@@ -3204,6 +3203,26 @@ body[data-seccion="gramos"] #btn-pdf{display:none}
   .g-vol-calc:hover{background:var(--panel-luz); color:var(--texto)}
   .g-vol-calc svg{width:16px; height:16px}
 }
+
+/* ── Partir en tandas iguales ─────────────────────────────────────── */
+.g-bloque{border-top:1px solid var(--linea)}
+.g-cabsec + .g-bloque{border-top:0}
+.g-t-sug{display:flex; align-items:baseline; gap:10px; padding:0 18px 10px 67px; font-size:12.5px; color:var(--texto-2)}
+.g-t-sug .g-enlace{font-size:12.5px}
+.g-t-sug.flojo{opacity:.72}
+.g-t-sug:not(.flojo){color:var(--ambar, #d9a441)}
+.g-tandas{margin:0 14px 12px 14px; padding:8px 0 4px; border:1px solid var(--linea-fuerte); border-radius:var(--r-m); background:var(--panel-2); animation:g-aparece .22s var(--salida)}
+@keyframes g-aparece{from{opacity:0; translate:0 -4px} to{opacity:1; translate:0 0}}
+.g-t-cab{display:flex; align-items:center; gap:10px; padding:2px 12px 8px}
+.g-t-tit{flex:1 1 auto; font:500 10.5px var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--texto-3)}
+.g-t-cab .g-paso b{min-width:34px}
+.g-tanda{display:flex; align-items:baseline; gap:10px; width:100%; padding:9px 12px; text-align:left; color:inherit; border-top:1px solid var(--linea); transition:background-color .12s var(--salida)}
+.g-tanda > span:first-child{flex:1 1 auto; font-size:13.5px; color:var(--texto-2)}
+.g-tanda:hover{background:var(--panel-luz)}
+.g-tanda:active{background:var(--tinta-suave)}
+.g-tanda .g-ir{align-self:center}
+.g-t-aviso{margin:0; padding:6px 12px 8px; font-size:12px; color:var(--ambar, #d9a441)}
+@media (prefers-reduced-motion:reduce){ .g-tandas{animation:none} }
 </style>
 </head>
 <body>
@@ -14131,6 +14150,12 @@ const G_ATAJOS = [100, 250, 400, 500, 1000];
 const G_MARGEN_POR_DEFECTO = 10;
 const G_PASO_MARGEN = 5;
 const G_MARGEN_MAX = 50;
+/* Lo máximo que cabe en la máquina de una vez: 4,5 kilos (lo dijo Juanjo, 21 oct).
+   No es un freno: la app da el peso total y OFRECE partirlo en tandas iguales. */
+const G_TANDA_MAX = 4500;
+const G_TANDAS_TOPE = 20;
+/** 7301 g en 2 tandas -> 3651 g cada una (hacia arriba, como todo lo demás). */
+function gPesoTanda(total, n){ return Math.ceil(total / n - 1e-9); }
 
 // ── Pequeñas utilidades ─────────────────────────────────────────────
 
@@ -14538,28 +14563,79 @@ function pintarResultadoGramo(g){
     return;
   }
   const kTxt = gDec(r.k, 2);
+  st.tandas = st.tandas || {};
   $r.innerHTML = `<div class="g-cabsec"><span>Tienes que preparar</span></div>` +
     r.filas.map((f, i) => {
       const c = g.colores[i];
       const fo = porId.get(c.ref);
       const p = fo ? gPartes(fo.nombre) : {base: c.nombre || 'Color'};
-      return `<button class="g-fila-r" type="button" data-i="${i}"${fo ? '' : ' disabled'}>
-        ${gGota(gHex(c.ref), 36)}
-        <span class="g-nm">${esc(p.base)}<small>${gDec(f.gps)} g × ${gMiles(st.n)} × ${kTxt}</small></span>
-        <span class="g-gr">${gPesoHtml(f.g)}</span>
-        <span class="g-ir">${fo ? G_ICONO_SIG : ''}</span>
-      </button>`;
+      const nT = st.tandas[i] >= 2 ? st.tandas[i] : 0;
+      const pasa = f.g > G_TANDA_MAX;
+      let extra = '';
+      if(fo && nT){
+        const por = gPesoTanda(f.g, nT);
+        extra = `<div class="g-tandas" data-i="${i}">
+          <div class="g-t-cab">
+            <span class="g-t-tit">${nT} tandas iguales</span>
+            <span class="g-paso" role="group" aria-label="Número de tandas">
+              <button type="button" data-t="menos" aria-label="Una tanda menos"${nT <= 2 ? ' disabled' : ''}>−</button>
+              <b>${nT}</b>
+              <button type="button" data-t="mas" aria-label="Una tanda más"${nT >= G_TANDAS_TOPE ? ' disabled' : ''}>+</button>
+            </span>
+            <button type="button" class="g-enlace" data-t="juntar">Juntar</button>
+          </div>
+          ${Array.from({length: nT}, (_, k) => `<button type="button" class="g-tanda" data-t="tanda" data-k="${k}">
+            <span>Tanda ${k + 1} de ${nT}</span>${gPesoHtml(por)}<span class="g-ir">${G_ICONO_SIG}</span></button>`).join('')}
+          ${por > G_TANDA_MAX ? `<p class="g-t-aviso">Cada tanda sigue pasando de ${gPesoTxt(G_TANDA_MAX)}. Sube el número de tandas.</p>` : ''}
+        </div>`;
+      } else if(fo){
+        extra = pasa
+          ? `<div class="g-t-sug"><span>Pasa de ${gPesoTxt(G_TANDA_MAX)}.</span>
+               <button type="button" class="g-enlace" data-t="partir" data-i="${i}">Partir en tandas iguales</button></div>`
+          : `<div class="g-t-sug flojo"><button type="button" class="g-enlace" data-t="partir" data-i="${i}">Partir en tandas</button></div>`;
+        extra = extra.replace('<div class="g-t-sug', `<div data-i="${i}" class="g-t-sug`);
+      }
+      return `<div class="g-bloque" data-i="${i}">
+        <button class="g-fila-r" type="button" data-i="${i}"${fo ? '' : ' disabled'}>
+          ${gGota(gHex(c.ref), 36)}
+          <span class="g-nm">${esc(p.base)}<small>${gDec(f.gps)} g × ${gMiles(st.n)} × ${kTxt}</small></span>
+          <span class="g-gr">${gPesoHtml(f.g)}</span>
+          <span class="g-ir">${fo ? G_ICONO_SIG : ''}</span>
+        </button>${extra}</div>`;
     }).join('') +
     `<div class="g-tot-r"><span>Total</span>${gPesoHtml(r.total)}</div>
      <p class="g-pie">Redondeado hacia arriba. Toca un color para empezar a pesarlo.</p>`;
   for(const b of $r.querySelectorAll('.g-fila-r'))
-    b.onclick = () => { const f = r.filas[+b.dataset.i]; prepararDeGramo(f.ref, f.g); };
+    b.onclick = () => {
+      const f = r.filas[+b.dataset.i];
+      const nT = st.tandas[+b.dataset.i] >= 2 ? st.tandas[+b.dataset.i] : 0;
+      prepararDeGramo(f.ref, nT ? gPesoTanda(f.g, nT) : f.g);
+    };
+  /* Partir en tandas: el estado vive en `st.tandas[i]` (cuántas tandas tiene
+     ese color). Cambiar los sellos o el margen recalcula los pesos solo. */
+  for(const b of $r.querySelectorAll('[data-t]')){
+    const i = +(b.dataset.i ?? b.closest('[data-i]').dataset.i);
+    const f = r.filas[i];
+    b.onclick = () => {
+      const t = b.dataset.t;
+      if(t === 'partir') st.tandas[i] = Math.max(2, Math.ceil(f.g / G_TANDA_MAX));
+      else if(t === 'juntar') delete st.tandas[i];
+      else if(t === 'mas') st.tandas[i] = Math.min(G_TANDAS_TOPE, (st.tandas[i] || 2) + 1);
+      else if(t === 'menos') st.tandas[i] = Math.max(2, (st.tandas[i] || 2) - 1);
+      else if(t === 'tanda') return prepararDeGramo(f.ref, gPesoTanda(f.g, st.tandas[i]));
+      pintarResultadoGramo(g);
+    };
+  }
   const primero = r.filas.find(f => porId.get(f.ref));
   $b.disabled = !primero;
-  document.getElementById('g-prep-txt').textContent = primero
-    ? 'Preparar ' + gPartes(porId.get(primero.ref).nombre).base
-    : 'Preparar';
-  if(primero) $b.onclick = () => prepararDeGramo(primero.ref, primero.g);
+  if(primero){
+    const ip = r.filas.indexOf(primero);
+    const nT = st.tandas[ip] >= 2 ? st.tandas[ip] : 0;
+    const cant = nT ? gPesoTanda(primero.g, nT) : primero.g;
+    document.getElementById('g-prep-txt').textContent =
+      'Preparar ' + gPartes(porId.get(primero.ref).nombre).base + (nT ? ` · tanda 1 de ${nT}` : '');
+    $b.onclick = () => prepararDeGramo(primero.ref, cant);
+  }else document.getElementById('g-prep-txt').textContent = 'Preparar';
 }
 
 /** Pasa a pesar ese color con esa cantidad. `preparar()` lee `objetivo`. */

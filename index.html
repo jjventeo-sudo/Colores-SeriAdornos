@@ -3223,6 +3223,15 @@ body[data-seccion="gramos"] #btn-pdf{display:none}
 .g-tanda .g-ir{align-self:center}
 .g-t-aviso{margin:0; padding:6px 12px 8px; font-size:12px; color:var(--ambar, #d9a441)}
 @media (prefers-reduced-motion:reduce){ .g-tandas{animation:none} }
+
+/* ── Colores base: ya están hechos, se cogen del bote ─────────────── */
+.g-sep{border-top:1px solid var(--linea-fuerte); margin-top:6px}
+.g-fila-hecha{cursor:default}
+.g-fila-hecha:hover{background:none}
+.g-hecha .g-gr .g-peso b{color:var(--texto-2)}
+.g-tot-flojo{border-top:1px solid var(--linea)}
+.g-tot-flojo .g-peso b{font-size:17px; color:var(--texto-2)}
+.g-tot-flojo .g-peso small{font-size:11.5px}
 </style>
 </head>
 <body>
@@ -14154,6 +14163,20 @@ const G_MARGEN_MAX = 50;
    No es un freno: la app da el peso total y OFRECE partirlo en tandas iguales. */
 const G_TANDA_MAX = 4500;
 const G_TANDAS_TOPE = 20;
+/* Los colores BASE ya están hechos en la estantería (bote de kilo): no se
+   preparan, se cogen. Son los 9 que dijo Juanjo (21 oct): blanco 4, blanco op,
+   rojo 1, rojo 3, amarillo 1, amarillo 2, magenta, negro y azul base.
+   Se reconocen por el nombre de la fórmula (sin acentos ni signos) o porque
+   la fórmula ya es un «bote» (campo `bote`). */
+const G_BASES = new Set(['BLANCO 4', 'BLANCO OP', 'BLANCO OPTICO', 'ROJO 1', 'ROJO 3',
+                         'AMARILLO 1', 'AMARILLO 2', 'MAGENTA', 'NEGRO', 'AZUL BASE']);
+const gNorm = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
+function gEsBase(ref){
+  const f = porId.get(ref);
+  return !!f && (G_BASES.has(gNorm(f.nombre)) || !!f.bote);
+}
+
 /** 7301 g en 2 tandas -> 3651 g cada una (hacia arriba, como todo lo demás). */
 function gPesoTanda(total, n){ return Math.ceil(total / n - 1e-9); }
 
@@ -14564,48 +14587,75 @@ function pintarResultadoGramo(g){
   }
   const kTxt = gDec(r.k, 2);
   st.tandas = st.tandas || {};
-  $r.innerHTML = `<div class="g-cabsec"><span>Tienes que preparar</span></div>` +
-    r.filas.map((f, i) => {
-      const c = g.colores[i];
-      const fo = porId.get(c.ref);
-      const p = fo ? gPartes(fo.nombre) : {base: c.nombre || 'Color'};
-      const nT = st.tandas[i] >= 2 ? st.tandas[i] : 0;
-      const pasa = f.g > G_TANDA_MAX;
-      let extra = '';
-      if(fo && nT){
-        const por = gPesoTanda(f.g, nT);
-        extra = `<div class="g-tandas" data-i="${i}">
-          <div class="g-t-cab">
-            <span class="g-t-tit">${nT} tandas iguales</span>
-            <span class="g-paso" role="group" aria-label="Número de tandas">
-              <button type="button" data-t="menos" aria-label="Una tanda menos"${nT <= 2 ? ' disabled' : ''}>−</button>
-              <b>${nT}</b>
-              <button type="button" data-t="mas" aria-label="Una tanda más"${nT >= G_TANDAS_TOPE ? ' disabled' : ''}>+</button>
-            </span>
-            <button type="button" class="g-enlace" data-t="juntar">Juntar</button>
-          </div>
-          ${Array.from({length: nT}, (_, k) => `<button type="button" class="g-tanda" data-t="tanda" data-k="${k}">
-            <span>Tanda ${k + 1} de ${nT}</span>${gPesoHtml(por)}<span class="g-ir">${G_ICONO_SIG}</span></button>`).join('')}
-          ${por > G_TANDA_MAX ? `<p class="g-t-aviso">Cada tanda sigue pasando de ${gPesoTxt(G_TANDA_MAX)}. Sube el número de tandas.</p>` : ''}
-        </div>`;
-      } else if(fo){
-        extra = pasa
-          ? `<div class="g-t-sug"><span>Pasa de ${gPesoTxt(G_TANDA_MAX)}.</span>
-               <button type="button" class="g-enlace" data-t="partir" data-i="${i}">Partir en tandas iguales</button></div>`
-          : `<div class="g-t-sug flojo"><button type="button" class="g-enlace" data-t="partir" data-i="${i}">Partir en tandas</button></div>`;
-        extra = extra.replace('<div class="g-t-sug', `<div data-i="${i}" class="g-t-sug`);
-      }
-      return `<div class="g-bloque" data-i="${i}">
-        <button class="g-fila-r" type="button" data-i="${i}"${fo ? '' : ' disabled'}>
-          ${gGota(gHex(c.ref), 36)}
-          <span class="g-nm">${esc(p.base)}<small>${gDec(f.gps)} g × ${gMiles(st.n)} × ${kTxt}</small></span>
-          <span class="g-gr">${gPesoHtml(f.g)}</span>
-          <span class="g-ir">${fo ? G_ICONO_SIG : ''}</span>
-        </button>${extra}</div>`;
-    }).join('') +
-    `<div class="g-tot-r"><span>Total</span>${gPesoHtml(r.total)}</div>
-     <p class="g-pie">Redondeado hacia arriba. Toca un color para empezar a pesarlo.</p>`;
-  for(const b of $r.querySelectorAll('.g-fila-r'))
+  const filas = r.filas.map((f, i) => ({f, i, base: gEsBase(f.ref)}));
+  const aPreparar = filas.filter(x => !x.base);
+  const hechas = filas.filter(x => x.base);
+  const totalPrep = aPreparar.reduce((a, x) => a + x.f.g, 0);
+  const totalHechas = hechas.reduce((a, x) => a + x.f.g, 0);
+
+  const filaHtml = ({f, i}) => {
+    const c = g.colores[i];
+    const fo = porId.get(c.ref);
+    const p = fo ? gPartes(fo.nombre) : {base: c.nombre || 'Color'};
+    const nT = st.tandas[i] >= 2 ? st.tandas[i] : 0;
+    const pasa = f.g > G_TANDA_MAX;
+    let extra = '';
+    if(fo && nT){
+      const por = gPesoTanda(f.g, nT);
+      extra = `<div class="g-tandas" data-i="${i}">
+        <div class="g-t-cab">
+          <span class="g-t-tit">${nT} tandas iguales</span>
+          <span class="g-paso" role="group" aria-label="Número de tandas">
+            <button type="button" data-t="menos" aria-label="Una tanda menos"${nT <= 2 ? ' disabled' : ''}>−</button>
+            <b>${nT}</b>
+            <button type="button" data-t="mas" aria-label="Una tanda más"${nT >= G_TANDAS_TOPE ? ' disabled' : ''}>+</button>
+          </span>
+          <button type="button" class="g-enlace" data-t="juntar">Juntar</button>
+        </div>
+        ${Array.from({length: nT}, (_, k) => `<button type="button" class="g-tanda" data-t="tanda" data-k="${k}">
+          <span>Tanda ${k + 1} de ${nT}</span>${gPesoHtml(por)}<span class="g-ir">${G_ICONO_SIG}</span></button>`).join('')}
+        ${por > G_TANDA_MAX ? `<p class="g-t-aviso">Cada tanda sigue pasando de ${gPesoTxt(G_TANDA_MAX)}. Sube el número de tandas.</p>` : ''}
+      </div>`;
+    } else if(fo){
+      extra = pasa
+        ? `<div data-i="${i}" class="g-t-sug"><span>Pasa de ${gPesoTxt(G_TANDA_MAX)}.</span>
+             <button type="button" class="g-enlace" data-t="partir" data-i="${i}">Partir en tandas iguales</button></div>`
+        : `<div data-i="${i}" class="g-t-sug flojo"><button type="button" class="g-enlace" data-t="partir" data-i="${i}">Partir en tandas</button></div>`;
+    }
+    return `<div class="g-bloque" data-i="${i}">
+      <button class="g-fila-r" type="button" data-i="${i}"${fo ? '' : ' disabled'}>
+        ${gGota(gHex(c.ref), 36)}
+        <span class="g-nm">${esc(p.base)}<small>${gDec(f.gps)} g × ${gMiles(st.n)} × ${kTxt}</small></span>
+        <span class="g-gr">${gPesoHtml(f.g)}</span>
+        <span class="g-ir">${fo ? G_ICONO_SIG : ''}</span>
+      </button>${extra}</div>`;
+  };
+  /* Un color base: NO se pesa ni se prepara; se coge del bote. Fila sin botón. */
+  const filaHechaHtml = ({f, i}) => {
+    const c = g.colores[i];
+    const fo = porId.get(c.ref);
+    const p = fo ? gPartes(fo.nombre) : {base: c.nombre || 'Color'};
+    return `<div class="g-bloque g-hecha" data-i="${i}">
+      <div class="g-fila-r g-fila-hecha">
+        ${gGota(gHex(c.ref), 36)}
+        <span class="g-nm">${esc(p.base)}<small>${gDec(f.gps)} g × ${gMiles(st.n)} × ${kTxt}</small></span>
+        <span class="g-gr">${gPesoHtml(f.g)}</span>
+        <span class="g-ir"></span>
+      </div></div>`;
+  };
+
+  $r.innerHTML =
+    (aPreparar.length
+      ? `<div class="g-cabsec"><span>Tienes que preparar</span></div>` + aPreparar.map(filaHtml).join('')
+        + `<div class="g-tot-r"><span>Total a preparar</span>${gPesoHtml(totalPrep)}</div>`
+      : `<div class="g-cabsec"><span>Nada que preparar</span></div>
+         <p class="g-pie">Todos los colores de este sello son bases que ya tienes hechas.</p>`)
+    + (hechas.length
+      ? `<div class="g-cabsec g-sep"><span>Ya los tienes hechos · coge del bote</span></div>` + hechas.map(filaHechaHtml).join('')
+        + `<div class="g-tot-r g-tot-flojo"><span>De los botes</span>${gPesoHtml(totalHechas)}</div>`
+      : '')
+    + (aPreparar.length ? `<p class="g-pie">Redondeado hacia arriba. Toca un color para empezar a pesarlo.</p>` : '');
+  for(const b of $r.querySelectorAll('button.g-fila-r'))
     b.onclick = () => {
       const f = r.filas[+b.dataset.i];
       const nT = st.tandas[+b.dataset.i] >= 2 ? st.tandas[+b.dataset.i] : 0;
@@ -14626,16 +14676,16 @@ function pintarResultadoGramo(g){
       pintarResultadoGramo(g);
     };
   }
-  const primero = r.filas.find(f => porId.get(f.ref));
-  $b.disabled = !primero;
-  if(primero){
-    const ip = r.filas.indexOf(primero);
+  const primeroX = aPreparar.find(x => porId.get(x.f.ref));
+  $b.disabled = !primeroX;
+  if(primeroX){
+    const primero = primeroX.f, ip = primeroX.i;
     const nT = st.tandas[ip] >= 2 ? st.tandas[ip] : 0;
     const cant = nT ? gPesoTanda(primero.g, nT) : primero.g;
     document.getElementById('g-prep-txt').textContent =
       'Preparar ' + gPartes(porId.get(primero.ref).nombre).base + (nT ? ` · tanda 1 de ${nT}` : '');
     $b.onclick = () => prepararDeGramo(primero.ref, cant);
-  }else document.getElementById('g-prep-txt').textContent = 'Preparar';
+  }else document.getElementById('g-prep-txt').textContent = hechas.length ? 'Todo está ya hecho' : 'Preparar';
 }
 
 /** Pasa a pesar ese color con esa cantidad. `preparar()` lee `objetivo`. */

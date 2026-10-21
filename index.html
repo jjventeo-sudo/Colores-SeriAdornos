@@ -3104,15 +3104,21 @@ body[data-seccion="gramos"] #btn-pdf{display:none}
 .g-fila-r:active:not(:disabled){background:var(--tinta-suave)}
 .g-fila-r:disabled{cursor:default; opacity:.6}
 .g-fila-r .g-nm small{text-transform:none; letter-spacing:.04em}
-.g-gr{font:700 21px var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap}
-.g-gr small{margin-left:2px; font-size:12px; font-weight:450; color:var(--texto-3)}
+.g-gr{font-variant-numeric:tabular-nums}
+/* «1 kilo 200 gramos»: números grandes, palabras pequeñas, todo en una línea. */
+.g-peso{display:inline-flex; align-items:baseline; gap:3px 4px; flex-wrap:nowrap; white-space:nowrap}
+.g-peso b{font:700 19px var(--mono)}
+.g-peso small{margin:0 5px 0 0; font:450 11.5px var(--mono); letter-spacing:0; color:var(--texto-3)}
+.g-peso small:last-child{margin-right:0}
 .g-ir{color:var(--texto-3); display:grid; place-items:center}
 .g-ir svg{width:18px; height:18px}
 .g-tot-r{
   display:flex; justify-content:space-between; align-items:baseline; padding:12px 18px 14px; border-top:1px solid var(--linea-fuerte);
   font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:var(--texto-3);
 }
-.g-tot-r b{font:700 24px var(--mono); letter-spacing:0; text-transform:none; color:var(--texto)}
+.g-tot-r .g-peso{letter-spacing:0; text-transform:none; color:var(--texto)}
+.g-tot-r .g-peso b{font-size:24px}
+.g-tot-r .g-peso small{font-size:12.5px}
 .g-pie{margin:0; padding:0 18px 14px; font-size:12.5px; color:var(--texto-3)}
 
 /* ── El editor (dentro del diálogo) ──────────────────────────────── */
@@ -14132,6 +14138,24 @@ const G_MARGEN_MAX = 50;
     toLocaleString('es-ES') no lo pone en los números de cuatro cifras. */
 function gMiles(n){ return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
 
+/** 1200 -> «1 kilo 200 gramos»; 484 -> «484 gramos»; 2000 -> «2 kilos».
+    Es como se habla en el taller: nadie dice «mil doscientos gramos». */
+function gPesoTxt(n){
+  const t = Math.round(Number(n) || 0), k = Math.floor(t / 1000), g = t % 1000;
+  const partes = [];
+  if(k) partes.push(`${k} ${k === 1 ? 'kilo' : 'kilos'}`);
+  if(g || !k) partes.push(`${g} ${g === 1 ? 'gramo' : 'gramos'}`);
+  return partes.join(' ');
+}
+/** Lo mismo, pero con los números grandes y las palabras pequeñas. */
+function gPesoHtml(n){
+  const t = Math.round(Number(n) || 0), k = Math.floor(t / 1000), g = t % 1000;
+  const p = (v, uno, varios) => `<b>${v}</b><small>${v === 1 ? uno : varios}</small>`;
+  return `<span class="g-peso" data-g="${t}" aria-label="${gPesoTxt(t)}">`
+    + (k ? p(k, 'kilo', 'kilos') : '')
+    + (g || !k ? p(g, 'gramo', 'gramos') : '') + '</span>';
+}
+
 /** 3.2 -> «3,2». Hasta 3 decimales, sin ceros de sobra. */
 function gDec(n, dec = 3){
   const p = Math.pow(10, dec);
@@ -14522,11 +14546,11 @@ function pintarResultadoGramo(g){
       return `<button class="g-fila-r" type="button" data-i="${i}"${fo ? '' : ' disabled'}>
         ${gGota(gHex(c.ref), 36)}
         <span class="g-nm">${esc(p.base)}<small>${gDec(f.gps)} g × ${gMiles(st.n)} × ${kTxt}</small></span>
-        <span class="g-gr">${gMiles(f.g)}<small>g</small></span>
+        <span class="g-gr">${gPesoHtml(f.g)}</span>
         <span class="g-ir">${fo ? G_ICONO_SIG : ''}</span>
       </button>`;
     }).join('') +
-    `<div class="g-tot-r"><span>Total</span><b>${gMiles(r.total)} g</b></div>
+    `<div class="g-tot-r"><span>Total</span>${gPesoHtml(r.total)}</div>
      <p class="g-pie">Redondeado hacia arriba. Toca un color para empezar a pesarlo.</p>`;
   for(const b of $r.querySelectorAll('.g-fila-r'))
     b.onclick = () => { const f = r.filas[+b.dataset.i]; prepararDeGramo(f.ref, f.g); };

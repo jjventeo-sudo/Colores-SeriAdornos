@@ -3246,6 +3246,54 @@ body[data-seccion="gramos"] #btn-pdf{display:none}
 .g-ayuda-u{font-size:12.5px; line-height:1.45; color:var(--texto-3)}
 .g-total-ps{border-top:0; padding-top:0}
 .g-total-ps b{font-size:15px; color:var(--texto-2)}
+
+/* ═══════════════════════════════════════════════════════════════════
+   COLORES BASE · marca en la ficha y alta nueva
+   ═══════════════════════════════════════════════════════════════════ */
+.etiqueta.base{background:var(--panel-2); border-color:var(--contorno); color:var(--texto)}
+.etiqueta.base::before{background:var(--marca,currentColor)}
+.rectificar.es-base{color:var(--marca-2,var(--texto)); font-weight:700}
+
+/* «Qué quieres añadir»: dos opciones grandes, como las tarjetas del resto */
+.b-opcion{
+  display:flex; align-items:center; gap:14px; width:100%; text-align:left; cursor:pointer;
+  padding:14px 16px; margin:0 0 10px; border-radius:18px; color:inherit; font:inherit;
+  background:radial-gradient(120% 100% at 30% 0%, var(--panel-2), var(--panel));
+  border:1px solid var(--contorno);
+  transition:transform .18s cubic-bezier(.2,.8,.2,1), border-color .18s, box-shadow .18s;
+}
+.b-opcion:hover{border-color:var(--marca-2,var(--contorno)); transform:translateY(-1px)}
+.b-opcion:active{transform:scale(.985)}
+.b-opcion:focus-visible{outline:2px solid var(--marca-2,currentColor); outline-offset:2px}
+.b-op-ico{
+  flex:none; width:44px; height:44px; border-radius:14px; display:grid; place-items:center;
+  background:var(--panel); box-shadow:inset 0 0 0 1px var(--contorno);
+}
+.b-op-ico svg{width:22px; height:22px}
+.b-op-txt{display:flex; flex-direction:column; gap:3px; min-width:0}
+.b-op-txt b{font-size:16px; font-weight:600}
+.b-op-txt small{font-size:13px; color:var(--texto-3); line-height:1.35}
+
+.b-intro{margin:0 0 14px; font-size:14px; line-height:1.45; color:var(--texto-2,var(--texto-3))}
+.b-color{display:flex; align-items:center; gap:14px}
+.b-color-sel{
+  position:relative; display:inline-flex; align-items:center; gap:10px; cursor:pointer;
+  padding:10px 14px; border-radius:14px; border:1px solid var(--contorno); background:var(--panel);
+}
+.b-color-sel input[type=color]{
+  width:34px; height:34px; padding:0; border:0; background:none; cursor:pointer; border-radius:10px;
+}
+.b-color-sel span{font-family:var(--mono); font-size:13px; letter-spacing:.06em; color:var(--texto-2,var(--texto-3))}
+.b-ayuda{display:block; margin-top:8px; font-size:12.5px; line-height:1.4; color:var(--texto-3)}
+.b-dosis{display:flex; align-items:center; gap:8px}
+.b-dosis input{max-width:110px}
+.b-dosis em{font-style:normal; color:var(--texto-3)}
+.b-error{margin:4px 0 0; color:var(--rojo); font-size:13.5px; font-weight:500}
+.b-error.sacude{animation:b-sacude .32s cubic-bezier(.36,.07,.19,.97)}
+@keyframes b-sacude{20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+@media (prefers-reduced-motion:reduce){
+  .b-opcion,.b-error.sacude{transition:none; animation:none}
+}
 </style>
 </head>
 <body>
@@ -6693,11 +6741,13 @@ function plantillaFicha(f, x){
         <h2>${esc(f.nombre)}</h2>
         <div class="hero-meta">
           ${selloBote(f)}
+          ${selloBase(f)}
           ${puedeEditar ? `<button class="rectificar" id="bote-cambiar">${
             tieneBote(f) ? 'ya no está' : 'marcar que tiene bote'}</button>` : ''}
           ${puedeEditar ? `<button class="rectificar${resaltado(f)?' es-rojo':''}" id="rojo-cambiar" aria-pressed="${resaltado(f)}"
             title="Cuando otra fórmula lleve ESTA, saldrá con fondo rojo en la receta y en el pesaje">${
             resaltado(f) ? 'quitar el rojo' : 'resaltar en rojo'}</button>` : ''}
+          ${botonBase(f)}
           ${selloActualizacion(f)}
           ${hermanas.length ? `<span class="etiqueta info">${grupo.tipo==='identica'?'Idéntica a':'Misma proporción que'} ${hermanas.length}</span>`:''}
         </div>
@@ -6941,6 +6991,7 @@ function pintarFicha(){
       ()=>verFotoGrande(f.id, f.nombre));
   document.getElementById('btn-comparar')?.addEventListener('click', ()=>compararColores(f));
   document.getElementById('bote-cambiar')?.addEventListener('click', ()=>marcarBote(f, !tieneBote(f)));
+  document.getElementById('base-cambiar')?.addEventListener('click', ()=>marcarBase(f, !bEsBase(f)));
   document.getElementById('rojo-cambiar')?.addEventListener('click', ()=>marcarRojo(f, !resaltado(f)));
   document.getElementById('hist-plegable')?.addEventListener('toggle', e=>{
     histAbierto = e.target.open ? f.id : null;
@@ -8182,6 +8233,7 @@ const FAMILIA = {
   // los apuntes más frecuentes que hay.
   'estanteria-si': 'bote', 'estanteria-no': 'bote',
   'resaltado-si': 'formula', 'resaltado-no': 'formula',
+  'base-si': 'formula', 'base-no': 'formula',
 };
 // Lo que se puede devolver a como estaba. Las fotos no: el archivo de antes ya
 // no existe en ninguna parte, y un botón que promete y no cumple es peor que
@@ -8214,6 +8266,8 @@ function textoDe(e){
     case 'estanteria-no': return 'Bote quitado de la estantería';
     case 'resaltado-si':  return 'Marcado para salir en rojo' + (d.materia ? ' (pigmento)' : '');
     case 'resaltado-no':  return 'Quitado el rojo' + (d.materia ? ' (pigmento)' : '');
+    case 'base-si':       return 'Marcado como color base';
+    case 'base-no':       return 'Quitado de los colores base';
     case 'sello-creado':   return 'Sello creado';
     case 'sello-cambiado': return 'Ficha del sello cambiada';
     case 'sello-borrado':  return 'Sello eliminado';
@@ -10342,7 +10396,7 @@ if(MODO === 'nube'){
    OPCIONES
    ═══════════════════════════════════════════════════════════════════ */
 document.getElementById('btn-nuevo').onclick =
-  ()=>SECCION === 'gramos' ? editarGramo(null) : SECCION === 'sellos' ? editarSello(null) : nueva();
+  ()=>SECCION === 'gramos' ? editarGramo(null) : SECCION === 'sellos' ? editarSello(null) : elegirNueva();
 /* ═══════════════════════════════════════════════════════════════════
    OPCIONES
 
@@ -11072,7 +11126,7 @@ function reconciliar(archivo){
   // "cambiada" cualquier fórmula si un día añado un campo nuevo a los datos.
   const CAMPOS = ['nombre','ingredientes','notas','actualizada_pigmentos',
                   'fecha_actualizacion','historial','preparaciones',
-                  'ultima_preparacion','total','equivalencia'];
+                  'ultima_preparacion','total','equivalencia','es_base'];
 
   for(const f of (archivo.formulas || [])){
     if(!f || !f.id) continue;
@@ -14188,7 +14242,7 @@ const gNorm = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, 
   .toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
 function gEsBase(ref){
   const f = porId.get(ref);
-  return !!f && (G_BASES.has(gNorm(f.nombre)) || !!f.bote);
+  return !!f && bEsBase(f);   // bEsBase vive en el módulo de colores base
 }
 
 /** 7301 g en 2 tandas -> 3651 g cada una (hacia arriba, como todo lo demás). */
@@ -15034,6 +15088,222 @@ function editarGramo(base, duplicar){
   pintar();
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   COLORES BASE
+   Dos cosas, las dos solo del editor:
+
+   1. Marcar (o desmarcar) CUALQUIER color como «base»: un color que ya se
+      tiene hecho en el taller. En Sellos no se manda a preparar: sale aparte,
+      en «ya los tienes hechos». Se guarda EXPLÍCITO, true o false
+      (`f.es_base`), para que gane al nombre: quitar de las bases algo que se
+      llama «NEGRO» tiene que durar.
+
+   2. Dar de alta un color base NUEVO. Es más delicado porque toca el cálculo
+      de color de toda la app: crea el pigmento (con el color de referencia que
+      se elija, marcado como ESTIMADO hasta que se mida de una muestra real) y
+      su bote (96 de CRUDO + 4 de pigmento, igual que los demás botes).
+   ═══════════════════════════════════════════════════════════════════ */
+
+/** ¿Es un color base? Lo marcado a mano manda; si no, el nombre o ser un bote. */
+function bEsBase(f){
+  if(!f) return false;
+  if(typeof f.es_base === 'boolean') return f.es_base;
+  return G_BASES.has(gNorm(f.nombre)) || !!f.bote;
+}
+
+/** La pastilla «Color base» de la ficha, pegada al nombre. */
+function selloBase(f){
+  if(f.solo_referencia || !bEsBase(f)) return '';
+  return `<span class="etiqueta base" id="sello-base" title="Ya lo tenéis hecho: en Sellos no se manda a preparar">Color base</span>`;
+}
+
+/** Poner o quitar la marca de color base. Queda en el registro, como todo. */
+function marcarBase(f, si){
+  if(!puedeEditar) return brindis(SIN_PERMISO);
+  if(bEsBase(f) === !!si && typeof f.es_base === 'boolean') return false;
+  if(anotar(f, {es_base: !!si}) === false) return false;
+  apuntar(si ? 'base-si' : 'base-no', f, null);
+  brindis(si ? `${f.nombre} es ahora un color base`
+             : `${f.nombre} ya no es un color base`);
+  pintarFicha(); actualizar();
+  document.getElementById('sello-base')?.classList.add('recien');
+  vibrar(18);
+  return true;
+}
+
+/** El botoncito de la ficha (solo editor). */
+function botonBase(f){
+  if(!puedeEditar || f.solo_referencia) return '';
+  return `<button class="rectificar${bEsBase(f) ? ' es-base' : ''}" id="base-cambiar" aria-pressed="${bEsBase(f)}"
+    title="Un color base es uno que ya tenéis hecho: en Sellos no se manda a preparar">${
+    bEsBase(f) ? 'quitar de colores base' : 'marcar como color base'}</button>`;
+}
+
+// ── Lo que se hace al pulsar «+» en Colores ────────────────────────────────
+function elegirNueva(){
+  if(!puedeEditar) return brindis(SIN_PERMISO);
+  $dt.textContent = 'Qué quieres añadir';
+  $dc.innerHTML = `
+    <button type="button" class="b-opcion" id="b-op-formula">
+      <span class="b-op-ico">${icono('nuevo')}</span>
+      <span class="b-op-txt"><b>Una fórmula de color</b>
+        <small>Una receta nueva, con sus pigmentos y cantidades</small></span>
+    </button>
+    <button type="button" class="b-opcion" id="b-op-base">
+      <span class="b-op-ico b-op-base">${icono('nuevo')}</span>
+      <span class="b-op-txt"><b>Un color base nuevo</b>
+        <small>Un color que vais a tener siempre hecho, como el negro o el blanco</small></span>
+    </button>`;
+  $dp.innerHTML = `<button class="btn" type="button" id="b-cancelar">Cancelar</button>`;
+  document.getElementById('b-cancelar').onclick = () => $dlg.close();
+  document.getElementById('b-op-formula').onclick = () => cerrarDlgYLuego(() => nueva());
+  document.getElementById('b-op-base').onclick = () => altaBase();
+  if(!$dlg.open) $dlg.showModal();
+}
+
+// ── El alta de un color base nuevo ─────────────────────────────────────────
+const B_DOSIS_MIN = 1, B_DOSIS_MAX = 50, B_DOSIS_DEFECTO = 4;
+
+function bBuscarCrudo(){
+  return DATOS.materias_primas.find(m => m.id === 'mp-crudo')
+      || DATOS.materias_primas.find(m => norm(m.nombre) === 'crudo')
+      || null;
+}
+
+/** Hasta ver el error: comprueba el nombre contra fórmulas Y pigmentos. */
+function bNombreLibre(nombre){
+  const n = norm(nombre);
+  if(DATOS.formulas.some(f => norm(f.nombre) === n))
+    return 'Ya hay una fórmula con ese nombre. Ponle otro.';
+  if(DATOS.materias_primas.some(m => norm(m.nombre) === n))
+    return 'Ya existe un pigmento con ese nombre. Prueba, por ejemplo, «' + nombre + ' BASE».';
+  return '';
+}
+
+function bSlug(t){
+  return norm(t).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 24) || 'color';
+}
+
+function altaBase(){
+  if(!puedeEditar) return brindis(SIN_PERMISO);
+  const crudo = bBuscarCrudo();
+  const est = {nombre: '', hex: '#7a7a7a', dosis: B_DOSIS_DEFECTO, tocadoColor: false};
+
+  const pintar = () => {
+    $dt.textContent = 'Nuevo color base';
+    $dc.innerHTML = `
+      <p class="b-intro">Un color base es uno que ya tenéis hecho en el taller. Se usa para calcular el color
+        de todo lo demás, así que elige bien su color de referencia.</p>
+      ${crudo ? '' : `<div class="aviso"><span><b>No encuentro el CRUDO</b> entre las materias primas, así que no puedo
+        preparar el bote. Avísame y lo miramos.</span></div>`}
+      <label class="campo"><span>Nombre del color base</span>
+        <input id="b-nombre" value="${esc(est.nombre)}" autocomplete="off" maxlength="40"
+          placeholder="Por ejemplo: VERDE BASE" style="text-transform:uppercase"></label>
+      <div class="campo"><span>Color de referencia</span>
+        <div class="b-color">
+          ${gGota(est.hex, 56)}
+          <label class="b-color-sel"><input type="color" id="b-hex" value="${esc(est.hex)}" aria-label="Elegir el color">
+            <span id="b-hex-t">${esc(est.hex.toUpperCase())}</span></label>
+        </div>
+        <small class="b-ayuda">Cómo se ve el bote cuando está hecho, sin mezclar. Pulsa el color para elegirlo.
+          Quedará como <b>estimado</b> hasta que se mida de una muestra real.</small>
+      </div>
+      <label class="campo"><span>Pigmento por cada 100 g de bote</span>
+        <div class="b-dosis"><input id="b-dosis" inputmode="decimal" autocomplete="off" value="${est.dosis}"
+          aria-label="Gramos de pigmento por cada 100 gramos"><em>g</em></div>
+        <small class="b-ayuda" id="b-receta"></small>
+      </label>
+      <p class="b-error" id="b-error" role="alert" hidden></p>`;
+    $dp.innerHTML = `<button class="btn" type="button" id="b-atras">Atrás</button>
+      <button class="btn btn-1" type="button" id="b-crear"${crudo ? '' : ' disabled'}>Crear color base</button>`;
+    if(!$dlg.open) $dlg.showModal();
+
+    const receta = () => {
+      const d = gNumero(document.getElementById('b-dosis').value);
+      document.getElementById('b-receta').textContent = d && d >= B_DOSIS_MIN && d <= B_DOSIS_MAX
+        ? `Receta del bote: ${gDec(100 - d, 2)} de ${crudo ? crudo.nombre : 'CRUDO'} + ${gDec(d, 2)} de pigmento`
+        : `Pon un número entre ${B_DOSIS_MIN} y ${B_DOSIS_MAX}`;
+    };
+    receta();
+    const error = t => {
+      const e = document.getElementById('b-error');
+      e.textContent = t; e.hidden = !t;
+    };
+    document.getElementById('b-nombre').addEventListener('input', e => {
+      est.nombre = e.target.value; error('');
+    });
+    document.getElementById('b-hex').addEventListener('input', e => {
+      est.hex = e.target.value; est.tocadoColor = true;
+      document.getElementById('b-hex-t').textContent = est.hex.toUpperCase();
+      $dc.querySelector('.b-color .g-gota').style.setProperty('--c', est.hex);
+    });
+    document.getElementById('b-dosis').addEventListener('input', e => {
+      const v = gNumero(e.target.value);
+      est.dosis = e.target.value;
+      e.target.classList.toggle('mal', e.target.value.trim() !== '' && !(v && v >= B_DOSIS_MIN && v <= B_DOSIS_MAX));
+      receta(); error('');
+    });
+    document.getElementById('b-atras').onclick = () => elegirNueva();
+    document.getElementById('b-crear').onclick = () => crear();
+    document.getElementById('b-nombre').focus();
+  };
+
+  const crear = () => {
+    const mostrar = t => {
+      const e = document.getElementById('b-error');
+      e.textContent = t; e.hidden = !t;
+      if(t){ e.classList.remove('sacude'); void e.offsetWidth; e.classList.add('sacude'); }
+    };
+    const nombre = String(est.nombre || '').trim().replace(/\s+/g, ' ').toUpperCase();
+    if(!nombre) return mostrar('Ponle un nombre al color base.');
+    const dosis = gNumero(String(est.dosis));
+    if(!(dosis && dosis >= B_DOSIS_MIN && dosis <= B_DOSIS_MAX))
+      return mostrar(`El pigmento por cada 100 g tiene que estar entre ${B_DOSIS_MIN} y ${B_DOSIS_MAX}.`);
+    if(!/^#[0-9a-f]{6}$/i.test(est.hex)) return mostrar('Elige un color de referencia.');
+    if(!crudo) return mostrar('No encuentro el CRUDO, no puedo preparar el bote.');
+    const clash = bNombreLibre(nombre);
+    if(clash) return mostrar(clash);
+
+    const sello = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+    const slug = bSlug(nombre);
+    const ahora = new Date().toISOString();
+    const mp = {
+      id: 'mp-base-' + slug + '-' + sello, nombre, tipo: 'pigmento', familia: 'base',
+      hex_referencia: est.hex.toLowerCase(), opacidad: 1, fuerza: 1,
+      revisar: false, calibrado: false, estimado: true, sugerencias: [],
+      nota: 'Alta desde la app como color base. Color de referencia estimado: falta medirlo de una muestra real.',
+    };
+    const ings = [
+      {tipo: 'materia', ref: crudo.id, nombre: crudo.nombre, cantidad: Math.round((100 - dosis) * 10000) / 10000},
+      {tipo: 'materia', ref: mp.id, nombre, cantidad: dosis},
+    ];
+    const f = {
+      id: 'f-base-' + slug + '-' + sello, nombre, ingredientes: ings, total: 100,
+      bote: mp.id, es_base: true, historial: [],
+      notas: 'Alta desde la app como color base nuevo.',
+      actualizada_pigmentos: false, fecha_actualizacion: null, equivalencia: null,
+      en_estanteria: false, estanteria_desde: null,
+    };
+
+    // Primero el pigmento (la fórmula lo lleva dentro), luego la fórmula.
+    DATOS.materias_primas.push(mp); materias.set(mp.id, mp);
+    cambios.materias = cambios.materias || [];
+    cambios.materias.push(JSON.parse(JSON.stringify(mp)));
+    empujarMateria(mp);
+
+    cambios.nuevas.push(f);
+    DATOS.formulas.push(f); porId.set(f.id, f);
+    guardar();
+    empujar(f);
+    apuntar('creada', f, null);
+    DATOS.formulas.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    reconstruir();
+    cerrarDlgYLuego(() => { brindis(`${nombre} creado como color base`); abrir(f.id); actualizar(); });
+  };
+
+  pintar();
+}
+
 window.__app = {
   get DATOS(){ return DATOS; }, porId, materias, busq, norm, nube, MODO,
   anotar, anotarMateria, empujar, guardar, reconstruir, actualizar, sincronizar,
@@ -15056,7 +15326,7 @@ window.__app = {
   get SELLOS(){ return DATOS.sellos.slice(); }, porIdS,
   get GRAMOS(){ return DATOS.gramos.slice(); }, porIdG, HAY_GRAMOS,
   get gramoSel(){ return gramoSel; }, get gVista(){ return gVista; },
-  abrirGramo, editarGramo, guardarGramo, gCalcular, gNumero, gMiles, gDec,
+  abrirGramo, editarGramo, guardarGramo, gCalcular, gNumero, gMiles, gDec, bEsBase, gEsBase, marcarBase, altaBase, elegirNueva,
   abrirSello, editarSello, borrarSello, guardarSello, hojaSello,
   faltaInfo, marcarFalta, quitarFalta, get soloFaltaS(){ return soloFaltaS; },
   enlaceDe, leerEnlace, intentarEnlace, qrSvg,

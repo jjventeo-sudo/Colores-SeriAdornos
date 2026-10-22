@@ -3232,6 +3232,20 @@ body[data-seccion="gramos"] #btn-pdf{display:none}
 .g-tot-flojo{border-top:1px solid var(--linea)}
 .g-tot-flojo .g-peso b{font-size:17px; color:var(--texto-2)}
 .g-tot-flojo .g-peso small{font-size:11.5px}
+
+/* ── Gramos de un sello o de un molde entero ──────────────────────── */
+.g-ed-unidad{display:grid; gap:9px; margin:4px 0 14px}
+.g-seg{display:grid; grid-template-columns:1fr 1fr; gap:3px; padding:3px; background:var(--fondo); border:1px solid var(--linea-fuerte); border-radius:999px}
+.g-seg button{height:38px; border-radius:999px; font-size:13.5px; font-weight:600; color:var(--texto-2);
+  transition:background-color .18s var(--salida), color .18s var(--salida)}
+.g-seg button:hover{color:var(--texto)}
+.g-seg button[aria-checked="true"]{background:var(--tinta); color:var(--tinta-txt)}
+.g-ed-nmolde{display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:13.5px; color:var(--texto-2)}
+.g-ed-nmolde input{width:84px; height:42px; text-align:center; font:700 17px var(--mono); border:1px solid var(--linea-fuerte); border-radius:var(--r-m); background:var(--fondo); color:var(--texto)}
+.g-ed-nmolde input.mal{border-color:var(--rojo, #e5484d)}
+.g-ayuda-u{font-size:12.5px; line-height:1.45; color:var(--texto-3)}
+.g-total-ps{border-top:0; padding-top:0}
+.g-total-ps b{font-size:15px; color:var(--texto-2)}
 </style>
 </head>
 <body>
@@ -13901,7 +13915,7 @@ function pintarSolapas(){
      cortaba a media palabra: ahí va la versión corta. */
   const corto = matchMedia('(max-width:860px)').matches;
   $q.placeholder = SECCION === 'gramos'
-    ? (corto ? 'Buscar sello o cliente' : 'Buscar sello, cliente o color')
+    ? (corto ? 'Buscar sello o molde' : 'Buscar sello, molde o color')
     : SECCION === 'sellos'
     ? (corto ? 'Buscar molde o sello' : 'Buscar molde, sello o cliente')
     : (corto ? 'Buscar color o cliente' : 'Buscar color, cliente o pigmento');
@@ -14134,7 +14148,7 @@ addEventListener('resize', ()=>{
 
    Sustituye a la vieja sección de «Moldes». Cada sello lleva:
      · una foto (opcional),
-     · su nombre y su cliente (opcional),
+     · su nombre y el número de su molde (opcional),
      · los colores que usa, y de CADA uno los gramos que gasta un sello.
 
    Y sirve para una sola cosa: repetir un pedido sin hacer cuentas. Se escribe
@@ -14236,7 +14250,18 @@ function gHex(ref){
 const gGota = (hex, px) =>
   `<i class="g-gota" style="--c:${esc(hex || '#5b5d62')};--d:${px}px" aria-hidden="true"></i>`;
 const gFotoId = g => 'm-' + g.id;
+/* Lo que apunta Juanjo son «gramos del sello» o, cuando no se puede pesar un
+   sello suelto, «gramos de un MOLDE de N sellos» (`porMolde`). Se guarda lo
+   que él pesó, tal cual, y se divide al calcular: así no se arrastra un
+   redondeo (7 g entre 6 sellos no es 1,167 g exactos). */
+const gPorMolde = g => Math.max(1, Math.floor(Number(g && g.porMolde)) || 1);
 const gTotalSello = g => (g.colores || []).reduce((a, c) => a + (Number(c.gramos) || 0), 0);
+const gTotalPorSello = g => gTotalSello(g) / gPorMolde(g);
+/** El número de molde tal como se escribió, sin un «molde» delante si lo puso él. */
+const gMoldeNum = g => String((g && g.molde) || '').trim().replace(/^(molde|n[º°o.]*)\s*/i, '');
+const gMoldeTxt = g => gMoldeNum(g) ? 'Molde ' + gMoldeNum(g) : '';
+/** «sello» o «molde de 6 sellos», para rotular. */
+const gUnidad = g => gPorMolde(g) > 1 ? `molde de ${gPorMolde(g)} sellos` : 'sello';
 const gNombreColor = c => { const f = porId.get(c.ref); return f ? f.nombre : (c.nombre || 'Color'); };
 
 /** La cuenta de todo el módulo. Se redondea HACIA ARRIBA cada color: si
@@ -14245,7 +14270,7 @@ const gNombreColor = c => { const f = porId.get(c.ref); return f ? f.nombre : (c
 function gCalcular(g, n, margen){
   const k = 1 + (Number(margen) || 0) / 100;
   const filas = (g.colores || []).map(c => {
-    const gps = Number(c.gramos) || 0;
+    const gps = (Number(c.gramos) || 0) / gPorMolde(g);
     const bruto = gps * n * k;
     return {ref: c.ref, gps, bruto, g: Math.ceil(bruto - 1e-6)};
   });
@@ -14292,7 +14317,7 @@ function gFiltrar(txt){
   if(!t) return DATOS.gramos.slice();
   const ps = t.split(' ');
   return DATOS.gramos.filter(g => {
-    const hay = norm([g.nombre, g.cliente || '',
+    const hay = norm([g.nombre, gMoldeNum(g), gMoldeNum(g) ? 'molde' : '',
       ...(g.colores || []).map(gNombreColor)].join(' '));
     return ps.every(p => hay.includes(p));
   });
@@ -14347,9 +14372,9 @@ function pintarListaGramos(){
     const fid = gFotoId(g);
     const con = tieneFoto(fid);
     const puntos = cols.slice(0, 4).map(c => gGota(gHex(c.ref), 16)).join('');
-    const sub = esc((g.cliente || '').trim() || 'Sin cliente') +
-      (cols.length ? ` · ${cols.length} color${cols.length === 1 ? '' : 'es'}`
-                   : ' · <em class="falta">sin colores</em>');
+    const sub = [esc(gMoldeTxt(g)),
+      cols.length ? `${cols.length} color${cols.length === 1 ? '' : 'es'}` : '<em class="falta">sin colores</em>']
+      .filter(Boolean).join(' · ');
     b.innerHTML =
       `<div class="g-mini${con ? '' : ' sin'}"${marcaFoto(fid)}>${con ? '' : icono('sellos')}</div>` +
       `<div class="fila-txt"><div class="fila-nombre">${resaltar(g.nombre, $q.value)}</div>` +
@@ -14404,7 +14429,7 @@ function muroDeGramos(){
           ${(g.colores || []).slice(0, 4).map(c => `<i style="background:${esc(gHex(c.ref) || '#5b5d62')}"></i>`).join('')}
         </div>
         <b>${esc(g.nombre)}</b>
-        <span>${esc((g.cliente || '').trim() || 'Sin cliente')}</span>
+        <span>${esc(gMoldeTxt(g) || 'Sin molde')}</span>
       </button>`).join('')}
     </div>
   </div>`;
@@ -14439,7 +14464,7 @@ function pintarFichaGramo(){
       ${gGota(gHex(c.ref), 36)}
       <span class="g-nm">${esc(p.base)}${p.cli ? `<small>${esc(p.cli)}</small>`
         : (f ? '' : '<small>Este color ya no existe</small>')}</span>
-      <span class="g-g">${gDec(c.gramos)}<small>g</small><em>por sello</em></span>
+      <span class="g-g">${gDec(c.gramos)}<small>g</small><em>${gPorMolde(g) > 1 ? 'por molde' : 'por sello'}</em></span>
     </button>`;
   }).join('');
   const sinColores = !cols.length;
@@ -14453,14 +14478,17 @@ function pintarFichaGramo(){
       hay ? '<button class="foto-btn" id="gf-quitar" type="button">Quitar</button>' : ''}</div>` : ''}
     <div class="s-titulo g-tit">
       <h2>${esc(g.nombre)}</h2>
-      <div class="g-cli">${(g.cliente || '').trim() ? esc(g.cliente.trim()) : '<span class="flojo">Sin cliente</span>'}</div>
+      <div class="g-cli">${gMoldeTxt(g) ? esc(gMoldeTxt(g)) : '<span class="flojo">Sin número de molde</span>'}</div>
     </div>
     <div class="g-tarj">
-      <div class="g-cabsec"><span>Colores · gramos por sello</span></div>
+      <div class="g-cabsec"><span>Colores · gramos por ${esc(gUnidad(g))}</span></div>
       ${sinColores
         ? `<p class="g-vacio">Este sello todavía no tiene colores.${puedeEditar
             ? ' Toca <b>Editar</b> para añadirlos con sus gramos.' : ' El editor los irá apuntando.'}</p>`
-        : filas + `<div class="g-total"><span>Total por sello</span><b>${gDec(gTotalSello(g))} g</b></div>`}
+        : filas + (gPorMolde(g) > 1
+          ? `<div class="g-total"><span>Total por molde</span><b>${gDec(gTotalSello(g))} g</b></div>
+             <div class="g-total g-total-ps"><span>Por sello</span><b>${gDec(gTotalPorSello(g), 2)} g</b></div>`
+          : `<div class="g-total"><span>Total por sello</span><b>${gDec(gTotalSello(g))} g</b></div>`)}
     </div>
     <div class="barra-ficha g-barra">
       <button class="btn btn-marca" id="g-calc" type="button"${sinColores ? ' disabled' : ''}>${G_ICONO_CALC} Calcular pedido</button>
@@ -14593,6 +14621,8 @@ function pintarResultadoGramo(g){
   const totalPrep = aPreparar.reduce((a, x) => a + x.f.g, 0);
   const totalHechas = hechas.reduce((a, x) => a + x.f.g, 0);
 
+  const nMolde = gPorMolde(g);
+  const cuenta = (c, f) => nMolde > 1 ? `${gDec(c.gramos)} g ÷ ${nMolde}` : `${gDec(f.gps)} g`;
   const filaHtml = ({f, i}) => {
     const c = g.colores[i];
     const fo = porId.get(c.ref);
@@ -14625,7 +14655,7 @@ function pintarResultadoGramo(g){
     return `<div class="g-bloque" data-i="${i}">
       <button class="g-fila-r" type="button" data-i="${i}"${fo ? '' : ' disabled'}>
         ${gGota(gHex(c.ref), 36)}
-        <span class="g-nm">${esc(p.base)}<small>${gDec(f.gps)} g × ${gMiles(st.n)} × ${kTxt}</small></span>
+        <span class="g-nm">${esc(p.base)}<small>${cuenta(c, f)} × ${gMiles(st.n)} × ${kTxt}</small></span>
         <span class="g-gr">${gPesoHtml(f.g)}</span>
         <span class="g-ir">${fo ? G_ICONO_SIG : ''}</span>
       </button>${extra}</div>`;
@@ -14638,7 +14668,7 @@ function pintarResultadoGramo(g){
     return `<div class="g-bloque g-hecha" data-i="${i}">
       <div class="g-fila-r g-fila-hecha">
         ${gGota(gHex(c.ref), 36)}
-        <span class="g-nm">${esc(p.base)}<small>${gDec(f.gps)} g × ${gMiles(st.n)} × ${kTxt}</small></span>
+        <span class="g-nm">${esc(p.base)}<small>${cuenta(c, f)} × ${gMiles(st.n)} × ${kTxt}</small></span>
         <span class="g-gr">${gPesoHtml(f.g)}</span>
         <span class="g-ir"></span>
       </div></div>`;
@@ -14717,11 +14747,14 @@ function editarGramo(base, duplicar){
   const clave = esNuevo ? 'nuevo' : base.id;
   const nuevoId = () => 'g-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
   const g = base ? JSON.parse(JSON.stringify(base))
-                 : {id: nuevoId(), nombre: '', cliente: '', colores: [], margen: G_MARGEN_POR_DEFECTO};
+                 : {id: nuevoId(), nombre: '', molde: '', colores: [], margen: G_MARGEN_POR_DEFECTO};
   if(duplicar) g.id = nuevoId();
   g.colores = (g.colores || []).map(c => ({ref: c.ref, nombre: c.nombre, gramos: c.gramos}));
+  g.porMolde = gPorMolde(g);
+  let ultimoMolde = g.porMolde > 1 ? g.porMolde : 6;   // al volver a «un molde» se recuerda el último número
   if(g.margen == null) g.margen = G_MARGEN_POR_DEFECTO;
-  g.cliente = g.cliente || '';
+  g.molde = String(g.molde || '');
+  g.cliente = g.cliente || '';     // de antes: ya no se enseña, pero se conserva sin tocar
 
   /* ¿Algo a medias? Se recupera sin preguntar —como un editor de texto—
      pero SE DICE y hay botón para tirarlo. Recuperar callado sería peor que
@@ -14740,7 +14773,7 @@ function editarGramo(base, duplicar){
 
   const apuntarBorrador = () => {
     const m = gLeerBorradores();
-    const algo = g.nombre.trim() || g.cliente.trim() || g.colores.length;
+    const algo = g.nombre.trim() || g.molde.trim() || g.colores.length;
     if(algo) m[clave] = {g, cuando: Date.now()}; else delete m[clave];
     gEscribirBorradores(m);
   };
@@ -14750,18 +14783,15 @@ function editarGramo(base, duplicar){
     hay: () => !!gLeerBorradores()[clave],
   };
 
-  const clientes = () => {
-    const s = new Set();
-    for(const x of DATOS.gramos) if((x.cliente || '').trim()) s.add(x.cliente.trim());
-    for(const f of DATOS.formulas){ const c = clienteDe(f.nombre); if(c) s.add(c); }
-    return [...s].sort((a, b) => a.localeCompare(b, 'es'));
-  };
-
   const pintar = () => {
     if(vista === 'buscar') return pintarBuscar();
     if(vista === 'real') return pintarReal();
     pintarForm();
   };
+
+  const totalTxt = () => gPorMolde(g) > 1
+    ? `${gDec(gTotalSello(g))} g · ${gDec(gTotalPorSello(g), 2)} g por sello`
+    : `${gDec(gTotalSello(g))} g`;
 
   function pintarForm(){
     $dt.textContent = esNuevo ? (duplicar ? 'Otro sello a partir de este' : 'Nuevo sello') : 'Editar sello';
@@ -14772,7 +14802,7 @@ function editarGramo(base, duplicar){
         ${gGota(gHex(c.ref), 30)}
         <div class="g-ed-nm"><b>${esc(p.base)}</b>${p.cli ? `<small>${esc(p.cli)}</small>` : (f ? '' : '<small>Ya no existe</small>')}</div>
         <label class="g-ed-g"><input inputmode="decimal" autocomplete="off" data-g="${i}"
-          value="${c.gramos ? gDec(c.gramos) : ''}" placeholder="0" aria-label="Gramos por sello de ${esc(p.base)}"><span>g</span></label>
+          value="${c.gramos ? gDec(c.gramos) : ''}" placeholder="0" aria-label="Gramos por ${esc(gUnidad(g))} de ${esc(p.base)}"><span>g</span></label>
         <button class="btn-icono g-x" type="button" data-quitar="${i}" aria-label="Quitar ${esc(p.base)}">${icono('cerrar')}</button>
         <button class="g-real" type="button" data-real="${i}">Calcularlo con un pedido real</button>
       </div>`;
@@ -14780,15 +14810,26 @@ function editarGramo(base, duplicar){
     $dc.innerHTML = `
       ${recuperado ? `<div class="aviso g-rec"><span>Recuperado lo que tenías a medias.</span>
         <button type="button" id="g-tirar" class="g-enlace">Empezar de cero</button></div>` : ''}
+      <label class="campo"><span>Número de molde <em>(opcional)</em></span>
+        <input id="g-e-molde" value="${esc(g.molde)}" autocomplete="off" inputmode="text" maxlength="24" placeholder="Por ejemplo: 235"></label>
       <label class="campo"><span>Nombre del sello</span>
         <input id="g-e-nombre" value="${esc(g.nombre)}" autocomplete="off" placeholder="Por ejemplo: LLV. ELROW"></label>
-      <label class="campo"><span>Cliente <em>(opcional)</em></span>
-        <input id="g-e-cli" value="${esc(g.cliente)}" autocomplete="off" list="g-dl-cli" placeholder="Para encontrarlo después">
-        <datalist id="g-dl-cli">${clientes().map(c => `<option value="${esc(c)}">`).join('')}</datalist></label>
-      <div class="g-ed-cab"><span class="g-ceja">Colores · gramos por sello</span></div>
+      <div class="g-ed-unidad">
+        <span class="g-ceja">Los gramos que apunto son de</span>
+        <div class="g-seg" role="radiogroup" aria-label="Unidad de los gramos">
+          <button type="button" role="radio" id="g-e-u1" aria-checked="${gPorMolde(g) === 1}">Un sello</button>
+          <button type="button" role="radio" id="g-e-uN" aria-checked="${gPorMolde(g) > 1}">Un molde entero</button>
+        </div>
+        ${gPorMolde(g) > 1 ? `<label class="g-ed-nmolde"><span>Sellos que salen de ese molde</span>
+          <input id="g-e-nm" inputmode="numeric" autocomplete="off" value="${gPorMolde(g)}" aria-label="Número de sellos del molde"></label>` : ''}
+        <small class="g-ayuda-u">${gPorMolde(g) > 1
+          ? 'Pesa lo que gasta el molde entero y la app lo reparte entre sus sellos.'
+          : 'Si no puedes pesar un sello suelto, elige «Un molde entero» y di cuántos sellos tiene.'}</small>
+      </div>
+      <div class="g-ed-cab"><span class="g-ceja" id="g-e-cab">Colores · gramos por ${esc(gUnidad(g))}</span></div>
       <div class="g-ed-cols">${filas || '<p class="g-vacio">Todavía no hay ningún color.</p>'}</div>
       <button class="g-anadir" type="button" id="g-e-add">${icono('nuevo')} Añadir color</button>
-      <div class="g-ed-total"><span>Total por sello</span><b id="g-e-total">${gDec(gTotalSello(g))} g</b></div>
+      <div class="g-ed-total"><span id="g-e-total-t">${gPorMolde(g) > 1 ? 'Total por molde' : 'Total por sello'}</span><b id="g-e-total">${totalTxt()}</b></div>
       <div class="g-ed-margen">
         <div class="g-txt"><b>Margen de seguridad habitual</b><small>Sale ya puesto al calcular un pedido</small></div>
         <div class="g-paso" role="group" aria-label="Margen habitual">
@@ -14803,20 +14844,41 @@ function editarGramo(base, duplicar){
     if(!$dlg.open) $dlg.showModal();
 
     document.getElementById('g-e-nombre').addEventListener('input', e => { g.nombre = e.target.value; });
-    document.getElementById('g-e-cli').addEventListener('input', e => { g.cliente = e.target.value; });
+    document.getElementById('g-e-molde').addEventListener('input', e => { g.molde = e.target.value; });
     for(const inp of $dc.querySelectorAll('[data-g]'))
       inp.addEventListener('input', () => {
         const v = gNumero(inp.value);
         const c = g.colores[+inp.dataset.g];
         c.gramos = v;
         inp.classList.toggle('mal', inp.value.trim() !== '' && v === null);
-        document.getElementById('g-e-total').textContent = gDec(gTotalSello(g)) + ' g';
+        document.getElementById('g-e-total').textContent = totalTxt();
       });
     for(const b of $dc.querySelectorAll('[data-quitar]'))
       b.onclick = () => { g.colores.splice(+b.dataset.quitar, 1); apuntarBorrador(); pintar(); };
     for(const b of $dc.querySelectorAll('[data-real]'))
       b.onclick = () => { idxReal = +b.dataset.real; real = {sellos: '', gramos: ''}; vista = 'real'; pintar(); };
     document.getElementById('g-e-add').onclick = () => { vista = 'buscar'; pintar(); };
+    document.getElementById('g-e-u1').onclick = () => {
+      if(gPorMolde(g) > 1) ultimoMolde = gPorMolde(g);
+      g.porMolde = 1; apuntarBorrador(); pintar();
+    };
+    document.getElementById('g-e-uN').onclick = () => {
+      if(gPorMolde(g) > 1) return;
+      g.porMolde = ultimoMolde; apuntarBorrador(); pintar();
+      setTimeout(() => document.getElementById('g-e-nm')?.select(), 60);
+    };
+    document.getElementById('g-e-nm')?.addEventListener('input', e => {
+      const v = gNumero(e.target.value, true);
+      const ok = v && Number.isInteger(v) && v >= 2 && v <= 999;
+      e.target.classList.toggle('mal', !ok && e.target.value.trim() !== '');
+      if(!ok) return;
+      g.porMolde = v; ultimoMolde = v;
+      document.getElementById('g-e-cab').textContent = 'Colores · gramos por ' + gUnidad(g);
+      document.getElementById('g-e-total').textContent = totalTxt();
+      for(const i2 of $dc.querySelectorAll('[data-g]'))
+        i2.setAttribute('aria-label', i2.getAttribute('aria-label').replace(/molde de \d+ sellos/, gUnidad(g)));
+      apuntarBorrador();
+    });
     const mm = d => {
       g.margen = Math.min(G_MARGEN_MAX, Math.max(0, g.margen + d));
       document.getElementById('g-e-m').textContent = g.margen + ' %';
@@ -14872,11 +14934,12 @@ function editarGramo(base, duplicar){
       }
     }
     const repe = DATOS.gramos.find(x => x.id !== g.id && norm(x.nombre) === norm(nombre) &&
-                                        norm(x.cliente || '') === norm(g.cliente));
+                                        norm(gMoldeNum(x)) === norm(gMoldeNum(g)));
     const r = {
-      id: g.id, nombre, cliente: g.cliente.trim(),
+      id: g.id, nombre, molde: g.molde.trim(), cliente: (g.cliente || '').trim(),
       colores: g.colores.map(c => ({ref: c.ref, nombre: gNombreColor(c),
                                     gramos: Math.round(c.gramos * 1000) / 1000})),
+      ...(gPorMolde(g) > 1 ? {porMolde: gPorMolde(g)} : {}),
       margen: g.margen,
       creado: (base && !duplicar && base.creado) || new Date().toISOString(),
     };
@@ -14886,7 +14949,7 @@ function editarGramo(base, duplicar){
     cerrarDlgYLuego(() => {
       actualizar();
       abrirGramo(r.id);
-      brindis(repe ? 'Guardado · ya había otro igual con ese nombre y cliente' : 'Guardado');
+      brindis(repe ? 'Guardado · ya había otro igual con ese nombre y molde' : 'Guardado');
     });
   }
 
@@ -14932,7 +14995,7 @@ function editarGramo(base, duplicar){
     const c = g.colores[idxReal];
     if(!c){ vista = 'form'; return pintar(); }
     const nm = gPartes(gNombreColor(c)).base;
-    $dt.textContent = 'Gramos por sello de ' + nm;
+    $dt.textContent = 'Gramos por ' + gUnidad(g) + ' de ' + nm;
     $dc.innerHTML = `
       <p class="g-ayuda">Apunta un pedido que ya hiciste: la app calcula los gramos por sello,
         <b>con el desperdicio incluido</b>, sin tener que pesar sellos sueltos.</p>
@@ -14961,7 +15024,7 @@ function editarGramo(base, duplicar){
     document.getElementById('g-r-volver').onclick = () => { vista = 'form'; pintar(); };
     $usar.onclick = () => {
       if(!(valor > 0)) return;
-      c.gramos = Math.round(valor * 1000) / 1000;
+      c.gramos = Math.round(valor * gPorMolde(g) * 1000) / 1000;   // por sello × sellos del molde
       apuntarBorrador();
       vista = 'form'; pintar();
     };

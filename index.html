@@ -3294,6 +3294,20 @@ body[data-seccion="gramos"] #btn-pdf{display:none}
 @media (prefers-reduced-motion:reduce){
   .b-opcion,.b-error.sacude{transition:none; animation:none}
 }
+
+/* Eliminar un sello desde su ficha */
+.g-borrar-p{margin:0 0 10px; font-size:16px; line-height:1.45}
+.g-borrar-s{margin:0; font-size:13.5px; color:var(--texto-3); line-height:1.45}
+.g-barra .g-borrar{color:var(--rojo)}
+.g-barra .g-borrar:hover{border-color:var(--rojo)}
+/* En el móvil, con el editor, caben cuatro botones: «Calcular» arriba, a todo
+   el ancho, y debajo Editar, hacer otro y eliminar. */
+@media (max-width:860px){
+  .g-barra{flex-wrap:wrap}
+  .g-barra #g-calc{flex:1 1 100%}
+  .g-barra #g-editar{flex:1 1 auto}
+  .g-barra #g-calc ~ .btn{height:52px}
+}
 </style>
 </head>
 <body>
@@ -14547,7 +14561,8 @@ function pintarFichaGramo(){
     <div class="barra-ficha g-barra">
       <button class="btn btn-marca" id="g-calc" type="button"${sinColores ? ' disabled' : ''}>${G_ICONO_CALC} Calcular pedido</button>
       ${puedeEditar ? `<button class="btn" id="g-editar" type="button">${icono('editar')} Editar</button>
-      <button class="btn btn-icono" id="g-duplicar" type="button" aria-label="Hacer otro sello a partir de este" title="Hacer otro a partir de este">${G_ICONO_COPIA}</button>` : ''}
+      <button class="btn btn-icono" id="g-duplicar" type="button" aria-label="Hacer otro sello a partir de este" title="Hacer otro a partir de este">${G_ICONO_COPIA}</button>
+      <button class="btn btn-icono g-borrar" id="g-borrar" type="button" aria-label="Eliminar este sello" title="Eliminar este sello">${icono('borrar')}</button>` : ''}
     </div>`;
 
   enlazarFotos($ficha);
@@ -14585,6 +14600,30 @@ function pintarFichaGramo(){
   };
   document.getElementById('g-editar')?.addEventListener('click', () => editarGramo(g));
   document.getElementById('g-duplicar')?.addEventListener('click', () => editarGramo(g, true));
+  document.getElementById('g-borrar')?.addEventListener('click', () => borrarGramo(g));
+}
+
+/** Eliminar un sello desde su ficha (antes solo se podía desde «Editar»). */
+function borrarGramo(g){
+  if(!puedeEditar) return brindis(SIN_PERMISO);
+  $dt.textContent = 'Eliminar sello';
+  $dc.innerHTML = `<p class="g-borrar-p">¿Seguro que quieres eliminar <b>${esc(g.nombre)}</b>${
+    gMoldeTxt(g) ? ` <span class="flojo">(${esc(gMoldeTxt(g))})</span>` : ''}?</p>
+    <p class="g-borrar-s">Desaparece de la lista para todos. Los colores y fórmulas no se tocan.</p>`;
+  $dp.innerHTML = `<button class="btn" type="button" id="g-b-no">Cancelar</button>
+    <button class="btn btn-peligro" type="button" id="g-b-si" style="border-color:var(--rojo)">Eliminar</button>`;
+  document.getElementById('g-b-no').onclick = () => $dlg.close();
+  document.getElementById('g-b-si').onclick = () => {
+    gTirarBorrador(g.id);
+    cerrarDlgYLuego(() => {
+      guardarGramo({...g, borrado: true});
+      gramoSel = null; gVista = 'ficha'; gCalc = null;
+      if(document.body.dataset.ficha === 'on') cerrarFicha();
+      actualizar();
+      brindis('Sello eliminado');
+    });
+  };
+  if(!$dlg.open) $dlg.showModal();
 }
 
 // ── Calcular un pedido ──────────────────────────────────────────────

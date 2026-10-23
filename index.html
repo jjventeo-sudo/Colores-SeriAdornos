@@ -3308,6 +3308,68 @@ body[data-seccion="gramos"] #btn-pdf{display:none}
   .g-barra #g-editar{flex:1 1 auto}
   .g-barra #g-calc ~ .btn{height:52px}
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   VARIANTES DE COLOR DENTRO DE UN SELLO
+   ═══════════════════════════════════════════════════════════════════ */
+.g-vars{display:flex; gap:8px; margin:12px 0 4px; overflow-x:auto; padding:2px 2px 6px; scrollbar-width:none; -webkit-overflow-scrolling:touch}
+.g-vars::-webkit-scrollbar{display:none}
+.g-pill{
+  flex:none; display:flex; align-items:center; gap:9px; cursor:pointer; font:inherit; font-size:14px; line-height:1;
+  padding:5px 14px 5px 5px; border-radius:99px; color:var(--texto-2);
+  background:var(--panel); border:1px solid var(--linea);
+  transition:background .2s var(--salida), color .2s var(--salida), border-color .2s, transform .15s var(--salida);
+}
+.g-pill:hover{border-color:var(--linea-fuerte)}
+.g-pill:active{transform:scale(.97)}
+.g-pill:focus-visible{outline:2px solid var(--texto-2); outline-offset:2px}
+.g-pill.on{background:var(--tinta); color:var(--tinta-txt); border-color:var(--tinta); font-weight:600}
+.g-pill-mas{padding:5px 14px; color:var(--texto); border-style:dashed}
+.g-pv{
+  position:relative; display:block; flex:none; width:30px; height:30px; border-radius:50%; overflow:hidden;
+  background:var(--c,#5b5d62);
+  box-shadow:inset 0 -4px 6px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.14);
+}
+.g-pv .foto-real{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+.g-juntar{display:block; margin:2px 2px 4px; font-size:13px}
+.g-ed-vars{margin:6px 0 10px}
+.g-masvar,.g-quitarvar{display:block; margin:10px 0 2px}
+.g-quitarvar{color:var(--rojo)}
+@media (prefers-reduced-motion:reduce){ .g-pill{transition:none} }
+
+/* Pedido con varias variantes */
+.g-vrows{display:flex; flex-direction:column; gap:8px; margin:8px 0 10px}
+.g-vrow{
+  display:flex; align-items:center; gap:12px; padding:9px 12px 9px 9px; border-radius:18px;
+  border:1px solid var(--linea); background:var(--panel);
+  transition:border-color .2s var(--salida), background .2s var(--salida);
+}
+.g-vrow.foco{border-color:var(--linea-fuerte); background:var(--panel-2)}
+.g-vrow .g-pv{width:38px; height:38px}
+.g-vnm{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; cursor:pointer}
+.g-vnm b{font-size:15px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.g-vnm small{font-size:12px; color:var(--texto-3)}
+.g-vn{
+  width:92px; height:42px; text-align:center; font:600 17px var(--mono); color:var(--texto);
+  background:var(--panel-2); border:1px solid var(--linea-fuerte); border-radius:13px;
+}
+.g-vn:focus{outline:2px solid var(--texto-2); outline-offset:1px}
+
+/* Juntar sellos */
+.g-j-lista{display:flex; flex-direction:column; gap:8px}
+.g-j-fila{border:1px solid var(--linea); border-radius:16px; background:var(--panel); overflow:hidden;
+  transition:border-color .2s var(--salida), background .2s var(--salida)}
+.g-j-fila.on{border-color:var(--linea-fuerte); background:var(--panel-2)}
+.g-j-sel{display:flex; align-items:center; gap:12px; width:100%; padding:11px 12px; text-align:left; cursor:pointer;
+  background:none; border:0; color:inherit; font:inherit}
+.g-j-chk{flex:none; width:22px; height:22px; border-radius:7px; border:1.5px solid var(--texto-3); display:grid; place-items:center;
+  font-size:14px; line-height:1; color:var(--tinta-txt)}
+.g-j-fila.on .g-j-chk{background:var(--tinta); border-color:var(--tinta)}
+.g-j-nm{display:flex; flex-direction:column; gap:2px; min-width:0}
+.g-j-nm b{font-weight:600}
+.g-j-nm small{font-size:12px; color:var(--texto-3)}
+.g-j-nom{display:block; width:calc(100% - 24px); margin:0 12px 12px; height:42px; padding:0 14px; border-radius:12px;
+  border:1px solid var(--linea-fuerte); background:var(--panel); color:var(--texto); font:inherit; font-size:15px}
 </style>
 </head>
 <body>
@@ -14317,7 +14379,34 @@ function gHex(ref){
 }
 const gGota = (hex, px) =>
   `<i class="g-gota" style="--c:${esc(hex || '#5b5d62')};--d:${px}px" aria-hidden="true"></i>`;
-const gFotoId = g => 'm-' + g.id;
+/* ── VARIANTES (22 oct) ───────────────────────────────────────────────────
+   Un sello puede tener varias variantes de color. Lo compartido (nombre,
+   molde, sellos por molde, margen) vive en el sello; cada variante lleva lo
+   suyo: nombre, foto y lista de colores con sus gramos.
+
+   Compatibilidad: un sello de antes no tiene `variantes`, solo `colores`; se
+   trata como UNA variante con id 'v0' y su foto de siempre (`m-<id>`). Y al
+   guardar, `colores` queda siempre como copia de la PRIMERA variante: una app
+   sin actualizar sigue viendo algo razonable en vez de un sello vacío. */
+const G_V0 = 'v0';
+const gVars = g => (Array.isArray(g.variantes) && g.variantes.length)
+  ? g.variantes : [{id: G_V0, nombre: '', colores: g.colores || []}];
+const gHayVars = g => gVars(g).length > 1;
+const gNomVar = (v, i) => (v.nombre && v.nombre.trim()) || ('Variante ' + (i + 1));
+/** La foto de una variante. `foto` explícita cuando viene de un sello juntado. */
+const gFotoIdV = (g, v) => v.foto || (v.id === G_V0 ? 'm-' + g.id : 'm-' + g.id + '-' + v.id);
+/** La variante que se está mirando de cada sello (solo en esta sesión). */
+const gVarSel = {};
+const gVarActiva = g => {
+  const vs = gVars(g);
+  return vs.find(v => v.id === gVarSel[g.id]) || vs[0];
+};
+/** El sello «visto» desde una variante: mismas cosas, con SUS colores. Así
+    toda la cuenta y la pantalla de antes sirven sin saber que hay variantes. */
+const gProy = (g, v) => { v = v || gVarActiva(g); return {...g, colores: v.colores || [], _v: v}; };
+/** Foto del sello en la lista: la de la variante que se está mirando, o la primera. */
+const gFotoId = g => gFotoIdV(g, g._v || gVars(g)[0]);
+const gNuevoVid = () => 'v-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
 /* Lo que apunta Juanjo son «gramos del sello» o, cuando no se puede pesar un
    sello suelto, «gramos de un MOLDE de N sellos» (`porMolde`). Se guarda lo
    que él pesó, tal cual, y se divide al calcular: así no se arrastra un
@@ -14385,8 +14474,10 @@ function gFiltrar(txt){
   if(!t) return DATOS.gramos.slice();
   const ps = t.split(' ');
   return DATOS.gramos.filter(g => {
+    const vs = gVars(g);
     const hay = norm([g.nombre, gMoldeNum(g), gMoldeNum(g) ? 'molde' : '',
-      ...(g.colores || []).map(gNombreColor)].join(' '));
+      ...(vs.length > 1 ? vs.map(gNomVar) : []),
+      ...vs.flatMap(v => (v.colores || []).map(gNombreColor))].join(' '));
     return ps.every(p => hay.includes(p));
   });
 }
@@ -14422,7 +14513,8 @@ function actualizarGramos(){
   pintarListaGramos();
   /* Si estás escribiendo el número de sellos, la sincronización (que corre
      sola cada 15 s) NO repinta la ficha: te quitaría el cursor de debajo. */
-  const escribiendo = document.activeElement && document.activeElement.id === 'g-n';
+  const ae = document.activeElement;
+  const escribiendo = ae && (ae.id === 'g-n' || ae.classList.contains('g-vn'));
   if(!gramoSel) muroDeGramos();
   else if(!(gVista === 'calc' && escribiendo)) pintarFichaGramo();
 }
@@ -14436,18 +14528,23 @@ function pintarListaGramos(){
     b.className = 'fila fila-gramo'; b.type = 'button'; b.role = 'option';
     b.dataset.id = g.id;
     b.setAttribute('aria-current', String(g.id === gramoSel));
-    const cols = g.colores || [];
+    const vs = gVars(g);
+    const cols = vs[0].colores || [];
+    // Con variantes se ve el primer color de cada una; sin ellas, los primeros del sello.
+    const refs = vs.length > 1 ? vs.map(v => v.colores && v.colores[0] && v.colores[0].ref).filter(Boolean)
+                               : cols.map(c => c.ref);
     const fid = gFotoId(g);
     const con = tieneFoto(fid);
-    const puntos = cols.slice(0, 4).map(c => gGota(gHex(c.ref), 16)).join('');
+    const puntos = refs.slice(0, 4).map(r => gGota(gHex(r), 16)).join('');
     const sub = [esc(gMoldeTxt(g)),
-      cols.length ? `${cols.length} color${cols.length === 1 ? '' : 'es'}` : '<em class="falta">sin colores</em>']
+      vs.length > 1 ? `${vs.length} variantes`
+        : cols.length ? `${cols.length} color${cols.length === 1 ? '' : 'es'}` : '<em class="falta">sin colores</em>']
       .filter(Boolean).join(' · ');
     b.innerHTML =
       `<div class="g-mini${con ? '' : ' sin'}"${marcaFoto(fid)}>${con ? '' : icono('sellos')}</div>` +
       `<div class="fila-txt"><div class="fila-nombre">${resaltar(g.nombre, $q.value)}</div>` +
       `<div class="fila-sub">${sub}</div></div>` +
-      (puntos ? `<div class="g-puntos">${puntos}${cols.length > 4 ? `<span>+${cols.length - 4}</span>` : ''}</div>` : '');
+      (puntos ? `<div class="g-puntos">${puntos}${refs.length > 4 ? `<span>+${refs.length - 4}</span>` : ''}</div>` : '');
     frag.appendChild(b);
   }
   if(!gFiltrados.length && DATOS.gramos.length){
@@ -14494,10 +14591,12 @@ function muroDeGramos(){
     <div class="muro-sellos">
       ${v.map(g => `<button class="sello-t" data-ir-g="${esc(g.id)}">
         <div class="sello-t-foto"${marcaFoto(gFotoId(g))}>
-          ${(g.colores || []).slice(0, 4).map(c => `<i style="background:${esc(gHex(c.ref) || '#5b5d62')}"></i>`).join('')}
+          ${gVars(g).length > 1
+            ? gVars(g).slice(0, 4).map(v => `<i style="background:${esc(gHex(v.colores && v.colores[0] && v.colores[0].ref) || '#5b5d62')}"></i>`).join('')
+            : (g.colores || []).slice(0, 4).map(c => `<i style="background:${esc(gHex(c.ref) || '#5b5d62')}"></i>`).join('')}
         </div>
         <b>${esc(g.nombre)}</b>
-        <span>${esc(gMoldeTxt(g) || 'Sin molde')}</span>
+        <span>${esc([gMoldeTxt(g) || 'Sin molde', gVars(g).length > 1 ? gVars(g).length + ' variantes' : ''].filter(Boolean).join(' · '))}</span>
       </button>`).join('')}
     </div>
   </div>`;
@@ -14509,18 +14608,22 @@ function muroDeGramos(){
 // ── La ficha ────────────────────────────────────────────────────────
 
 /** Objeto de pega para reutilizar tal cual el mecanismo de fotos de la app. */
-const gObjFoto = g => ({id: gFotoId(g), nombre: g.nombre, crudo: true,
+const gObjFoto = g => ({id: gFotoId(g),
+                        nombre: g.nombre + (g._v && g.variantes && g.variantes.length > 1 ? ' · ' + gNomVar(g._v, g.variantes.indexOf(g._v)) : ''),
+                        crudo: true,
                         esSello: true, sello: g.id, sinRegistro: true});
 
 function pintarFichaGramo(){
-  const g = porIdG.get(gramoSel);
-  if(!g){ gramoSel = null; muroDeGramos(); return; }
+  const raw = porIdG.get(gramoSel);
+  if(!raw){ gramoSel = null; muroDeGramos(); return; }
+  if(gVista === 'calc') return pintarCalcGramo(raw);
+  const vs = gVars(raw);
+  const g = gProy(raw);              // el sello visto desde la variante abierta
   $ficha.classList.remove('es-muro');
   soltarFotos($ficha);
   const $col = document.getElementById('columna-ficha');
   const hex0 = gHex(g.colores && g.colores[0] && g.colores[0].ref);
   if($col){ if(hex0) $col.style.setProperty('--tono', hex0); else $col.style.removeProperty('--tono'); }
-  if(gVista === 'calc') return pintarCalcGramo(g);
 
   const fid = gFotoId(g);
   const hay = tieneFoto(fid);
@@ -14544,12 +14647,13 @@ function pintarFichaGramo(){
     </div>
     ${puedeEditar && HAY_FOTOS ? `<div class="foto-elige g-foto-btns">${botonesFoto('gf', hay)}${
       hay ? '<button class="foto-btn" id="gf-quitar" type="button">Quitar</button>' : ''}</div>` : ''}
+    ${pastillasVariantes(raw, vs, g._v)}
     <div class="s-titulo g-tit">
       <h2>${esc(g.nombre)}</h2>
       <div class="g-cli">${gMoldeTxt(g) ? esc(gMoldeTxt(g)) : '<span class="flojo">Sin número de molde</span>'}</div>
     </div>
     <div class="g-tarj">
-      <div class="g-cabsec"><span>Colores · gramos por ${esc(gUnidad(g))}</span></div>
+      <div class="g-cabsec"><span>Colores${vs.length > 1 ? ` de «${esc(gNomVar(g._v, vs.indexOf(g._v)))}»` : ''} · gramos por ${esc(gUnidad(g))}</span></div>
       ${sinColores
         ? `<p class="g-vacio">Este sello todavía no tiene colores.${puedeEditar
             ? ' Toca <b>Editar</b> para añadirlos con sus gramos.' : ' El editor los irá apuntando.'}</p>`
@@ -14598,55 +14702,247 @@ function pintarFichaGramo(){
     gVista = 'calc'; gCalc = null; pintarFichaGramo();
     document.getElementById('g-n')?.focus({preventScroll: true});
   };
-  document.getElementById('g-editar')?.addEventListener('click', () => editarGramo(g));
-  document.getElementById('g-duplicar')?.addEventListener('click', () => editarGramo(g, true));
-  document.getElementById('g-borrar')?.addEventListener('click', () => borrarGramo(g));
+  document.getElementById('g-editar')?.addEventListener('click', () => editarGramo(raw));
+  document.getElementById('g-duplicar')?.addEventListener('click', () => editarGramo(raw, true));
+  document.getElementById('g-borrar')?.addEventListener('click', () => borrarGramo(raw));
+  for(const b of $ficha.querySelectorAll('[data-gv]'))
+    b.onclick = () => {
+      if(gVarSel[raw.id] === b.dataset.gv) return;
+      gVarSel[raw.id] = b.dataset.gv;
+      pintarFichaGramo(); pintarListaGramos();
+    };
+  document.getElementById('g-addvar')?.addEventListener('click', () => editarGramo(raw, false, 'variante'));
+  document.getElementById('g-juntar')?.addEventListener('click', () => juntarGramos(raw));
 }
 
-/** Eliminar un sello desde su ficha (antes solo se podía desde «Editar»). */
+/** Las pastillas de variantes. Con una sola variante solo el editor ve «+ Variante». */
+function pastillasVariantes(raw, vs, activa){
+  if(vs.length < 2 && !puedeEditar) return '';
+  const pills = vs.length > 1 ? vs.map((v, i) => {
+    const fid = gFotoIdV(raw, v), con = tieneFoto(fid);
+    const hex = gHex(v.colores && v.colores[0] && v.colores[0].ref);
+    const on = v === activa;
+    return `<button type="button" class="g-pill${on ? ' on' : ''}" data-gv="${esc(v.id)}" role="tab" aria-selected="${on}">
+      <b class="g-pv${con ? '' : ' sin'}"${marcaFoto(fid)} style="--c:${esc(hex || '#5b5d62')}"></b><span>${esc(gNomVar(v, i))}</span></button>`;
+  }).join('') : '';
+  const mas = puedeEditar ? `<button type="button" class="g-pill g-pill-mas" id="g-addvar">+ Variante</button>` : '';
+  const juntar = puedeEditar && DATOS.gramos.length > 1
+    ? `<button type="button" class="g-enlace g-juntar" id="g-juntar">Juntar con otros sellos</button>` : '';
+  return `<div class="g-vars" role="tablist" aria-label="Variantes de color">${pills}${mas}</div>${juntar}`;
+}
+
+/** Quita la foto de una variante del servidor, sin molestar si falla. */
+function gQuitarFotoSuelta(fid){
+  if(!HAY_FOTOS || !puedeEditar || !tieneFoto(fid)) return;
+  Promise.resolve().then(() => nube.quitarFoto(fid)).catch(() => {});
+}
+
+/** Eliminar un sello desde su ficha. Con variantes pregunta: ¿solo esta, o todo? */
 function borrarGramo(g){
   if(!puedeEditar) return brindis(SIN_PERMISO);
-  $dt.textContent = 'Eliminar sello';
-  $dc.innerHTML = `<p class="g-borrar-p">¿Seguro que quieres eliminar <b>${esc(g.nombre)}</b>${
-    gMoldeTxt(g) ? ` <span class="flojo">(${esc(gMoldeTxt(g))})</span>` : ''}?</p>
-    <p class="g-borrar-s">Desaparece de la lista para todos. Los colores y fórmulas no se tocan.</p>`;
-  $dp.innerHTML = `<button class="btn" type="button" id="g-b-no">Cancelar</button>
-    <button class="btn btn-peligro" type="button" id="g-b-si" style="border-color:var(--rojo)">Eliminar</button>`;
-  document.getElementById('g-b-no').onclick = () => $dlg.close();
-  document.getElementById('g-b-si').onclick = () => {
+  const vs = gVars(g);
+  const act = gVarActiva(g);
+  const ini = vs.indexOf(act);
+  const sello = gMoldeTxt(g) ? ` <span class="flojo">(${esc(gMoldeTxt(g))})</span>` : '';
+  const borrarTodo = () => {
     gTirarBorrador(g.id);
     cerrarDlgYLuego(() => {
       guardarGramo({...g, borrado: true});
+      delete gVarSel[g.id];
       gramoSel = null; gVista = 'ficha'; gCalc = null;
       if(document.body.dataset.ficha === 'on') cerrarFicha();
       actualizar();
       brindis('Sello eliminado');
     });
   };
+  if(vs.length < 2){
+    $dt.textContent = 'Eliminar sello';
+    $dc.innerHTML = `<p class="g-borrar-p">¿Seguro que quieres eliminar <b>${esc(g.nombre)}</b>${sello}?</p>
+      <p class="g-borrar-s">Desaparece de la lista para todos. Los colores y fórmulas no se tocan.</p>`;
+    $dp.innerHTML = `<button class="btn" type="button" id="g-b-no">Cancelar</button>
+      <button class="btn btn-peligro" type="button" id="g-b-si" style="border-color:var(--rojo)">Eliminar</button>`;
+    document.getElementById('g-b-no').onclick = () => $dlg.close();
+    document.getElementById('g-b-si').onclick = borrarTodo;
+    if(!$dlg.open) $dlg.showModal();
+    return;
+  }
+  $dt.textContent = 'Qué quieres eliminar';
+  $dc.innerHTML = `<p class="g-borrar-p"><b>${esc(g.nombre)}</b>${sello} tiene ${vs.length} variantes.</p>
+    <button type="button" class="b-opcion" id="g-b-var">
+      <span class="b-op-ico">${icono('borrar')}</span>
+      <span class="b-op-txt"><b>Solo la variante «${esc(gNomVar(act, ini))}»</b>
+        <small>Con su foto y sus colores. Las demás se quedan.</small></span></button>
+    <button type="button" class="b-opcion" id="g-b-todo">
+      <span class="b-op-ico">${icono('borrar')}</span>
+      <span class="b-op-txt"><b>El sello entero</b>
+        <small>Con todas sus variantes.</small></span></button>`;
+  $dp.innerHTML = `<button class="btn" type="button" id="g-b-no">Cancelar</button>`;
+  document.getElementById('g-b-no').onclick = () => $dlg.close();
+  document.getElementById('g-b-todo').onclick = borrarTodo;
+  document.getElementById('g-b-var').onclick = () => {
+    const resto = vs.filter(v => v !== act);
+    const r = {...g, variantes: resto, colores: resto[0].colores};
+    if(resto.length === 1 && resto[0].id === G_V0 && !resto[0].foto && !resto[0].nombre) delete r.variantes;
+    gQuitarFotoSuelta(gFotoIdV(g, act));
+    delete gVarSel[g.id];
+    cerrarDlgYLuego(() => {
+      guardarGramo(r);
+      gVista = 'ficha'; gCalc = null;
+      actualizar();
+      brindis(`Variante «${gNomVar(act, ini)}» eliminada`);
+    });
+  };
   if(!$dlg.open) $dlg.showModal();
+}
+
+// ── Juntar sellos sueltos como variantes de uno ─────────────────────
+
+/** «LLV. ELROW 2 AZUL» dentro de «LLV. ELROW 2» -> «AZUL»; si no empieza igual, el nombre entero. */
+function gSugerirVariante(base, x){
+  const a = String(x.nombre || '').trim(), b = String(base.nombre || '').trim();
+  if(b && a.length > b.length && a.toUpperCase().startsWith(b.toUpperCase())){
+    const resto = a.slice(b.length).replace(/^[\s\-–·:,]+/, '').trim();
+    if(resto) return resto;
+  }
+  return a;
+}
+
+/** Une otros sellos al que se está mirando, cada uno como una variante nueva. */
+function juntarGramos(base){
+  if(!puedeEditar) return brindis(SIN_PERMISO);
+  const otros = DATOS.gramos.filter(x => x.id !== base.id);
+  if(!otros.length) return brindis('No hay otros sellos que juntar');
+  const mismo = x => !!gMoldeNum(x) && norm(gMoldeNum(x)) === norm(gMoldeNum(base));
+  otros.sort((a, b) => (mismo(b) - mismo(a)) || a.nombre.localeCompare(b.nombre, 'es'));
+  const baseMulti = gHayVars(base);
+  const marcados = new Map(otros.filter(mismo).map(x => [x.id, gSugerirVariante(base, x)]));
+  let nombreBase = 'Principal';
+
+  const pintar = () => {
+    const scroll = $dc.scrollTop;
+    $dt.textContent = 'Juntar con otros sellos';
+    $dc.innerHTML = `
+      <p class="g-borrar-s" style="margin:0 0 12px">Los sellos que marques pasan a ser <b>variantes de ${esc(base.nombre)}</b>.
+        Cada una conserva su foto y sus colores. Los sellos sueltos dejan de salir en la lista.</p>
+      ${baseMulti ? '' : `<label class="campo"><span>Cómo se llamará la variante actual</span>
+        <input id="g-j-base" value="${esc(nombreBase)}" autocomplete="off" maxlength="40" placeholder="Por ejemplo: Roja"></label>`}
+      <div class="g-ceja" style="margin:4px 0 6px">Sellos que se juntan</div>
+      <div class="g-j-lista">${otros.map(x => {
+        const on = marcados.has(x.id);
+        const nv = gVars(x).length;
+        return `<div class="g-j-fila${on ? ' on' : ''}" data-id="${esc(x.id)}">
+          <button type="button" class="g-j-sel" role="checkbox" aria-checked="${on}" data-sel="${esc(x.id)}">
+            <span class="g-j-chk">${on ? '✓' : ''}</span>
+            <span class="g-j-nm"><b>${esc(x.nombre)}</b>
+              <small>${esc([gMoldeTxt(x), nv > 1 ? nv + ' variantes' : (n => n + (n === 1 ? ' color' : ' colores'))((gVars(x)[0].colores || []).length)].filter(Boolean).join(' · '))}</small></span>
+          </button>
+          ${on ? `<input class="g-j-nom" data-nom="${esc(x.id)}" value="${esc(marcados.get(x.id))}" autocomplete="off"
+             maxlength="40" aria-label="Nombre de la variante de ${esc(x.nombre)}" placeholder="Nombre de la variante">` : ''}
+        </div>`;
+      }).join('')}</div>`;
+    $dp.innerHTML = `<button class="btn" type="button" id="g-j-no">Cancelar</button>
+      <button class="btn btn-1" type="button" id="g-j-si"${marcados.size ? '' : ' disabled'}>${
+        marcados.size ? `Juntar ${marcados.size} sello${marcados.size === 1 ? '' : 's'}` : 'Marca alguno'}</button>`;
+    if(!$dlg.open) $dlg.showModal();
+    $dc.scrollTop = scroll;
+    document.getElementById('g-j-base')?.addEventListener('input', e => { nombreBase = e.target.value; });
+    for(const b of $dc.querySelectorAll('[data-sel]'))
+      b.onclick = () => {
+        const id = b.dataset.sel;
+        if(marcados.has(id)) marcados.delete(id); else marcados.set(id, gSugerirVariante(base, porIdG.get(id)));
+        pintar();
+      };
+    for(const i of $dc.querySelectorAll('[data-nom]'))
+      i.addEventListener('input', () => marcados.set(i.dataset.nom, i.value));
+    document.getElementById('g-j-no').onclick = () => $dlg.close();
+    document.getElementById('g-j-si').onclick = unir;
+  };
+
+  const unir = () => {
+    if(!marcados.size) return;
+    const copia = cs => (cs || []).map(c => ({ref: c.ref, nombre: c.nombre, gramos: c.gramos}));
+    const nBase = gPorMolde(base);
+    const vars = baseMulti
+      ? gVars(base).map(v => ({...v, colores: copia(v.colores)}))
+      : [{id: G_V0, nombre: (nombreBase || '').trim(), colores: copia(gVars(base)[0].colores)}];
+    let convertidos = false;
+    for(const x of otros.filter(o => marcados.has(o.id))){
+      const nx = gPorMolde(x);
+      if(nx !== nBase) convertidos = true;
+      const nom = (marcados.get(x.id) || '').trim() || x.nombre;
+      const hijos = gVars(x);
+      hijos.forEach((v, i) => vars.push({
+        id: gNuevoVid(),
+        nombre: hijos.length > 1 ? `${nom} · ${gNomVar(v, i)}` : nom,
+        foto: gFotoIdV(x, v),          // su foto se queda donde está
+        // Lo apuntado era «gramos de un molde de nx sellos»; aquí es de nBase.
+        colores: copia(v.colores).map(c => nx === nBase ? c
+          : {...c, gramos: Math.round((Number(c.gramos) || 0) * nBase / nx * 1000) / 1000}),
+      }));
+    }
+    const r = {...base, variantes: vars, colores: vars[0].colores};
+    cerrarDlgYLuego(() => {
+      guardarGramo(r);
+      for(const x of otros.filter(o => marcados.has(o.id))) guardarGramo({...x, borrado: true});
+      gVarSel[r.id] = vars[0].id;
+      gVista = 'ficha'; gCalc = null;
+      actualizar();
+      brindis(`Juntados: ${vars.length} variantes` + (convertidos ? ' · gramos adaptados a sus sellos por molde' : ''));
+    });
+  };
+  pintar();
 }
 
 // ── Calcular un pedido ──────────────────────────────────────────────
 
+/** La clave de «lo último que calculé» de una variante (la primera conserva la de siempre). */
+const gClaveN = (g, v) => v.id === G_V0 ? g.id : g.id + ':' + v.id;
+
 function pintarCalcGramo(g){
-  if(!gCalc || gCalc.id !== g.id)
-    gCalc = {id: g.id, n: gLeerN(g.id), margen: g.margen != null ? g.margen : G_MARGEN_POR_DEFECTO};
+  const vs = gVars(g);
+  const multi = vs.length > 1;
+  const act = gVarActiva(g);
+  if(!gCalc || gCalc.id !== g.id){
+    gCalc = {id: g.id, ns: {}, foco: act.id, tandas: {},
+             margen: g.margen != null ? g.margen : G_MARGEN_POR_DEFECTO};
+    // Con variantes solo se rellena la que estabas mirando: las demás empiezan en 0.
+    for(const v of vs) if(!multi || v === act) gCalc.ns[v.id] = gLeerN(gClaveN(g, v));
+  }
   const st = gCalc;
-  const fid = gFotoId(g), hay = tieneFoto(fid);
+  if(!vs.some(v => v.id === st.foco)) st.foco = act.id;
+  const fid = gFotoIdV(g, act), hay = tieneFoto(fid);
+  const nFoco = () => st.ns[st.foco] || null;
+
+  const entrada = multi
+    ? `<span class="g-ceja g-etq">Cuántos sellos de cada variante</span>
+       <div class="g-vrows">${vs.map((v, i) => {
+         const f2 = gFotoIdV(g, v), con = tieneFoto(f2);
+         const hex = gHex(v.colores && v.colores[0] && v.colores[0].ref);
+         const tot = gTotalPorSello({...g, colores: v.colores});
+         return `<div class="g-vrow${v.id === st.foco ? ' foco' : ''}" data-v="${esc(v.id)}">
+           <b class="g-pv${con ? '' : ' sin'}"${marcaFoto(f2)} style="--c:${esc(hex || '#5b5d62')}"></b>
+           <label class="g-vnm" for="g-vn-${i}"><b>${esc(gNomVar(v, i))}</b>
+             <small>${gDec(tot, 2)} g por sello</small></label>
+           <input class="g-vn" id="g-vn-${i}" data-v="${esc(v.id)}" type="text" inputmode="numeric" autocomplete="off" placeholder="0"
+             value="${st.ns[v.id] ? gMiles(st.ns[v.id]) : ''}" aria-label="Sellos de ${esc(gNomVar(v, i))}">
+         </div>`;
+       }).join('')}</div>`
+    : `<label class="g-ceja g-etq" for="g-n">Cuántos sellos quiero hacer</label>
+       <div class="g-tarj g-entrada">
+         <input id="g-n" type="text" inputmode="numeric" autocomplete="off" placeholder="0"
+                value="${st.ns[vs[0].id] ? gMiles(st.ns[vs[0].id]) : ''}" aria-label="Número de sellos">
+         <span>sellos</span>
+       </div>`;
+
   $ficha.innerHTML = `
     <button class="volver g-vol-calc" id="g-volver" type="button">${G_ICONO_ATRAS} Volver al sello</button>
     <div class="g-minis">
       <div class="g-foto g-peque${hay ? '' : ' sin'}"${marcaFoto(fid)}>${hay ? '' : icono('sellos')}</div>
       <div><span class="g-ceja">Pedido de</span><b>${esc(g.nombre)}</b></div>
     </div>
-    <label class="g-ceja g-etq" for="g-n">Cuántos sellos quiero hacer</label>
-    <div class="g-tarj g-entrada">
-      <input id="g-n" type="text" inputmode="numeric" autocomplete="off" placeholder="0"
-             value="${st.n ? gMiles(st.n) : ''}" aria-label="Número de sellos">
-      <span>sellos</span>
-    </div>
+    ${entrada}
     <div class="g-chips" role="group" aria-label="Cantidades habituales">
-      ${G_ATAJOS.map(n => `<button class="g-chip" type="button" data-n="${n}" aria-pressed="${st.n === n}">${gMiles(n)}</button>`).join('')}
+      ${G_ATAJOS.map(n => `<button class="g-chip" type="button" data-n="${n}" aria-pressed="${nFoco() === n}">${gMiles(n)}</button>`).join('')}
     </div>
     <div class="g-tarj g-margen">
       <div class="g-txt"><b>Margen de seguridad</b><small>Para no quedarte corto al final</small></div>
@@ -14663,22 +14959,33 @@ function pintarCalcGramo(g){
   enlazarFotos($ficha);
   document.getElementById('g-volver').onclick = () => { gVista = 'ficha'; gCalc = null; pintarFichaGramo(); };
 
-  const $n = document.getElementById('g-n');
-  const pon = n => {
-    st.n = n > 0 ? n : null;
-    if(st.n) gGuardarN(g.id, st.n);
-    for(const c of $ficha.querySelectorAll('.g-chip')) c.setAttribute('aria-pressed', String(st.n === +c.dataset.n));
+  const pon = (vid, n) => {
+    const v = vs.find(x => x.id === vid);
+    st.ns[vid] = n > 0 ? n : null;
+    if(st.ns[vid] && v) gGuardarN(gClaveN(g, v), st.ns[vid]);
+    for(const c of $ficha.querySelectorAll('.g-chip')) c.setAttribute('aria-pressed', String(nFoco() === +c.dataset.n));
     pintarResultadoGramo(g);
   };
-  $n.addEventListener('input', () => {
-    const v = gNumero($n.value, true);
-    pon(v && Number.isInteger(v) && v <= 1000000 ? v : null);
-  });
-  // Al salir del campo se deja con su separador de miles.
-  $n.addEventListener('blur', () => { if(st.n) $n.value = gMiles(st.n); });
-  $n.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); $n.blur(); } });
+  const leer = $i => { const v = gNumero($i.value, true); return v && Number.isInteger(v) && v <= 1000000 ? v : null; };
+  for(const $i of $ficha.querySelectorAll('#g-n, .g-vn')){
+    const vid = $i.dataset.v || vs[0].id;
+    $i.addEventListener('input', () => pon(vid, leer($i)));
+    $i.addEventListener('focus', () => {
+      if(!multi) return;
+      st.foco = vid;
+      for(const r of $ficha.querySelectorAll('.g-vrow')) r.classList.toggle('foco', r.dataset.v === vid);
+      for(const c of $ficha.querySelectorAll('.g-chip')) c.setAttribute('aria-pressed', String(nFoco() === +c.dataset.n));
+    });
+    // Al salir del campo se deja con su separador de miles.
+    $i.addEventListener('blur', () => { if(st.ns[vid]) $i.value = gMiles(st.ns[vid]); });
+    $i.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); $i.blur(); } });
+  }
   for(const c of $ficha.querySelectorAll('.g-chip'))
-    c.onclick = () => { $n.value = gMiles(+c.dataset.n); pon(+c.dataset.n); };
+    c.onclick = () => {
+      const $i = multi ? $ficha.querySelector(`.g-vn[data-v="${CSS.escape(st.foco)}"]`) : document.getElementById('g-n');
+      if($i) $i.value = gMiles(+c.dataset.n);
+      pon(st.foco, +c.dataset.n);
+    };
   const margen = d => {
     st.margen = Math.min(G_MARGEN_MAX, Math.max(0, st.margen + d));
     document.getElementById('g-m').textContent = st.margen + ' %';
@@ -14689,9 +14996,34 @@ function pintarCalcGramo(g){
   pintarResultadoGramo(g);
 }
 
+/** La cuenta de un pedido con una o varias variantes. Cada color sale UNA vez
+    con la suma de las variantes que lo llevan, y se redondea hacia arriba al
+    final (no por variante: dos redondeos sumarían gramos de más). */
+function gCalcularVarias(g, ns, margen){
+  const k = 1 + (Number(margen) || 0) / 100;
+  const mapa = new Map();
+  const partes = [];
+  gVars(g).forEach((v, i) => {
+    const n = ns[v.id] || 0;
+    if(!(n > 0)) return;
+    partes.push({v, i, n});
+    for(const c of v.colores || []){
+      const gps = (Number(c.gramos) || 0) / gPorMolde(g);
+      const e = mapa.get(c.ref) || {ref: c.ref, nombre: c.nombre, bruto: 0, en: []};
+      e.bruto += gps * n * k;
+      e.en.push({v, i, n, gps, gramos: c.gramos});
+      mapa.set(c.ref, e);
+    }
+  });
+  const filas = [...mapa.values()].map(e => ({...e, g: Math.ceil(e.bruto - 1e-6)}));
+  return {k, filas, partes, total: filas.reduce((a, f) => a + f.g, 0)};
+}
+
 function gResultado(g){
   const st = gCalc;
-  return st && st.n ? gCalcular(g, st.n, st.margen) : null;
+  if(!st) return null;
+  const r = gCalcularVarias(g, st.ns, st.margen);
+  return r.partes.length ? r : null;
 }
 
 function pintarResultadoGramo(g){
@@ -14715,12 +15047,24 @@ function pintarResultadoGramo(g){
   const totalHechas = hechas.reduce((a, x) => a + x.f.g, 0);
 
   const nMolde = gPorMolde(g);
-  const cuenta = (c, f) => nMolde > 1 ? `${gDec(c.gramos)} g ÷ ${nMolde}` : `${gDec(f.gps)} g`;
+  /* Debajo del nombre: la cuenta, si el pedido es de una sola variante; y si
+     son varias, qué variantes llevan ese color. */
+  const detalle = f => {
+    if(r.partes.length > 1){
+      const nombres = f.en.map(x => gNomVar(x.v, x.i));
+      return nombres.length === 1 ? `solo en ${esc(nombres[0])}` : `en ${esc(nombres.join(' y '))}`;
+    }
+    const e = f.en[0];
+    const cuenta = nMolde > 1 ? `${gDec(e.gramos)} g ÷ ${nMolde}` : `${gDec(e.gps)} g`;
+    return `${cuenta} × ${gMiles(e.n)} × ${kTxt}`;
+  };
+  const nombreDe = f => {
+    const fo = porId.get(f.ref);
+    return {fo, p: fo ? gPartes(fo.nombre) : {base: f.nombre || 'Color'}};
+  };
   const filaHtml = ({f, i}) => {
-    const c = g.colores[i];
-    const fo = porId.get(c.ref);
-    const p = fo ? gPartes(fo.nombre) : {base: c.nombre || 'Color'};
-    const nT = st.tandas[i] >= 2 ? st.tandas[i] : 0;
+    const {fo, p} = nombreDe(f);
+    const nT = st.tandas[f.ref] >= 2 ? st.tandas[f.ref] : 0;
     const pasa = f.g > G_TANDA_MAX;
     let extra = '';
     if(fo && nT){
@@ -14747,21 +15091,19 @@ function pintarResultadoGramo(g){
     }
     return `<div class="g-bloque" data-i="${i}">
       <button class="g-fila-r" type="button" data-i="${i}"${fo ? '' : ' disabled'}>
-        ${gGota(gHex(c.ref), 36)}
-        <span class="g-nm">${esc(p.base)}<small>${cuenta(c, f)} × ${gMiles(st.n)} × ${kTxt}</small></span>
+        ${gGota(gHex(f.ref), 36)}
+        <span class="g-nm">${esc(p.base)}<small>${detalle(f)}</small></span>
         <span class="g-gr">${gPesoHtml(f.g)}</span>
         <span class="g-ir">${fo ? G_ICONO_SIG : ''}</span>
       </button>${extra}</div>`;
   };
   /* Un color base: NO se pesa ni se prepara; se coge del bote. Fila sin botón. */
   const filaHechaHtml = ({f, i}) => {
-    const c = g.colores[i];
-    const fo = porId.get(c.ref);
-    const p = fo ? gPartes(fo.nombre) : {base: c.nombre || 'Color'};
+    const {p} = nombreDe(f);
     return `<div class="g-bloque g-hecha" data-i="${i}">
       <div class="g-fila-r g-fila-hecha">
-        ${gGota(gHex(c.ref), 36)}
-        <span class="g-nm">${esc(p.base)}<small>${cuenta(c, f)} × ${gMiles(st.n)} × ${kTxt}</small></span>
+        ${gGota(gHex(f.ref), 36)}
+        <span class="g-nm">${esc(p.base)}<small>${detalle(f)}</small></span>
         <span class="g-gr">${gPesoHtml(f.g)}</span>
         <span class="g-ir"></span>
       </div></div>`;
@@ -14772,38 +15114,38 @@ function pintarResultadoGramo(g){
       ? `<div class="g-cabsec"><span>Tienes que preparar</span></div>` + aPreparar.map(filaHtml).join('')
         + `<div class="g-tot-r"><span>Total a preparar</span>${gPesoHtml(totalPrep)}</div>`
       : `<div class="g-cabsec"><span>Nada que preparar</span></div>
-         <p class="g-pie">Todos los colores de este sello son bases que ya tienes hechas.</p>`)
+         <p class="g-pie">Todos los colores de este pedido son bases que ya tienes hechas.</p>`)
     + (hechas.length
       ? `<div class="g-cabsec g-sep"><span>Ya los tienes hechos · coge del bote</span></div>` + hechas.map(filaHechaHtml).join('')
         + `<div class="g-tot-r g-tot-flojo"><span>De los botes</span>${gPesoHtml(totalHechas)}</div>`
       : '')
-    + (aPreparar.length ? `<p class="g-pie">Redondeado hacia arriba. Toca un color para empezar a pesarlo.</p>` : '');
+    + (aPreparar.length ? `<p class="g-pie">Redondeado hacia arriba.${r.partes.length > 1 ? ' Cada color suma las variantes que lo llevan.' : ''} Toca un color para empezar a pesarlo.</p>` : '');
   for(const b of $r.querySelectorAll('button.g-fila-r'))
     b.onclick = () => {
       const f = r.filas[+b.dataset.i];
-      const nT = st.tandas[+b.dataset.i] >= 2 ? st.tandas[+b.dataset.i] : 0;
+      const nT = st.tandas[f.ref] >= 2 ? st.tandas[f.ref] : 0;
       prepararDeGramo(f.ref, nT ? gPesoTanda(f.g, nT) : f.g);
     };
-  /* Partir en tandas: el estado vive en `st.tandas[i]` (cuántas tandas tiene
+  /* Partir en tandas: el estado vive en `st.tandas[ref]` (cuántas tandas tiene
      ese color). Cambiar los sellos o el margen recalcula los pesos solo. */
   for(const b of $r.querySelectorAll('[data-t]')){
     const i = +(b.dataset.i ?? b.closest('[data-i]').dataset.i);
     const f = r.filas[i];
     b.onclick = () => {
       const t = b.dataset.t;
-      if(t === 'partir') st.tandas[i] = Math.max(2, Math.ceil(f.g / G_TANDA_MAX));
-      else if(t === 'juntar') delete st.tandas[i];
-      else if(t === 'mas') st.tandas[i] = Math.min(G_TANDAS_TOPE, (st.tandas[i] || 2) + 1);
-      else if(t === 'menos') st.tandas[i] = Math.max(2, (st.tandas[i] || 2) - 1);
-      else if(t === 'tanda') return prepararDeGramo(f.ref, gPesoTanda(f.g, st.tandas[i]));
+      if(t === 'partir') st.tandas[f.ref] = Math.max(2, Math.ceil(f.g / G_TANDA_MAX));
+      else if(t === 'juntar') delete st.tandas[f.ref];
+      else if(t === 'mas') st.tandas[f.ref] = Math.min(G_TANDAS_TOPE, (st.tandas[f.ref] || 2) + 1);
+      else if(t === 'menos') st.tandas[f.ref] = Math.max(2, (st.tandas[f.ref] || 2) - 1);
+      else if(t === 'tanda') return prepararDeGramo(f.ref, gPesoTanda(f.g, st.tandas[f.ref]));
       pintarResultadoGramo(g);
     };
   }
   const primeroX = aPreparar.find(x => porId.get(x.f.ref));
   $b.disabled = !primeroX;
   if(primeroX){
-    const primero = primeroX.f, ip = primeroX.i;
-    const nT = st.tandas[ip] >= 2 ? st.tandas[ip] : 0;
+    const primero = primeroX.f;
+    const nT = st.tandas[primero.ref] >= 2 ? st.tandas[primero.ref] : 0;
     const cant = nT ? gPesoTanda(primero.g, nT) : primero.g;
     document.getElementById('g-prep-txt').textContent =
       'Preparar ' + gPartes(porId.get(primero.ref).nombre).base + (nT ? ` · tanda 1 de ${nT}` : '');
@@ -14834,7 +15176,7 @@ function gTirarBorrador(clave){
   if(m[clave]){ delete m[clave]; gEscribirBorradores(m); }
 }
 
-function editarGramo(base, duplicar){
+function editarGramo(base, duplicar, modo){
   if(!puedeEditar) return brindis(SIN_PERMISO);
   const esNuevo = !base || !!duplicar;
   const clave = esNuevo ? 'nuevo' : base.id;
@@ -14842,7 +15184,24 @@ function editarGramo(base, duplicar){
   const g = base ? JSON.parse(JSON.stringify(base))
                  : {id: nuevoId(), nombre: '', molde: '', colores: [], margen: G_MARGEN_POR_DEFECTO};
   if(duplicar) g.id = nuevoId();
-  g.colores = (g.colores || []).map(c => ({ref: c.ref, nombre: c.nombre, gramos: c.gramos}));
+  const copiaCols = cs => (cs || []).map(c => ({ref: c.ref, nombre: c.nombre, gramos: c.gramos}));
+  /* Las variantes que se editan. Duplicar copia SOLO la variante que se mira
+     (es «hacer otro sello a partir de este»); para otra variante, «+ Variante». */
+  const normalizar = () => {
+    if(duplicar){
+      const a = gVarActiva(base);
+      g.variantes = [{id: G_V0, nombre: '', colores: copiaCols(a.colores)}];
+    }else{
+      g.variantes = gVars(g).map(v => ({id: v.id, nombre: v.nombre || '', ...(v.foto ? {foto: v.foto} : {}),
+                                        colores: copiaCols(v.colores)}));
+    }
+    delete g.colores;
+  };
+  normalizar();
+  const originales = base && !duplicar ? gVars(base).map(v => ({id: v.id, fid: gFotoIdV(base, v)})) : [];
+  let ev = base && !duplicar ? Math.max(0, gVars(base).indexOf(gVarActiva(base))) : 0;   // la variante que se está editando
+  const cur = () => g.variantes[ev] || g.variantes[0];
+  let idNueva = null;      // la variante recién añadida: la ficha se abre en ella
   g.porMolde = gPorMolde(g);
   let ultimoMolde = g.porMolde > 1 ? g.porMolde : 6;   // al volver a «un molde» se recuerda el último número
   if(g.margen == null) g.margen = G_MARGEN_POR_DEFECTO;
@@ -14854,19 +15213,31 @@ function editarGramo(base, duplicar){
      perderlo: creerías que lo guardado es así. */
   let recuperado = false;
   const bor = gLeerBorradores()[clave];
-  if(bor && bor.g && !duplicar){
+  if(bor && bor.g && !duplicar && modo !== 'variante'){
     Object.assign(g, bor.g);
+    // Un borrador de antes de las variantes trae `colores` sueltos.
+    if(!Array.isArray(g.variantes) || !g.variantes.length)
+      g.variantes = [{id: G_V0, nombre: '', colores: copiaCols(g.colores)}];
+    delete g.colores;
     recuperado = true;
   }
+  if(modo === 'variante'){
+    // Una variante nueva: sale con los colores de la que se estaba mirando.
+    idNueva = gNuevoVid();
+    g.variantes.push({id: idNueva, nombre: '', colores: copiaCols(cur().colores)});
+    ev = g.variantes.length - 1;
+  }
+  if(ev >= g.variantes.length) ev = 0;
 
   let vista = 'form';          // 'form' | 'buscar' | 'real'
   let idxReal = -1;            // el color de «desde un pedido real»
   let real = {sellos: '', gramos: ''};
   let quiereBorrar = false;
+  let yaEditado = false;       // para el título «Nueva variante» solo la primera vez
 
   const apuntarBorrador = () => {
     const m = gLeerBorradores();
-    const algo = g.nombre.trim() || g.molde.trim() || g.colores.length;
+    const algo = g.nombre.trim() || g.molde.trim() || g.variantes.some(v => v.colores.length);
     if(algo) m[clave] = {g, cuando: Date.now()}; else delete m[clave];
     gEscribirBorradores(m);
   };
@@ -14882,13 +15253,25 @@ function editarGramo(base, duplicar){
     pintarForm();
   };
 
+  const verCur = () => ({...g, colores: cur().colores});
   const totalTxt = () => gPorMolde(g) > 1
-    ? `${gDec(gTotalSello(g))} g · ${gDec(gTotalPorSello(g), 2)} g por sello`
-    : `${gDec(gTotalSello(g))} g`;
+    ? `${gDec(gTotalSello(verCur()))} g · ${gDec(gTotalPorSello(verCur()), 2)} g por sello`
+    : `${gDec(gTotalSello(verCur()))} g`;
+
+  const cabTxt = () => 'Colores' + (g.variantes.length > 1 ? ` de «${gNomVar(cur(), ev)}»` : '') + ' · gramos por ' + gUnidad(g);
 
   function pintarForm(){
-    $dt.textContent = esNuevo ? (duplicar ? 'Otro sello a partir de este' : 'Nuevo sello') : 'Editar sello';
-    const filas = g.colores.map((c, i) => {
+    const scroll = $dc.scrollTop;
+    $dt.textContent = esNuevo ? (duplicar ? 'Otro sello a partir de este' : 'Nuevo sello')
+                              : (idNueva && cur().id === idNueva ? 'Nueva variante' : 'Editar sello');
+    const multi = g.variantes.length > 1;
+    const pillsEd = multi ? `<div class="g-vars g-ed-vars" role="tablist" aria-label="Variantes">
+        ${g.variantes.map((v, i) => `<button type="button" class="g-pill${i === ev ? ' on' : ''}" data-ev="${i}" role="tab" aria-selected="${i === ev}">
+          <b class="g-pv sin" style="--c:${esc(gHex(v.colores[0] && v.colores[0].ref) || '#5b5d62')}"></b><span>${esc(gNomVar(v, i))}</span></button>`).join('')}
+        <button type="button" class="g-pill g-pill-mas" id="g-e-addvar">+ Variante</button></div>
+      <label class="campo"><span>Nombre de esta variante</span>
+        <input id="g-e-vnom" value="${esc(cur().nombre)}" autocomplete="off" maxlength="40" placeholder="Por ejemplo: Azul"></label>` : '';
+    const filas = cur().colores.map((c, i) => {
       const f = porId.get(c.ref);
       const p = f ? gPartes(f.nombre) : {base: c.nombre || 'Color', cli: null};
       return `<div class="g-ed-col" data-i="${i}">
@@ -14919,9 +15302,12 @@ function editarGramo(base, duplicar){
           ? 'Pesa lo que gasta el molde entero y la app lo reparte entre sus sellos.'
           : 'Si no puedes pesar un sello suelto, elige «Un molde entero» y di cuántos sellos tiene.'}</small>
       </div>
-      <div class="g-ed-cab"><span class="g-ceja" id="g-e-cab">Colores · gramos por ${esc(gUnidad(g))}</span></div>
+      ${pillsEd}
+      <div class="g-ed-cab"><span class="g-ceja" id="g-e-cab">${esc(cabTxt())}</span></div>
       <div class="g-ed-cols">${filas || '<p class="g-vacio">Todavía no hay ningún color.</p>'}</div>
       <button class="g-anadir" type="button" id="g-e-add">${icono('nuevo')} Añadir color</button>
+      ${multi ? `<button class="g-enlace g-quitarvar" type="button" id="g-e-quitarvar">Quitar esta variante</button>`
+                : `<button class="g-enlace g-masvar" type="button" id="g-e-addvar">+ Añadir otra variante de color</button>`}
       <div class="g-ed-total"><span id="g-e-total-t">${gPorMolde(g) > 1 ? 'Total por molde' : 'Total por sello'}</span><b id="g-e-total">${totalTxt()}</b></div>
       <div class="g-ed-margen">
         <div class="g-txt"><b>Margen de seguridad habitual</b><small>Sale ya puesto al calcular un pedido</small></div>
@@ -14935,19 +15321,42 @@ function editarGramo(base, duplicar){
       ${!esNuevo ? `<button class="btn btn-peligro" type="button" id="g-e-borrar">${quiereBorrar ? '¿Seguro? Pulsa otra vez' : 'Eliminar'}</button>` : ''}
       <button class="btn btn-1" type="button" id="g-e-guardar">Guardar</button>`;
     if(!$dlg.open) $dlg.showModal();
+    $dc.scrollTop = scroll;
+
+    document.getElementById('g-e-vnom')?.addEventListener('input', e => {
+      cur().nombre = e.target.value;
+      const sp = $dc.querySelector(`[data-ev="${ev}"] span`);
+      if(sp) sp.textContent = gNomVar(cur(), ev);
+      document.getElementById('g-e-cab').textContent = cabTxt();
+      apuntarBorrador();
+    });
+    for(const b of $dc.querySelectorAll('[data-ev]'))
+      b.onclick = () => { ev = +b.dataset.ev; pintar(); };
+    document.getElementById('g-e-addvar')?.addEventListener('click', () => {
+      idNueva = gNuevoVid();
+      g.variantes.push({id: idNueva, nombre: '', colores: copiaCols(cur().colores)});
+      ev = g.variantes.length - 1; yaEditado = false;
+      apuntarBorrador(); pintar();
+      setTimeout(() => document.getElementById('g-e-vnom')?.focus(), 80);
+    });
+    document.getElementById('g-e-quitarvar')?.addEventListener('click', () => {
+      g.variantes.splice(ev, 1);
+      ev = Math.max(0, ev - 1);
+      apuntarBorrador(); pintar();
+    });
 
     document.getElementById('g-e-nombre').addEventListener('input', e => { g.nombre = e.target.value; });
     document.getElementById('g-e-molde').addEventListener('input', e => { g.molde = e.target.value; });
     for(const inp of $dc.querySelectorAll('[data-g]'))
       inp.addEventListener('input', () => {
         const v = gNumero(inp.value);
-        const c = g.colores[+inp.dataset.g];
+        const c = cur().colores[+inp.dataset.g];
         c.gramos = v;
         inp.classList.toggle('mal', inp.value.trim() !== '' && v === null);
         document.getElementById('g-e-total').textContent = totalTxt();
       });
     for(const b of $dc.querySelectorAll('[data-quitar]'))
-      b.onclick = () => { g.colores.splice(+b.dataset.quitar, 1); apuntarBorrador(); pintar(); };
+      b.onclick = () => { cur().colores.splice(+b.dataset.quitar, 1); apuntarBorrador(); pintar(); };
     for(const b of $dc.querySelectorAll('[data-real]'))
       b.onclick = () => { idxReal = +b.dataset.real; real = {sellos: '', gramos: ''}; vista = 'real'; pintar(); };
     document.getElementById('g-e-add').onclick = () => { vista = 'buscar'; pintar(); };
@@ -14966,7 +15375,7 @@ function editarGramo(base, duplicar){
       e.target.classList.toggle('mal', !ok && e.target.value.trim() !== '');
       if(!ok) return;
       g.porMolde = v; ultimoMolde = v;
-      document.getElementById('g-e-cab').textContent = 'Colores · gramos por ' + gUnidad(g);
+      document.getElementById('g-e-cab').textContent = cabTxt();
       document.getElementById('g-e-total').textContent = totalTxt();
       for(const i2 of $dc.querySelectorAll('[data-g]'))
         i2.setAttribute('aria-label', i2.getAttribute('aria-label').replace(/molde de \d+ sellos/, gUnidad(g)));
@@ -15014,30 +15423,47 @@ function editarGramo(base, duplicar){
       document.getElementById('g-e-nombre')?.focus();
       return;
     }
-    const vistos = new Set();
-    for(let i = 0; i < g.colores.length; i++){
-      const c = g.colores[i];
-      const nm = gPartes(gNombreColor(c)).base;
-      if(vistos.has(c.ref)){ brindis(`${nm} está repetido`); return; }
-      vistos.add(c.ref);
-      if(!(c.gramos > 0)){
-        brindis(`Falta el peso de ${nm}`);
-        $dc.querySelector(`[data-g="${i}"]`)?.focus();
-        return;
+    for(let vi = 0; vi < g.variantes.length; vi++){
+      const v = g.variantes[vi];
+      const donde = g.variantes.length > 1 ? ` en «${gNomVar(v, vi)}»` : '';
+      const ir = (msg, foco) => {
+        if(ev !== vi){ ev = vi; pintar(); }
+        brindis(msg);
+        if(foco) setTimeout(() => $dc.querySelector(foco)?.focus(), 60);
+      };
+      if(g.variantes.length > 1 && !v.colores.length)
+        return ir(`La variante «${gNomVar(v, vi)}» no tiene colores`);
+      const vistos = new Set();
+      for(let i = 0; i < v.colores.length; i++){
+        const c = v.colores[i];
+        const nm = gPartes(gNombreColor(c)).base;
+        if(vistos.has(c.ref)) return ir(`${nm} está repetido${donde}`);
+        vistos.add(c.ref);
+        if(!(c.gramos > 0)) return ir(`Falta el peso de ${nm}${donde}`, `[data-g="${i}"]`);
       }
     }
     const repe = DATOS.gramos.find(x => x.id !== g.id && norm(x.nombre) === norm(nombre) &&
                                         norm(gMoldeNum(x)) === norm(gMoldeNum(g)));
+    const vars = g.variantes.map(v => ({
+      id: v.id, nombre: (v.nombre || '').trim(), ...(v.foto ? {foto: v.foto} : {}),
+      colores: v.colores.map(c => ({ref: c.ref, nombre: gNombreColor(c),
+                                    gramos: Math.round(c.gramos * 1000) / 1000})),
+    }));
+    // Un sello con una sola variante se guarda como siempre (sin `variantes`).
+    const sencillo = vars.length === 1 && vars[0].id === G_V0 && !vars[0].foto;
     const r = {
       id: g.id, nombre, molde: g.molde.trim(), cliente: (g.cliente || '').trim(),
-      colores: g.colores.map(c => ({ref: c.ref, nombre: gNombreColor(c),
-                                    gramos: Math.round(c.gramos * 1000) / 1000})),
+      colores: vars[0].colores,     // copia de la primera: para una app sin actualizar
+      ...(sencillo ? {} : {variantes: vars}),
       ...(gPorMolde(g) > 1 ? {porMolde: gPorMolde(g)} : {}),
       margen: g.margen,
       creado: (base && !duplicar && base.creado) || new Date().toISOString(),
     };
     gTirarBorrador(clave);
     escribiendoEnDlg = null;
+    // Las variantes que se han quitado se llevan su foto.
+    for(const o of originales) if(!vars.some(v => v.id === o.id)) gQuitarFotoSuelta(o.fid);
+    gVarSel[r.id] = (idNueva && vars.some(v => v.id === idNueva)) ? idNueva : cur().id;
     guardarGramo(r);
     cerrarDlgYLuego(() => {
       actualizar();
@@ -15053,7 +15479,7 @@ function editarGramo(base, duplicar){
         <input id="g-b-q" autocomplete="off" placeholder="Nombre del color" value=""></label>
       <div class="g-b-lista" id="g-b-lista"><p class="g-vacio">Escribe parte del nombre.</p></div>`;
     $dp.innerHTML = `<button class="btn" type="button" id="g-b-volver">Volver</button>`;
-    const ya = new Set(g.colores.map(c => c.ref));
+    const ya = new Set(cur().colores.map(c => c.ref));
     const $q2 = document.getElementById('g-b-q');
     const $l = document.getElementById('g-b-lista');
     const llenar = () => {
@@ -15072,11 +15498,11 @@ function editarGramo(base, duplicar){
         b.onclick = () => {
           const f = porId.get(b.dataset.ref);
           if(!f) return;
-          g.colores.push({ref: f.id, nombre: f.nombre, gramos: null});
+          cur().colores.push({ref: f.id, nombre: f.nombre, gramos: null});
           apuntarBorrador();
           vista = 'form'; pintar();
           // El cursor directo al peso del color recién puesto.
-          setTimeout(() => $dc.querySelector(`[data-g="${g.colores.length - 1}"]`)?.focus(), 60);
+          setTimeout(() => $dc.querySelector(`[data-g="${cur().colores.length - 1}"]`)?.focus(), 60);
         };
     };
     $q2.addEventListener('input', llenar);
@@ -15085,7 +15511,7 @@ function editarGramo(base, duplicar){
   }
 
   function pintarReal(){
-    const c = g.colores[idxReal];
+    const c = cur().colores[idxReal];
     if(!c){ vista = 'form'; return pintar(); }
     const nm = gPartes(gNombreColor(c)).base;
     $dt.textContent = 'Gramos por ' + gUnidad(g) + ' de ' + nm;
@@ -15125,6 +15551,7 @@ function editarGramo(base, duplicar){
   }
 
   pintar();
+  if(modo === 'variante') setTimeout(() => document.getElementById('g-e-vnom')?.focus(), 120);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -15365,7 +15792,7 @@ window.__app = {
   get SELLOS(){ return DATOS.sellos.slice(); }, porIdS,
   get GRAMOS(){ return DATOS.gramos.slice(); }, porIdG, HAY_GRAMOS,
   get gramoSel(){ return gramoSel; }, get gVista(){ return gVista; },
-  abrirGramo, editarGramo, guardarGramo, gCalcular, gNumero, gMiles, gDec, bEsBase, gEsBase, marcarBase, altaBase, elegirNueva,
+  abrirGramo, editarGramo, guardarGramo, gCalcular, gCalcularVarias, gVars, gFotoIdV, gVarSel, juntarGramos, gNumero, gMiles, gDec, bEsBase, gEsBase, marcarBase, altaBase, elegirNueva,
   abrirSello, editarSello, borrarSello, guardarSello, hojaSello,
   faltaInfo, marcarFalta, quitarFalta, get soloFaltaS(){ return soloFaltaS; },
   enlaceDe, leerEnlace, intentarEnlace, qrSvg,

@@ -14307,20 +14307,16 @@ const G_MARGEN_MAX = 50;
    No es un freno: la app da el peso total y OFRECE partirlo en tandas iguales. */
 const G_TANDA_MAX = 4500;
 const G_TANDAS_TOPE = 20;
-/* Los colores BASE ya están hechos en la estantería (bote de kilo): no se
-   preparan, se cogen. Son los 9 que dijo Juanjo (21 oct): blanco 4, blanco op,
-   rojo 1, rojo 3, amarillo 1, amarillo 2, magenta, negro y azul base.
-   Se reconocen por el nombre de la fórmula (sin acentos ni signos) o porque
-   la fórmula ya es un «bote» (campo `bote`). */
+/* Los 9 colores BASE (blanco 4, blanco op, rojo 1, rojo 3, amarillo 1, amarillo 2,
+   magenta, negro y azul base) se reconocen por el nombre de la fórmula (sin
+   acentos ni signos). Solo sirven para marcar «Color base» en la ficha del color.
+   OJO, 24 oct: en Sellos NO se trata distinto a ningún color. Juanjo: la pintura
+   que haya hecha puede ser de otro pedido; el pedido siempre da la fórmula y las
+   cantidades para preparar botes NUEVOS, de todos los colores. */
 const G_BASES = new Set(['BLANCO 4', 'BLANCO OP', 'BLANCO OPTICO', 'ROJO 1', 'ROJO 3',
                          'AMARILLO 1', 'AMARILLO 2', 'MAGENTA', 'NEGRO', 'AZUL BASE']);
 const gNorm = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
   .toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
-function gEsBase(ref){
-  const f = porId.get(ref);
-  return !!f && bEsBase(f);   // bEsBase vive en el módulo de colores base
-}
-
 /** 7301 g en 2 tandas -> 3651 g cada una (hacia arriba, como todo lo demás). */
 function gPesoTanda(total, n){ return Math.ceil(total / n - 1e-9); }
 
@@ -15040,11 +15036,9 @@ function pintarResultadoGramo(g){
   }
   const kTxt = gDec(r.k, 2);
   st.tandas = st.tandas || {};
-  const filas = r.filas.map((f, i) => ({f, i, base: gEsBase(f.ref)}));
-  const aPreparar = filas.filter(x => !x.base);
-  const hechas = filas.filter(x => x.base);
+  // Todos los colores se preparan: siempre fórmula y cantidades para botes NUEVOS.
+  const aPreparar = r.filas.map((f, i) => ({f, i}));
   const totalPrep = aPreparar.reduce((a, x) => a + x.f.g, 0);
-  const totalHechas = hechas.reduce((a, x) => a + x.f.g, 0);
 
   const nMolde = gPorMolde(g);
   /* Debajo del nombre: la cuenta, si el pedido es de una sola variante; y si
@@ -15097,29 +15091,12 @@ function pintarResultadoGramo(g){
         <span class="g-ir">${fo ? G_ICONO_SIG : ''}</span>
       </button>${extra}</div>`;
   };
-  /* Un color base: NO se pesa ni se prepara; se coge del bote. Fila sin botón. */
-  const filaHechaHtml = ({f, i}) => {
-    const {p} = nombreDe(f);
-    return `<div class="g-bloque g-hecha" data-i="${i}">
-      <div class="g-fila-r g-fila-hecha">
-        ${gGota(gHex(f.ref), 36)}
-        <span class="g-nm">${esc(p.base)}<small>${detalle(f)}</small></span>
-        <span class="g-gr">${gPesoHtml(f.g)}</span>
-        <span class="g-ir"></span>
-      </div></div>`;
-  };
-
   $r.innerHTML =
     (aPreparar.length
       ? `<div class="g-cabsec"><span>Tienes que preparar</span></div>` + aPreparar.map(filaHtml).join('')
         + `<div class="g-tot-r"><span>Total a preparar</span>${gPesoHtml(totalPrep)}</div>`
-      : `<div class="g-cabsec"><span>Nada que preparar</span></div>
-         <p class="g-pie">Todos los colores de este pedido son bases que ya tienes hechas.</p>`)
-    + (hechas.length
-      ? `<div class="g-cabsec g-sep"><span>Ya los tienes hechos · coge del bote</span></div>` + hechas.map(filaHechaHtml).join('')
-        + `<div class="g-tot-r g-tot-flojo"><span>De los botes</span>${gPesoHtml(totalHechas)}</div>`
-      : '')
-    + (aPreparar.length ? `<p class="g-pie">Redondeado hacia arriba.${r.partes.length > 1 ? ' Cada color suma las variantes que lo llevan.' : ''} Toca un color para empezar a pesarlo.</p>` : '');
+        + `<p class="g-pie">Redondeado hacia arriba.${r.partes.length > 1 ? ' Cada color suma las variantes que lo llevan.' : ''} Toca un color para empezar a pesarlo.</p>`
+      : `<p class="g-vacio">Este sello todavía no tiene colores.</p>`);
   for(const b of $r.querySelectorAll('button.g-fila-r'))
     b.onclick = () => {
       const f = r.filas[+b.dataset.i];
@@ -15150,7 +15127,7 @@ function pintarResultadoGramo(g){
     document.getElementById('g-prep-txt').textContent =
       'Preparar ' + gPartes(porId.get(primero.ref).nombre).base + (nT ? ` · tanda 1 de ${nT}` : '');
     $b.onclick = () => prepararDeGramo(primero.ref, cant);
-  }else document.getElementById('g-prep-txt').textContent = hechas.length ? 'Todo está ya hecho' : 'Preparar';
+  }else document.getElementById('g-prep-txt').textContent = 'Preparar';
 }
 
 /** Pasa a pesar ese color con esa cantidad. `preparar()` lee `objetivo`. */
@@ -15558,9 +15535,10 @@ function editarGramo(base, duplicar, modo){
    COLORES BASE
    Dos cosas, las dos solo del editor:
 
-   1. Marcar (o desmarcar) CUALQUIER color como «base»: un color que ya se
-      tiene hecho en el taller. En Sellos no se manda a preparar: sale aparte,
-      en «ya los tienes hechos». Se guarda EXPLÍCITO, true o false
+   1. Marcar (o desmarcar) CUALQUIER color como «base»: uno de los colores de
+      referencia con los que se calcula el resto. (Hasta el 23 oct también
+      decidía qué no se preparaba en Sellos; ya no: Sellos prepara TODO.)
+      Se guarda EXPLÍCITO, true o false
       (`f.es_base`), para que gane al nombre: quitar de las bases algo que se
       llama «NEGRO» tiene que durar.
 
@@ -15580,7 +15558,7 @@ function bEsBase(f){
 /** La pastilla «Color base» de la ficha, pegada al nombre. */
 function selloBase(f){
   if(f.solo_referencia || !bEsBase(f)) return '';
-  return `<span class="etiqueta base" id="sello-base" title="Ya lo tenéis hecho: en Sellos no se manda a preparar">Color base</span>`;
+  return `<span class="etiqueta base" id="sello-base" title="Color base: de los colores de referencia con los que se calcula el resto">Color base</span>`;
 }
 
 /** Poner o quitar la marca de color base. Queda en el registro, como todo. */
@@ -15601,7 +15579,7 @@ function marcarBase(f, si){
 function botonBase(f){
   if(!puedeEditar || f.solo_referencia) return '';
   return `<button class="rectificar${bEsBase(f) ? ' es-base' : ''}" id="base-cambiar" aria-pressed="${bEsBase(f)}"
-    title="Un color base es uno que ya tenéis hecho: en Sellos no se manda a preparar">${
+    title="Un color base es uno de los colores de referencia con los que se calcula el resto">${
     bEsBase(f) ? 'quitar de colores base' : 'marcar como color base'}</button>`;
 }
 
@@ -15618,7 +15596,7 @@ function elegirNueva(){
     <button type="button" class="b-opcion" id="b-op-base">
       <span class="b-op-ico b-op-base">${icono('nuevo')}</span>
       <span class="b-op-txt"><b>Un color base nuevo</b>
-        <small>Un color que vais a tener siempre hecho, como el negro o el blanco</small></span>
+        <small>Un color de referencia, como el negro o el blanco</small></span>
     </button>`;
   $dp.innerHTML = `<button class="btn" type="button" id="b-cancelar">Cancelar</button>`;
   document.getElementById('b-cancelar').onclick = () => $dlg.close();
@@ -15658,7 +15636,7 @@ function altaBase(){
   const pintar = () => {
     $dt.textContent = 'Nuevo color base';
     $dc.innerHTML = `
-      <p class="b-intro">Un color base es uno que ya tenéis hecho en el taller. Se usa para calcular el color
+      <p class="b-intro">Un color base es uno de los colores de referencia con los que se calcula el color
         de todo lo demás, así que elige bien su color de referencia.</p>
       ${crudo ? '' : `<div class="aviso"><span><b>No encuentro el CRUDO</b> entre las materias primas, así que no puedo
         preparar el bote. Avísame y lo miramos.</span></div>`}
@@ -15792,7 +15770,7 @@ window.__app = {
   get SELLOS(){ return DATOS.sellos.slice(); }, porIdS,
   get GRAMOS(){ return DATOS.gramos.slice(); }, porIdG, HAY_GRAMOS,
   get gramoSel(){ return gramoSel; }, get gVista(){ return gVista; },
-  abrirGramo, editarGramo, guardarGramo, gCalcular, gCalcularVarias, gVars, gFotoIdV, gVarSel, juntarGramos, gNumero, gMiles, gDec, bEsBase, gEsBase, marcarBase, altaBase, elegirNueva,
+  abrirGramo, editarGramo, guardarGramo, gCalcular, gCalcularVarias, gVars, gFotoIdV, gVarSel, juntarGramos, gNumero, gMiles, gDec, bEsBase, marcarBase, altaBase, elegirNueva,
   abrirSello, editarSello, borrarSello, guardarSello, hojaSello,
   faltaInfo, marcarFalta, quitarFalta, get soloFaltaS(){ return soloFaltaS; },
   enlaceDe, leerEnlace, intentarEnlace, qrSvg,

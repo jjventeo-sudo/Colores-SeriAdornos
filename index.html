@@ -3881,7 +3881,7 @@ function crearIndice(datos) {
  * @param opts.tope   máximo absoluto (la capacidad útil del bote)
  */
 function lotePractico(cant, objetivo, {paso = 1, tope = Infinity,
-                                              abajo = 0.88, arriba = 1.05} = {}) {
+                                              abajo = 0.88, arriba = 1.05, minTotal = 0} = {}) {
   const base = cant.reduce((s, c) => s + c, 0);
   if (!base || !(objetivo > 0)) return null;
   const p = cant.map(c => c / base);
@@ -3895,6 +3895,7 @@ function lotePractico(cant, objetivo, {paso = 1, tope = Infinity,
     if (q.some(v => v < paso)) continue;          // algo no se podría pesar
     const total = q.reduce((s, v) => s + v, 0);
     if (total > tope) continue;
+    if (total < minTotal) continue;      // «nunca de menos»
     let err = 0;
     for (let i = 0; i < q.length; i++) err = Math.max(err, Math.abs(q[i] / total - p[i]) / p[i]);
     const dist = Math.abs(total - objetivo);
@@ -3999,6 +4000,37 @@ async function traer(url, opciones = {}, ms){
   }finally{ clearTimeout(reloj); }
 }
 
+/* ── Filas rotas y comparaciones ────────────────────────────────────────
+   Una sola fila mal formada en la nube (`ingredientes: null`, `datos: {}`) se
+   bajaba, se guardaba en el espejo y desde entonces CADA arranque fallaba, en
+   todos los aparatos, sin forma de recuperarse. Ahora se descartan al entrar:
+   la fila rota se queda en la nube para poder mirarla, pero no apaga la app. */
+const formulaValida = f => !!f && typeof f === 'object' && typeof f.id === 'string' &&
+  f.id !== '' && typeof f.nombre === 'string' && Array.isArray(f.ingredientes);
+const materiaValida = m => !!m && typeof m === 'object' && typeof m.id === 'string' &&
+  m.id !== '' && typeof m.nombre === 'string';
+const HEX_VALIDO = /^#[0-9a-f]{3,8}$/i;
+/** El color de referencia se pega en un `style`: si no es un color, no entra. */
+function limpiarMateria(m){
+  if(m && m.hex_referencia !== undefined && !HEX_VALIDO.test(String(m.hex_referencia)))
+    m.hex_referencia = '#888888';
+  return m;
+}
+/** Las claves de un objeto JSON no tienen orden: `jsonb` las reordena al
+    guardar. Comparar con JSON.stringify daba «cambiado» tras CADA guardado
+    propio y salía el aviso «actualizada desde la nube» sin que nadie la tocara. */
+function ordenado(v){
+  if(Array.isArray(v)) return v.map(ordenado);
+  if(v && typeof v === 'object'){
+    const o = {};
+    for(const k of Object.keys(v).sort()) o[k] = ordenado(v[k]);
+    return o;
+  }
+  return v;
+}
+const igualJSON = (a, b) => JSON.stringify(ordenado(a)) === JSON.stringify(ordenado(b));
+let filasDanadas = 0;     // cuántas filas rotas se han ignorado en esta sesión
+
 function crearNube({url, clave}){
   if(!url || !clave) return null;
   const base = String(url).replace(/\/+$/, '');
@@ -4042,7 +4074,11 @@ function crearNube({url, clave}){
     // 401 con sesión: casi siempre es el testigo caducado. Se renueva UNA vez
     // y se reintenta; si vuelve a fallar, es que la sesión ya no vale.
     if(r.status === 401 && ses?.refresh && reintento){
-      if(await renovar()) return peticion(ruta, opciones, false);
+      const ok = await renovar();
+      if(ok === true) return peticion(ruta, opciones, false);
+      // Sin red (o servidor caído) al renovar NO es sesión caducada: cerrar
+      // la sesión aquí te dejaba sin entrar y sin cobertura para volver a hacerlo.
+      if(ok === 'sinred'){ const err = new Error('sin conexión'); err.sinRed = true; throw err; }
       salir();
       const err = new Error('sesión caducada'); err.sesion = true; throw err;
     }
@@ -4051,6 +4087,9 @@ function crearNube({url, clave}){
       try{ const j = await r.json(); detalle = j.message || j.error || ''; }catch(_){}
       const err = new Error(detalle || ('error ' + r.status));
       err.status = r.status;
+      // Un 401 que llega hasta aquí es una sesión que ya no vale (ya se intentó
+      // renovar, o no hay con qué): se marca igual para pedir entrar otra vez.
+      if(r.status === 401) err.sesion = true;
       // Un proyecto gratuito de Supabase se PAUSA solo tras unos días sin
       // actividad (vacaciones de agosto, sin ir más lejos). Los datos siguen
       // ahí, pero la API deja de contestar como debe. Sin distinguirlo, la app
@@ -4097,17 +4136,28 @@ function crearNube({url, clave}){
     escribir(CLAVE_SESION_NUBE, ses);
   }
 
-  async function renovar(){
-    if(!ses?.refresh) return false;
-    try{
-      const j = await traer(base + '/auth/v1/token?grant_type=refresh_token', {
-        method: 'POST',
-        headers: {'apikey': clave, 'Content-Type': 'application/json'},
-        body: JSON.stringify({refresh_token: ses.refresh}),
-      }).then(r => r.ok ? r.json() : Promise.reject(r));
-      guardarSesion(j);
-      return true;
-    }catch(_){ return false; }
+  /* Devuelve true (renovada), false (el servidor la rechaza: hay que entrar de
+     nuevo) o 'sinred' (no se pudo preguntar: la sesión puede seguir valiendo).
+     Y una sola a la vez: el testigo de renovación es de un solo uso, y siete
+     peticiones a la vez con él caducado gastaban el primero y rompían el resto. */
+  let renovando = null;
+  function renovar(){
+    if(!ses?.refresh) return Promise.resolve(false);
+    if(renovando) return renovando;
+    renovando = (async () => {
+      let r;
+      try{
+        r = await traer(base + '/auth/v1/token?grant_type=refresh_token', {
+          method: 'POST',
+          headers: {'apikey': clave, 'Content-Type': 'application/json'},
+          body: JSON.stringify({refresh_token: ses.refresh}),
+        });
+      }catch(_){ return 'sinred'; }
+      if(!r.ok) return (r.status >= 500 || r.status === 429) ? 'sinred' : false;
+      try{ guardarSesion(await r.json()); return true; }
+      catch(_){ return false; }
+    })().finally(() => { renovando = null; });
+    return renovando;
   }
 
   // ── Entrar y salir ───────────────────────────────────────────────────
@@ -4156,7 +4206,13 @@ function crearNube({url, clave}){
 
   async function arrancar(){
     if(!ses) return null;
-    if(Date.now() > (ses.caduca || 0) && !await renovar()){ salir(); return null; }
+    if(Date.now() > (ses.caduca || 0)){
+      const ok = await renovar();
+      if(ok === false){ salir(); return null; }
+      // Sin cobertura NO se cierra la sesión: se abre con el espejo del aparato.
+      if(ok === 'sinred')
+        return {email: ses.email, rol: leer(CLAVE_ESPEJO)?.rol || 'taller', local: true};
+    }
     try{ rol = await leerRol(ESPERA_ARRANQUE_MS); }
     catch(e){
       // Sin red se sigue con lo que había: es justo para lo que existe el
@@ -4239,12 +4295,16 @@ function crearNube({url, clave}){
       bajarTabla('colores_preparaciones', desde),
       bajarTabla('colores_registro', desde),
       rol === 'editor' ? bajarTabla('colores_sellos', desde) : Promise.resolve([]),
+      // Solo se sigue sin ella si la TABLA no existe (aún no se ha ejecutado el
+      // SQL). Cualquier otro error se propaga: tragárselo hacía avanzar el corte
+      // de la sincronización y los cambios de esa vuelta no se bajaban nunca.
       bajarTabla('colores_gramos', desde).catch(e => {
-        if(e && (e.sesion || e.sinRed || e.dormido)) throw e;
-        return [];
+        if(e && e.status === 404) return [];
+        throw e;
       }),
     ]);
     apuntarTocadas(formulas);
+    apuntarTocadas(gramos);
     const fechas = [...formulas, ...materias, ...ajustes, ...preparaciones,
                     ...registro, ...sellos, ...gramos].map(f => f.tocada).filter(Boolean);
     return {
@@ -4291,19 +4351,29 @@ function crearNube({url, clave}){
     datos: g, borrado: !!g.borrado,
   });
   const subirGramos = gs => subir('colores_gramos', gs.map(filaGramo));
-  async function guardarGramo(g){
-    try{ await subirGramos([g]); return true; }
-    catch(e){
-      if(e.sinRed){ encolar('gramo', g); return false; }
-      throw e;
-    }
+  /** Un sello de gramos, devolviendo la marca de tiempo del servidor para
+      saber en el futuro si lo tocó otro aparato. */
+  async function subirGramoUno(g){
+    const filas = await pedir('/rest/v1/colores_gramos', {
+      method: 'POST',
+      headers: {'Prefer': 'resolution=merge-duplicates,return=representation'},
+      body: JSON.stringify([filaGramo(g)]),
+    });
+    apuntarTocadas(filas || []);
+  }
+  async function guardarGramo(g, opciones){
+    return guardarSeguro('gramo', g, async (visto) => {
+      if(opciones?.comprobar && visto){
+        const filas = await pedir(
+          `/rest/v1/colores_gramos?id=eq.${encodeURIComponent(g.id)}&select=tocada,nombre`);
+        const suya = filas?.[0];
+        if(suya && suya.tocada && suya.tocada > visto) return 'choque';
+      }
+      await subirGramoUno(g);
+    });
   }
   async function guardarSello(s){
-    try{ await subirSellos([s]); return true; }
-    catch(e){
-      if(e.sinRed){ encolar('sello', s); return false; }
-      throw e;
-    }
+    return guardarSeguro('sello', s, () => subirSellos([s]));
   }
 
   const subirFormulas = fs => subir('colores_formulas', fs.map(filaFormula));
@@ -4315,31 +4385,29 @@ function crearNube({url, clave}){
      por eso va por su propio camino: si algún día se toca algo de permisos,
      que se vea que esto es una cosa aparte y no una escritura más. */
   async function guardarPreparacion(p){
-    try{ await subirPreps([p]); return true; }
-    catch(e){
-      if(e.sinRed){ encolar('prep', p); return false; }
-      throw e;
-    }
+    return guardarSeguro('prep', p, () => subirPreps([p]));
   }
 
   /* Una línea del registro. Nunca se manda con merge-duplicates: si por lo que
      sea se reintenta con el mismo id, que el servidor lo rechace por duplicado
      en vez de sobrescribir en silencio la línea que ya había. En una tabla que
      nadie puede corregir, sobrescribir sería la única forma de colarse. */
-  async function guardarRegistro(e){
-    try{
-      await pedir('/rest/v1/colores_registro', {
-        method: 'POST',
-        headers: {'Prefer': 'return=minimal'},
-        body: JSON.stringify([e]),
-      });
-      return true;
-    }catch(err){
-      if(err.sinRed){ encolar('registro', e); return false; }
-      // Duplicado: ya estaba apuntado. No es un fallo, es un reintento.
-      if(err.status === 409) return true;
-      throw err;
-    }
+  async function guardarRegistro(e, desdeCola){
+    const enviar = async () => {
+      try{
+        await pedir('/rest/v1/colores_registro', {
+          method: 'POST',
+          headers: {'Prefer': 'return=minimal'},
+          body: JSON.stringify([e]),
+        });
+      }catch(err){
+        // Duplicado: ya estaba apuntado. No es un fallo, es un reintento.
+        if(err.status !== 409) throw err;
+      }
+    };
+    // Desde la cola ya está anotado: solo se envía. Si no, se anota y se envía.
+    if(desdeCola) return enviar();
+    return guardarSeguro('registro', e, enviar);
   }
 
   /* Las líneas más viejas que la copia local, para "ver más antiguas".
@@ -4374,11 +4442,28 @@ function crearNube({url, clave}){
   // Lo que no se pudo mandar se guarda y se reintenta. Por ID, no por orden:
   // si tocas la misma fórmula cinco veces sin cobertura, se manda una vez, la
   // última, que es la que vale.
-  function encolar(tipo, obj){
+  /* ── GUARDAR SIN PERDER NADA ───────────────────────────────────────────
+     Antes: se intentaba enviar y SOLO si no había red se apuntaba en la cola.
+     Cualquier otro fallo (proyecto pausado, servidor ocupado, sesión caducada)
+     tiraba el cambio y la app seguía diciendo «al día». Ahora:
+
+       1. se apunta en la cola de este aparato,
+       2. se envía,
+       3. solo al confirmarse se quita de la cola.
+
+     Si el envío falla por algo pasajero, el cambio sigue en la cola y se reintenta
+     solo. Solo se descarta lo que el servidor RECHAZA de verdad (permisos, datos
+     malos: 400/403/409/422), porque insistir no lo arreglaría. */
+  const clavePend = (tipo, obj) => tipo + ':' + (obj.id || obj.clave);
+  let secuencia = 0;
+  function encolar(tipo, obj, callado){
     const cola = leer(CLAVE_PENDIENTES, {});
-    const k = tipo + ':' + (obj.id || obj.clave);
+    const k = clavePend(tipo, obj);
+    // `n` identifica ESTA anotación: si mientras se envía llega otra más nueva
+    // para lo mismo, la vieja ya no puede borrar a la nueva al terminar.
+    const n = Date.now().toString(36) + '-' + (secuencia++).toString(36);
     cola[k] = {
-      tipo, obj, cuando: Date.now(),
+      tipo, obj, cuando: Date.now(), n,
       // La marca que tenía la fila la última vez que este aparato la vio. Si
       // al ir a subirla el servidor tiene otra más nueva, es que alguien la
       // tocó por el camino: eso es un choque, no una subida.
@@ -4387,9 +4472,58 @@ function crearNube({url, clave}){
         : (leerTocadas()[obj.id] || null),
     };
     escribir(CLAVE_PENDIENTES, cola);
+    if(!callado) avisar('pendientes', Object.keys(cola).length);
+    return n;
+  }
+  /** Quita de la cola la anotación `n` — y solo esa. */
+  function desencolar(k, n){
+    const cola = leer(CLAVE_PENDIENTES, {});
+    if(!cola[k] || cola[k].n !== n) return false;
+    delete cola[k];
+    escribir(CLAVE_PENDIENTES, cola);
     avisar('pendientes', Object.keys(cola).length);
+    return true;
   }
   const pendientes = () => Object.keys(leer(CLAVE_PENDIENTES, {})).length;
+
+  /** ¿Un fallo pasajero (se reintenta) o un rechazo definitivo (se tira)? */
+  const recuperable = e => !!e && !!(e.sinRed || e.dormido || e.sesion ||
+    e.status === 429 || e.status === 408 || e.status === 401);
+
+  /* Los envíos de lo MISMO van uno detrás de otro. Con wifi flojo, dos guardados
+     seguidos de la misma fórmula podían llegar al servidor al revés y la nueva
+     quedaba tapada por la vieja. */
+  const cadenas = new Map();
+  function enSerie(k, tarea){
+    const previa = cadenas.get(k) || Promise.resolve();
+    const esta = previa.then(() => tarea());
+    const limpia = esta.catch(() => {}).then(() => { if(cadenas.get(k) === limpia) cadenas.delete(k); });
+    cadenas.set(k, limpia);
+    return esta;
+  }
+
+  /** `enviar(visto)` hace la petición. Si devuelve 'choque', no se subió nada. */
+  async function guardarSeguro(tipo, obj, enviar){
+    const k = clavePend(tipo, obj);
+    const n = encolar(tipo, obj, true);
+    const visto = leer(CLAVE_PENDIENTES, {})[k]?.visto || null;
+    return enSerie(k, async () => {
+      try{
+        const r = await enviar(visto);
+        desencolar(k, n);
+        return r === undefined ? true : r;
+      }catch(e){
+        if(recuperable(e)){
+          avisar('pendientes', pendientes());      // sigue en la cola: que se vea
+          if(e.sinRed) return false;
+          e.encolado = true;                        // para decir la verdad al usuario
+          throw e;
+        }
+        desencolar(k, n);
+        throw e;
+      }
+    });
+  }
 
   /* ── Choques ───────────────────────────────────────────────────────────
      Tocas una fórmula en el móvil sin cobertura. Mientras tanto la tocas
@@ -4402,6 +4536,14 @@ function crearNube({url, clave}){
      no se puede permitir. */
   const leerChoques = () => leer(CLAVE_CHOQUES, {});
   const choques = () => Object.values(leerChoques());
+
+  function registrarChoque(obj, suya, cuando){
+    const ch = leerChoques();
+    ch[obj.id] = {id: obj.id, nombre: obj.nombre || suya.nombre,
+                  obj, mia: cuando, suya: suya.tocada};
+    escribir(CLAVE_CHOQUES, ch);
+    avisar('choques', Object.keys(ch).length);
+  }
 
   async function tocadaEnServidor(id){
     const filas = await pedir(
@@ -4425,72 +4567,83 @@ function crearNube({url, clave}){
   }
 
   async function vaciarCola(){
-    const cola = leer(CLAVE_PENDIENTES, {});
-    const claves = Object.keys(cola);
+    const claves = Object.keys(leer(CLAVE_PENDIENTES, {}));
     if(!claves.length) return 0;
-    let idas = 0;
+    let idas = 0, parada = null;
     for(const k of claves){
-      const {tipo, obj, visto} = cola[k];
-      try{
-        if(tipo === 'formula'){
-          // ¿Ha cambiado en el servidor desde que la tocaste aquí?
-          if(visto){
-            const suya = await tocadaEnServidor(obj.id);
-            if(suya && suya.tocada && suya.tocada > visto){
-              const ch = leerChoques();
-              ch[obj.id] = {id: obj.id, nombre: obj.nombre || suya.nombre,
-                            obj, mia: cola[k].cuando, suya: suya.tocada};
-              escribir(CLAVE_CHOQUES, ch);
-              delete cola[k];
-              avisar('choques', Object.keys(ch).length);
-              continue;
+      if(parada) break;
+      await enSerie(k, async () => {
+        // Se lee la anotación AHORA, no al empezar: si entretanto se guardó una
+        // versión más nueva, es esa la que hay que mandar.
+        const e0 = leer(CLAVE_PENDIENTES, {})[k];
+        if(!e0) return;                                   // ya salió por otro camino
+        const {tipo, obj, visto, n} = e0;
+        if(!tipo || !obj || typeof obj !== 'object'){ desencolar(k, n); return; }  // anotación rota
+        try{
+          if(tipo === 'formula'){
+            // ¿Ha cambiado en el servidor desde que la tocaste aquí?
+            if(visto){
+              const suya = await tocadaEnServidor(obj.id);
+              if(suya && suya.tocada && suya.tocada > visto){
+                registrarChoque(obj, suya, e0.cuando);
+                desencolar(k, n);
+                return;
+              }
             }
+            await subirFormulas([obj]);
+            apuntarTocadas([await tocadaEnServidor(obj.id)].filter(Boolean));
           }
-          await subirFormulas([obj]);
-          apuntarTocadas([await tocadaEnServidor(obj.id)].filter(Boolean));
+          else if(tipo === 'materia') await subirMaterias([obj]);
+          else if(tipo === 'prep') await subirPreps([obj]);
+          else if(tipo === 'registro') await guardarRegistro(obj, true);
+          else if(tipo === 'sello') await subirSellos([obj]);
+          else if(tipo === 'gramo') await subirGramoUno(obj);
+          else await subirAjustes([obj]);
+          desencolar(k, n); idas++;
+        }catch(e){
+          // Algo pasajero (sin red, servidor pausado u ocupado, sesión): se PARA
+          // y se reintenta luego con todo lo que quede. NADA se tira.
+          if(recuperable(e)){ parada = e; return; }
+          // Si el servidor RECHAZA (permisos, datos malos), insistir no arregla
+          // nada: se tira para no dejar la cola atascada para siempre.
+          desencolar(k, n);
+          avisar('rechazado', {tipo, id: obj.id || obj.clave, por: e.message});
         }
-        else if(tipo === 'materia') await subirMaterias([obj]);
-        else if(tipo === 'prep') await subirPreps([obj]);
-        else if(tipo === 'registro') await guardarRegistro(obj);
-        else if(tipo === 'sello') await subirSellos([obj]);
-        else if(tipo === 'gramo') await subirGramos([obj]);
-        else await subirAjustes([obj]);
-        delete cola[k]; idas++;
-      }catch(e){
-        // Sin red se para y se reintenta luego, con todo lo que quede.
-        // Si el servidor RECHAZA (permisos, datos malos), insistir no arregla
-        // nada: se tira para no dejar la cola atascada para siempre.
-        if(e.sinRed){ break; }
-        delete cola[k];
-        avisar('rechazado', {tipo, id: obj.id || obj.clave, por: e.message});
-      }
+      });
     }
-    escribir(CLAVE_PENDIENTES, cola);
-    avisar('pendientes', Object.keys(cola).length);
+    avisar('pendientes', pendientes());
+    // Sin red es lo normal en el taller y no se grita; lo demás se cuenta arriba.
+    if(parada && !parada.sinRed) throw parada;
     return idas;
   }
 
-  /** Guardar una fórmula: se intenta ya, y si no hay red se encola. */
-  async function guardarFormula(f){
-    try{
+  /** Guardar una fórmula. Con `comprobar` mira antes si otro aparato la ha
+      tocado: si es así NO la pisa, la aparta como choque y devuelve 'choque'. */
+  async function guardarFormula(f, opciones){
+    return guardarSeguro('formula', f, async (visto) => {
+      if(opciones?.comprobar && visto){
+        const suya = await tocadaEnServidor(f.id);
+        if(suya && suya.tocada && suya.tocada > visto){
+          registrarChoque(f, suya, Date.now());
+          return 'choque';
+        }
+      }
       const filas = await pedir('/rest/v1/colores_formulas', {
         method: 'POST',
         headers: {'Prefer': 'resolution=merge-duplicates,return=representation'},
         body: JSON.stringify([filaFormula(f)]),
       });
       apuntarTocadas(filas || []);
-      return true;
-    }catch(e){
-      if(e.sinRed){ encolar('formula', f); return false; }
-      throw e;
-    }
+    });
   }
   async function guardarMateria(m){
-    try{ await subirMaterias([m]); return true; }
-    catch(e){
-      if(e.sinRed){ encolar('materia', m); return false; }
-      throw e;
-    }
+    return guardarSeguro('materia', m, () => subirMaterias([m]));
+  }
+  /** Los ajustes (clientes, robots, agujas, papelera…) también tenían un solo
+      intento: sin cobertura, un cliente añadido no subía NUNCA. */
+  async function guardarAjustes(as){
+    const res = await Promise.all(as.map(a => guardarSeguro('ajuste', a, () => subirAjustes([a]))));
+    return res.every(x => x === true);
   }
 
   // ── El espejo: la última foto de la nube, en este aparato ────────────
@@ -4499,7 +4652,12 @@ function crearNube({url, clave}){
   // nave, que es justo donde peor va el wifi.
   function leerEspejo(){
     const e = leer(CLAVE_ESPEJO);
-    return (e && e.datos && Array.isArray(e.datos.formulas)) ? e : null;
+    if(!(e && e.datos && Array.isArray(e.datos.formulas))) return null;
+    // Lo que ya se guardó roto en el aparato tampoco puede apagar el arranque.
+    e.datos.formulas = e.datos.formulas.filter(formulaValida);
+    if(Array.isArray(e.datos.materias_primas))
+      e.datos.materias_primas = e.datos.materias_primas.filter(materiaValida).map(limpiarMateria);
+    return e;
   }
   function guardarEspejo(datos, hasta, papel){
     // Si no cabe (cuota llena, ventana privada), NO es el fin del mundo: la
@@ -4512,14 +4670,18 @@ function crearNube({url, clave}){
   /** Rehace los datos completos a partir de las filas de la nube. */
   function montarDatos(res, previos){
     const d = previos || {formulas: [], materias_primas: [], grupos_equivalencia: [], modelo: {}};
-    const porId = new Map(d.formulas.map(f => [f.id, f]));
+    const porId = new Map(d.formulas.filter(formulaValida).map(f => [f.id, f]));
     for(const fila of res.formulas){
       if(fila.borrada){ porId.delete(fila.id); continue; }
+      if(!formulaValida(fila.datos)){ filasDanadas++; continue; }
       porId.set(fila.id, fila.datos);
     }
     d.formulas = [...porId.values()];
-    const porIdM = new Map(d.materias_primas.map(m => [m.id, m]));
-    for(const fila of res.materias) porIdM.set(fila.id, fila.datos);
+    const porIdM = new Map(d.materias_primas.filter(materiaValida).map(m => [m.id, limpiarMateria(m)]));
+    for(const fila of res.materias){
+      if(!materiaValida(fila.datos)){ filasDanadas++; continue; }
+      porIdM.set(fila.id, limpiarMateria(fila.datos));
+    }
     d.materias_primas = [...porIdM.values()];
     for(const a of res.ajustes){
       if(a.clave === 'modelo') d.modelo = a.datos;
@@ -4787,7 +4949,7 @@ function crearNube({url, clave}){
     get sesion(){ return ses ? {email: ses.email, rol} : null; },
     get rol(){ return rol; },
     entrar, salir, arrancar,
-    bajar, sembrar, guardarFormula, guardarMateria, subirAjustes, guardarPreparacion,
+    bajar, sembrar, guardarFormula, guardarMateria, subirAjustes: guardarAjustes, guardarPreparacion,
     guardarRegistro, masRegistro, guardarSello, subirSellos, guardarGramo,
     pendientes, vaciarCola,
     leerEspejo, guardarEspejo, borrarEspejo, montarDatos,
@@ -5400,8 +5562,15 @@ function guardar(){
 function empujar(f){
   if(MODO !== 'nube') return;
   marcarSync('subiendo');
-  nube.guardarFormula(f)
-    .then(ido => marcarSync(ido ? 'al-dia' : 'pendiente'))
+  // `comprobar`: si otro aparato ha tocado esta fórmula desde la última vez que
+  // se vio aquí, NO se pisa — se aparta como choque y se pregunta.
+  nube.guardarFormula(f, {comprobar: true})
+    .then(ido => {
+      if(ido === 'choque'){
+        marcarSync('pendiente');
+        brindis('Otro aparato ha cambiado esta fórmula. Elige cuál te quedas.');
+      }else marcarSync(ido ? 'al-dia' : 'pendiente');
+    })
     .catch(e => falloNube(e));
 }
 function empujarMateria(m){
@@ -5410,13 +5579,22 @@ function empujarMateria(m){
 }
 function falloNube(e){
   if(e && e.sinRed) return marcarSync('pendiente');
+  if(e && e.sesion){
+    marcarSync('error');
+    brindis('Ha caducado la sesión. Tus cambios están guardados en este aparato: vuelve a entrar.');
+    setTimeout(() => sincronizar('sesión'), 700);       // abre la pantalla de entrar
+    return;
+  }
   if(e && e.dormido){ marcarSync('error'); return avisarDormido(); }
   if(e && e.status === 403){
     marcarSync('error');
     return brindis('El servidor no deja escribir con esta cuenta');
   }
   marcarSync('error');
-  brindis('No se ha podido guardar en la nube: ' + (e && e.message || 'error'));
+  // `encolado`: el cambio NO se ha perdido, está en la cola de este aparato.
+  brindis(e && e.encolado
+    ? 'No se ha podido subir ahora. Queda guardado aquí y se reintenta solo.'
+    : 'No se ha podido guardar en la nube: ' + (e && e.message || 'error'));
 }
 
 /* El proyecto gratuito de Supabase se pausa solo tras unos días sin actividad.
@@ -7700,7 +7878,8 @@ function guardarPesaje(){
       return localStorage.removeItem(CLAVE_PESAJE);
     localStorage.setItem(CLAVE_PESAJE, JSON.stringify({
       id: pes.f.id, objetivo: pes.objetivo, modo: pes.modo,
-      hechos: [...pes.hechos], exactos: [...(pes.exactos || [])], cuando: Date.now(),
+      hechos: [...pes.hechos], exactos: [...(pes.exactos || [])], piso: [...(pes.piso || [])],
+      cuando: Date.now(),
       // Con qué ingredientes se empezó. Si la receta cambia mientras pesas,
       // lo ya marcado deja de querer decir lo mismo y hay que descartarlo.
       huella: pes.ing.map(i=>i.nombre + ':' + i.cantidad).join('|'),
@@ -7732,6 +7911,7 @@ function retomarPesaje(){
   pes = {f: v.f, ing: v.ing, base, prop: v.ing.map(i=>i.cantidad/base),
          objetivo: v.g.objetivo, modo: v.g.modo || leerModo(),
          hechos: new Map(v.g.hechos), exactos: new Set(v.g.exactos || []),
+         piso: new Map(v.g.piso || []), minimo: false, pintado: 0,
          // Lo que ya estaba echado antes de cerrar ya se confirmó entonces.
          confirmados: new Set(v.g.hechos.map(h=>h[0])), confirmar: null,
          paso: 2, lote: null, recien: null};
@@ -7741,7 +7921,16 @@ function retomarPesaje(){
   return true;
 }
 
-function preparar(f){
+/** `opciones.minimo`: el lote NO puede salir por debajo de `objetivo` (lo usa
+    Sellos: lo calculado es lo mínimo que hace falta). */
+function preparar(f, opciones){
+  // ¿Hay un pesaje a medias? No se pisa en silencio: se pregunta.
+  const v = leerPesajeGuardado();
+  if(v) return preguntarPesajeGuardado(f, v, opciones);
+  return empezarPesaje(f, opciones);
+}
+
+function empezarPesaje(f, opciones){
   const ing = f.ingredientes.filter(i=>i.cantidad>0);
   const base = ing.reduce((s,i)=>s+i.cantidad,0);
   if(!ing.length || !base) return brindis('Esta fórmula no tiene cantidades');
@@ -7750,13 +7939,42 @@ function preparar(f){
   // decisión dos veces. Cambiarla sigue estando, en "Cambiar cantidad".
   pes = {f, ing, base, prop: ing.map(i=>i.cantidad/base),
          objetivo: objetivo > 0 ? objetivo : Math.round(base),
-         modo: leerModo(), hechos: new Map(), exactos: new Set(),
+         modo: leerModo(), hechos: new Map(), exactos: new Set(), piso: new Map(),
+         minimo: !!(opciones && opciones.minimo), pintado: 0,
          confirmados: new Set(), confirmar: null,
          paso: 2, lote: null, recien: null};
   congelarPlan();
   pintarPesaje();
-  $dlg.showModal();
+  if(!$dlg.open) $dlg.showModal();
 }
+
+/** Hay un pesaje a medias guardado. Seguir con él o empezar otro (y perderlo). */
+function preguntarPesajeGuardado(f, v, opciones){
+  const mismo = v.f.id === f.id;
+  const echados = v.g.hechos.length;
+  $dt.textContent = 'Pesaje a medias';
+  $dc.innerHTML = `
+    <div class="aviso info">${ICONO_ALERTA}
+      <span>${mismo
+        ? `Tienes <b>${esc(v.f.nombre)}</b> a medias: llevas <b>${echados}</b> de <b>${v.ing.length}</b> ingredientes echados.`
+        : `Tienes <b>${esc(v.f.nombre)}</b> a medias (${echados} de ${v.ing.length} echados). Si empiezas <b>${esc(f.nombre)}</b> ahora, ese se pierde.`}</span></div>`;
+  $dp.innerHTML = `<button class="btn" data-cerrar>Cancelar</button>
+    <button class="btn" id="pg-nuevo">Empezar ${mismo ? 'de nuevo' : esc(f.nombre)}</button>
+    <button class="btn btn-1" id="pg-seguir">Seguir con ${esc(v.f.nombre)}</button>`;
+  $dp.querySelector('[data-cerrar]').onclick = () => $dlg.close();
+  document.getElementById('pg-seguir').onclick = () => { retomarPesaje(); };
+  document.getElementById('pg-nuevo').onclick = () => {
+    try{ localStorage.removeItem(CLAVE_PESAJE); }catch(_){}
+    empezarPesaje(f, opciones);
+  };
+  if(!$dlg.open) $dlg.showModal();
+}
+
+/** Segundo toque sobre lo mismo, a menos de medio segundo del repintado: es el
+    dedo, no el taller. Sin esto, dos toques seguidos daban por echado un
+    ingrediente sin pesar (y saltaban la confirmación de un 90/10). */
+const muyPronto = () => !!pes && (performance.now() - (pes.pintado || 0)) < 450;
+
 // Por defecto, tarando: cada número es lo de ese ingrediente y no hay nada
 // que confundir. El acumulado sigue estando, pero hay que pedirlo.
 const leerModo = ()=>{ try{ return localStorage.getItem('modo-pesaje')||'individual'; }catch(_){ return 'individual'; } };
@@ -7775,9 +7993,15 @@ function loteMinimo(){
     estaba bien. Mientras se pesa, los números no se mueven. */
 function congelarPlan(){
   const cant = pes.ing.map(i=>i.cantidad);
-  pes.lote = lotePractico(cant, pes.objetivo,
-                          {paso: PRECISION, tope: TOPE_BOTE[pes.objetivo] || Infinity})
-          || {total: pes.objetivo, cantidades: pes.prop.map(p=>Math.max(PRECISION, Math.round(pes.objetivo*p)))};
+  const opts = {paso: PRECISION, tope: TOPE_BOTE[pes.objetivo] || Infinity};
+  // Lo calculado en Sellos es lo MÍNIMO que hace falta: el lote ni se busca por
+  // debajo del objetivo ni se acepta una suma redondeada que se quede corta.
+  // (Sin esto salía menos de lo pedido en el 56 % de las recetas, hasta un 12 %.)
+  if(pes.minimo) Object.assign(opts, {abajo: 1, minTotal: pes.objetivo});
+  const redondear = pes.minimo ? Math.ceil : Math.round;
+  pes.lote = lotePractico(cant, pes.objetivo, opts)
+          || {total: pes.objetivo,
+              cantidades: pes.prop.map(p=>Math.max(PRECISION, redondear(pes.objetivo*p)))};
 }
 
 /** El plan de pesada, ya con los excesos absorbidos y redondeado a gramos.
@@ -7798,7 +8022,16 @@ function plan(){
   if(!pes.lote) congelarPlan();
   let T = pes.lote.total;
   for(const [k, real] of pes.hechos){
-    if(pes.exactos && pes.exactos.has(k)) continue;
+    if(pes.exactos && pes.exactos.has(k)){
+      /* Dado por hecho tal cual lo pedía el plan: su redondeo NO sube el lote
+         (el gramo fantasma). Pero SÍ cuenta el lote que estaba vigente cuando se
+         echó: si entonces ya había subido por un exceso, ese ingrediente ya está
+         en el bote en esa proporción y el lote no puede volver a encogerse.
+         (Antes se ignoraba del todo: tocar «Ya está» tras un «Me he equivocado»
+         devolvía el lote a 900 y el resto del bote salía descompensado.) */
+      T = Math.max(T, (pes.piso && pes.piso.get(k)) || 0);
+      continue;
+    }
     T = Math.max(T, real / pes.prop[k]);
   }
 
@@ -7817,17 +8050,27 @@ function plan(){
             || lotePractico(cant, Math.ceil(T), {paso: PRECISION, abajo: 1, arriba: 1.06});
     obj = re ? re.cantidades : pes.prop.map(p=>Math.round(T*p));
   }
-  let acum = 0;
+  /* Lo que HAY en el bote ahora, sea el orden que sea en el que se haya ido
+     echando. «Sin tarar» tiene que enseñar lo que marcará la báscula con ESO
+     dentro más lo que falta de cada uno, no una suma del plan que ya no vale
+     después de una corrección. */
+  let enBote = 0;
+  for(const real of pes.hechos.values()) enBote += real;
+  let acum = enBote;
   return {
     total: obj.reduce((s,x)=>s+x,0),
-    crecio: Math.round(T) > pes.objetivo,
+    T,
+    // «Pasarse» es que un exceso haya hecho subir el lote. Que el lote cuadrado
+    // a gramos enteros salga por encima de lo pedido NO es pasarse: es redondeo.
+    crecio: T > pes.lote.total + 1e-9,
     filas: pes.ing.map((i,k)=>{
-      acum += obj[k];
       const real = pes.hechos.get(k);
+      const falta = real===undefined ? obj[k] : Math.max(0, obj[k]-real);
+      acum += falta;
       return {i, k, objetivo: obj[k], acumulado: acum, real,
               previsto: pes.lote.cantidades[k],
               exacto: !!(pes.exactos && pes.exactos.has(k)),
-              falta: real===undefined ? obj[k] : Math.max(0, obj[k]-real),
+              falta,
               impesable: obj[k] < PRECISION};
     }),
   };
@@ -7868,18 +8111,22 @@ function pintarPesaje(){
     document.getElementById('pes-ir').onclick = ()=>{
       const v = Math.round(parseFloat($c.value));
       if(!(v>0)) return brindis('Pon cuántos gramos quieres');
-      pes.objetivo = v; pes.paso = 2; pes.hechos.clear(); pes.confirmados.clear(); pes.confirmar = null; congelarPlan(); pintarPesaje();
+      pes.objetivo = v; pes.paso = 2; pes.hechos.clear(); pes.exactos.clear(); pes.piso.clear(); pes.confirmados.clear(); pes.confirmar = null; congelarPlan(); pintarPesaje();
     };
     return;
   }
 
   const p = plan();
+  pes.pintado = performance.now();            // para el antirrebote (muyPronto)
   const hechas = p.filas.filter(x=>x.falta===0).length;
+  // El lote se cuadra a gramos enteros y puede no coincidir con lo pedido: se dice.
+  const subLote = 'total del lote' + (Math.round(p.total) !== Math.round(pes.objetivo)
+    ? ` · pediste ${fmt(pes.objetivo)} g` : '');
   $dt.textContent = f.nombre;
   $dc.innerHTML = `
     <div class="pes-cab">
       <i class="pes-meta" style="background:${color(f).hex}" title="El color que estás haciendo"></i>
-      <div><b class="num">${fmt(p.total)} g</b><small id="pes-sub">total del lote</small></div>
+      <div><b class="num">${fmt(p.total)} g</b><small id="pes-sub">${subLote}</small></div>
       <div class="pes-modo">
         <button data-modo="individual" aria-pressed="${pes.modo==='individual'}"
           title="Pones a cero la báscula entre cada ingrediente">Tarando</button>
@@ -7894,7 +8141,7 @@ function pintarPesaje(){
       return tieneBote(f)
         ? `<div class="pes-bote hay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10z" fill="currentColor" stroke="none" opacity=".3"/><path d="M7 10a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10z"/><path d="M9.2 8V4.8a1 1 0 0 1 1-1h3.6a1 1 0 0 1 1 1V8"/></svg>
            <span>Tiene bote en la estantería${f.estanteria_desde ? ', desde el <b>' + fecha(f.estanteria_desde) + '</b>' : ''}: búscalo.</span></div>`
-        : `<div class="pes-bote no"><span>No tiene bote: coge uno nuevo y ponle la etiqueta.</span></div>`;
+        : `<div class="pes-bote no"><span>${puedeEditar ? 'No tiene bote: coge uno nuevo y ponle la etiqueta.' : 'No tiene bote en la estantería: coge uno nuevo.'}</span></div>`;
     })()}
     ${porConfirmar(p, hechas) !== null ? '' : avisoRojo(p)}
     <div class="pes-barra"><i style="width:${hechas/p.filas.length*100}%"></i></div>
@@ -7902,6 +8149,7 @@ function pintarPesaje(){
              return kc !== null ? panelConfirmar(p.filas[kc]) : heroePesaje(p, hechas); })()}
     ${p.crecio ? `<div class="aviso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19L12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5"/><path d="M12 17.3v.1"/></svg>
        <span>Te has pasado con algo, así que <b>el lote sube a ${fmt(p.total)} g</b> para que las proporciones sigan bien. Lo de más ya está descontado abajo.</span></div>`:''}
+    ${avisoCapacidad(p)}
     ${(()=>{ const min = loteMinimo();
       // Se mira el LOTE MÍNIMO, no solo si alguna fila baja de 1 g. Redondeando,
       // una receta de 998 g con un ingrediente de 1 g pedida a 100 g sale con
@@ -7926,7 +8174,7 @@ function pintarPesaje(){
   pes.recien = null;
   mantenerPantalla(true).then(puesto=>{
     const el = document.getElementById('pes-sub');
-    if(puesto && el) el.textContent = 'total del lote · la pantalla no se apaga';
+    if(puesto && el) el.textContent = subLote + ' · la pantalla no se apaga';
   });
   $dp.innerHTML = `<button class="btn" id="pes-atras">Cambiar cantidad</button>
     <button class="btn" id="pes-etiqueta" title="Para pegar en el bote">
@@ -7950,14 +8198,18 @@ function pintarPesaje(){
     return true;
   };
   for(const b of $dc.querySelectorAll('[data-confirmo]'))
-    b.onclick = ()=>{ pes.confirmados.add(+b.dataset.confirmo); pes.confirmar = null;
+    b.onclick = ()=>{ if(muyPronto()) return;
+      pes.confirmados.add(+b.dataset.confirmo); pes.confirmar = null;
       vibrar(25); pintarPesaje(); };
   for(const b of $dc.querySelectorAll('[data-noconfirmo]'))
     b.onclick = ()=>{ pes.confirmar = null; pintarPesaje(); };
   const echarUno = k=>{
+    if(muyPronto()) return;       // doble toque: el segundo no cuenta
     if(frenaRojo(k)) return;
-    pes.hechos.set(k, plan().filas[k].objetivo);
+    const pl = plan();
+    pes.hechos.set(k, pl.filas[k].objetivo);
     pes.exactos.add(k);           // lo que pedía el plan, ni un gramo más
+    pes.piso.set(k, pl.T);        // y el lote que estaba vigente al echarlo
     pes.recien = k;               // solo esta fila hace el barrido verde
     const listo = plan().filas.every(x=>x.falta===0);
     vibrar(listo ? [30, 60, 30] : 25);
@@ -7969,17 +8221,22 @@ function pintarPesaje(){
   if(ya) ya.onclick = ()=>echarUno(+ya.dataset.ya);
   for(const b of $dc.querySelectorAll('[data-deshacer]'))
     b.onclick = ()=>{ const k = +b.dataset.deshacer;
-      pes.hechos.delete(k); pes.exactos.delete(k); pes.confirmados.delete(k);
+      pes.hechos.delete(k); pes.exactos.delete(k); pes.piso.delete(k); pes.confirmados.delete(k);
       pes.recien = null; pintarPesaje(); guardarPesaje(); };
   for(const b of $dc.querySelectorAll('[data-ajustar]'))
     b.onclick = ()=>{ if(!frenaRojo(+b.dataset.ajustar)) ajustar(+b.dataset.ajustar); };
   for(const b of $dc.querySelectorAll('[data-pase]'))
     b.onclick = ()=>{ if(!frenaRojo(+b.dataset.pase)) ajustar(+b.dataset.pase); };
   for(const b of $dc.querySelectorAll('[data-subir]'))
-    b.onclick = ()=>{ pes.objetivo = +b.dataset.subir; pes.hechos.clear();
+    b.onclick = ()=>{ pes.objetivo = +b.dataset.subir; pes.hechos.clear(); pes.exactos.clear(); pes.piso.clear();
       pes.confirmados.clear(); pes.confirmar = null;
       pes.lote = null; congelarPlan(); pintarPesaje(); };
-  document.getElementById('pes-atras').onclick = ()=>{ pes.paso=1; pes.lote=null; pes.recien=null; pintarPesaje(); };
+  document.getElementById('pes-atras').onclick = ()=>{
+    // Cambiar la cantidad vacía lo echado: no se hace sin preguntar.
+    if(pes.hechos.size && !confirm(`Ya has echado ${pes.hechos.size} ingrediente${pes.hechos.size === 1 ? '' : 's'}. ` +
+        'Si cambias la cantidad se borra lo echado y se empieza de cero. ¿Seguir?')) return;
+    pes.paso=1; pes.lote=null; pes.recien=null; pintarPesaje();
+  };
   // Cambiar de cantidad vacía lo pesado, así que ya no hay nada que retomar.
   document.getElementById('pes-ir')?.addEventListener('click', guardarPesaje);
   // La etiqueta del pesaje lleva las cantidades REALES del lote que estás
@@ -8097,6 +8354,18 @@ function panelConfirmar(x){
   </div>`;
 }
 
+/* El bote de 5 kg se apunta a 4.500 g y el redondeo a gramos enteros deja subir
+   hasta 4.750 (TOPE_BOTE). Por encima de eso no cabe en una preparación. */
+const TOPE_PREPARACION = 4750;
+function avisoCapacidad(p){
+  if(p.total <= TOPE_PREPARACION) return '';
+  const partes = Math.ceil(p.total / 4500);
+  return `<div class="aviso">${ICONO_ALERTA}
+    <span>Este lote pesa <b>${fmt(p.total)} g</b> y tu máximo por preparación son <b>4,5 kg</b>:
+    no cabe en un solo bote. Mejor hazlo en <b>${partes} preparaciones</b> de unos
+    <b>${fmt(Math.ceil(p.total / partes))} g</b>.</span></div>`;
+}
+
 function heroePesaje(p, hechas){
   const n = p.filas.length;
   if(hechas === n){
@@ -8190,13 +8459,14 @@ function filaPesaje(x, modo, recien){
 
 function ajustar(k){
   const x = plan().filas[k];
+  pes.pintado = performance.now();      // antirrebote del «Guardar»
   const prev = {t:$dt.textContent, c:$dc.innerHTML, p:$dp.innerHTML};
   $dt.textContent = 'Me he equivocado';
   $dc.innerHTML = `
     <p style="margin:0 0 12px">De <b>${esc(x.i.nombre)}</b> tocaban <b class="num">${fmt(x.objetivo)} g</b>.
        Pon lo que marca la báscula de verdad.</p>
     <label class="campo"><span>Gramos echados</span>
-      <input id="aj-g" class="num" type="number" inputmode="decimal" min="0" step="any"
+      <input id="aj-g" class="num" type="number" inputmode="numeric" min="0" step="${PRECISION}"
              value="${fmt(x.objetivo)}" style="font-size:22px;font-weight:700;text-align:right"></label>
     <div id="aj-aviso"></div>
     <p style="margin:0;font-size:13.5px;color:var(--texto-2)">Si te has pasado subo el lote entero para
@@ -8211,7 +8481,9 @@ function ajustar(k){
      doble, se dice ANTES con el número delante y hay que confirmarlo. */
   let avisado = false;
   document.getElementById('aj-si').onclick = ()=>{
-    const v = parseFloat(String(document.getElementById('aj-g').value).replace(',','.'));
+    if(muyPronto()) return;
+    // La báscula distingue gramos enteros: pedir medio gramo es pedir adivinar.
+    const v = Math.round(parseFloat(String(document.getElementById('aj-g').value).replace(',','.')) / PRECISION) * PRECISION;
     if(!(v>0)) return brindis('Pon una cantidad');
     const ahora = plan().total;
     const nuevo = Math.round(Math.max(ahora, v / pes.prop[k]));
@@ -10216,6 +10488,8 @@ function marcarSync(estado){
   estadoSync = estado;
   if(MODO !== 'nube' || !$piloto) return;
   const pend = nube.pendientes();
+  // «Al día» con cosas sin subir sería mentira: la cola manda.
+  if(estado === 'al-dia' && pend > 0) estado = 'pendiente';
   const visible = estado !== 'al-dia' || pend > 0;
   $piloto.hidden = !visible;
   if(!visible) return;
@@ -10303,12 +10577,12 @@ function aplicarDeLaNube(res){
       continue;
     }
     const nuevo = fila.datos;
-    if(!nuevo || !nuevo.id) continue;
+    if(!formulaValida(nuevo)){ filasDanadas++; continue; }
     if(viejo){
       // Se rellena el MISMO objeto: hay referencias a él en la selección, en
       // el índice de búsqueda y en el plan de pesaje. Cambiarlo por otro
       // dejaría media app apuntando a la versión vieja.
-      if(JSON.stringify(viejo) === JSON.stringify(nuevo)) continue;
+      if(igualJSON(viejo, nuevo)) continue;
       for(const k of Object.keys(viejo)) if(!(k in nuevo)) delete viejo[k];
       Object.assign(viejo, nuevo);
       cacheColor.delete(fila.id);
@@ -10320,6 +10594,8 @@ function aplicarDeLaNube(res){
     }
   }
   for(const fila of res.materias){
+    if(!materiaValida(fila.datos)){ filasDanadas++; continue; }
+    limpiarMateria(fila.datos);
     const m = materias.get(fila.id);
     if(m){ Object.assign(m, fila.datos); }
     else{ DATOS.materias_primas.push(fila.datos); materias.set(fila.id, fila.datos); }
@@ -10337,7 +10613,7 @@ function aplicarDeLaNube(res){
       continue;
     }
     const viejo = porIdS.get(fila.id);
-    if(viejo && JSON.stringify(viejo) === JSON.stringify(fila.datos)) continue;
+    if(viejo && igualJSON(viejo, fila.datos)) continue;
     if(viejo) DATOS.sellos = DATOS.sellos.filter(x => x.id !== fila.id);
     DATOS.sellos.push(fila.datos);
     porIdS.set(fila.id, fila.datos);
@@ -10356,7 +10632,7 @@ function aplicarDeLaNube(res){
     }
     if(!fila.datos || !fila.datos.id) continue;
     const viejo = porIdG.get(fila.id);
-    if(viejo && JSON.stringify(viejo) === JSON.stringify(fila.datos)) continue;
+    if(viejo && igualJSON(viejo, fila.datos)) continue;
     if(viejo) DATOS.gramos = DATOS.gramos.filter(x => x.id !== fila.id);
     DATOS.gramos.push(fila.datos);
     porIdG.set(fila.id, fila.datos);
@@ -10394,6 +10670,12 @@ function aplicarDeLaNube(res){
   // vacía —que son casi todas— no se toca nada.
   if(res.formulas.length)
     DATOS.formulas.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+  if(filasDanadas){
+    console.warn(`${filasDanadas} fila(s) dañada(s) en la nube ignoradas`);
+    brindis(filasDanadas === 1 ? 'Hay 1 fórmula dañada en la nube y se ha ignorado'
+                               : `Hay ${filasDanadas} fórmulas dañadas en la nube y se han ignorado`);
+    filasDanadas = 0;
+  }
   return n;
 }
 
@@ -10586,7 +10868,7 @@ function abrirOpciones(){
       filaAjuste('op-datos', 'Datos y versión', `${DATOS.formulas.length} fórmulas`),
     ])}
 
-    <input type="file" id="op-archivo" accept="application/json,.json" hidden>`;
+`;
 
   /* Tres miniaturas en vez de un desplegable: se ve lo que vas a elegir. Es un
      grupo de radio de verdad —flechas para moverse, un solo tabulador dentro—. */
@@ -10632,18 +10914,6 @@ function abrirOpciones(){
   ir('op-publicar-ir',  publicarCambios);
   ir('op-copia',        ()=>pantallaCopia(abrirOpciones));
   ir('op-datos',        ()=>pantallaDatos(abrirOpciones));
-
-  // El campo de archivo vive en la pantalla de arriba y no en la de dentro:
-  // restaurar una copia repinta media app, y si el campo estuviera dentro de
-  // la pantalla que se repinta, el evento de "archivo elegido" llegaría a un
-  // elemento que ya no existe.
-  document.getElementById('op-archivo').onchange = e=>{
-    const f = e.target.files && e.target.files[0];
-    // Se limpia para que elegir DOS VECES el mismo archivo vuelva a funcionar:
-    // si no, el navegador no dispara el evento la segunda vez.
-    e.target.value = '';
-    if(f) importar(f);
-  };
 
   // OJO: NO se cierra el diálogo antes de abrir otra pantalla. Cerrar y volver
   // a abrir el mismo diálogo en el mismo gesto descuadra el historial de la
@@ -10725,7 +10995,8 @@ function pantallaCopia(volver){
   $dc.innerHTML = `
     <p class="op-p">${MODO === 'nube'
       ? `Es la única red de seguridad fuera de la nube: un archivo que se abre y
-         se lee por sí solo, sin depender de nada. ${(()=>{
+         se lee por sí solo, sin depender de nada. Lleva fórmulas, pigmentos, sellos,
+         clientes y robots; <b>las fotos no</b>. ${(()=>{
            const u = leerFecha(CLAVE_COPIA);
            if(!u) return '<b>Todavía no has descargado ninguna.</b>';
            const d = Math.floor((Date.now() - u) / DIA);
@@ -10740,8 +11011,7 @@ function pantallaCopia(volver){
     </div>`;
   pieVolver(volver);
   document.getElementById('op-exportar')?.addEventListener('click', exportar);
-  document.getElementById('op-importar')?.addEventListener('click',
-    ()=>document.getElementById('op-archivo').click());
+  document.getElementById('op-importar')?.addEventListener('click', elegirCopia);
   document.getElementById('op-deshacer')?.addEventListener('click', ()=>{
     if(!confirm('Se pierden todos los cambios hechos desde la app en este dispositivo. ¿Seguro?')) return;
     localStorage.removeItem(CLAVE); location.reload();
@@ -11200,9 +11470,7 @@ function reconciliar(archivo){
 
   // Los campos que la app deja tocar. Comparar el objeto entero marcaría como
   // "cambiada" cualquier fórmula si un día añado un campo nuevo a los datos.
-  const CAMPOS = ['nombre','ingredientes','notas','actualizada_pigmentos',
-                  'fecha_actualizacion','historial','preparaciones',
-                  'ultima_preparacion','total','equivalencia','es_base'];
+  const CAMPOS = CAMPOS_FORMULA;
 
   for(const f of (archivo.formulas || [])){
     if(!f || !f.id) continue;
@@ -11220,8 +11488,7 @@ function reconciliar(archivo){
   // Materias: las nuevas, y también las de siempre a las que se les haya
   // cambiado algo (la fecha del pigmento). Antes solo se miraban las nuevas y
   // al restaurar se perdía qué pigmentos habías marcado como cambiados.
-  const CAMPOS_M = ['nombre','hex_referencia','cambiado_el','abierto','tipo',
-                    'familia','fuerza','opacidad','revisar','nota','solo_referencia'];
+  const CAMPOS_M = CAMPOS_MATERIA;
   for(const m of (archivo.materias_primas || [])){
     if(!m || !m.id) continue;
     const orig = baseM.get(m.id);
@@ -11230,6 +11497,157 @@ function reconciliar(archivo){
   }
 
   return nuevo;
+}
+
+const CAMPOS_FORMULA = ['nombre','ingredientes','notas','actualizada_pigmentos',
+                        'fecha_actualizacion','historial','preparaciones',
+                        'ultima_preparacion','total','equivalencia','es_base'];
+const CAMPOS_MATERIA = ['nombre','hex_referencia','cambiado_el','abierto','tipo',
+                        'familia','fuerza','opacidad','revisar','nota','solo_referencia'];
+
+/** Un texto de error si el archivo no es una copia de ESTA app; '' si vale. */
+function copiaNoValida(j){
+  if(!j || typeof j !== 'object' || Array.isArray(j)) return 'Ese archivo no es una copia de esta app';
+  if(j.app !== undefined && j.app !== 'colores-seriadornos')
+    return 'Ese archivo es de otra aplicación, no de esta';
+  if(typeof j.version === 'number' && j.version > 1)
+    return 'Esa copia es de una versión más nueva. Actualiza la app y vuelve a probar';
+  if(!Array.isArray(j.formulas) || !j.formulas.length) return 'Ese archivo no tiene fórmulas dentro';
+  return '';
+}
+
+/** Qué REPONDRÍA la copia respecto a lo que hay AHORA (no respecto a los datos de
+    fábrica). Nunca borra: lo que tienes y no está en la copia se queda. */
+function reconciliarActual(copia){
+  const r = {formulas: {}, nuevas: [], materias: [], gramos: [], ajustes: [], danadas: 0};
+  for(const f of (copia.formulas || [])){
+    if(!formulaValida(f)){ r.danadas++; continue; }
+    const actual = porId.get(f.id);
+    if(!actual){ r.nuevas.push(f); continue; }
+    const parche = {};
+    for(const k of CAMPOS_FORMULA)
+      if((k in f) && !igual(f[k], actual[k])) parche[k] = f[k];
+    if(Object.keys(parche).length) r.formulas[f.id] = parche;
+  }
+  for(const m of (copia.materias_primas || [])){
+    if(!materiaValida(m)){ r.danadas++; continue; }
+    const actual = materias.get(m.id);
+    if(!actual || CAMPOS_MATERIA.some(k => (k in m) && !igual(m[k], actual[k])))
+      r.materias.push(limpiarMateria(m));
+  }
+  for(const g of (copia.gramos || [])){
+    if(!g || typeof g.id !== 'string' || typeof g.nombre !== 'string'){ r.danadas++; continue; }
+    if(!porIdG.has(g.id)) r.gramos.push(g);          // los que faltan (borrados) vuelven
+  }
+  for(const [clave, lista, actual] of [['clientes', copia.clientes, CLIENTES],
+                                        ['robots', copia.robots, ROBOTS],
+                                        ['agujas', copia.agujas, AGUJAS]]){
+    if(!Array.isArray(lista)) continue;
+    const faltan = lista.filter(x => !actual.some(y => igual(x, y)));
+    if(faltan.length) r.ajustes.push({clave, faltan});
+  }
+  return r;
+}
+
+/** El selector de archivo se crea al pulsar y se tira al acabar: no puede
+    quedar dentro de ninguna pantalla que se repinte. */
+function elegirCopia(){
+  if(!puedeEditar) return brindis(SIN_PERMISO);
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'application/json,.json'; inp.hidden = true;
+  inp.onchange = () => {
+    const f = inp.files && inp.files[0];
+    inp.remove();
+    if(f) importar(f);
+  };
+  document.body.appendChild(inp);
+  inp.click();
+}
+
+/** Enseña QUÉ va a pasar con la copia y espera confirmación. En la nube. */
+function restaurarNube(j){
+  const nuevo = reconciliarActual(j);
+  const nEd = Object.keys(nuevo.formulas).length;
+  const total = nEd + nuevo.nuevas.length + nuevo.materias.length +
+                nuevo.gramos.length + nuevo.ajustes.reduce((s, a) => s + a.faltan.length, 0);
+  const fecha = j.fecha ? new Date(j.fecha).toLocaleString('es-ES',
+    {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}) : null;
+  const pl = (q, uno, varios) => `${q} ${q === 1 ? uno : varios}`;
+  const lineas = [
+    nEd ? `${pl(nEd, 'fórmula vuelve', 'fórmulas vuelven')} a como estaba${nEd === 1 ? '' : 'n'} en la copia` : '',
+    nuevo.nuevas.length ? `${pl(nuevo.nuevas.length, 'fórmula que no está ahora se recupera', 'fórmulas que no están ahora se recuperan')}` : '',
+    nuevo.materias.length ? `${pl(nuevo.materias.length, 'pigmento', 'pigmentos')} repuesto${nuevo.materias.length === 1 ? '' : 's'}` : '',
+    nuevo.gramos.length ? `${pl(nuevo.gramos.length, 'sello', 'sellos')} recuperado${nuevo.gramos.length === 1 ? '' : 's'}` : '',
+    ...nuevo.ajustes.map(a => `${pl(a.faltan.length, 'elemento', 'elementos')} de «${a.clave}» repuesto${a.faltan.length === 1 ? '' : 's'}`),
+  ].filter(Boolean);
+
+  $dt.textContent = 'Restaurar una copia';
+  $dc.innerHTML = `
+    <p style="margin-top:0">La copia tiene <b class="num">${j.formulas.length}</b> fórmulas${
+      fecha ? ` y es del <b>${esc(fecha)}</b>` : ''}.</p>
+    <div class="aviso info">${ICONO_ALERTA}
+      <span>${total
+        ? `Respecto a lo que tienes ahora, restaurar haría esto: <b>${lineas.map(esc).join(' · ')}</b>.`
+        : 'No hay nada que restaurar: todo lo de la copia ya está igual en la app.'}
+        <b>No se borra nada</b>: lo que tienes y no está en la copia se queda como está.</span></div>
+    ${nEd ? `<div class="aviso">${ICONO_ALERTA}
+      <span>Las fórmulas editadas <b>vuelven a su receta de la copia</b>: lo que hayas cambiado en ellas
+      después se pierde. Si no estás seguro, descarga antes una copia de lo de ahora.</span></div>` : ''}
+    ${nuevo.danadas ? `<p class="op-p flojo">${pl(nuevo.danadas, 'elemento dañado de la copia se ha ignorado', 'elementos dañados de la copia se han ignorado')}.</p>` : ''}`;
+  $dp.innerHTML = `<button class="btn" data-cerrar>Cancelar</button>
+    <button class="btn" id="imp-antes">Descargar lo de ahora</button>
+    <button class="btn btn-1" id="imp-si"${total ? '' : ' disabled'}>Restaurar</button>`;
+  $dp.querySelector('[data-cerrar]').onclick = () => $dlg.close();
+  document.getElementById('imp-antes').addEventListener('click', exportar);
+  document.getElementById('imp-si').onclick = async () => {
+    const b = document.getElementById('imp-si');
+    b.disabled = true;
+    // Cancelar no toca nada: el cuaderno de botes solo se funde al confirmar. Y se
+    // FUNDE, no se sustituye: lo apuntado desde la copia no tiene por qué desaparecer.
+    fundirHistorial(j.historial_preparaciones || []);
+    let hechas = 0, fallos = 0, enCola = 0;
+    const avance = () => { b.textContent = `Subiendo… ${hechas}/${total}`; };
+    const subir = async (promesa) => {
+      try{ if(await promesa === false) enCola++; }catch(_){ fallos++; }
+      hechas++; avance();
+    };
+
+    for(const id of Object.keys(nuevo.formulas)){
+      const f = porId.get(id); if(!f) continue;
+      Object.assign(f, nuevo.formulas[id]); cacheColor.delete(f.id);
+      await subir(nube.guardarFormula(f));
+    }
+    for(const f of nuevo.nuevas){
+      if(porId.has(f.id)) continue;
+      DATOS.formulas.push(f); porId.set(f.id, f);
+      await subir(nube.guardarFormula(f));
+    }
+    for(const m of nuevo.materias){
+      const actual = materias.get(m.id);
+      if(actual) Object.assign(actual, m);
+      else{ DATOS.materias_primas.push(m); materias.set(m.id, m); }
+      await subir(nube.guardarMateria(m));
+    }
+    for(const g of nuevo.gramos){
+      const g2 = {...g, borrado: false};
+      DATOS.gramos.push(g2); porIdG.set(g2.id, g2);
+      await subir(nube.guardarGramo(g2));
+    }
+    for(const {clave, faltan} of nuevo.ajustes){
+      const destino = clave === 'clientes' ? CLIENTES : clave === 'robots' ? ROBOTS : AGUJAS;
+      destino.push(...faltan); DATOS[clave] = destino;
+      await subir(nube.subirAjustes([{clave, datos: destino}]));
+    }
+    DATOS.formulas.sort((a, b2) => a.nombre.localeCompare(b2.nombre, 'es'));
+    DATOS.gramos.sort((a, b2) => String(a.nombre).localeCompare(String(b2.nombre), 'es'));
+    guardar();
+    $dlg.close();
+    reconstruir(); actualizar();
+    brindis(fallos ? `Restaurado, pero ${fallos} no han subido`
+          : enCola ? `Restaurado. ${enCola} se subirán cuando haya cobertura`
+          : 'Restaurado y subido a la nube');
+  };
+  if(!$dlg.open) $dlg.showModal();
 }
 
 function contarCambios(c){
@@ -11288,6 +11706,7 @@ function exportar(){
     resumen: {formulas: DATOS.formulas.length,
               materias_primas: DATOS.materias_primas.length,
               preparaciones: HISTORIAL.length,
+              gramos: (DATOS.gramos || []).length,
               cambios: contarCambios(cambios)},
     ...DATOS,
     // El cuaderno va dentro de la copia: es trabajo apuntado y perderlo al
@@ -11312,10 +11731,11 @@ function importar(archivoFile){
     let j;
     try{ j = JSON.parse(lector.result); }
     catch(_){ return brindis('Ese archivo no es una copia válida'); }
-    if(!j || !Array.isArray(j.formulas) || !j.formulas.length)
-      return brindis('Ese archivo no tiene fórmulas dentro');
-    // El cuaderno se FUNDE, no se sustituye: si la copia es de hace un mes,
-    // lo apuntado desde entonces no tiene por qué desaparecer.
+    const fallo = copiaNoValida(j);
+    if(fallo) return brindis(fallo);
+    if(MODO === 'nube') return restaurarNube(j);
+    // (Modo local, sin nube.) El cuaderno se FUNDE, no se sustituye: si la copia
+    // es de hace un mes, lo apuntado desde entonces no tiene por qué desaparecer.
     fundirHistorial(j.historial_preparaciones || []);
 
     const nuevo = reconciliar(j);
@@ -11348,44 +11768,6 @@ function importar(archivoFile){
     $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
     document.getElementById('imp-antes')?.addEventListener('click', exportar);
     document.getElementById('imp-si').onclick = async ()=>{
-      if(MODO === 'nube'){
-        // En la nube no basta con dejarlo en este aparato: hay que mandarlo,
-        // o el móvil del taller seguiría con lo de antes y nadie sabría por
-        // qué. Se sube fórmula a fórmula para poder enseñar el avance y para
-        // que un corte por la mitad deje subido lo que ya iba.
-        const b = document.getElementById('imp-si');
-        b.disabled = true;
-        const lista = [...Object.keys(nuevo.formulas).map(id=>({id, parche:nuevo.formulas[id]})),
-                       ...nuevo.nuevas.map(f=>({id:f.id, nueva:f}))];
-        let hechas = 0, fallos = 0;
-        for(const it of lista){
-          let f = porId.get(it.id);
-          if(it.nueva && !f){
-            f = it.nueva;
-            DATOS.formulas.push(f); porId.set(f.id, f);
-          }else if(f && it.parche){ Object.assign(f, it.parche); cacheColor.delete(f.id); }
-          if(!f) continue;
-          try{ await nube.guardarFormula(f); }catch(_){ fallos++; }
-          hechas++;
-          b.textContent = `Subiendo… ${hechas}/${lista.length}`;
-        }
-        for(const m of (nuevo.materias||[])){
-          if(!materias.has(m.id)){ DATOS.materias_primas.push(m); materias.set(m.id, m); }
-          try{ await nube.guardarMateria(m); }catch(_){ fallos++; }
-        }
-        for(const id of (nuevo.borradas||[])){
-          const f = porId.get(id); if(!f) continue;
-          DATOS.formulas = DATOS.formulas.filter(x=>x.id!==id);
-          porId.delete(id);
-          try{ await nube.guardarFormula({...f, borrada:true}); }catch(_){ fallos++; }
-        }
-        DATOS.formulas.sort((a,b2)=>a.nombre.localeCompare(b2.nombre,'es'));
-        guardar();
-        $dlg.close();
-        reconstruir(); actualizar();
-        brindis(fallos ? `Restaurado, pero ${fallos} no han subido` : 'Restaurado y subido a la nube');
-        return;
-      }
       cambios = nuevo;
       if(!guardar()) return;
       location.reload();
@@ -14442,7 +14824,10 @@ const G_ICONO_SIG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 
 // ── Guardar ─────────────────────────────────────────────────────────
 
-function guardarGramo(g){
+/** Guarda un sello de gramos. Con `opciones.comprobar`, si otro aparato lo ha
+    cambiado mientras se editaba NO se pisa: se pregunta (ver gAvisoChoque). */
+function guardarGramo(g, opciones){
+  if(!puedeEditar){ brindis(SIN_PERMISO); return false; }
   g.tocado = new Date().toISOString();
   /* El objeto que se guarda pasa a ser EL objeto (mismo razonamiento que en
      los sellos viejos): si mientras editabas llegó este mismo sello desde otro
@@ -14455,12 +14840,42 @@ function guardarGramo(g){
   DATOS.gramos.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
   if(MODO === 'nube'){
     marcarSync('subiendo');
-    nube.guardarGramo(g)
-      .then(ido => marcarSync(ido ? 'al-dia' : 'pendiente'))
+    nube.guardarGramo(g, opciones)
+      .then(ido => {
+        if(ido === 'choque'){ marcarSync('pendiente'); return gAvisoChoque(g); }
+        marcarSync(ido ? 'al-dia' : 'pendiente');
+      })
       .catch(e => falloNube(e));
     nube.guardarEspejo(DATOS, ultimaSync, ROL);
   }
   return true;
+}
+
+/** Otro aparato cambió este sello mientras lo editabas aquí. No se pisa: el
+    editor elige. «El del otro» vuelve a bajar lo que hay en la nube; «El mío» lo
+    sube encima, sabiéndolo. */
+function gAvisoChoque(g){
+  $dt.textContent = 'Otro aparato ha cambiado este sello';
+  $dc.innerHTML = `
+    <div class="aviso">${ICONO_ALERTA}
+      <span>Mientras editabas <b>${esc(g.nombre)}</b> aquí, alguien lo ha cambiado desde otro
+      aparato. Si guardas lo tuyo, <b>se pierde lo suyo</b>. ¿Cuál te quedas?</span></div>`;
+  $dp.innerHTML = `<button class="btn" type="button" id="g-ch-otro">El del otro aparato</button>
+    <button class="btn btn-1" type="button" id="g-ch-mio">El mío</button>`;
+  document.getElementById('g-ch-otro').onclick = () => {
+    $dlg.close();
+    sincronizar('choque');         // baja lo que hay en la nube y sustituye lo de aquí
+    brindis('Te quedas con el del otro aparato');
+  };
+  document.getElementById('g-ch-mio').onclick = () => {
+    $dlg.close();
+    marcarSync('subiendo');
+    nube.guardarGramo(g)           // sin comprobar: ya se ha decidido
+      .then(ido => marcarSync(ido ? 'al-dia' : 'pendiente'))
+      .catch(e => falloNube(e));
+    brindis('Guardado el tuyo');
+  };
+  if(!$dlg.open) $dlg.showModal();
 }
 
 // ── Búsqueda ────────────────────────────────────────────────────────
@@ -15136,7 +15551,9 @@ function prepararDeGramo(ref, gramos){
   if(!f) return brindis('Ese color ya no existe en el recetario');
   if(!(gramos > 0)) return brindis('No hay nada que preparar');
   objetivo = Math.round(gramos);
-  preparar(f);
+  // `minimo`: lo calculado aquí es lo MÍNIMO que hace falta; el pesaje no puede
+  // cuadrar un lote por debajo (antes salía menos en el 56 % de las recetas).
+  preparar(f, {minimo: true});
 }
 
 // ── El editor (solo el editor) ──────────────────────────────────────
@@ -15441,7 +15858,7 @@ function editarGramo(base, duplicar, modo){
     // Las variantes que se han quitado se llevan su foto.
     for(const o of originales) if(!vars.some(v => v.id === o.id)) gQuitarFotoSuelta(o.fid);
     gVarSel[r.id] = (idNueva && vars.some(v => v.id === idNueva)) ? idNueva : cur().id;
-    guardarGramo(r);
+    guardarGramo(r, {comprobar: true});
     cerrarDlgYLuego(() => {
       actualizar();
       abrirGramo(r.id);

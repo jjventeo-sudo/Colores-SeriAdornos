@@ -1441,7 +1441,7 @@ body[data-ficha="on"] .tarjeta-fm{border-top:2px solid var(--tono, var(--linea))
   background:linear-gradient(180deg,var(--tinta),var(--tinta-2)); color:var(--tinta-txt); border-color:var(--tinta);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.5), var(--sombra-2);
 }
-.chip .n{opacity:.55; letter-spacing:.04em}
+.chip .n{opacity:.75; letter-spacing:.04em}
 .chip-filtro svg{width:11px;height:11px}
 /* Pendientes: un punto ámbar delante, el texto igual que los demás. */
 #chip-pend::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--ambar); flex:0 0 auto}
@@ -3464,17 +3464,17 @@ body:has(.avisa-copia) .brindis.con-accion{bottom:calc(max(14px,env(safe-area-in
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg>
     </button>
     <div id="solapas" role="tablist">
-      <button data-sec="colores" aria-pressed="true" role="tab">
+      <button data-sec="colores" aria-pressed="true" role="tab" aria-label="Colores">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5C12 3.5 6 10 6 14.5a6 6 0 0 0 12 0C18 10 12 3.5 12 3.5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M12 3.5C12 3.5 6 10 6 14.5a6 6 0 0 0 12 0C18 10 12 3.5 12 3.5z"/><path d="M9.3 14.8a2.7 2.7 0 0 0 2 2.4"/></svg>
         <span>Colores</span>
       </button>
-      <button data-sec="gramos" aria-pressed="false" role="tab">
+      <button data-sec="gramos" aria-pressed="false" role="tab" aria-label="Sellos">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M8.5 4h7v5h-7z"/><path d="M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z"/><path d="M4 19.5h16"/></svg>
         <span>Sellos</span>
       </button>
       <!-- Escanear no es una sección: abre la cámara. Va en la barra porque es
            lo que se hace con el móvil en la mano delante del molde o del bote. -->
-      <button data-sec="escanear" aria-pressed="false" role="tab" title="Escanear el QR de una pegatina">
+      <button data-sec="escanear" aria-pressed="false" role="tab" aria-label="Escanear" title="Escanear el QR de una pegatina">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 8h3v3H8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M13 8h3v3h-3z" fill="currentColor" stroke="none" opacity=".3"/><path d="M8 13h3v3H8z" fill="currentColor" stroke="none" opacity=".3"/><path d="M4 8V6a2 2 0 0 1 2-2h2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M20 16v2a2 2 0 0 1-2 2h-2"/><path d="M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M8 8h3v3H8z"/><path d="M13 8h3v3h-3z"/><path d="M8 13h3v3H8z"/><path d="M13 13h1.5M16 13v1.5M13 16h3"/></svg>
         <span>Escanear</span>
       </button>
@@ -3557,7 +3557,7 @@ body:has(.avisa-copia) .brindis.con-accion{bottom:calc(max(14px,env(safe-area-in
   </div>
 </div>
 
-<dialog id="dlg"><div class="hoja">
+<dialog id="dlg" aria-labelledby="dlg-titulo"><div class="hoja">
   <div class="hoja-cab"><h3 id="dlg-titulo"></h3>
     <button class="btn-icono" style="width:38px;height:38px" data-cerrar aria-label="Cerrar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
@@ -4831,12 +4831,19 @@ function crearNube({url, clave}){
   /* Qué fórmulas tienen foto, y de cuándo es cada una. El sello es la fecha
      que da el servidor: si cambia, la copia local ya no vale y se vuelve a
      bajar. Sin eso, reemplazar una foto no se vería nunca en el otro aparato. */
-  const fotos = () => leer(CLAVE_FOTOS, {});
+  /* En memoria: tieneFoto() se llama una vez por fila al pintar una lista, y
+     cada llamada descodificaba el índice entero (una entrada por foto). Con
+     cientos de filas eran cientos de JSON.parse por pintada. Se invalida si
+     otra pestaña lo cambia. */
+  let _fotos = null;
+  const fotos = () => _fotos || (_fotos = leer(CLAVE_FOTOS, {}));
+  const guardarFotos = m => { _fotos = m; escribir(CLAVE_FOTOS, m); };
+  addEventListener('storage', e => { if(e.key === CLAVE_FOTOS || e.key === null) _fotos = null; });
   function apuntarFoto(id, sello){
-    const m = fotos(); m[id] = sello; escribir(CLAVE_FOTOS, m);
+    const m = fotos(); m[id] = sello; guardarFotos(m);
   }
   function olvidarFoto(id){
-    const m = fotos(); delete m[id]; escribir(CLAVE_FOTOS, m);
+    const m = fotos(); delete m[id]; guardarFotos(m);
   }
 
   /* Los ids con una subida EN VUELO ahora mismo. Sin esto, el listado que
@@ -4868,7 +4875,7 @@ function crearNube({url, clave}){
     const cola = await clavesDe('cola');
     for(const id of new Set([...subiendo, ...cola]))
       if(fuera[id] === undefined && mias[id] !== undefined) fuera[id] = mias[id];
-    escribir(CLAVE_FOTOS, fuera);
+    guardarFotos(fuera);
     return fuera;
   }
 
@@ -5977,7 +5984,7 @@ function enlazarFotos(raiz){
   for(const el of (raiz || document).querySelectorAll('[data-foto]')) mirarFoto(el);
 }
 /** El trozo que se le añade a una muestra para que pueda llevar foto. */
-const marcaFoto = id => tieneFoto(id) ? ` data-foto="${id}"` : '';
+const marcaFoto = id => tieneFoto(id) ? ` data-foto="${esc(id)}"` : '';
 
 function color(f){
   if(!cacheColor.has(f.id)) cacheColor.set(f.id, colorDeFormula(f.id, indice));
@@ -11119,7 +11126,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">db9e0df6</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">9684bf83</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

@@ -3370,6 +3370,19 @@ body[data-seccion="gramos"] #btn-pdf{display:none}
 .g-j-nm small{font-size:12px; color:var(--texto-3)}
 .g-j-nom{display:block; width:calc(100% - 24px); margin:0 12px 12px; height:42px; padding:0 14px; border-radius:12px;
   border:1px solid var(--linea-fuerte); background:var(--panel); color:var(--texto); font:inherit; font-size:15px}
+
+/* El aviso con botón «Deshacer» */
+.brindis.con-accion{pointer-events:auto; display:flex; align-items:center; gap:14px; padding-right:8px; z-index:100; width:max-content; max-width:calc(100vw - 24px)}
+.brindis-accion{
+  margin:-8px 0; min-height:44px; padding:0 14px; border:0; border-radius:999px; cursor:pointer;
+  background:color-mix(in srgb, var(--fondo) 18%, transparent); color:inherit; font:inherit; font-weight:700;
+  transition:background .2s var(--salida), transform .15s var(--salida);
+}
+.brindis-accion:hover{background:color-mix(in srgb, var(--fondo) 30%, transparent)}
+.brindis-accion:active{transform:scale(.96)}
+.brindis-accion:focus-visible{outline:2px solid var(--fondo); outline-offset:-3px}
+/* Si flota el recordatorio de la copia, el aviso con botón sube por encima en vez de taparlo a medias */
+body:has(.avisa-copia) .brindis.con-accion{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 150px)}
 </style>
 </head>
 <body>
@@ -8563,7 +8576,7 @@ let topeHist = 60;      // se enseña de poco en poco: son cientos de líneas
 const PESTANAS = [
   {k: 'todo',    t: 'Todo'},
   {k: 'formula', t: 'Fórmulas'},
-  {k: 'sello',   t: 'Moldes'},
+  {k: 'sello',   t: 'Sellos'},
   {k: 'bote',    t: 'Botes'},
   {k: 'foto',    t: 'Fotos'},
 ];
@@ -8573,6 +8586,7 @@ const FAMILIA = {
   desmarcada: 'formula', pigmento: 'formula', 'pigmento-quitado': 'formula',
   'foto-puesta': 'foto', 'foto-cambiada': 'foto', 'foto-quitada': 'foto',
   'sello-creado': 'sello', 'sello-cambiado': 'sello', 'sello-borrado': 'sello',
+  'sello-g-borrado': 'sello', 'sello-g-cambiado': 'sello',
   'sello-falta': 'sello', 'sello-completo': 'sello', 'sello-ajuste': 'sello',
   bote: 'bote',
   // Poner y quitar el bote de la estantería SON cosa de botes. Sin esto
@@ -8588,7 +8602,8 @@ const FAMILIA = {
 // no tener botón. Un bote preparado tampoco se "deshace": se preparó.
 const SE_DESHACE = new Set(['cambiada', 'renombrada', 'restaurada',
                             'borrada', 'marcada', 'desmarcada',
-                            'sello-cambiado', 'sello-borrado']);
+                            'sello-cambiado', 'sello-borrado',
+                            'sello-g-borrado', 'sello-g-cambiado']);
 
 let pestanaHist = 'todo';
 let viejasHist = [];          // lo que se ha traído de la nube al pedir más
@@ -8619,6 +8634,9 @@ function textoDe(e){
     case 'sello-creado':   return 'Sello creado';
     case 'sello-cambiado': return 'Ficha del sello cambiada';
     case 'sello-borrado':  return 'Sello eliminado';
+    case 'sello-g-borrado': return 'Sello eliminado';
+    case 'sello-g-cambiado': return d.que === 'juntar' ? 'Sellos juntados como variantes'
+      : d.que === 'variante' ? 'Variante eliminada' : 'Sello cambiado';
     case 'sello-falta':    return 'Marcado: falta información' + (d.nota ? ' · ' + d.nota : '');
     case 'sello-completo': return 'Dado por completo' + (d.nota ? ' · tenía apuntado: ' + d.nota : '');
     case 'sello-ajuste': {
@@ -8770,8 +8788,9 @@ function filaHist(e){
   const idSello = (e.detalle || {}).sello;
   const sll = idSello ? porIdS.get(idSello) : null;
   const puedeDeshacer = puedeEditar && SE_DESHACE.has(e.que) && (
-    e.que === 'borrada' || e.que === 'sello-borrado'
+    e.que === 'borrada' || e.que === 'sello-borrado' || e.que === 'sello-g-borrado'
       ? !!(e.detalle && e.detalle.completa)
+      : e.que === 'sello-g-cambiado' ? !!(e.detalle && e.detalle.antes)
       : e.que === 'sello-cambiado' ? !!(sll && e.detalle && e.detalle.antes)
       : !!(f && e.detalle && e.detalle.antes));
   const dentro =
@@ -8808,6 +8827,8 @@ function confirmarDeshacer(id, volver){
     <p style="margin:0;font-size:14px;color:var(--texto-2)">
       ${e.que === 'borrada'
         ? `<b>${esc(e.nombre)}</b> vuelve al recetario tal y como estaba.`
+        : e.que === 'sello-g-borrado'
+        ? `<b>${esc(e.nombre)}</b> vuelve a la lista de sellos con todos sus colores y gramos.`
         : `<b>${esc(e.nombre)}</b> vuelve a como estaba antes de este cambio.`}
       No se borra nada del historial: deshacer también deja su línea.</p>`;
   $dp.innerHTML = `<button class="btn" id="desh-no">Cancelar</button>
@@ -8846,15 +8867,16 @@ function papelera(){
   const fuera = new Set();
   const out = [];
   for(const e of lineasHist()){
-    if(e.que !== 'borrada' && e.que !== 'sello-borrado') continue;
+    if(e.que !== 'borrada' && e.que !== 'sello-borrado' && e.que !== 'sello-g-borrado') continue;
     const completa = (e.detalle || {}).completa;
     if(!completa || !completa.id) continue;      // sin copia entera no hay qué devolver
     if(papeleraHasta && e.cuando <= papeleraHasta) continue;   // vaciada
-    const esSello = e.que === 'sello-borrado';
+    const esGramo = e.que === 'sello-g-borrado';
+    const esSello = e.que === 'sello-borrado' || esGramo;
     // Si ya volvió —restaurada, o creada otra vez con el mismo id— no está
     // borrada, y enseñarla sería mentir.
-    if(esSello ? porIdS.has(completa.id) : porId.has(completa.id)) continue;
-    const clave = (esSello ? 's:' : 'f:') + completa.id;
+    if(esGramo ? porIdG.has(completa.id) : esSello ? porIdS.has(completa.id) : porId.has(completa.id)) continue;
+    const clave = (esGramo ? 'g:' : esSello ? 's:' : 'f:') + completa.id;
     if(fuera.has(clave)) continue;               // solo el borrado más reciente
     fuera.add(clave);
     const t = new Date(e.cuando).getTime();
@@ -8961,6 +8983,15 @@ function deshacer(e){
   if(!puedeEditar) return SIN_PERMISO;
   const d = e.detalle || {};
 
+  if(e.que === 'sello-g-borrado'){
+    if(!d.completa) return 'De este no guardé copia entera';
+    if(porIdG.has(d.completa.id)) return 'Ese sello ya está en la lista';
+    return gRecuperar([d.completa], 'Recuperado del historial');
+  }
+  if(e.que === 'sello-g-cambiado'){
+    if(!d.antes) return 'De esto no guardé cómo estaba antes';
+    return gRecuperar([d.antes, ...(d.unidos || [])], 'Deshecho desde el historial', true);
+  }
   if(e.que === 'sello-borrado'){
     if(!d.completa) return 'De este no guardé copia entera';
     if(porIdS.get(d.completa.id)) return 'Ese sello ya está en la lista';
@@ -12754,6 +12785,7 @@ function brindis(txt){
       el.showPopover();
     }
   }catch(_){}
+  el.classList.remove('con-accion');
   void el.offsetWidth;
   el.classList.add('on');
   clearTimeout(tBrindis); clearTimeout(tBrindisFin);
@@ -15148,6 +15180,59 @@ function gQuitarFotoSuelta(fid){
   Promise.resolve().then(() => nube.quitarFoto(fid)).catch(() => {});
 }
 
+/* ── Volver atrás: aviso con botón, apunte en el historial y recuperación ── */
+
+const gCopia = g => JSON.parse(JSON.stringify(g));
+
+/** Apunta en el historial algo gordo de un sello, con la copia entera. */
+function gApuntar(que, g, detalle){
+  return apuntar(que, {nombre: g.nombre, esSello: true, sello: g.id}, detalle);
+}
+
+/** Un aviso con un botón («Deshacer») que aguanta 8 segundos. */
+function brindisAccion(txt, etiqueta, fn, ms = 8000){
+  brindis(txt);
+  const el = document.getElementById('brindis');
+  clearTimeout(tBrindis); clearTimeout(tBrindisFin);
+  el.textContent = '';
+  const t = document.createElement('span'); t.textContent = txt;
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'brindis-accion'; b.textContent = etiqueta;
+  const cerrar = () => {
+    clearTimeout(tBrindis); clearTimeout(tBrindisFin);
+    el.classList.remove('on');
+    tBrindisFin = setTimeout(() => {
+      el.classList.remove('con-accion');
+      try{ if(el.matches(':popover-open')) el.hidePopover(); }catch(_){}
+      el.removeAttribute('popover');
+    }, 260);
+  };
+  b.onclick = () => { b.disabled = true; cerrar(); fn(); };
+  el.append(t, b);
+  el.classList.add('con-accion');
+  tBrindis = setTimeout(cerrar, ms);
+}
+
+/** Devuelve sellos a como estaban. El primero se pone SIEMPRE tal cual la copia;
+    los demás solo si no están ya en la lista. Sirve para el aviso, el historial
+    y la papelera. Devuelve el texto que enseñar. */
+function gRecuperar(copias, motivo){
+  if(!puedeEditar) return SIN_PERMISO;
+  let n = 0, primero = null;
+  copias.forEach((c, i) => {
+    if(!c || !c.id || (i > 0 && porIdG.has(c.id))) return;
+    const g2 = gCopia(c); delete g2.borrado;
+    guardarGramo(g2);
+    delete gVarSel[g2.id];
+    primero = primero || g2; n++;
+  });
+  if(!primero) return 'No había nada que recuperar';
+  gVista = 'ficha'; gCalc = null;
+  actualizar();
+  if(gramoSel === primero.id) pintarFichaGramo();
+  return n > 1 ? `${primero.nombre} ha vuelto, con ${n - 1} más` : `${primero.nombre} está otra vez en la lista`;
+}
+
 /** Eliminar un sello desde su ficha. Con variantes pregunta: ¿solo esta, o todo? */
 function borrarGramo(g){
   if(!puedeEditar) return brindis(SIN_PERMISO);
@@ -15157,13 +15242,15 @@ function borrarGramo(g){
   const sello = gMoldeTxt(g) ? ` <span class="flojo">(${esc(gMoldeTxt(g))})</span>` : '';
   const borrarTodo = () => {
     gTirarBorrador(g.id);
+    const copia = gCopia(g);
     cerrarDlgYLuego(() => {
       guardarGramo({...g, borrado: true});
+      gApuntar('sello-g-borrado', g, {completa: copia});
       delete gVarSel[g.id];
       gramoSel = null; gVista = 'ficha'; gCalc = null;
       if(document.body.dataset.ficha === 'on') cerrarFicha();
       actualizar();
-      brindis('Sello eliminado');
+      brindisAccion('Sello eliminado', 'Deshacer', () => brindis(gRecuperar([copia], 'Recuperado al momento')));
     });
   };
   if(vs.length < 2){
@@ -15194,13 +15281,17 @@ function borrarGramo(g){
     const resto = vs.filter(v => v !== act);
     const r = {...g, variantes: resto, colores: resto[0].colores};
     if(resto.length === 1 && resto[0].id === G_V0 && !resto[0].foto && !resto[0].nombre) delete r.variantes;
-    gQuitarFotoSuelta(gFotoIdV(g, act));
+    const antes = gCopia(g);
+    // La foto de la variante NO se quita del servidor: así «Deshacer» la devuelve
+    // entera. Pesa unos 100 KB; no merece la pena perder la posibilidad de volver.
     delete gVarSel[g.id];
     cerrarDlgYLuego(() => {
       guardarGramo(r);
+      gApuntar('sello-g-cambiado', g, {que: 'variante', antes, variante: gNomVar(act, ini)});
       gVista = 'ficha'; gCalc = null;
       actualizar();
-      brindis(`Variante «${gNomVar(act, ini)}» eliminada`);
+      brindisAccion(`Variante «${gNomVar(act, ini)}» eliminada`, 'Deshacer',
+                    () => brindis(gRecuperar([antes], 'Recuperada al momento')));
     });
   };
   if(!$dlg.open) $dlg.showModal();
@@ -15292,13 +15383,17 @@ function juntarGramos(base){
       }));
     }
     const r = {...base, variantes: vars, colores: vars[0].colores};
+    const antes = gCopia(base);
+    const unidos = otros.filter(o => marcados.has(o.id)).map(gCopia);
     cerrarDlgYLuego(() => {
       guardarGramo(r);
       for(const x of otros.filter(o => marcados.has(o.id))) guardarGramo({...x, borrado: true});
+      gApuntar('sello-g-cambiado', base, {que: 'juntar', antes, unidos});
       gVarSel[r.id] = vars[0].id;
       gVista = 'ficha'; gCalc = null;
       actualizar();
-      brindis(`Juntados: ${vars.length} variantes` + (convertidos ? ' · gramos adaptados a sus sellos por molde' : ''));
+      brindisAccion(`Juntados: ${vars.length} variantes` + (convertidos ? ' · gramos adaptados a sus sellos por molde' : ''),
+                    'Deshacer', () => brindis(gRecuperar([antes, ...unidos], 'Deshecho al momento')));
     });
   };
   pintar();

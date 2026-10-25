@@ -3419,6 +3419,13 @@ body:has(.avisa-copia) .brindis.con-accion{bottom:calc(max(14px,env(safe-area-in
   content:''; position:absolute; top:7px; right:7px; width:10px; height:10px; border-radius:50%;
   background:var(--rojo); box-shadow:0 0 0 2px var(--fondo); animation:g-aparece .3s var(--salida);
 }
+
+
+/* ── Impresión (Tanda 4) ───────────────────────────────────────────── */
+.seg-pdf{margin:6px 0 8px}
+.seg-pdf button{font-size:13px; padding-inline:6px}
+.pdf-ayuda{display:block; color:var(--texto-2); font-size:12.5px; line-height:1.4; min-height:2.8em}
+.hero-dato dd .enlace-cliente + .enlace-cliente{margin-left:4px}
 </style>
 </head>
 <body>
@@ -6063,7 +6070,7 @@ function filtrar(txt){
     case 'pendientes':   return DATOS.formulas.filter(tienePendiente);
     case 'actualizadas': return DATOS.formulas.filter(f=>estadoAct(f).aldia);
     case 'bote':         return DATOS.formulas.filter(tieneBote);
-    case 'cliente':      return DATOS.formulas.filter(f=>norm(clienteDe(f.nombre)||'') === filtro.valor);
+    case 'cliente':      return DATOS.formulas.filter(f=>llevaCliente(f, filtro.valor));
   }
   if(!t) return DATOS.formulas.slice();
   const palabras = t.split(' ');
@@ -6394,7 +6401,7 @@ function actualizar(tarde = false){
   intentarEnlace();
   filtradas = filtrar($q.value);
   document.getElementById('contador').innerHTML =
-    `<b>${filtradas.length}</b> de ${DATOS.formulas.length} fórmulas`;
+    `<b>${filtradas.length}</b> de ${nFormulas(DATOS.formulas.length)}`;
 
   /* El cartel de arriba decía "las muestras son orientativas" a secas. En
      cuanto hay una foto real deja de ser verdad para esas, y un aviso que
@@ -6468,11 +6475,11 @@ document.getElementById('chip-pend').onclick = ()=>{
 function contarClientes(){
   const m = new Map();
   for(const f of DATOS.formulas){
-    const c = clienteDe(f.nombre);
-    if(!c) continue;
-    const k = norm(c);
-    const e = m.get(k) || {nombre: c, clave: k, n: 0};
-    e.n++; m.set(k, e);
+    for(const c of clientesDe(f.nombre)){
+      const k = norm(c);
+      const e = m.get(k) || {nombre: c, clave: k, n: 0};
+      e.n++; m.set(k, e);
+    }
   }
   clientesTop = [...m.values()].sort((a,b)=>b.n-a.n || a.nombre.localeCompare(b.nombre,'es'))
                                .slice(0, TOPE_CHIPS);
@@ -6496,8 +6503,8 @@ function pintarChips(){
   const lista = clientesTop.slice();
   const cli = filtroEs('cliente') ? filtro.valor : null;
   if(cli && !lista.some(c=>c.clave === cli)){
-    const n = DATOS.formulas.filter(f=>norm(clienteDe(f.nombre)||'') === cli).length;
-    const nombre = (DATOS.formulas.map(f=>clienteDe(f.nombre)).find(c=>c && norm(c) === cli)) || cli;
+    const n = DATOS.formulas.filter(f=>llevaCliente(f, cli)).length;
+    const nombre = (DATOS.formulas.flatMap(f=>clientesDe(f.nombre)).find(c=>norm(c) === cli)) || cli;
     lista.push({nombre, clave: cli, n});
   }
   $c.innerHTML =
@@ -6847,7 +6854,7 @@ function muroDeColores(){
   $ficha.innerHTML = `<div class="muro">
     <div class="muro-cab">
       <h2>${$q.value.trim() ? 'Resultados' : 'Todos los colores'}</h2>
-      <span>${filtradas.length === 1 ? '1 fórmula' : filtradas.length + ' fórmulas'} · toca una para ver su receta</span>
+      <span>${nFormulas(filtradas.length)} · toca una para ver su receta</span>
       <div class="muro-ctl">
         <div class="seg-orden" role="group" aria-label="Orden del muro">
           <button type="button" data-orden="az" aria-pressed="${ordenMuro !== 'tono'}">A–Z</button>
@@ -6894,6 +6901,19 @@ function clienteDe(nombre){
   const t = m ? m[1].trim() : '';
   return t || null;
 }
+/** Todos los clientes del nombre, sin repetir: «ROJO (A) (B)» es de A y de B.
+    Hasta ahora solo contaba el primer paréntesis y el chip decía 8 donde la
+    búsqueda del mismo nombre encontraba 9. */
+function clientesDe(nombre){
+  const out = [], vistos = new Set();
+  for(const m of String(nombre).matchAll(/\(([^)]*)\)/g)){
+    const t = m[1].trim(), k = norm(t);
+    if(t && !vistos.has(k)){ vistos.add(k); out.push(t); }
+  }
+  return out;
+}
+const llevaCliente = (f, clave) => clientesDe(f.nombre).some(c => norm(c) === clave);
+const nFormulas = n => n === 1 ? '1 fórmula' : n + ' fórmulas';
 const fechaCorta = s => s
   ? new Date(s).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'2-digit'})
   : '';
@@ -6936,7 +6956,7 @@ function selloBote(f){
 }
 
 function datosHero(f, total, usan){
-  const cli   = clienteDe(f.nombre);
+  const clis  = clientesDe(f.nombre);
   // Del cuaderno, no del campo viejo de dentro de la fórmula: ahora también
   // cuentan los botes que ha hecho el taller, que antes no se apuntaban.
   const hechas = prepsDe(f.id);
@@ -6945,9 +6965,9 @@ function datosHero(f, total, usan){
   const d = [];
   // Pulsando el cliente se ven todos sus colores. Era texto muerto, y la
   // pregunta "¿qué le hacemos a este cliente?" es de las que más se hacen.
-  d.push(['Cliente', cli
-    ? `<button class="enlace-cliente" data-cliente="${esc(cli)}">${esc(cli)}
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>`
+  d.push([clis.length > 1 ? 'Clientes' : 'Cliente', clis.length
+    ? clis.map(cli=>`<button class="enlace-cliente" data-cliente="${esc(cli)}">${esc(cli)}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>`).join(' ')
     : '<span class="flojo">Sin cliente</span>']);
   if(ultima)
     d.push(['Última vez', `${haceCuanto(ultima)}<small>${fechaCorta(ultima)}${
@@ -7320,7 +7340,7 @@ function pintarFicha(){
       if(historialVa && capas.length){ trasVolver = ir; cerrarTodo(); }
       else ir();
     });
-  $ficha.querySelector('[data-cliente]')?.addEventListener('click', e=>{
+  for(const bc of $ficha.querySelectorAll('[data-cliente]')) bc.addEventListener('click', e=>{
     const cli = e.currentTarget.dataset.cliente;
     // El enlace del cliente hace lo mismo que su chip: filtro exacto.
     $q.value = ''; ponerFiltro('cliente', norm(cli));
@@ -10938,7 +10958,7 @@ function abrirOpciones(){
              : diasCopia < 1 ? 'Descargada hoy' : `Hace ${diasCopia} ${diasCopia === 1 ? 'día' : 'días'}`)
           : (n ? `${n} sin publicar` : 'Ninguno'),
         MODO === 'nube' && (diasCopia === null || diasCopia > 30) ? 'aj-avisa' : ''),
-      filaAjuste('op-datos', 'Datos y versión', `${DATOS.formulas.length} fórmulas`),
+      filaAjuste('op-datos', 'Datos y versión', nFormulas(DATOS.formulas.length)),
     ])}
 
 `;
@@ -11096,7 +11116,7 @@ function pantallaCopia(volver){
 function pantallaDatos(volver){
   $dt.textContent = 'Datos y versión';
   $dc.innerHTML = `
-    <p class="op-p num">${DATOS.formulas.length} fórmulas · ${DATOS.materias_primas.length} materias primas ·
+    <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
     <p class="op-p flojo">Versión <b class="num">db9e0df6</b>. Si acabas de subir una nueva y aquí
@@ -11116,10 +11136,10 @@ function explicarCalibracion(){
   const {total, medidas, faltan} = estadoBases();
   const comoEstan =
     medidas === 0
-      ? `<p>Pero para calcularlo hay que saber de qué color exacto es cada uno de los <b>${total} colores base</b>. Ahora mismo esos valores están <b>estimados a partir de los nombres de tus propias 860 fórmulas</b>: si una se llama «naranja algo», el resultado tiene que salir naranja. Con eso el acierto pasó del 53% al 62%.</p>
+      ? `<p>Pero para calcularlo hay que saber de qué color exacto es cada uno de los <b>${total} colores base</b>. Ahora mismo esos valores están <b>estimados a partir de los nombres de tus propias ${DATOS.formulas.length} fórmulas</b>: si una se llama «naranja algo», el resultado tiene que salir naranja. Es una buena aproximación, pero sigue siendo una estimación.</p>
          <p><b>Para afinarlo de verdad</b> hacen falta muestras físicas: una pastilla de cada base sobre goma, fotografiada junto a un papel blanco con la misma luz. Con esas ${total} fotos el cálculo deja de ser una estimación.</p>`
     : faltan > 0
-      ? `<p>Para calcularlo hay que saber de qué color exacto es cada uno de los <b>${total} colores base</b>. De esos, <b>${medidas}</b> ya están tomados de una muestra cocida de verdad; ${faltan === 1 ? 'queda <b>1</b>' : `quedan <b>${faltan}</b>`} con el color estimado a partir de los nombres de tus 860 fórmulas.</p>
+      ? `<p>Para calcularlo hay que saber de qué color exacto es cada uno de los <b>${total} colores base</b>. De esos, <b>${medidas}</b> ya están tomados de una muestra cocida de verdad; ${faltan === 1 ? 'queda <b>1</b>' : `quedan <b>${faltan}</b>`} con el color estimado a partir de los nombres de tus ${DATOS.formulas.length} fórmulas.</p>
          <p>Las mezclas que solo llevan bases ya medidas salen finas. ${faltan === 1 ? 'En cuanto se fotografíe la que falta' : 'En cuanto se fotografíen las que faltan'}, el cálculo deja de ser una estimación en ninguna parte.</p>`
       : `<p>Los <b>${total} colores base</b> están tomados de una muestra cocida de verdad, fotografiada junto a un papel blanco: el color de cada uno no es una estimación, es el que sale del bote.</p>
          <p>Lo que sigue siendo aproximado es la <b>mezcla</b>: el cálculo supone que los pigmentos se comportan de forma previsible al juntarlos, y la goma de verdad tiene sus manías. Pero el punto de partida ya es real.</p>`;
@@ -12002,6 +12022,10 @@ function qrSvg(texto){
    de grises finos ni degradados. */
 const PEGATINA = {ancho: 100, alto: 50, margen: 5};    // mm
 const ET_POR_HOJA = 1;                                 // fórmulas por pegatina
+/* Desde cuántos ingredientes la etiqueta pasa a DOS COLUMNAS. En una columna
+   caben cuatro o cinco a letra legible; con seis la letra ya bajaba a 6,5 pt, y con más a 5 pt y con
+   diez el Total y el QR se salían de la pegatina. */
+const ET_DENSA = 6;
 
 /* «10 × 5 cm», sacado de ahí arriba. Los textos de la app NO llevan la
    medida escrita a mano: ya pasó con «las 12 bases» en Opciones, que se quedó
@@ -12024,6 +12048,7 @@ function cabeceraPegatinas(titulo){
     .peg{width:${PEGATINA.ancho}mm; height:${PEGATINA.alto}mm; overflow:hidden;
          page-break-after:always; break-after:page; position:relative}
     .peg:last-child{page-break-after:auto; break-after:auto}
+    @media print{ .noimp{display:none !important} }
     .ceja{font-size:7pt;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#000}
     .marca{font-style:italic;font-weight:800;font-size:8.5pt;color:#000;letter-spacing:.01em}
     .marca b{font-size:1.25em;line-height:0}
@@ -12047,7 +12072,12 @@ const PIE_PEGATINAS = `<script>
       /* Y de ancho: un título de una sola línea (el nombre del molde) que no
          cabe se corta con puntos suspensivos sin crecer de alto, y hasta hoy
          nadie se enteraba. */
-      return !!h && (h.scrollHeight - h.clientHeight > 4 || h.scrollWidth - h.clientWidth > 1);
+      if(!!h && (h.scrollHeight - h.clientHeight > 4 || h.scrollWidth - h.clientWidth > 1)) return true;
+      /* Un ingrediente con el nombre cortado («AMARILLO FLU…») es una receta
+         mal leída: también cuenta como que no cabe. */
+      var ns = el.querySelectorAll('.ing .n');
+      for(var i = 0; i < ns.length; i++) if(ns[i].scrollWidth - ns[i].clientWidth > 1) return true;
+      return false;
     }
     function encajar(){
       document.querySelectorAll('[data-encaja]').forEach(function(el){
@@ -12074,11 +12104,36 @@ const PIE_PEGATINAS = `<script>
       });
     }
     (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve())
-      .then(function(){ encajar(); setTimeout(function(){ window.print(); }, 250); });
+      .then(function(){
+        encajar();
+        /* Si algo NO cabe ni con la letra al mínimo, no se manda a la
+           impresora sola: mejor una pegatina parada que una receta cortada. */
+        var mal = [].filter.call(document.querySelectorAll('[data-encaja]'), sale);
+        if(!mal.length){ setTimeout(function(){ window.print(); }, 250); return; }
+        var b = document.createElement('div');
+        b.className = 'noimp';
+        b.setAttribute('role', 'alert');
+        b.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:9;padding:10px 14px;' +
+          'background:#fff3cd;color:#5c4400;font:600 14px system-ui,sans-serif;' +
+          'border-bottom:2px solid #e0a800;display:flex;gap:12px;align-items:center';
+        b.innerHTML = '<span style="flex:1">' + (mal.length === 1 ? 'Una etiqueta no cabe entera' :
+          mal.length + ' etiquetas no caben enteras') + ' en la pegatina: se cortaría la receta. ' +
+          'Vuelve a la app y reparte esa fórmula en dos botes.</span>' +
+          '<button type="button" style="font:inherit;padding:6px 12px">Imprimir igualmente</button>';
+        b.querySelector('button').onclick = function(){ window.print(); };
+        document.body.appendChild(b);
+      });
   <\/script></body></html>`;
 
 function imprimirEtiquetas(items){
   if(!items.length) return brindis('No hay ninguna etiqueta que imprimir');
+  /* Un ingrediente a 0 g no se imprime: en el bote se lee como un ingrediente
+     más. Desde la ficha salían (el PDF y la hoja de etiquetas ya los quitaban). */
+  items = items.map(e=>{
+    const ok = e.cantidades.map((_,k)=>k).filter(k=>e.cantidades[k] > 0);
+    return !ok.length || ok.length === e.cantidades.length ? e
+      : {...e, nombres: ok.map(k=>e.nombres[k]), cantidades: ok.map(k=>e.cantidades[k])};
+  });
   /* Imprimir la etiqueta del bote ES estrenar bote: se marca solo, sin
      preguntar. Es la única señal fiable que tiene la app —lo que se gasta no
      lo sabe— y no cuesta un toque más a nadie. En callado: quien está
@@ -12092,13 +12147,20 @@ function imprimirEtiquetas(items){
     const f = e.id ? porId.get(e.id) : null;
     return n + (f && marcarBote(f, true, true) ? 1 : 0);
   }, 0);
-  if(marcados) actualizar();
+  if(marcados){
+    actualizar();
+    /* Si la ficha de uno de esos colores está abierta, se repinta: se quedaba
+       diciendo «Sin bote», y el toque siguiente en «Marcar bote» lo desmarcaba
+       (la app sí lo tenía ya marcado). */
+    if(SECCION === 'colores' && items.some(e=>e.id && e.id === seleccion)) pintarFicha();
+  }
 
   /* UNA etiqueta. Ya no ocupa la pegatina entera: ahora van ET_POR_HOJA
      apiladas y cada una es una franja. El recuadro sigue llevando
      `data-encaja`, así que la letra se encoge sola si la fórmula es larga. */
   const una = e => { const qr = e.id ? qrSvg(enlaceDe('color', e.id)) : '';
-    return `<div class="et" data-encaja>
+    const denso = e.nombres.length >= ET_DENSA;
+    return `<div class="et${denso ? ' denso' : ''}" data-encaja${denso ? ` style="--filas:${Math.ceil(e.nombres.length/2)}"` : ''}>
       <h1>${esc(e.nombre)}</h1>
       <div class="ings">${e.nombres.map((n,k)=>
         `<div class="ing"><span class="n">${esc(n)}</span><span class="g">${fmt(e.cantidades[k])}</span></div>`).join('')}</div>
@@ -12165,6 +12227,23 @@ function imprimirEtiquetas(items){
        mira; a los 20 de antes se comía media etiqueta. */
     .qr{width:13mm;height:13mm;flex:0 0 auto}
     .qr svg{width:100%;height:100%;display:block}
+    /* DOS COLUMNAS (6 o más ingredientes). Arriba el nombre y, a su derecha, el
+       Total y el QR; debajo, los ingredientes en dos columnas que se leen de
+       arriba abajo. Los nombres pueden ocupar dos líneas: aquí cada columna
+       mide la mitad y cortarlos con puntos suspensivos sería peligroso. */
+    .et.denso{display:grid; grid-template-columns:1fr auto; grid-template-rows:auto 1fr;
+              column-gap:3mm; align-content:start}
+    .et.denso h1{grid-column:1; grid-row:1; align-self:center}
+    .et.denso .pie{grid-column:2; grid-row:1; border-top:0; padding-top:0; margin-top:0;
+                   align-items:center; gap:2.5mm}
+    .et.denso .qr{width:12mm; height:12mm}
+    .et.denso .ings{grid-column:1 / -1; grid-row:2; align-self:start;
+                    display:grid; grid-template-columns:1fr 1fr; grid-auto-flow:column;
+                    grid-template-rows:repeat(var(--filas,1), auto); column-gap:6mm;
+                    margin-top:calc(1.2mm * var(--esc,1)); padding-top:.8mm}
+    .et.denso .ing{font-size:calc(8.6pt * var(--esc,1)); padding:calc(.35mm * var(--esc,1)) 0; align-items:flex-start; gap:2mm}
+    .et.denso .ing .n{white-space:normal; line-height:1.08; overflow-wrap:anywhere}
+    .et.denso .ing .g{padding-top:0}
   </style>
   ${paginas.map(p => `<section class="peg"><div class="tira">${
       p.map(una).join('')}</div></section>`).join('')}
@@ -12520,19 +12599,61 @@ function pintarImprimir(){
     b.onclick = ()=>{ modoImprimir = b.dataset.modo; pintarImprimir(); };
 }
 
-function panelPdf(seg){
+/** Qué filtro hay puesto, en palabras: lo que dice «Se imprimirán…» y el
+    subtítulo por defecto de la portada. Antes el PDF de un cliente (chip) salía
+    sin su nombre, porque solo se miraba lo escrito en el buscador. */
+function descripcionFiltroPdf(){
   const q = $q.value.trim();
+  switch(filtro.tipo){
+    case 'cliente': {
+      const n = filtradas.flatMap(f=>clientesDe(f.nombre)).find(c=>norm(c) === filtro.valor) || filtro.valor;
+      return {txt: `las del cliente <b>${esc(n)}</b>`, sub: n.toUpperCase()};
+    }
+    case 'pigmento': {
+      const m = materias.get(filtro.valor), n = m ? m.nombre : 'ese pigmento';
+      return {txt: `las que llevan <b>${esc(n)}</b>`, sub: n.toUpperCase()};
+    }
+    case 'actualizadas': return {txt: 'las rectificadas a pigmentos nuevos', sub: 'RECTIFICADAS'};
+    case 'bote':         return {txt: 'las que tienen bote en la estantería', sub: 'CON BOTE'};
+    case 'pendientes':   return {txt: 'las que tienen ingredientes sin resolver', sub: ''};
+  }
+  return q ? {txt: `las que coinciden con <b>"${esc(q)}"</b>`, sub: q.toUpperCase()}
+           : {txt: '', sub: ''};
+}
+
+function panelPdf(seg){
+  const d = descripcionFiltroPdf();
+  let orden = leerOpcion('pdf-orden', 'tono') === 'az' ? 'az' : 'tono';
   $dc.innerHTML = seg + `
-    <p style="margin-top:0">Se imprimirán <b class="num" id="pdf-cuantas">${filtradas.length}</b> fórmulas${q?`, las que coinciden con <b>"${esc(q)}"</b>`:' (todas)'}.</p>
+    <p style="margin-top:0">Se imprimirán <b class="num" id="pdf-cuantas">${filtradas.length}</b> ${
+      filtradas.length === 1 ? 'fórmula' : 'fórmulas'}${d.txt ? ', ' + d.txt : ' (todas)'}.</p>
+    <div class="campo"><span>Orden en el papel</span>
+      <div class="seg seg-pdf" role="group" aria-label="Orden en el papel">
+        <button type="button" data-pdf-orden="tono" aria-pressed="${orden==='tono'}">Por familia de color</button>
+        <button type="button" data-pdf-orden="az" aria-pressed="${orden==='az'}">De la A a la Z</button>
+      </div>
+      <small class="pdf-ayuda" id="pdf-ayuda"></small></div>
     <label class="campo"><span>Título de la portada</span>
       <input id="pdf-tit" value="GOMA SERIADORNOS" autocomplete="off"></label>
     <label class="campo"><span>Subtítulo (opcional)</span>
-      <input id="pdf-sub" value="${q?esc(q.toUpperCase()):''}" placeholder="Ej. LEZNA" autocomplete="off"></label>
+      <input id="pdf-sub" value="${esc(d.sub)}" placeholder="Ej. LEZNA" autocomplete="off"></label>
     <label class="interruptor"><input type="checkbox" id="pdf-solo-act"><span class="pista"></span>
       <span class="interruptor-txt">Solo las rectificadas a pigmentos nuevos
         <small>Deja fuera las que aún no se han vuelto a ajustar</small></span></label>`;
   $dp.innerHTML = `<button class="btn" data-cerrar>Cancelar</button><button class="btn btn-1" id="pdf-ir">Generar</button>`;
   $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
+  const ayuda = ()=>{
+    document.getElementById('pdf-ayuda').textContent = orden === 'tono'
+      ? 'Todos los rojos juntos, luego los naranjas, amarillos… Cada familia lleva su título y la portada, un índice con la página.'
+      : 'Por el nombre, de la A a la Z.';
+  };
+  ayuda();
+  for(const b of $dc.querySelectorAll('[data-pdf-orden]'))
+    b.onclick = ()=>{
+      orden = b.dataset.pdfOrden; guardarOpcion('pdf-orden', orden);
+      for(const x of $dc.querySelectorAll('[data-pdf-orden]')) x.setAttribute('aria-pressed', x === b);
+      ayuda();
+    };
   // El número de arriba tiene que decir la verdad también con el interruptor
   // puesto: antes se pintaba una vez y se quedaba en el total aunque la lista
   // real fuera la mitad.
@@ -12544,7 +12665,7 @@ function panelPdf(seg){
   document.getElementById('pdf-ir').onclick = ()=>{
     const lista = cuales();
     if(!lista.length) return brindis('No hay ninguna fórmula que cumpla eso');
-    generarPDF(lista, document.getElementById('pdf-tit').value, document.getElementById('pdf-sub').value);
+    generarPDF(lista, document.getElementById('pdf-tit').value, document.getElementById('pdf-sub').value, orden);
     $dlg.close();
   };
 }
@@ -12608,6 +12729,8 @@ function pintarEtiquetas(){
       const l = loteParaEtiqueta(ing.map(i=>i.cantidad), e.objetivo);
       const nota = !l
         ? `<small class="avisa">Esa cantidad no se puede repartir en gramos enteros</small>`
+        : ing.length > 14
+          ? `<small class="avisa">Lleva ${ing.length} ingredientes: la letra saldrá muy pequeña</small>`
         : l.exacto
           ? `<small class="exacta">${fmt(l.total)} g · proporción exacta</small>`
           : `<small${l.error > 0.02 ? ' class="avisa"' : ''}>${fmt(l.total)} g · se desvía un ${(l.error*100).toFixed(l.error>0.02?0:1)}%</small>`;
@@ -12686,22 +12809,44 @@ function muestrarioPortada(lista){
   return `<div class="muestrario" style="--cols:${cols}">${q.map(x=>`<i style="background:${x.hex}"></i>`).join('')}</div>`;
 }
 
-function generarPDF(lista, titulo, sub){
+function generarPDF(lista, titulo, sub, orden){
   if(!puedeEditar) return brindis(SIN_PERMISO);
   const hoy = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
-  const cols = lista.map(f=>{
-    const c = color(f);
-    return `<article data-ini="${esc(inicial(f.nombre))}">
+  const carta = (f, ini)=>{
+    const c = color(f), rect = estadoAct(f).aldia;
+    /* Los de 0 g fuera, como en la etiqueta y en el pesaje: en el papel un
+       «NEGRO 0» se lee como un ingrediente más de la receta. */
+    const ing = f.ingredientes.filter(i=>i.cantidad > 0);
+    return `<article data-ini="${esc(ini)}">
       <header><i style="background:${c.hex}"></i><h4>${esc(f.nombre)}</h4>
-        ${estadoAct(f).aldia?'<b>✓</b>':''}</header>
-      ${(()=>{ /* Los de 0 g fuera, como en la etiqueta y en el pesaje: era el
-                    único sitio que los imprimía, y en el papel un «NEGRO 0» se
-                    lee como un ingrediente más de la receta. */
-        const ing = f.ingredientes.filter(i=>i.cantidad > 0);
-        return `<table>${ing.map(i=>`<tr><td>${esc(i.nombre)}</td><td>${fmt(i.cantidad)}</td></tr>`).join('')}
-        <tr class="tot"><td>Total</td><td>${fmt(ing.reduce((s,i)=>s+i.cantidad,0))}</td></tr></table>`; })()}
+        ${rect?'<b>✓</b>':''}</header>
+      <table>${ing.map(i=>`<tr><td>${esc(i.nombre)}</td><td>${fmt(i.cantidad)}</td></tr>`).join('')}
+        <tr class="tot"><td>Total</td><td>${fmt(ing.reduce((s,i)=>s+i.cantidad,0))}</td></tr></table>
+      ${rect ? `<p class="rect">Rectificada a pigmentos nuevos${
+        f.fecha_actualizacion ? ' · ' + fecha(f.fecha_actualizacion) : ''}</p>` : ''}
     </article>`;
-  }).join('');
+  };
+  const porFamilia = orden !== 'az';
+  let cols = '';
+  if(porFamilia){
+    // Un rótulo antes de cada familia. Va como una «carta» más para que el
+    // reparto lo trate igual (y repartir() evita dejarlo huérfano al pie).
+    const o = ordenarPorTono(lista), n = FAMILIAS.map(()=>0);
+    o.forEach(x=>n[x.fam]++);
+    let ult = -1;
+    for(const x of o){
+      if(x.fam !== ult){
+        ult = x.fam;
+        cols += `<article class="famcab" data-ini="${FAMILIAS[x.fam]}" data-fam="${FAMILIAS[x.fam]}" data-n="${n[x.fam]}">
+          <b>${FAMILIAS[x.fam]}</b><span>${n[x.fam]}</span></article>`;
+      }
+      cols += carta(x.f, FAMILIAS[x.fam]);
+    }
+  }else{
+    cols = lista.slice().sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'))
+                .map(f=>carta(f, inicial(f.nombre))).join('');
+  }
+  const nRect = lista.filter(f=>estadoAct(f).aldia).length;
   const w = window.open('','_blank');
   if(!w) return brindis('El navegador ha bloqueado la ventana del PDF');
   w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>${esc(titulo)}</title>
@@ -12751,6 +12896,21 @@ function generarPDF(lista, titulo, sub){
     header h4{font-size:8.6pt;margin:0;font-weight:700;line-height:1.15;flex:1 1 auto}
     header b{color:#136c46;font-size:9pt}
     table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+    /* Rótulo de familia (orden por color): sin caja, subrayado. */
+    article.famcab{display:flex;align-items:baseline;justify-content:space-between;
+      border:0;border-bottom:.7pt solid #111;border-radius:0;padding:3.2mm 0 1mm;margin-bottom:2.6mm}
+    .col > article.famcab:first-child{padding-top:0}
+    article.famcab b{font-size:9.6pt;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+    article.famcab span{font-size:7.6pt;color:#777}
+    p.rect{margin:1.1mm 0 0;font-size:6.8pt;font-weight:600;color:#136c46}
+    .portada .nota{font-size:8.5pt;color:#777;margin-top:2mm}
+    #indice{width:84mm;margin-top:8mm;font-size:8.6pt;color:#444;text-align:left}
+    #indice:empty{display:none}
+    #indice > div{display:flex;align-items:baseline;gap:2mm;padding:.55mm 0}
+    #indice > div > span{font-weight:600;color:#111}
+    #indice > div > i{flex:1 1 auto;border-bottom:.35pt dotted #aaa;transform:translateY(-.6mm)}
+    #indice > div > b{font-weight:500;color:#777;font-size:7.6pt}
+    #indice > div > em{font-style:normal;font-weight:600;min-width:12mm;text-align:right}
     td{padding:.5mm 0;font-size:8pt;border-bottom:.3pt solid #eee}
     td:last-child{text-align:right;font-weight:600;white-space:nowrap}
     tr.tot td{border-top:.6pt solid #bbb;border-bottom:0;font-weight:700;padding-top:.9mm}
@@ -12764,7 +12924,9 @@ function generarPDF(lista, titulo, sub){
     ${sub?`<h2>${esc(sub)}</h2>`:''}
     <p>Listado de fórmulas</p>
     <p class="n">${lista.length} colores</p>
+    ${nRect ? `<p class="nota">${nRect === lista.length ? 'Todas rectificadas' : nRect + ' rectificada' + (nRect===1?'':'s')} a los pigmentos nuevos (marcadas con ✓ y su fecha)</p>` : ''}
     <p style="margin-top:10mm">Generado el ${hoy}</p>
+    <div id="indice"></div>
   </div>
   <div id="cartas" style="display:none">${cols}</div>
   <main id="hojas"></main>
@@ -12789,6 +12951,13 @@ function generarPDF(lista, titulo, sub){
             cols[c].appendChild(cartas[i]);
             if(cols[c].scrollHeight > cols[c].clientHeight){
               document.getElementById('cartas').appendChild(cartas[i]);   // no cabía
+              /* Un rótulo de familia solo al pie de la columna, sin ninguna
+                 fórmula debajo, se vuelve a mandar con las suyas. */
+              var ult = cols[c].lastElementChild;
+              if(ult && ult.classList.contains('famcab') && cols[c].children.length > 1){
+                document.getElementById('cartas').appendChild(ult);
+                i--;
+              }
               break;
             }
             i++;
@@ -12801,6 +12970,14 @@ function generarPDF(lista, titulo, sub){
         if(!hoja.querySelector('article')){ hoja.remove(); paginas.pop(); break; }
       }
       var total = paginas.length;
+      var ind = document.getElementById('indice'), filas = '';
+      paginas.forEach(function(h, k){
+        [].forEach.call(h.querySelectorAll('.famcab'), function(a){
+          filas += '<div><span>' + a.getAttribute('data-fam') + '</span><i></i><b>' +
+                   a.getAttribute('data-n') + '</b><em>pág. ' + (k+1) + '</em></div>';
+        });
+      });
+      if(ind) ind.innerHTML = filas;
       paginas.forEach(function(h, k){
         var arts = h.querySelectorAll('article');
         var de = arts[0].getAttribute('data-ini'), a = arts[arts.length-1].getAttribute('data-ini');

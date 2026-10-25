@@ -9,7 +9,7 @@
    y la anterior se borra. Es el mismo número que sale en Opciones › Datos y
    versión. */
 const PREFIJO = 'colores-';
-const VERSION = PREFIJO + '9684bf83';
+const VERSION = PREFIJO + '6f19cc10';
 
 /* Lo ESENCIAL: sin esto la app no abre sin cobertura, así que si falla, la
    instalación falla y se reintenta la próxima vez (mejor eso que una caché

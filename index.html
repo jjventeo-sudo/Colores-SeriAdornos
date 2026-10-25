@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<script>try{var _t=localStorage.getItem('tema');if(_t&&_t!=='auto')document.documentElement.dataset.tema=_t}catch(_){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Goma · SeriAdornos</title>
 
@@ -372,7 +373,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none; appearanc
 /* ── Cuerpo: lista + ficha ───────────────────────────────────────── */
 .cuerpo{flex:1 1 auto; display:flex; min-height:0}
 .columna-lista{
-  flex:0 0 400px; display:flex; flex-direction:column; position:relative;
+  flex:0 0 400px; min-width:0; display:flex; flex-direction:column; position:relative;
   border-right:1px solid var(--linea); background:var(--fondo); min-height:0;
 }
 .chips-cli{
@@ -3383,6 +3384,41 @@ body[data-seccion="gramos"] #btn-pdf{display:none}
 .brindis-accion:focus-visible{outline:2px solid var(--fondo); outline-offset:-3px}
 /* Si flota el recordatorio de la copia, el aviso con botón sube por encima en vez de taparlo a medias */
 body:has(.avisa-copia) .brindis.con-accion{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 150px)}
+
+/* ── Pulido (Tanda 3a) ─────────────────────────────────────────────── */
+/* Lista sin resultados: solo en móvil (en pantalla grande el muro de al lado ya lo dice) */
+.lista-nada{padding:44px 28px; text-align:center; color:var(--texto-3); font-size:14px; line-height:1.5}
+.lista-nada b{display:block; color:var(--texto); font-size:16px; font-weight:600; margin-bottom:6px}
+.lista-nada .btn{margin-top:18px}
+@media (min-width:861px){ .lista-nada{display:none} }
+
+/* Con el dedo (no con ratón): las zonas que tocar miden al menos 44 px, sin cambiar cómo se ven.
+   Los enlaces pequeños ganan zona de toque por fuera; los botones, tamaño real. */
+@media (pointer:coarse){
+  .rectificar{padding:15px 6px; margin-block:-15px; position:relative; z-index:1}
+  .g-enlace, .g-quitarvar{position:relative}
+  .g-enlace::after, .g-quitarvar::after{content:''; position:absolute; inset:-15px -6px}
+  .chips-cli .chip, .chip{min-height:44px}
+  [data-mas], [data-menos]{min-width:44px; min-height:44px}
+  button[aria-label="Cerrar"], .btn-icono[data-cerrar]{min-width:44px; min-height:44px}
+}
+
+/* El recordatorio de la copia: franja fina arriba de la lista (empuja, no tapa) y punto en Opciones */
+.avisa-copia{
+  flex:0 0 auto; display:flex; align-items:center; gap:10px; margin:0 0 6px; padding:8px 12px 8px 18px;
+  font-size:12.5px; color:var(--texto-2); background:var(--panel-2); border-bottom:1px solid var(--linea);
+}
+.avisa-copia span{flex:1; min-width:0}
+.avisa-copia b{color:var(--texto); font-weight:600}
+.avisa-copia button{flex:0 0 auto; min-height:34px; padding:0 12px; border-radius:999px; font-size:12.5px; font-weight:650;
+  color:var(--texto); background:var(--panel); border:1px solid var(--linea-fuerte)}
+.avisa-copia button[data-tirar]{background:none; border-color:transparent; color:var(--texto-3); font-weight:560}
+@media (pointer:coarse){ .avisa-copia button{min-height:44px} }
+#btn-menu{position:relative}
+#btn-menu.con-punto::before{
+  content:''; position:absolute; top:7px; right:7px; width:10px; height:10px; border-radius:50%;
+  background:var(--rojo); box-shadow:0 0 0 2px var(--fondo); animation:g-aparece .3s var(--salida);
+}
 </style>
 </head>
 <body>
@@ -6296,6 +6332,12 @@ function pintarLista(reinicia=true){
     frag.appendChild(b);
   }
   $lista.appendChild(frag);
+  if(reinicia && !filtradas.length){
+    const v = document.createElement('div');
+    v.className = 'lista-nada';
+    v.innerHTML = `<b>Nada con ese nombre</b>Prueba con menos letras, o con el cliente entre paréntesis. Por ejemplo <em>lezna</em>, <em>fluor</em> o <em>plata</em>.`;
+    $lista.appendChild(v);
+  }
   enlazarFotos($lista);
   pintadas = hasta;
   if(reinicia) pintarRiel(agrupar);
@@ -10670,7 +10712,7 @@ function aplicarDeLaNube(res){
     n++;
   }
   if((res.gramos || []).length)
-    DATOS.gramos.sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre),'es'));
+    DATOS.gramos.sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre),'es',{numeric:true}));
   /* Las listas se vacían y se rellenan EN SITIO, no se reasignan: hay código
      que guarda una referencia al array (las pruebas, sin ir más lejos) y
      reasignarlo lo dejaría mirando a una copia vieja. */
@@ -11670,7 +11712,7 @@ function restaurarNube(j){
       await subir(nube.subirAjustes([{clave, datos: destino}]));
     }
     DATOS.formulas.sort((a, b2) => a.nombre.localeCompare(b2.nombre, 'es'));
-    DATOS.gramos.sort((a, b2) => String(a.nombre).localeCompare(String(b2.nombre), 'es'));
+    DATOS.gramos.sort((a, b2) => String(a.nombre).localeCompare(String(b2.nombre), 'es', {numeric:true}));
     guardar();
     $dlg.close();
     reconstruir(); actualizar();
@@ -11712,7 +11754,7 @@ function avisarCopia(){
   const dias = ultima ? Math.floor((Date.now() - ultima) / DIA) : null;
   if(ultima && dias < DIAS_COPIA) return;
   const el = document.createElement('div');
-  el.className = 'actualiza avisa-copia';
+  el.className = 'avisa-copia';
   el.innerHTML = `<span>${ultima
       ? `Hace <b>${dias >= 60 ? Math.floor(dias/30) + ' meses' : dias + ' días'}</b> que no descargas copia del recetario`
       : '<b>No has descargado nunca una copia</b> del recetario'}</span>
@@ -11722,12 +11764,25 @@ function avisarCopia(){
   el.querySelector('[data-tirar]').onclick = ()=>{
     el.remove(); ponerFecha(CLAVE_COPIA_LUEGO, Date.now());
   };
-  document.body.appendChild(el);
+  const col = document.querySelector('.columna-lista');
+  if(col) col.insertBefore(el, col.firstChild); else document.body.appendChild(el);
+}
+
+/** El punto rojo de Opciones: hay que descargar una copia (solo el editor). */
+function puntoCopia(){
+  const b = document.getElementById('btn-menu');
+  if(!b) return;
+  const ultima = leerFecha(CLAVE_COPIA);
+  const hace = ultima ? Math.floor((Date.now() - ultima) / DIA) : Infinity;
+  const falta = puedeEditar && hace >= DIAS_COPIA;
+  b.classList.toggle('con-punto', falta);
+  b.setAttribute('aria-label', falta ? 'Opciones (falta descargar una copia de seguridad)' : 'Opciones');
 }
 
 function exportar(){
   ponerFecha(CLAVE_COPIA, Date.now());
   ponerFecha(CLAVE_COPIA_LUEGO, 0);
+  setTimeout(puntoCopia, 0);
   document.querySelector('.avisa-copia')?.remove();
   // Se guarda el resultado ya mezclado —que es legible y sirve de archivo por
   // sí solo— y además, por comodidad, el resumen de qué cambió.
@@ -12898,7 +12953,7 @@ function avisarPesajeAMedias(){
 avisarPesajeAMedias();
 // Y si hace un mes que no descarga copia, se lo dice. Solo al editor: el
 // taller no puede descargarla, avisarle sería mandarle a un botón que no tiene.
-setTimeout(avisarCopia, 1500);
+setTimeout(()=>{ puntoCopia(); avisarCopia(); }, 1500);
 
 /* Una puerta para las pruebas automáticas. Sin esto, la sincronización solo
    se podría probar a ojo en dos aparatos, que es como se cuelan los fallos
@@ -14769,7 +14824,9 @@ function gDec(n, dec = 3){
 function gNumero(v, entero){
   let t = String(v ?? '').trim().replace(/\s/g, '');
   if(!t) return null;
-  if(entero && /^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+  // Un número entero escrito «1.000» o «1,000» es mil (la app lo muestra como 1.000):
+  // leerlo como 1 con tres decimales ponía 1 sello donde iban 1.000.
+  if(entero && /^\d{1,3}([.,]\d{3})+$/.test(t)) t = t.replace(/[.,]/g, '');
   t = t.replace(',', '.');
   if(!/^(\d+(\.\d+)?|\.\d+)$/.test(t)) return null;
   const n = parseFloat(t);
@@ -14817,6 +14874,9 @@ const gProy = (g, v) => { v = v || gVarActiva(g); return {...g, colores: v.color
 /** Foto del sello en la lista: la de la variante que se está mirando, o la primera. */
 const gFotoId = g => gFotoIdV(g, g._v || gVars(g)[0]);
 const gNuevoVid = () => 'v-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+/** Nombres en orden «natural»: «SELLO 2» antes que «SELLO 10». */
+let muroTope = 120;     // cuántos sellos pinta el muro; «Ver más» suma otros 120
+const gCmp = (a, b) => String(a).localeCompare(String(b), 'es', {numeric: true});
 /* Lo que apunta Juanjo son «gramos del sello» o, cuando no se puede pesar un
    sello suelto, «gramos de un MOLDE de N sellos» (`porMolde`). Se guarda lo
    que él pesó, tal cual, y se divide al calcular: así no se arrastra un
@@ -14869,7 +14929,7 @@ function guardarGramo(g, opciones){
     if(!g.borrado) DATOS.gramos.push(g);
     if(g.borrado) porIdG.delete(g.id); else porIdG.set(g.id, g);
   }
-  DATOS.gramos.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+  DATOS.gramos.sort((a, b) => gCmp(a.nombre, b.nombre));
   if(MODO === 'nube'){
     marcarSync('subiendo');
     nube.guardarGramo(g, opciones)
@@ -14935,13 +14995,14 @@ function gBuscarColores(txt, max = 40){
     const n = norm(f.nombre);
     if(ps.every(p => n.includes(p))) hits.push({f, ini: n.startsWith(ps[0]) ? 0 : 1, n});
   }
-  hits.sort((a, b) => a.ini - b.ini || a.n.length - b.n.length || a.f.nombre.localeCompare(b.f.nombre, 'es'));
+  hits.sort((a, b) => a.ini - b.ini || a.n.length - b.n.length || gCmp(a.f.nombre, b.f.nombre));
   return hits.slice(0, max).map(h => h.f);
 }
 
 // ── La lista ────────────────────────────────────────────────────────
 
 function actualizarGramos(){
+  muroTope = 120;
   gFiltrados = gFiltrar($q.value);
   const total = DATOS.gramos.length;
   document.getElementById('contador').innerHTML = gFiltrados.length === total
@@ -14992,11 +15053,20 @@ function pintarListaGramos(){
   }
   if(!gFiltrados.length && DATOS.gramos.length){
     const v = document.createElement('div');
-    v.className = 'g-nada';
-    v.textContent = 'Ningún sello se llama así';
+    v.className = 'lista-nada';
+    v.innerHTML = '<b>Ningún sello se llama así</b>Prueba con menos letras, o con el número de molde.';
+    frag.appendChild(v);
+  }else if(!DATOS.gramos.length){
+    // En el móvil el muro (donde está este mensaje) no se pinta: la lista no puede quedar en blanco.
+    const v = document.createElement('div');
+    v.className = 'lista-nada';
+    v.innerHTML = '<b>Todavía no hay sellos</b>' + (puedeEditar
+      ? 'Cada sello guarda sus colores y los gramos de cada uno.<button class="btn btn-1" id="g-primero-lista" type="button">Añadir el primero</button>'
+      : 'Aparecerán aquí en cuanto se vayan apuntando.');
     frag.appendChild(v);
   }
   $lista.appendChild(frag);
+  document.getElementById('g-primero-lista')?.addEventListener('click', () => editarGramo(null));
   enlazarFotos($lista);
 }
 
@@ -15025,7 +15095,7 @@ function muroDeGramos(){
     return;
   }
   $ficha.classList.add('es-muro');
-  const v = gFiltrados.slice(0, 120);
+  const v = gFiltrados.slice(0, muroTope);
   $ficha.innerHTML = `<div class="muro">
     <div class="muro-cab">
       <h2>${$q.value.trim() ? 'Resultados' : 'Todos los sellos'}</h2>
@@ -15042,10 +15112,13 @@ function muroDeGramos(){
         <span>${esc([gMoldeTxt(g) || 'Sin molde', gVars(g).length > 1 ? gVars(g).length + ' variantes' : ''].filter(Boolean).join(' · '))}</span>
       </button>`).join('')}
     </div>
+    ${gFiltrados.length > v.length
+      ? `<button class="btn" id="g-muro-mas" type="button" style="margin:18px auto 6px;display:block">Ver más (quedan ${gFiltrados.length - v.length})</button>` : ''}
   </div>`;
   enlazarFotos($ficha);
   for(const b of $ficha.querySelectorAll('[data-ir-g]'))
     b.onclick = () => abrirGramo(b.dataset.irG);
+  document.getElementById('g-muro-mas')?.addEventListener('click', () => { muroTope += 120; muroDeGramos(); });
 }
 
 // ── La ficha ────────────────────────────────────────────────────────
@@ -15058,7 +15131,13 @@ const gObjFoto = g => ({id: gFotoId(g),
 
 function pintarFichaGramo(){
   const raw = porIdG.get(gramoSel);
-  if(!raw){ gramoSel = null; muroDeGramos(); return; }
+  if(!raw){
+    // Otro aparato lo ha borrado mientras lo mirabas: se dice, no se deja la pantalla vacía.
+    const abierto = document.body.dataset.ficha === 'on';
+    gramoSel = null; gVista = 'ficha'; gCalc = null;
+    if(abierto){ cerrarFicha(); brindis('Ese sello ya no existe: lo ha borrado otro aparato'); }
+    muroDeGramos(); return;
+  }
   if(gVista === 'calc') return pintarCalcGramo(raw);
   const vs = gVars(raw);
   const g = gProy(raw);              // el sello visto desde la variante abierta
@@ -15153,6 +15232,8 @@ function pintarFichaGramo(){
       if(gVarSel[raw.id] === b.dataset.gv) return;
       gVarSel[raw.id] = b.dataset.gv;
       pintarFichaGramo(); pintarListaGramos();
+      // Al repintar la fila de pastillas vuelve al principio: la elegida se trae a la vista.
+      $ficha.querySelector('.g-pill.on')?.scrollIntoView({inline: 'center', block: 'nearest'});
     };
   document.getElementById('g-addvar')?.addEventListener('click', () => editarGramo(raw, false, 'variante'));
   document.getElementById('g-juntar')?.addEventListener('click', () => juntarGramos(raw));
@@ -15315,7 +15396,7 @@ function juntarGramos(base){
   const otros = DATOS.gramos.filter(x => x.id !== base.id);
   if(!otros.length) return brindis('No hay otros sellos que juntar');
   const mismo = x => !!gMoldeNum(x) && norm(gMoldeNum(x)) === norm(gMoldeNum(base));
-  otros.sort((a, b) => (mismo(b) - mismo(a)) || a.nombre.localeCompare(b.nombre, 'es'));
+  otros.sort((a, b) => (mismo(b) - mismo(a)) || gCmp(a.nombre, b.nombre));
   const baseMulti = gHayVars(base);
   const marcados = new Map(otros.filter(mismo).map(x => [x.id, gSugerirVariante(base, x)]));
   let nombreBase = 'Principal';
@@ -15374,15 +15455,18 @@ function juntarGramos(base){
       const nom = (marcados.get(x.id) || '').trim() || x.nombre;
       const hijos = gVars(x);
       hijos.forEach((v, i) => vars.push({
-        id: gNuevoVid(),
+        id: (() => { let id = gNuevoVid(); while(vars.some(o => o.id === id)) id = gNuevoVid(); return id; })(),
         nombre: hijos.length > 1 ? `${nom} · ${gNomVar(v, i)}` : nom,
         foto: gFotoIdV(x, v),          // su foto se queda donde está
         // Lo apuntado era «gramos de un molde de nx sellos»; aquí es de nBase.
+        // Seis decimales: con tres, 1.000 g repartidos salían como 999 g.
         colores: copia(v.colores).map(c => nx === nBase ? c
-          : {...c, gramos: Math.round((Number(c.gramos) || 0) * nBase / nx * 1000) / 1000}),
+          : {...c, gramos: Math.round((Number(c.gramos) || 0) * nBase / nx * 1e6) / 1e6}),
       }));
     }
-    const r = {...base, variantes: vars, colores: vars[0].colores};
+    // El margen de seguridad: se queda el MÁS ALTO de los sellos juntados (mejor que falte pintura que sobre margen).
+    const margenes = [base, ...otros.filter(o => marcados.has(o.id))].map(x => x.margen != null ? x.margen : G_MARGEN_POR_DEFECTO);
+    const r = {...base, variantes: vars, colores: vars[0].colores, margen: Math.max(...margenes)};
     const antes = gCopia(base);
     const unidos = otros.filter(o => marcados.has(o.id)).map(gCopia);
     cerrarDlgYLuego(() => {
@@ -15722,6 +15806,7 @@ function editarGramo(base, duplicar, modo){
   let idxReal = -1;            // el color de «desde un pedido real»
   let real = {sellos: '', gramos: ''};
   let quiereBorrar = false;
+  let quiereDescartar = false;
   let yaEditado = false;       // para el título «Nueva variante» solo la primera vez
 
   const apuntarBorrador = () => {
@@ -15778,7 +15863,7 @@ function editarGramo(base, duplicar, modo){
       <label class="campo"><span>Número de molde <em>(opcional)</em></span>
         <input id="g-e-molde" value="${esc(g.molde)}" autocomplete="off" inputmode="text" maxlength="24" placeholder="Por ejemplo: 235"></label>
       <label class="campo"><span>Nombre del sello</span>
-        <input id="g-e-nombre" value="${esc(g.nombre)}" autocomplete="off" placeholder="Por ejemplo: LLV. ELROW"></label>
+        <input id="g-e-nombre" value="${esc(g.nombre)}" autocomplete="off" maxlength="80" placeholder="Por ejemplo: LLV. ELROW"></label>
       <div class="g-ed-unidad">
         <span class="g-ceja">Los gramos que apunto son de</span>
         <div class="g-seg" role="radiogroup" aria-label="Unidad de los gramos">
@@ -15883,7 +15968,15 @@ function editarGramo(base, duplicar, modo){
       $dlg.close();
       setTimeout(() => editarGramo(base, duplicar), 80);
     });
-    document.getElementById('g-e-cancelar').onclick = () => {
+    document.getElementById('g-e-cancelar').onclick = ev2 => {
+      // Con algo escrito, Cancelar pregunta antes de tirarlo (la X y Escape sí lo guardan a medias).
+      if(gLeerBorradores()[clave] && !quiereDescartar){
+        quiereDescartar = true;
+        const b = ev2.currentTarget;
+        b.textContent = '¿Tirar lo escrito?'; b.style.borderColor = 'var(--rojo)';
+        setTimeout(() => { if(b.isConnected){ quiereDescartar = false; b.textContent = 'Cancelar'; b.style.borderColor = ''; } }, 4000);
+        return;
+      }
       gTirarBorrador(clave);
       escribiendoEnDlg = null;
       $dlg.close();
@@ -15912,6 +16005,15 @@ function editarGramo(base, duplicar, modo){
       document.getElementById('g-e-nombre')?.focus();
       return;
     }
+    // «Sellos por molde» mal escrito NO se guarda con el valor de antes diciendo «Guardado».
+    const $nm = document.getElementById('g-e-nm');
+    if($nm){
+      const n = gNumero($nm.value, true);
+      if(!(n && Number.isInteger(n) && n >= 2 && n <= 999)){
+        $nm.classList.add('mal'); $nm.focus();
+        return brindis('Los sellos por molde: un número del 2 al 999');
+      }
+    }
     for(let vi = 0; vi < g.variantes.length; vi++){
       const v = g.variantes[vi];
       const donde = g.variantes.length > 1 ? ` en «${gNomVar(v, vi)}»` : '';
@@ -15929,6 +16031,8 @@ function editarGramo(base, duplicar, modo){
         if(vistos.has(c.ref)) return ir(`${nm} está repetido${donde}`);
         vistos.add(c.ref);
         if(!(c.gramos > 0)) return ir(`Falta el peso de ${nm}${donde}`, `[data-g="${i}"]`);
+        // Se guarda con tres decimales: 0,0004 g quedaría en 0 y el color desaparecería del cálculo.
+        if(Math.round(c.gramos * 1000) / 1000 <= 0) return ir(`El peso de ${nm} es demasiado pequeño (mínimo 0,001 g)${donde}`, `[data-g="${i}"]`);
       }
     }
     const repe = DATOS.gramos.find(x => x.id !== g.id && norm(x.nombre) === norm(nombre) &&

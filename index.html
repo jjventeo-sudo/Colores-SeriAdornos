@@ -3450,6 +3450,82 @@ body:has(.avisa-copia) .brindis.con-accion{bottom:calc(max(14px,env(safe-area-in
 html[data-cristal="on"] .pes-aro::before{
   background:linear-gradient(180deg, color-mix(in srgb, var(--fondo) 90%, white), var(--fondo));
 }
+
+/* ── Crudo y pigmentos (27-oct) ──────────────────────────────────────────
+   Pigmento = AMARILLO, crudo = gris suave, 90/10 sigue en ROJO. El amarillo
+   va a propósito lejos del rojo (claro frente a oscuro): se distingue aunque
+   la luz sea mala o el móvil esté a poco brillo. Texto casi negro encima. */
+:root{
+  --pig-1:#ffd84a; --pig-2:#f4bc0c; --pig-borde:#a87a00; --pig-tinta:#1b1400;
+}
+.chip-pig{
+  display:inline-block; margin-left:8px; padding:2px 7px; border-radius:6px;
+  background:var(--pig-tinta); color:var(--pig-1); vertical-align:2px;
+  font-family:var(--mono); font-size:11px; font-weight:800; letter-spacing:.1em; line-height:1.4;
+}
+.rol-de{display:block; margin-top:2px; font-size:12px; font-weight:560; opacity:.82}
+
+/* El pesaje: fila y bloque grande */
+.pes-fila.en-pigmento{
+  background:linear-gradient(180deg,var(--pig-1),var(--pig-2)); color:var(--pig-tinta);
+  border-color:var(--pig-borde);
+}
+.pes-fila.en-pigmento .pes-nom,.pes-fila.en-pigmento .pes-g{color:var(--pig-tinta)}
+.pes-fila.en-pigmento .pes-nom small,.pes-fila.en-pigmento .pes-g em{color:rgba(27,20,0,.82)}
+.pes-fila.en-pigmento .pes-color{box-shadow:0 0 0 2px var(--pig-tinta)}
+.pes-fila.en-pigmento.listo{opacity:.78}
+.pes-fila.en-crudo{
+  background:color-mix(in srgb, var(--texto) 9%, var(--panel));
+  border-color:color-mix(in srgb, var(--texto) 22%, var(--linea));
+}
+.pes-heroe.en-pigmento{
+  background:linear-gradient(180deg,var(--pig-1),var(--pig-2)); color:var(--pig-tinta);
+  border-color:var(--pig-borde);
+  box-shadow:0 0 0 3px rgba(244,188,12,.45), var(--sombra-3);
+}
+.pes-heroe.en-pigmento .pes-heroe-txt small,.pes-heroe.en-pigmento .pes-ya-txt{color:rgba(27,20,0,.88)}
+.pes-heroe.en-pigmento .pes-heroe-txt b{color:var(--pig-tinta)}
+.pes-heroe.en-pigmento .pes-num{color:var(--texto)}
+.pes-heroe.en-crudo{
+  background:color-mix(in srgb, var(--texto) 9%, var(--panel));
+}
+
+/* El resumen en una frase y el interruptor (pesaje y ficha) */
+.crl-pes{
+  display:flex; align-items:center; gap:12px; margin:2px 0 12px; padding:10px 12px;
+  border-radius:var(--r-m); border:1px solid var(--linea); background:var(--panel-2);
+}
+.crl-pes p{margin:0; flex:1 1 auto; font-size:14px; line-height:1.45; color:var(--texto)}
+.crl-pes .btn{flex:0 0 auto; font-size:13px; padding:7px 11px}
+.crl-pes.off{border-style:dashed}
+@media (max-width:520px){ .crl-pes{flex-direction:column; align-items:stretch} }
+
+/* La tarjeta de la ficha */
+.tarjeta-cuerpo.crl{margin-top:10px; padding-top:12px; border-top:1px dashed var(--linea-fuerte, var(--linea))}
+.crl-cab{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px}
+.crl-cab b{font-size:14.5px; letter-spacing:.01em}
+.crl-cab .btn{font-size:12.5px; padding:6px 10px}
+.crl-fila{
+  display:flex; align-items:center; gap:10px; margin:4px 0; padding:9px 10px;
+  border-radius:var(--r-m); border:1px solid transparent;
+}
+.crl-fila > i{flex:0 0 auto; width:22px; height:22px; border-radius:50%; box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+.crl-nom{flex:1 1 auto; min-width:0; font-weight:600}
+.crl-g{flex:0 0 auto; font-weight:760; font-size:17px}
+.crl-g em{font-style:normal; font-weight:500; font-size:.7em; opacity:.8; margin-left:2px}
+.crl-fila.en-pigmento{
+  background:linear-gradient(180deg,var(--pig-1),var(--pig-2)); color:var(--pig-tinta);
+  border-color:var(--pig-borde);
+}
+.crl-fila.en-pigmento > i{box-shadow:0 0 0 2px var(--pig-tinta)}
+.crl-fila.en-crudo{background:color-mix(in srgb, var(--texto) 9%, var(--panel))}
+.crl-res{margin:10px 2px 0; font-size:14px; line-height:1.5; color:var(--texto-2)}
+.crl-res b{color:var(--texto)}
+/* Los botones sueltos («Me equivoqué», «Deshacer») sobre el amarillo: letra
+   oscura sobre fondo claro, o casi no se leen. */
+.pes-fila.en-pigmento .btn:not([data-echar]){
+  color:var(--pig-tinta); background:rgba(255,255,255,.6); border-color:rgba(27,20,0,.35);
+}
 </style>
 </head>
 <body>
@@ -7410,9 +7486,9 @@ function pintarFicha(){
       b.onclick = ()=>restaurar(f, +b.dataset.restaurar);
   };
   enlazarHistorial();
-  document.getElementById('btn-etiqueta').onclick = ()=>{ alDia(); etiqueta(f,
-    lote ? lote.cantidades : f.ingredientes.map(i=>i.cantidad),
-    lote ? lote.total : total); };
+  document.getElementById('btn-etiqueta').onclick = ()=>{ alDia();
+    const d = datosEtiqueta(f, lote ? lote.cantidades : f.ingredientes.map(i=>i.cantidad), lote ? lote.total : total);
+    etiqueta(f, d.cantidades, d.total, d.nombres); };
   document.getElementById('btn-preparar').onclick = ()=>{ alDia(); preparar(f); };
   document.getElementById('btn-editar').onclick = ()=>editar(f);
   document.getElementById('btn-duplicar').onclick = ()=>duplicar(f);
@@ -7498,7 +7574,8 @@ function zonaLote(f, total, totalMovido){
       ${barraProporcion(f, total)}
       ${f.ingredientes.map((i,k)=>filaIng(i,total,k)).join('')}
       <div class="total${totalMovido?' cambia':''}"><span>Total</span><span class="num">${fmt(lote?lote.total:0)} g</span></div>
-    </div>`;
+    </div>
+    ${tarjetaCrudo(f, lote ? lote.cantidades : f.ingredientes.map(i=>i.cantidad), lote ? lote.total : total)}`;
 }
 
 /* Repinta SOLO el reparto en gramos, dejando en paz el campo de la cantidad.
@@ -7983,12 +8060,12 @@ function guardarPesaje(){
     if(!pes || pes.paso !== 2 || !pes.hechos.size)
       return localStorage.removeItem(CLAVE_PESAJE);
     localStorage.setItem(CLAVE_PESAJE, JSON.stringify({
-      id: pes.f.id, objetivo: pes.objetivo, modo: pes.modo,
+      id: pes.f.id, objetivo: pes.objetivo, modo: pes.modo, crudo: !!pes.crudo,
       hechos: [...pes.hechos], exactos: [...(pes.exactos || [])], piso: [...(pes.piso || [])],
       cuando: Date.now(),
       // Con qué ingredientes se empezó. Si la receta cambia mientras pesas,
       // lo ya marcado deja de querer decir lo mismo y hay que descartarlo.
-      huella: pes.ing.map(i=>i.nombre + ':' + i.cantidad).join('|'),
+      huella: (pes.orig || pes).ing.map(i=>i.nombre + ':' + i.cantidad).join('|'),
     }));
   }catch(_){ /* sin sitio para guardar: se sigue, pero sin red de seguridad */ }
 }
@@ -8021,7 +8098,13 @@ function retomarPesaje(){
          // Lo que ya estaba echado antes de cerrar ya se confirmó entonces.
          confirmados: new Set(v.g.hechos.map(h=>h[0])), confirmar: null,
          paso: 2, lote: null, recien: null};
+  // Se retoma tal como se empezó: sin crudo si se empezó sin él (y al revés).
+  pes.crudoForzado = !!v.g.crudo;
   congelarPlan();
+  // Si por lo que fuera los ingredientes ya no cuadran con lo echado, no se inventa nada.
+  if([...pes.hechos.keys()].some(k => k >= pes.ing.length)){
+    pes.hechos.clear(); pes.exactos.clear(); pes.piso.clear(); pes.confirmados.clear();
+  }
   pintarPesaje();
   if(!$dlg.open) $dlg.showModal();
   return true;
@@ -8087,9 +8170,158 @@ const leerModo = ()=>{ try{ return localStorage.getItem('modo-pesaje')||'individ
 
 /** Lote mínimo para que hasta el ingrediente más pequeño se pueda pesar. */
 function loteMinimo(){
-  const menor = Math.min(...pes.ing.map(i=>i.cantidad));
-  return Math.ceil(pes.base * PRECISION / menor - 1e-9);
+  const o = pes.orig || pes;       // la receta de verdad, no su versión en crudo
+  const menor = Math.min(...o.ing.map(i=>i.cantidad));
+  return Math.ceil(o.base * PRECISION / menor - 1e-9);
 }
+
+
+/* ── Crudo y pigmentos en lotes grandes (27-oct) ──────────────────────────
+   Funciones, y no constantes, a propósito: se llaman desde el repintado de la
+   ficha y podrían ejecutarse antes de llegar a esta línea. */
+function umbralCrudo(){ return 1000; }          // «más de» este peso pasa a crudo
+const CLAVE_CRUDO = 'crudo-grande';
+function crudoActivo(){ try{ return localStorage.getItem(CLAVE_CRUDO) !== 'no'; }catch(_){ return true; } }
+function ponerCrudoActivo(si){ try{ localStorage.setItem(CLAVE_CRUDO, si ? 'si' : 'no'); }catch(_){} }
+
+/** Receta de un bote como crudo + pigmentos: {total, crudo, pigs}. Null si no
+    es de ese tipo (lleva otra fórmula dentro, no lleva crudo o no lleva
+    pigmento): entonces se queda como pintura hecha. */
+function recetaBoteCrudo(b){
+  const cr = bBuscarCrudo();
+  if(!b || !cr || !Array.isArray(b.ingredientes)) return null;
+  let total = 0, crudo = 0; const pigs = [];
+  for(const x of b.ingredientes){
+    if(!(x.cantidad > 0)) continue;
+    if(x.tipo !== 'materia') return null;
+    total += x.cantidad;
+    if(x.ref === cr.id) crudo += x.cantidad; else pigs.push(x);
+  }
+  return total > 0 && crudo > 0 && pigs.length ? {total, crudo, pigs} : null;
+}
+
+/** ¿Este ingrediente, con estos gramos, pasa a crudo + pigmentos? */
+function esBaseGrande(i, g){
+  if(!i || i.tipo !== 'formula' || !(g > umbralCrudo())) return false;
+  const b = porId.get(i.ref);
+  return !!b && bEsBase(b) && !resaltado(b) && !ingResaltado(i) && !!recetaBoteCrudo(b);
+}
+
+/** Pasa a crudo + pigmentos lo que toque. `ings` son los ingredientes y `cants`
+    los gramos de cada uno en el lote. Devuelve null si no hay nada que pasar.
+    Los pigmentos se redondean a gramo y el crudo se lleva el resto: el total
+    de cada base se conserva exacto. */
+function expandirCrudo(ings, cants){
+  const cr = bBuscarCrudo();
+  if(!cr || !ings.some((i, k) => esBaseGrande(i, cants[k]))) return null;
+  let crudo = 0; const pigs = new Map(), quedan = [];
+  ings.forEach((i, k) => {
+    const A = cants[k];
+    if(esBaseGrande(i, A)){
+      const r = recetaBoteCrudo(porId.get(i.ref));
+      let sp = 0;
+      for(const x of r.pigs){
+        const g = Math.round(A * x.cantidad / r.total);
+        sp += g;
+        const e = pigs.get(x.ref) || {tipo: 'materia', ref: x.ref, cantidad: 0, _rol: 'pigmento', _de: [],
+                                      nombre: (materias.get(x.ref) || x).nombre};
+        e.cantidad += g;
+        if(!e._de.includes(i.nombre)) e._de.push(i.nombre);
+        pigs.set(x.ref, e);
+      }
+      crudo += A - sp;
+    }
+    else if(i.tipo === 'materia' && i.ref === cr.id) crudo += A;
+    else quedan.push({...i, cantidad: A});
+  });
+  // Un pigmento que la receta ya llevaba suelto se suma al convertido.
+  const sueltas = quedan.filter(q => {
+    const e = q.tipo === 'materia' && pigs.get(q.ref);
+    if(e){ e.cantidad += q.cantidad; return false; }
+    return true;
+  });
+  const lista = [{tipo: 'materia', ref: cr.id, nombre: cr.nombre, cantidad: crudo, _rol: 'crudo'},
+                 ...pigs.values(), ...sueltas];
+  return {ings: lista, cants: lista.map(i => i.cantidad)};
+}
+
+/** «Lleva 3648 g de crudo, 92 g de pigmento AZUL, … y 400 g de pintura NEGRO». */
+function resumenCrudo(filas){
+  const t = filas.filter(x => x.g > 0).map(({i, g}) => {
+    const n = `<b>${esc(i.nombre)}</b>`;
+    return `<b>${fmt(g)} g</b> de ` + (i._rol === 'crudo' ? 'crudo'
+         : i._rol === 'pigmento' ? 'pigmento ' + n
+         : i.tipo === 'formula' ? 'pintura ' + n : n);
+  });
+  return 'Lleva ' + (t.length > 1 ? t.slice(0, -1).join(', ') + ' y ' + t[t.length - 1] : t.join('')) + '.';
+}
+
+const claseRol = i => i && i._rol === 'pigmento' ? ' en-pigmento' : i && i._rol === 'crudo' ? ' en-crudo' : '';
+function chipRol(i, conOrigen){
+  if(!i || i._rol !== 'pigmento') return '';
+  return `<span class="chip-pig">PIGMENTO</span>` +
+    (conOrigen && i._de ? `<small class="rol-de">de ${esc(i._de.join(' + '))}</small>` : '');
+}
+/** Las etiquetas son térmicas, en negro: el aviso va en letras, no en color. */
+const nombreEtiqueta = i => i._rol === 'pigmento' ? 'PIGM. ' + i.nombre : i.nombre;
+
+/** Lo que lleva una etiqueta de la ficha: en crudo y pigmentos si toca. */
+function datosEtiqueta(f, cants, total){
+  const ex = crudoActivo() ? expandirCrudo(f.ingredientes, cants) : null;
+  return ex ? {nombres: ex.ings.map(nombreEtiqueta), cantidades: ex.cants, total}
+            : {nombres: f.ingredientes.map(i => i.nombre), cantidades: cants, total};
+}
+
+/** La tarjeta de la ficha: cómo hacer ESTE lote en crudo y pigmentos. */
+function tarjetaCrudo(f, cants, total){
+  const ex = expandirCrudo(f.ingredientes, cants);
+  if(!ex) return '';
+  if(!crudoActivo())
+    return `<div class="crl-pes off"><p>Este lote lleva botes de color base de más de ${fmt(umbralCrudo())} g.</p>
+      <button class="btn" type="button" data-crudo-cambiar="si">Hacerlo con crudo y pigmentos</button></div>`;
+  const fila = i => {
+    const m = i.tipo === 'materia' ? materias.get(i.ref) : null;
+    const sub = i.tipo === 'formula' ? porId.get(i.ref) : null;
+    const hex = m?.hex_referencia || (sub ? color(sub).hex : null);
+    return `<div class="crl-fila${claseRol(i)}">
+      <i style="background:${hex || 'var(--linea)'}"></i>
+      <span class="crl-nom">${esc(i.nombre)}${chipRol(i, true)}</span>
+      <span class="crl-g num">${fmt(i.cantidad)}<em>g</em></span></div>`;
+  };
+  return `<div class="tarjeta-cuerpo crl">
+    <div class="crl-cab"><b>Para ${fmt(total)} g: crudo y pigmentos</b>
+      <button class="btn" type="button" data-crudo-cambiar="no">Usar pinturas hechas</button></div>
+    ${ex.ings.map(fila).join('')}
+    <p class="crl-res">${resumenCrudo(ex.ings.map(i => ({i, g: i.cantidad})))}</p>
+  </div>`;
+}
+
+/** La tarjeta del pesaje: el resumen en una frase y el interruptor. */
+function tarjetaCrudoPesaje(p){
+  const bloqueado = pes.hechos.size ? ' disabled title="Ya has echado algo: termina este o empieza de nuevo"' : '';
+  if(pes.crudo)
+    return `<div class="crl-pes"><p>${resumenCrudo(p.filas.map(x => ({i: x.i, g: x.objetivo})))}</p>
+      <button class="btn" type="button" data-crudo-cambiar="no"${bloqueado}>Usar pinturas hechas</button></div>`;
+  if(pes.hayGrandes)
+    return `<div class="crl-pes off"><p>Esta mezcla lleva botes de color base de más de ${fmt(umbralCrudo())} g.</p>
+      <button class="btn" type="button" data-crudo-cambiar="si"${bloqueado}>Hacerla con crudo y pigmentos</button></div>`;
+  return '';
+}
+
+/* El interruptor, en la ficha y en el pesaje. */
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-crudo-cambiar]');
+  if(!b) return;
+  const si = b.dataset.crudoCambiar === 'si';
+  if(pes && pes.paso === 2 && $dlg.open){
+    if(pes.hechos.size) return brindis('Ya has echado algo: termina este o empieza de nuevo');
+    ponerCrudoActivo(si); pes.crudoForzado = undefined;
+    pes.lote = null; pes.recien = null; congelarPlan(); pintarPesaje();
+    return;
+  }
+  ponerCrudoActivo(si);
+  if(seleccion && porId.get(seleccion)) pintarFicha();
+});
 
 /** El reparto se calcula UNA VEZ al empezar y se congela.
 
@@ -8098,16 +8330,32 @@ function loteMinimo(){
     pedido: el blanco pasaba de 675 a 677 y te pedía 2 g más de algo que ya
     estaba bien. Mientras se pesa, los números no se mueven. */
 function congelarPlan(){
-  const cant = pes.ing.map(i=>i.cantidad);
+  /* La receta ORIGINAL se guarda la primera vez y de ahí se parte siempre:
+     congelar otra vez (cambiar cantidad, subir el lote, el interruptor) tiene
+     que decidir de nuevo qué pasa a crudo con los gramos nuevos. */
+  if(!pes.orig) pes.orig = {ing: pes.ing, base: pes.base, prop: pes.prop};
+  pes.ing = pes.orig.ing; pes.base = pes.orig.base; pes.prop = pes.orig.prop;
+  pes.crudo = null;
   const opts = {paso: PRECISION, tope: TOPE_BOTE[pes.objetivo] || Infinity};
   // Lo calculado en Sellos es lo MÍNIMO que hace falta: el lote ni se busca por
   // debajo del objetivo ni se acepta una suma redondeada que se quede corta.
   // (Sin esto salía menos de lo pedido en el 56 % de las recetas, hasta un 12 %.)
   if(pes.minimo) Object.assign(opts, {abajo: 1, minTotal: pes.objetivo});
   const redondear = pes.minimo ? Math.ceil : Math.round;
-  pes.lote = lotePractico(cant, pes.objetivo, opts)
+  const calcular = ()=> lotePractico(pes.ing.map(i=>i.cantidad), pes.objetivo, opts)
           || {total: pes.objetivo,
               cantidades: pes.prop.map(p=>Math.max(PRECISION, redondear(pes.objetivo*p)))};
+  pes.lote = calcular();
+  // ¿Algún color base pasa de 1 kg con este lote? Entonces se pesa en crudo y pigmentos.
+  const ex = expandirCrudo(pes.orig.ing, pes.lote.cantidades);
+  pes.hayGrandes = !!ex;
+  if(ex && (pes.crudoForzado !== undefined ? pes.crudoForzado : crudoActivo())){
+    pes.crudo = ex;
+    pes.ing = ex.ings;
+    pes.base = ex.cants.reduce((s,x)=>s+x, 0);
+    pes.prop = ex.cants.map(x=>x/pes.base);
+    pes.lote = calcular();
+  }
 }
 
 /** El plan de pesada, ya con los excesos absorbidos y redondeado a gramos.
@@ -8192,7 +8440,7 @@ function pintarPesaje(){
       <label class="campo"><span>¿Cuántos gramos vas a preparar?</span>
         <input id="pes-cant" class="num" type="number" inputmode="numeric" min="1" step="1"
                value="${pes.objetivo}" style="font-size:22px;font-weight:700;text-align:right"></label>
-      <div class="pes-chips">${atajosCantidad(pes.base).map(a=>
+      <div class="pes-chips">${atajosCantidad((pes.orig || pes).base).map(a=>
         `<button class="btn" data-cant="${a.g}" data-atajo="${a.c}">${a.txt} <em>(${fmt(a.g)} g)</em></button>`).join('')}
       </div>
       <div id="pes-aviso"></div>`;
@@ -8217,7 +8465,7 @@ function pintarPesaje(){
     document.getElementById('pes-ir').onclick = ()=>{
       const v = Math.round(parseFloat($c.value));
       if(!(v>0)) return brindis('Pon cuántos gramos quieres');
-      pes.objetivo = v; pes.paso = 2; pes.hechos.clear(); pes.exactos.clear(); pes.piso.clear(); pes.confirmados.clear(); pes.confirmar = null; congelarPlan(); pintarPesaje();
+      pes.crudoForzado = undefined; pes.objetivo = v; pes.paso = 2; pes.hechos.clear(); pes.exactos.clear(); pes.piso.clear(); pes.confirmados.clear(); pes.confirmar = null; congelarPlan(); pintarPesaje();
     };
     return;
   }
@@ -8268,6 +8516,7 @@ function pintarPesaje(){
        de esta fórmula no se pesa bien y el color saldrá distinto.
        <button class="pes-sube" data-subir="${min}">Subir a ${fmt(min)} g</button></span></div>`;
     })()}
+    ${tarjetaCrudoPesaje(p)}
     <div class="pes-lista">
       ${p.filas.map(x=>filaPesaje(x, pes.modo, x.k === pes.recien)).join('')}
     </div>`;
@@ -8334,7 +8583,7 @@ function pintarPesaje(){
   for(const b of $dc.querySelectorAll('[data-pase]'))
     b.onclick = ()=>{ if(!frenaRojo(+b.dataset.pase)) ajustar(+b.dataset.pase); };
   for(const b of $dc.querySelectorAll('[data-subir]'))
-    b.onclick = ()=>{ pes.objetivo = +b.dataset.subir; pes.hechos.clear(); pes.exactos.clear(); pes.piso.clear();
+    b.onclick = ()=>{ pes.crudoForzado = undefined; pes.objetivo = +b.dataset.subir; pes.hechos.clear(); pes.exactos.clear(); pes.piso.clear();
       pes.confirmados.clear(); pes.confirmar = null;
       pes.lote = null; congelarPlan(); pintarPesaje(); };
   document.getElementById('pes-atras').onclick = ()=>{
@@ -8349,7 +8598,7 @@ function pintarPesaje(){
   // haciendo, no las de la receta: si te has pasado y el lote ha subido, la
   // etiqueta tiene que decir lo que hay dentro del bote.
   document.getElementById('pes-etiqueta').onclick = ()=>
-    etiqueta(f, p.filas.map(x=>x.objetivo), p.total, pes.ing.map(i=>i.nombre));
+    etiqueta(f, p.filas.map(x=>x.objetivo), p.total, pes.ing.map(nombreEtiqueta));
   document.getElementById('pes-fin').onclick = ()=>{
     if(hechas===p.filas.length){
       apuntarPreparacion(f, p.total);
@@ -8491,7 +8740,7 @@ function heroePesaje(p, hechas){
   const grande = acumulado ? x.acumulado : (x.falta || x.objetivo);
   const echar = x.falta || x.objetivo;
   const rojo = ingResaltado(x.i);
-  return `<button class="pes-heroe${rojo?' en-rojo':''}" id="pes-ya" data-ya="${k}" type="button"
+  return `<button class="pes-heroe${rojo?' en-rojo':''}${claseRol(x.i)}" id="pes-ya" data-ya="${k}" type="button"
       title="Toca en cualquier parte cuando la báscula marque ${fmt(grande)} g">
     <div class="pes-aro receta" style="--v:${Math.round(hechas/n*100)};background:${fondoAro(p)}">
       <div class="pes-num"><b class="num">${fmt(grande)}<em>g</em></b>
@@ -8499,7 +8748,7 @@ function heroePesaje(p, hechas){
     </div>
     <div class="pes-heroe-txt">
       <i class="pes-color" style="background:${hex||'var(--linea)'}"></i>
-      <div><b>${esc(x.i.nombre)}${rojo ? `<span class="chip-rojo">${esNombre9010(x.i.nombre)?'90/10':'OJO'}</span>` : ''}</b>
+      <div><b>${esc(x.i.nombre)}${chipRol(x.i)}${rojo ? `<span class="chip-rojo">${esNombre9010(x.i.nombre)?'90/10':'OJO'}</span>` : ''}</b>
         <small>${x.real !== undefined
           ? (x.real < x.previsto - 1e-9
               ? `echaste ${fmt(x.real)} g · te faltan ${fmt(x.falta)} g`
@@ -8539,9 +8788,9 @@ function filaPesaje(x, modo, recien){
   // y pequeña debajo: quien fuera con prisa echaba 528. Eso no puede pasar.
   const echar = x.falta || x.objetivo;
   const rojo = ingResaltado(x.i);
-  return `<div class="pes-fila${listo?' listo':''}${listo&&recien?' recien':''}${rehacer?' rehacer':''}${rojo?' en-rojo':''}">
+  return `<div class="pes-fila${listo?' listo':''}${listo&&recien?' recien':''}${rehacer?' rehacer':''}${rojo?' en-rojo':''}${claseRol(x.i)}">
     <div class="pes-color" style="background:${hex||'var(--linea)'}"></div>
-    <div class="pes-nom">${esc(x.i.nombre)}${rojo ? `<span class="chip-rojo">${esNombre9010(x.i.nombre)?'90/10':'OJO'}</span>` : ''}
+    <div class="pes-nom">${esc(x.i.nombre)}${chipRol(x.i, true)}${rojo ? `<span class="chip-rojo">${esNombre9010(x.i.nombre)?'90/10':'OJO'}</span>` : ''}
       ${modo==='acumulado' && !listo
         ? `<small class="bascula">la báscula marcará <b>${fmt(x.acumulado)} g</b></small>` : ''}
       ${rehacer
@@ -11150,7 +11399,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">6f19cc10</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">f13673ec</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

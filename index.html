@@ -8209,8 +8209,9 @@ function esBaseGrande(i, g){
 
 /** Pasa a crudo + pigmentos lo que toque. `ings` son los ingredientes y `cants`
     los gramos de cada uno en el lote. Devuelve null si no hay nada que pasar.
-    Los pigmentos se redondean a gramo y el crudo se lleva el resto: el total
-    de cada base se conserva exacto. */
+    Pigmento = gramos de la base × pigmento ÷ crudo de su receta (el «entre 24»
+    de Juanjo para 96 + 4), redondeado a gramo; el crudo se lleva el resto, así
+    que el total de cada base se conserva exacto. */
 function expandirCrudo(ings, cants){
   const cr = bBuscarCrudo();
   if(!cr || !ings.some((i, k) => esBaseGrande(i, cants[k]))) return null;
@@ -8221,7 +8222,7 @@ function expandirCrudo(ings, cants){
       const r = recetaBoteCrudo(porId.get(i.ref));
       let sp = 0;
       for(const x of r.pigs){
-        const g = Math.round(A * x.cantidad / r.total);
+        const g = Math.round(A * x.cantidad / r.crudo);
         sp += g;
         const e = pigs.get(x.ref) || {tipo: 'materia', ref: x.ref, cantidad: 0, _rol: 'pigmento', _de: [],
                                       nombre: (materias.get(x.ref) || x).nombre};
@@ -11399,7 +11400,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">f13673ec</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">b4fb6c0f</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

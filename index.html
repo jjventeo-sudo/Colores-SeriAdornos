@@ -3526,6 +3526,32 @@ html[data-cristal="on"] .pes-aro::before{
 .pes-fila.en-pigmento .btn:not([data-echar]){
   color:var(--pig-tinta); background:rgba(255,255,255,.6); border-color:rgba(27,20,0,.35);
 }
+
+/* ── Escribir ELIMINAR (31-oct) ─────────────────────────────────────────── */
+dialog.dlg-eliminar{border:0; padding:0; background:transparent; max-width:100%; max-height:100%; color:var(--texto)}
+dialog.dlg-eliminar::backdrop{background:rgba(10,12,14,.62); backdrop-filter:blur(4px)}
+dialog.dlg-eliminar[open] .hoja{animation:entra .2s var(--salida)}
+dialog.dlg-eliminar .hoja{width:min(440px,calc(100vw - 24px))}
+.del-que{margin:0 0 6px; font-size:16.5px; line-height:1.45}
+.del-nota{margin:0 0 6px; font-size:13.5px; line-height:1.45; color:var(--texto-3)}
+.del-campo{display:block; margin-top:16px}
+.del-campo > span{display:block; margin-bottom:8px; font-size:14px; color:var(--texto-2)}
+.del-campo b{color:var(--rojo); letter-spacing:.08em; font-family:var(--mono)}
+.del-campo input{
+  width:100%; box-sizing:border-box; padding:13px 14px; border-radius:var(--r-m);
+  border:1px solid var(--linea-fuerte); background:var(--panel-2); color:var(--texto);
+  font:inherit; font-size:18px; letter-spacing:.14em; text-transform:uppercase; font-weight:650;
+  transition:border-color .15s var(--salida), box-shadow .15s var(--salida);
+}
+.del-campo input::placeholder{text-transform:none}
+.del-campo input:focus{outline:none; border-color:var(--rojo); box-shadow:0 0 0 3px color-mix(in srgb, var(--rojo) 28%, transparent)}
+.del-ayuda{margin:8px 0 0; font-size:12.5px; color:var(--texto-3)}
+dialog.dlg-eliminar .btn[disabled]{opacity:.42; cursor:not-allowed}
+/* Cuando lo escrito vale, el botón se pone rojo: es lo que dice «ahora sí». */
+dialog.dlg-eliminar .btn-peligro:not([disabled]){
+  background:var(--rojo); border-color:var(--rojo); color:#fff;
+  box-shadow:0 6px 18px -6px color-mix(in srgb, var(--rojo) 70%, transparent);
+}
 </style>
 </head>
 <body>
@@ -4356,7 +4382,14 @@ function crearNube({url, clave}){
 
   /** El papel sale del servidor, no de nada que diga la app. */
   async function leerRol(espera){
-    const filas = await pedir('/rest/v1/colores_perfiles?select=rol&limit=1', {espera});
+    const filas = await pedir('/rest/v1/colores_perfiles?select=rol,nombre&limit=1', {espera});
+    /* El nombre se queda en el aparato, con el correo al que pertenece: sin
+       cobertura no hay a quién preguntar, y el historial tiene que seguir
+       diciendo quién ha sido. */
+    try{
+      if(filas?.[0]) localStorage.setItem('perfil-nombre',
+        JSON.stringify({email: ses && ses.email || '', nombre: String(filas[0].nombre || '').trim()}));
+    }catch(_){}
     return filas?.[0]?.rol || null;
   }
 
@@ -5588,6 +5621,15 @@ const CLAVE_DATOS = sesion.K;
 
 const puedeEditar = ROL === 'editor';
 document.body.dataset.rol = ROL;
+/* Quién es esta cuenta, para firmar lo que se apunta. Del servidor (perfiles)
+   si se pudo leer; si no, un respaldo por papel. */
+const NOMBRE = (()=>{
+  try{
+    const p = JSON.parse(localStorage.getItem('perfil-nombre') || 'null');
+    if(p && p.nombre && (!p.email || !sesion.email || p.email === sesion.email)) return p.nombre;
+  }catch(_){}
+  return ROL === 'taller' ? 'Ignacio' : 'Juanjo';
+})();
 
 const DATOS = JSON.parse(TEXTO_BASE);
 
@@ -6741,6 +6783,59 @@ function cerrarDeVerdad(tipo){
   else if(tipo === 'ficha') cerrarFicha();
   else if(tipo === 'visor') cerrarVisorDeVerdad();
   else if(tipo === 'escaner') cerrarEscanerDeVerdad();
+}
+
+/** Pide escribir ELIMINAR antes de borrar nada. Devuelve una promesa: true si
+ *  se escribió y se pulsó el botón, false si se cancela (botón, Escape, tocar
+ *  fuera o cerrarse la ventana de debajo). Es una ventana propia, encima de la
+ *  que esté abierta: así no hay que reconstruir lo de debajo si se cancela.
+ *  `texto` ya tiene que venir escapado. */
+function pedirEliminar(o){
+  o = o || {};
+  return new Promise(resolve => {
+    const d = document.createElement('dialog');
+    d.className = 'dlg-eliminar';
+    d.setAttribute('aria-labelledby', 'del-titulo');
+    d.innerHTML = `<div class="hoja">
+      <div class="hoja-cab"><h3 id="del-titulo">${esc(o.titulo || 'Eliminar')}</h3></div>
+      <div class="hoja-cuerpo">
+        <p class="del-que">${o.texto || ''}</p>
+        ${o.nota ? `<p class="del-nota">${o.nota}</p>` : ''}
+        <label class="del-campo"><span>Para confirmar, escribe <b>ELIMINAR</b></span>
+          <input id="del-in" type="text" autocomplete="off" autocapitalize="characters"
+                 autocorrect="off" spellcheck="false" enterkeyhint="done" aria-describedby="del-ayuda">
+        </label>
+        <p class="del-ayuda" id="del-ayuda">Da igual mayúsculas o minúsculas.</p>
+      </div>
+      <div class="hoja-pie">
+        <button class="btn" type="button" data-no>Cancelar</button>
+        <button class="btn btn-peligro" type="button" data-si disabled>${esc(o.boton || 'Eliminar')}</button>
+      </div></div>`;
+    document.body.appendChild(d);
+    const $in = d.querySelector('#del-in'), $si = d.querySelector('[data-si]');
+    let hecho = false;
+    const vale = () => $in.value.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .trim().toUpperCase() === 'ELIMINAR';
+    const cerrar = ok => {
+      if(hecho) return; hecho = true;
+      $dlg.removeEventListener('close', alCerrarBase);
+      if(d.open) d.close();
+      d.remove();
+      resolve(ok);
+    };
+    const alCerrarBase = () => cerrar(false);
+    $in.addEventListener('input', () => { $si.disabled = !vale(); });
+    $in.addEventListener('keydown', e => {
+      if(e.key === 'Enter'){ e.preventDefault(); if(vale()) cerrar(true); }
+    });
+    $si.addEventListener('click', () => { if(vale()) cerrar(true); });
+    d.querySelector('[data-no]').addEventListener('click', () => cerrar(false));
+    d.addEventListener('cancel', e => { e.preventDefault(); cerrar(false); });
+    d.addEventListener('mousedown', e => { if(e.target === d) cerrar(false); });
+    $dlg.addEventListener('close', alCerrarBase);
+    d.showModal();
+    setTimeout(() => $in.focus(), 60);
+  });
 }
 
 /** La capa se ha cerrado desde dentro (un botón, la ✕, Escape). */
@@ -8897,7 +8992,10 @@ const horaDe = iso => {
   const d = new Date(iso);
   return isNaN(d) ? '' : d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
 };
-const quienDe = e => e.papel === 'taller' ? 'Taller' : 'Juanjo';
+/* Lo antiguo: 'taller' era Ignacio y 'editor' (o nada) era Juanjo. Lo nuevo
+   ya trae el nombre escrito. */
+const quienDe = e => !e.papel || e.papel === 'editor' ? 'Juanjo'
+  : e.papel === 'taller' ? 'Ignacio' : e.papel;
 
 let topeHist = 60;      // se enseña de poco en poco: son cientos de líneas
 
@@ -9293,7 +9391,7 @@ function pantallaPapelera(volver){
             <div class="pap-nom">${esc(c.nombre || c.completa.nombre || '?')}
               <span class="pap-tipo">${c.esSello ? 'Sello' : 'Color'}</span></div>
             <div class="pap-sub">${esc(haceCuanto(c.cuando))}${
-              c.papel ? ' · ' + esc(c.papel === 'editor' ? 'editor' : 'taller') : ''
+              c.papel ? ' · ' + esc(quienDe(c)) : ''
             } · <span class="pap-quedan">${c.dias === 0 ? 'se va hoy'
               : `${c.dias === 1 ? 'queda 1 día' : 'quedan ' + c.dias + ' días'}`}</span></div>
           </div>
@@ -9308,9 +9406,10 @@ function pantallaPapelera(volver){
         brindis(deshacer(c) || 'Restaurado');
         pintar();
       };
-    document.getElementById('pap-vaciar')?.addEventListener('click', ()=>{
-      if(!confirm(`Se vacía la papelera: ${cosas.length} cosa${cosas.length===1?'':'s'} que ya no
-se podrá${cosas.length===1?'':'n'} restaurar de un toque. El apunte de que se borraron sigue en el historial. ¿Seguro?`)) return;
+    document.getElementById('pap-vaciar')?.addEventListener('click', async ()=>{
+      if(!await pedirEliminar({titulo:'Vaciar la papelera', boton:'Vaciar',
+        texto:`Se vacía la papelera: <b>${cosas.length} cosa${cosas.length===1?'':'s'}</b> que ya no se podrá${cosas.length===1?'':'n'} restaurar de un toque.`,
+        nota:'El apunte de que se borraron sigue en el historial.'})) return;
       papeleraHasta = new Date().toISOString();
       guardarPapeleraHasta();
       limpiarFotosDeBorradas();
@@ -9522,7 +9621,7 @@ function apuntar(que, f, detalle){
       nombre: f ? f.nombre : '',
       detalle: detalle || null,
       cuando: new Date().toISOString(),
-      papel: ROL,
+      papel: NOMBRE,
     };
     if(f && f.esSello) e.detalle = {...(e.detalle||{}), sello: f.sello};
     REGISTRO.push(e);
@@ -9570,7 +9669,7 @@ function apuntarPreparacion(f, gramos){
     id: 'p-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8),
     formula: f.id, nombre: f.nombre, gramos,
     cuando: new Date().toISOString(),
-    papel: ROL,
+    papel: NOMBRE,
   };
   HISTORIAL.push(e);
   guardarHistorialLocal();
@@ -10142,6 +10241,8 @@ function verFoto(f){
   enlazarBotonesFoto('cam', f);
   document.getElementById('foto-fuera')?.addEventListener('click', async ()=>{
     const b = document.getElementById('foto-fuera');
+    if(!await pedirEliminar({titulo:'Quitar la foto', boton:'Quitar',
+      texto:`Vas a quitar la foto de <b>${esc(f.nombre)}</b>.`})) return;
     b.disabled = true;
     try{ await nube.quitarFoto(f.id); apuntar('foto-quitada', f); brindis('Foto quitada'); }
     catch(e){
@@ -10765,7 +10866,9 @@ function borrar(f){
     `<p style="font-size:13.5px;color:var(--texto-3);margin:12px 0 0">Se puede recuperar desde Opciones → Deshacer todos mis cambios.</p>`;
   $dp.innerHTML = `<button class="btn" data-cerrar>Cancelar</button><button class="btn btn-peligro" id="conf-borrar" style="border-color:var(--rojo)">Eliminar</button>`;
   $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
-  document.getElementById('conf-borrar').onclick = ()=>{
+  document.getElementById('conf-borrar').onclick = async ()=>{
+    if(!await pedirEliminar({titulo:'Eliminar fórmula',
+      texto:`Vas a eliminar <b>${esc(f.nombre)}</b>.`})) return;
     // OJO al orden: primero se saca de DATOS y DESPUÉS se guarda. Al revés,
     // en modo nube el espejo se grababa con la fórmula todavía dentro y
     // reaparecía al abrir la app.
@@ -11202,7 +11305,7 @@ function abrirOpciones(){
         <span class="interruptor"><input type="checkbox" id="op-cristal" role="switch" ${cristalActivo() ? 'checked' : ''}><span class="pista"></span></span>
       </label>
       ${filaAjuste('op-cuenta', MODO === 'nube' ? 'Cuenta' : 'Sesión',
-        (MODO === 'nube' && sesion.email ? esc(sesion.email) + ' · ' : '') +
+        (MODO === 'nube' && sesion.email ? esc(NOMBRE) + ' · ' : '') +
         (puedeEditar ? 'Editor' : 'Solo consulta'))}
       ${MODO === 'nube' ? filaAjuste('op-sync-ir', 'Sincronización',
         choques ? `${choques} chocan` :
@@ -11307,9 +11410,9 @@ function pantallaCuenta(volver){
       ${icono(puedeEditar ? 'editar' : 'ver')}
       ${puedeEditar ? 'Editor' : 'Solo consulta'}</span>
       ${puedeEditar
-        ? 'Puedes editar, crear, borrar e imprimir.'
+        ? 'Puedes editar, crear, borrar e imprimir. Para borrar algo hay que escribir ELIMINAR.'
         : 'Puedes buscar, ver fórmulas y prepararlas. No puedes editar ni imprimir.'}</p>
-    ${MODO === 'nube' ? `<p class="op-p flojo">Has entrado como <b>${esc(sesion.email || '')}</b>.</p>` : ''}
+    ${MODO === 'nube' ? `<p class="op-p flojo">Has entrado como <b>${esc(NOMBRE)}</b> (${esc(sesion.email || '')}). Lo que cambies en el recetario queda apuntado a ese nombre.</p>` : ''}
     <div class="op-botones">
       <button class="btn" id="op-salir">Cerrar sesión en este dispositivo</button>
       ${puedeEditar && MODO === 'archivo' ? `<button class="btn" id="op-claves">Cambiar contraseñas</button>` : ''}
@@ -11386,8 +11489,9 @@ function pantallaCopia(volver){
   pieVolver(volver);
   document.getElementById('op-exportar')?.addEventListener('click', exportar);
   document.getElementById('op-importar')?.addEventListener('click', elegirCopia);
-  document.getElementById('op-deshacer')?.addEventListener('click', ()=>{
-    if(!confirm('Se pierden todos los cambios hechos desde la app en este dispositivo. ¿Seguro?')) return;
+  document.getElementById('op-deshacer')?.addEventListener('click', async ()=>{
+    if(!await pedirEliminar({titulo:'Deshacer todos mis cambios', boton:'Deshacer todo',
+      texto:'Se pierden <b>todos los cambios</b> hechos desde la app en este dispositivo.'})) return;
     localStorage.removeItem(CLAVE); location.reload();
   });
   if(!$dlg.open) $dlg.showModal();
@@ -11400,7 +11504,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">b4fb6c0f</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">2b76536a</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -14715,14 +14819,18 @@ function pantallaRobots(volver, caja, alCambiar){
       brindis(n ? `Corregido · ${n} sello${n===1?'':'s'} al día` : 'Robot corregido');
     });
     for(const b of $z.querySelectorAll('[data-rb-fuera]'))
-      b.onclick = e=>{
+      b.onclick = async e=>{
         e.stopPropagation();
         const k = ROBOTS.findIndex(x => x.id === b.dataset.rbFuera);
         if(k < 0) return;
         const n = sellosEnRobot(ROBOTS[k].id);
         if(n) return brindis(
           `No se puede quitar: lo usan ${n} sello${n===1?'':'s'}. Púlsalo para corregirlo.`);
-        const [ido] = ROBOTS.splice(k, 1);
+        if(!await pedirEliminar({titulo:'Quitar el robot',  boton:'Quitar',
+          texto:`Vas a quitar <b>${esc(ROBOTS[k].nombre)}</b> de la lista.`})) return;
+        const k2 = ROBOTS.findIndex(x => x.id === b.dataset.rbFuera);
+        if(k2 < 0) return;
+        const [ido] = ROBOTS.splice(k2, 1);
         guardarRobots(); pintar(); alCambiar?.();
         apuntar('sello-ajuste', {id:null, nombre: ido.nombre}, {que:'robot', accion:'quitado'});
       };
@@ -15663,6 +15771,8 @@ function pintarFichaGramo(){
     enlazarBotonesFoto('gf', gObjFoto(g));
     document.getElementById('gf-quitar')?.addEventListener('click', async () => {
       const b = document.getElementById('gf-quitar');
+      if(!await pedirEliminar({titulo:'Quitar la foto', boton:'Quitar',
+        texto:`Vas a quitar la foto de <b>${esc(g.nombre)}</b>.`})) return;
       b.disabled = true;
       try{ await nube.quitarFoto(fid); brindis('Foto quitada'); }
       catch(e){
@@ -15801,7 +15911,10 @@ function borrarGramo(g){
     $dp.innerHTML = `<button class="btn" type="button" id="g-b-no">Cancelar</button>
       <button class="btn btn-peligro" type="button" id="g-b-si" style="border-color:var(--rojo)">Eliminar</button>`;
     document.getElementById('g-b-no').onclick = () => $dlg.close();
-    document.getElementById('g-b-si').onclick = borrarTodo;
+    document.getElementById('g-b-si').onclick = async () => {
+      if(await pedirEliminar({titulo:'Eliminar sello',
+        texto:`Vas a eliminar <b>${esc(g.nombre)}</b>${sello}.`})) borrarTodo();
+    };
     if(!$dlg.open) $dlg.showModal();
     return;
   }
@@ -15817,8 +15930,13 @@ function borrarGramo(g){
         <small>Con todas sus variantes.</small></span></button>`;
   $dp.innerHTML = `<button class="btn" type="button" id="g-b-no">Cancelar</button>`;
   document.getElementById('g-b-no').onclick = () => $dlg.close();
-  document.getElementById('g-b-todo').onclick = borrarTodo;
-  document.getElementById('g-b-var').onclick = () => {
+  document.getElementById('g-b-todo').onclick = async () => {
+    if(await pedirEliminar({titulo:'Eliminar sello',
+      texto:`Vas a eliminar <b>${esc(g.nombre)}</b>${sello} con sus ${vs.length} variantes.`})) borrarTodo();
+  };
+  document.getElementById('g-b-var').onclick = async () => {
+    if(!await pedirEliminar({titulo:'Eliminar variante',
+      texto:`Vas a eliminar la variante <b>«${esc(gNomVar(act, ini))}»</b> de ${esc(g.nombre)}.`})) return;
     const resto = vs.filter(v => v !== act);
     const r = {...g, variantes: resto, colores: resto[0].colores};
     if(resto.length === 1 && resto[0].id === G_V0 && !resto[0].foto && !resto[0].nombre) delete r.variantes;
@@ -16352,7 +16470,7 @@ function editarGramo(base, duplicar, modo){
         </div>
       </div>`;
     $dp.innerHTML = `<button class="btn" type="button" id="g-e-cancelar">Cancelar</button>
-      ${!esNuevo ? `<button class="btn btn-peligro" type="button" id="g-e-borrar">${quiereBorrar ? '¿Seguro? Pulsa otra vez' : 'Eliminar'}</button>` : ''}
+      ${!esNuevo ? `<button class="btn btn-peligro" type="button" id="g-e-borrar">Eliminar</button>` : ''}
       <button class="btn btn-1" type="button" id="g-e-guardar">Guardar</button>`;
     if(!$dlg.open) $dlg.showModal();
     $dc.scrollTop = scroll;
@@ -16441,8 +16559,9 @@ function editarGramo(base, duplicar, modo){
       escribiendoEnDlg = null;
       $dlg.close();
     };
-    document.getElementById('g-e-borrar')?.addEventListener('click', () => {
-      if(!quiereBorrar){ quiereBorrar = true; pintar(); return; }
+    document.getElementById('g-e-borrar')?.addEventListener('click', async () => {
+      if(!await pedirEliminar({titulo:'Eliminar sello',
+        texto:`Vas a eliminar <b>${esc(base.nombre || g.nombre || 'este sello')}</b>.`})) return;
       gTirarBorrador(clave);
       escribiendoEnDlg = null;
       const quitado = {...base, borrado: true};

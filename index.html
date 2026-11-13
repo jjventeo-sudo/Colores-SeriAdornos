@@ -3761,17 +3761,6 @@ body[data-seccion="notas"] #btn-pdf{display:none}
 .arch-pastillas span{margin-left:7px; font-family:var(--mono); font-size:11px; color:var(--texto-3)}
 @media (min-width:861px){ .arch-rej{grid-template-columns:repeat(2,minmax(0,1fr))} }
 
-/* Con una pestaña más, la barra de abajo se queda justa en el móvil: las que
-   no están elegidas se estrechan y la elegida crece lo justo para que su
-   nombre quepa entero («Colores» se cortaba). No toca el modo Cristal, que va
-   en vertical. */
-@media (max-width:520px){
-  html:not([data-cristal="on"]) .barra{gap:2px; padding:6px 5px}
-  html:not([data-cristal="on"]) #solapas button[aria-pressed="true"]{flex-grow:2.7; font-size:14.5px; gap:6px}
-  html:not([data-cristal="on"]) .barra .btn-icono,
-  html:not([data-cristal="on"]) .barra #solapas button{min-width:0}
-}
-
 /* Duplicar / Eliminar: aparte de la barra fija, para que la barra sea solo «Empezar» + «Editar». */
 .n-otras{display:flex; gap:10px; margin:22px 0 4px}
 .n-otras .btn{flex:1 1 0; height:46px; font-size:14.5px; gap:8px}
@@ -3784,6 +3773,109 @@ body[data-seccion="notas"] #btn-pdf{display:none}
 @media (max-width: 430px){
   .n-t-largo{display:none}
   .n-t-corto{display:inline}
+}
+/* ═══ LA BARRA DE ABAJO · versión «dock» (13 nov) ═══
+   Tres secciones + Escanear + Opciones, TODAS con su nombre escrito, y el «+»
+   fuera de la barra, flotando encima con lo que va a crear («Nuevo color»,
+   «Nuevo sello», «Nueva nota»). Sirve en móvil y en la columna de la lista del
+   ordenador. El menú lateral del modo Cristal (≥ 861 px) no se toca.
+   Este bloque se escribe una vez con html:not([data-cristal="on"]) y el parche lo emite dos veces:
+   para «sin Cristal» y para «Cristal en pantalla pequeña». */
+html:not([data-cristal="on"]) .barra{height:68px; border-radius:26px; padding:0 6px; gap:0}
+html:not([data-cristal="on"]) .barra .btn-icono,
+html:not([data-cristal="on"]) .barra #solapas button{
+  position:relative; flex:1 1 0; flex-direction:column; gap:5px; height:100%; border-radius:20px;
+  font-size:10.5px; font-weight:600; letter-spacing:.01em; padding:0; min-width:0;
+}
+html:not([data-cristal="on"]) .barra .btn-icono svg,
+html:not([data-cristal="on"]) .barra #solapas button svg{width:22px; height:22px; transition:transform .38s cubic-bezier(.34,1.5,.5,1), stroke-width .2s}
+html:not([data-cristal="on"]) #solapas button span{display:block; line-height:1}
+html:not([data-cristal="on"]) #solapas button[aria-pressed="true"]{flex-grow:1; background:none; box-shadow:none; color:var(--texto)}
+html:not([data-cristal="on"]) #solapas button[aria-pressed="true"] svg{stroke-width:2.2; transform:translateY(-1px) scale(1.1)}
+/* la rayita de arriba: aparece creciendo, como un destello de «estás aquí» */
+html:not([data-cristal="on"]) #solapas button[aria-pressed="true"]::after{
+  content:""; position:absolute; top:0; left:50%; width:28px; height:3px; margin-left:-14px;
+  border-radius:0 0 4px 4px; background:var(--tinta); animation:dock-raya .45s cubic-bezier(.34,1.5,.5,1) both;
+}
+@keyframes dock-raya{from{width:0; margin-left:0; opacity:0}}
+/* Escanear y Opciones son herramientas, no secciones: una raya fina las separa */
+html:not([data-cristal="on"]) #solapas [data-sec="escanear"]{margin-left:9px}
+html:not([data-cristal="on"]) #solapas [data-sec="escanear"]::before{content:""; position:absolute; left:-5px; top:50%; height:30px; width:1px; translate:0 -50%; background:var(--linea)}
+html:not([data-cristal="on"]) .barra #btn-menu::after{content:"Opciones"; line-height:1}
+
+/* Nuevo: fuera de la barra, a la derecha, con su nombre */
+html:not([data-cristal="on"]) .barra #btn-nuevo{
+  position:absolute; right:2px; bottom:calc(100% + 14px); flex:none; width:auto; height:54px;
+  padding:0 20px 0 16px; border-radius:999px; flex-direction:row; gap:9px; font-size:15px; font-weight:700;
+  color:var(--tinta-txt); background:linear-gradient(180deg,var(--tinta),var(--tinta-2));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55), 0 14px 28px -10px rgba(0,0,0,.65);
+  transition:scale .3s cubic-bezier(.34,1.5,.5,1), color .15s;
+}
+html:not([data-cristal="on"]) .barra #btn-nuevo svg{width:20px; height:20px; stroke-width:2.5; transform:none}
+html:not([data-cristal="on"]) .barra #btn-nuevo::after{content:attr(title); white-space:nowrap; line-height:1}
+html:not([data-cristal="on"]) .barra #btn-nuevo:active{color:var(--tinta-txt); scale:.94}
+/* Imprimir PDF: redondo, a la izquierda, a la misma altura */
+html:not([data-cristal="on"]) .barra #btn-pdf{
+  position:absolute; left:2px; bottom:calc(100% + 14px); flex:none; width:54px; height:54px; border-radius:50%;
+  background:color-mix(in srgb,var(--panel-luz) 96%,transparent); border:1px solid var(--linea);
+  backdrop-filter:saturate(1.4) blur(14px); box-shadow:0 14px 28px -12px rgba(0,0,0,.6);
+}
+html:not([data-cristal="on"]) .barra #btn-pdf svg{width:21px; height:21px}
+/* La lista deja sitio para que ni la barra ni el botón tapen la última fila */
+html:not([data-cristal="on"]) .lista{padding-bottom:180px}
+@media (prefers-reduced-motion:reduce){
+  html:not([data-cristal="on"]) #solapas button[aria-pressed="true"]::after{animation:none}
+}
+
+@media (max-width:860px){
+html[data-cristal="on"] y el parche lo emite dos veces:
+   para «sin Cristal» y para «Cristal en pantalla pequeña». */
+html[data-cristal="on"] .barra{height:68px; border-radius:26px; padding:0 6px; gap:0}
+html[data-cristal="on"] .barra .btn-icono,
+html[data-cristal="on"] .barra #solapas button{
+  position:relative; flex:1 1 0; flex-direction:column; gap:5px; height:100%; border-radius:20px;
+  font-size:10.5px; font-weight:600; letter-spacing:.01em; padding:0; min-width:0;
+}
+html[data-cristal="on"] .barra .btn-icono svg,
+html[data-cristal="on"] .barra #solapas button svg{width:22px; height:22px; transition:transform .38s cubic-bezier(.34,1.5,.5,1), stroke-width .2s}
+html[data-cristal="on"] #solapas button span{display:block; line-height:1}
+html[data-cristal="on"] #solapas button[aria-pressed="true"]{flex-grow:1; background:none; box-shadow:none; color:var(--texto)}
+html[data-cristal="on"] #solapas button[aria-pressed="true"] svg{stroke-width:2.2; transform:translateY(-1px) scale(1.1)}
+/* la rayita de arriba: aparece creciendo, como un destello de «estás aquí» */
+html[data-cristal="on"] #solapas button[aria-pressed="true"]::after{
+  content:""; position:absolute; top:0; left:50%; width:28px; height:3px; margin-left:-14px;
+  border-radius:0 0 4px 4px; background:var(--tinta); animation:dock-raya .45s cubic-bezier(.34,1.5,.5,1) both;
+}
+@keyframes dock-raya{from{width:0; margin-left:0; opacity:0}}
+/* Escanear y Opciones son herramientas, no secciones: una raya fina las separa */
+html[data-cristal="on"] #solapas [data-sec="escanear"]{margin-left:9px}
+html[data-cristal="on"] #solapas [data-sec="escanear"]::before{content:""; position:absolute; left:-5px; top:50%; height:30px; width:1px; translate:0 -50%; background:var(--linea)}
+html[data-cristal="on"] .barra #btn-menu::after{content:"Opciones"; line-height:1}
+
+/* Nuevo: fuera de la barra, a la derecha, con su nombre */
+html[data-cristal="on"] .barra #btn-nuevo{
+  position:absolute; right:2px; bottom:calc(100% + 14px); flex:none; width:auto; height:54px;
+  padding:0 20px 0 16px; border-radius:999px; flex-direction:row; gap:9px; font-size:15px; font-weight:700;
+  color:var(--tinta-txt); background:linear-gradient(180deg,var(--tinta),var(--tinta-2));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55), 0 14px 28px -10px rgba(0,0,0,.65);
+  transition:scale .3s cubic-bezier(.34,1.5,.5,1), color .15s;
+}
+html[data-cristal="on"] .barra #btn-nuevo svg{width:20px; height:20px; stroke-width:2.5; transform:none}
+html[data-cristal="on"] .barra #btn-nuevo::after{content:attr(title); white-space:nowrap; line-height:1}
+html[data-cristal="on"] .barra #btn-nuevo:active{color:var(--tinta-txt); scale:.94}
+/* Imprimir PDF: redondo, a la izquierda, a la misma altura */
+html[data-cristal="on"] .barra #btn-pdf{
+  position:absolute; left:2px; bottom:calc(100% + 14px); flex:none; width:54px; height:54px; border-radius:50%;
+  background:color-mix(in srgb,var(--panel-luz) 96%,transparent); border:1px solid var(--linea);
+  backdrop-filter:saturate(1.4) blur(14px); box-shadow:0 14px 28px -12px rgba(0,0,0,.6);
+}
+html[data-cristal="on"] .barra #btn-pdf svg{width:21px; height:21px}
+/* La lista deja sitio para que ni la barra ni el botón tapen la última fila */
+html[data-cristal="on"] .lista{padding-bottom:180px}
+@media (prefers-reduced-motion:reduce){
+  html[data-cristal="on"] #solapas button[aria-pressed="true"]::after{animation:none}
+}
+
 }
 </style>
 </head>
@@ -3842,7 +3934,7 @@ body[data-seccion="notas"] #btn-pdf{display:none}
         <span>Escanear</span>
       </button>
     </div>
-    <button class="btn-icono" id="btn-nuevo" aria-label="Nueva fórmula" title="Nueva fórmula">
+    <button class="btn-icono" id="btn-nuevo" aria-label="Nuevo color" title="Nuevo color">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
     </button>
     <button class="btn-icono" id="btn-pdf" aria-label="Generar PDF" title="Generar PDF de lo que estás viendo">
@@ -11759,7 +11851,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">8728e6d6</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">41f09463</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -15357,7 +15449,7 @@ function pintarSolapas(){
     : (minimo ? 'Color o cliente' : corto ? 'Buscar color o cliente' : 'Buscar color, cliente o pigmento');
   const nuevo = document.getElementById('btn-nuevo');
   if(nuevo){
-    nuevo.title = SECCION === 'notas' ? 'Nueva nota' : SECCION === 'gramos' ? 'Nuevo sello' : SECCION === 'sellos' ? 'Nuevo molde' : 'Nueva fórmula';
+    nuevo.title = SECCION === 'notas' ? 'Nueva nota' : SECCION === 'gramos' ? 'Nuevo sello' : SECCION === 'sellos' ? 'Nuevo molde' : 'Nuevo color';
     nuevo.setAttribute('aria-label', nuevo.title);
   }
 }

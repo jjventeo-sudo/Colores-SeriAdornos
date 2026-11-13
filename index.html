@@ -3552,6 +3552,239 @@ dialog.dlg-eliminar .btn-peligro:not([disabled]){
   background:var(--rojo); border-color:var(--rojo); color:#fff;
   box-shadow:0 6px 18px -6px color-mix(in srgb, var(--rojo) 70%, transparent);
 }
+/* ═══ NOTAS DE TRABAJO + ARCHIVADOR (13 nov) ═══════════════════════════ */
+
+/* La lista de notas: tarjetas, no filas de una línea */
+.fila-nota{
+  display:flex; flex-direction:column; align-items:stretch; gap:6px; height:auto;
+  padding:14px 16px 13px; min-height:0;
+}
+.fila-nota .fila-nombre{font-size:17px; font-weight:620; letter-spacing:-.012em; line-height:1.22; white-space:normal}
+.n-fila-cab{display:flex; align-items:center; justify-content:space-between; gap:8px}
+.n-pin{display:inline-flex; color:var(--ambar)}
+.n-pin svg{width:15px; height:15px}
+.n-fila-txt{
+  color:var(--texto-2); font-size:14px; line-height:1.4;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.n-fila-pie{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:3px}
+.n-firma{margin-left:auto; font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; color:var(--texto-3)}
+.n-dato{
+  display:inline-flex; align-items:center; gap:7px; height:28px; padding:0 11px;
+  border-radius:999px; background:var(--fondo); border:1px solid var(--linea);
+  font-family:var(--mono); font-size:12.5px; font-weight:500; color:var(--texto);
+}
+.n-dato i{width:8px; height:8px; border-radius:50%; background:var(--tc,var(--texto-3)); box-shadow:0 0 0 3px color-mix(in srgb,var(--tc,#888) 22%,transparent)}
+.n-cat[aria-pressed="true"]{background:var(--tinta); color:var(--tinta-txt); border-color:transparent}
+
+/* La nota abierta */
+.n-tit-cab{display:flex; align-items:center; gap:10px; margin-bottom:10px}
+.n-cat-ficha{height:30px; font-size:13px; pointer-events:none}
+.n-resumen{margin:8px 0 0; color:var(--texto-2); font-size:15px; line-height:1.45}
+.n-lects{
+  display:grid; gap:0; margin:16px 0 14px; border:1px solid var(--linea-fuerte); border-radius:var(--r-m);
+  overflow:hidden; background:linear-gradient(180deg,var(--panel-luz),var(--panel));
+  box-shadow:inset 0 1px 0 var(--canto);
+}
+.n-lects-1{grid-template-columns:1fr} .n-lects-2{grid-template-columns:1fr 1fr} .n-lects-3{grid-template-columns:repeat(3,1fr)}
+.n-lect{padding:13px 14px 12px; border-right:1px solid var(--linea); min-width:0; position:relative}
+.n-lect:last-child{border-right:0}
+.n-lect::before{content:""; position:absolute; left:0; top:0; right:0; height:2px; background:var(--tc)}
+.n-lect b{display:block; font-family:var(--mono); font-weight:500; font-size:26px; line-height:1.15; letter-spacing:-.02em; margin-top:5px; font-variant-numeric:tabular-nums}
+.n-lect b small{font-size:13px; color:var(--texto-3); font-weight:500; letter-spacing:0}
+.n-lect em{display:block; font-style:normal; font-family:var(--mono); font-size:12px; color:var(--texto-2); margin-top:2px}
+.n-cabsec{display:flex; justify-content:space-between; padding-left:2px; padding-right:2px; margin-top:20px}
+.n-pasos{list-style:none; margin:6px 0 0; padding:0; position:relative}
+.n-paso{display:flex; gap:12px; align-items:flex-start; position:relative; padding-bottom:12px}
+.n-paso:not(:last-child)::before{
+  content:""; position:absolute; left:19px; top:42px; bottom:-2px; width:2px;
+  background:linear-gradient(180deg,var(--linea-fuerte),var(--linea)); border-radius:2px;
+}
+.n-paso-ico{
+  flex:0 0 40px; width:40px; height:40px; border-radius:50%; display:grid; place-items:center;
+  color:var(--tc); background:color-mix(in srgb,var(--tc) 14%,var(--fondo));
+  border:1px solid color-mix(in srgb,var(--tc) 45%,transparent); position:relative; z-index:1;
+}
+.n-paso-ico .n-ico{width:20px; height:20px}
+.n-ico{color:var(--tc,currentColor)}
+.n-paso-cuerpo{
+  flex:1 1 auto; min-width:0; padding:11px 14px 12px; border-radius:var(--r-m);
+  background:linear-gradient(180deg,var(--panel-luz),var(--panel)); border:1px solid var(--linea);
+  box-shadow:inset 0 1px 0 var(--canto);
+}
+.n-paso-cuerpo b{display:block; font-size:16.5px; font-weight:620; letter-spacing:-.01em; margin-top:3px}
+.n-paso-cuerpo p{margin:5px 0 0; color:var(--texto-2); font-size:14.5px; line-height:1.45; white-space:pre-line}
+.n-paso-datos{display:flex; flex-wrap:wrap; gap:6px; margin-top:9px}
+.n-reloj{
+  flex:0 0 46px; width:46px; height:46px; border-radius:50%; display:grid; place-items:center; align-self:center;
+  color:var(--texto); background:var(--panel-2); border:1px solid var(--linea-fuerte); cursor:pointer;
+  transition:background-color .15s var(--salida), scale .15s var(--salida);
+}
+.n-reloj svg{width:22px; height:22px}
+.n-reloj:hover{background:var(--tinta-suave)} .n-reloj:active{scale:.94}
+.n-mats{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
+.n-mats .chip{pointer-events:none}
+.n-libre{margin:8px 0 0; padding:13px 15px; border-radius:var(--r-m); background:var(--panel); border:1px solid var(--linea); color:var(--texto-2); font-size:14.5px; line-height:1.5; white-space:pre-line}
+.n-fotos{display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:10px; margin-top:8px}
+.n-foto{
+  position:relative; aspect-ratio:1; border-radius:var(--r-m); overflow:hidden; background:var(--panel-2);
+  outline:1px solid var(--contorno); outline-offset:-1px; cursor:pointer;
+  display:grid; place-items:center; text-align:center; font-size:12px; color:var(--texto-3); line-height:1.3;
+}
+.n-foto.sin{cursor:default}
+.n-foto img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+.n-foto-x{
+  position:absolute; top:5px; right:5px; width:30px; height:30px; border-radius:50%; z-index:2;
+  display:grid; place-items:center; color:#fff; background:rgba(0,0,0,.55); border:0; cursor:pointer;
+  backdrop-filter:blur(6px);
+}
+.n-foto-x svg{width:15px; height:15px}
+.n-foto-nueva{grid-column:1/-1; display:flex; gap:8px; margin:0}
+.n-pie{margin:16px 2px 4px; font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--texto-3)}
+
+/* El editor */
+.n-cats{display:flex; flex-wrap:wrap; gap:8px}
+.n-cats .chip[aria-pressed="true"]{background:var(--tinta); color:var(--tinta-txt); border-color:transparent}
+.n-catnueva{height:40px; min-width:170px; padding:0 14px; border-radius:999px}
+.n-ed-paso{
+  margin-top:10px; padding:12px 12px 4px; border-radius:var(--r-l); background:var(--panel);
+  border:1px solid var(--linea); border-left:3px solid var(--tc);
+}
+.n-ed-paso-cab{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px}
+.n-ed-mover{display:flex; gap:4px}
+.n-ed-mover .btn-icono{width:36px; height:36px; font-size:16px}
+.n-ed-mover .btn-icono[disabled]{opacity:.3}
+.n-tipos{display:grid; grid-template-columns:repeat(5,1fr); gap:5px; margin-bottom:12px}
+.n-tipo{
+  display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 2px 7px; min-width:0;
+  border-radius:var(--r-s); border:1px solid var(--linea); background:var(--fondo); color:var(--texto-3); cursor:pointer;
+  font-size:10.5px; font-weight:600; letter-spacing:.01em;
+}
+.n-tipo .n-ico{color:currentColor}
+.n-tipo.on{color:var(--tc); border-color:var(--tc); background:color-mix(in srgb,var(--tc) 13%,var(--fondo))}
+.n-pasos-num{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:2px 0 10px}
+.n-num{display:grid; grid-template-columns:44px 1fr 44px; align-items:center; border-radius:var(--r-m); background:var(--fondo); border:1px solid var(--linea-fuerte); overflow:hidden}
+.n-num button{height:54px; font-size:22px; font-weight:500; color:var(--texto); cursor:pointer; background:none; border:0}
+.n-num button:active{background:var(--tinta-suave)}
+.n-num > div{text-align:center; min-width:0}
+.n-num b{display:block; font-family:var(--mono); font-weight:500; font-size:17px; line-height:1.2; font-variant-numeric:tabular-nums; white-space:nowrap}
+.n-num b small{font-size:11px; color:var(--texto-3)}
+.n-num .g-ceja{font-size:9px; letter-spacing:.12em}
+.n-ed-aviso{display:flex; gap:6px; align-items:center; margin-bottom:8px}
+.n-ed-aviso input{flex:1 1 auto; min-width:0; height:46px; padding:0 14px; border-radius:var(--r-m); border:1px solid var(--linea-fuerte); background:var(--fondo); color:var(--texto); font:inherit; font-size:15px}
+.n-fijar{
+  display:flex; align-items:center; justify-content:space-between; width:100%; margin-top:4px; padding:14px 16px;
+  border-radius:var(--r-m); border:1px solid var(--linea); background:var(--panel); color:var(--texto); cursor:pointer; font-size:15px; font-weight:560;
+}
+.n-fijar span{display:inline-flex; align-items:center; gap:10px}
+.n-fijar svg{width:18px; height:18px; color:var(--ambar)}
+.n-fijar i{width:44px; height:26px; border-radius:999px; background:var(--panel-2); border:1px solid var(--linea-fuerte); position:relative; transition:background-color .18s var(--salida)}
+.n-fijar i::after{content:""; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:var(--texto-2); transition:translate .18s var(--salida), background-color .18s}
+.n-fijar[aria-checked="true"] i{background:var(--ambar-suave); border-color:var(--ambar)}
+.n-fijar[aria-checked="true"] i::after{translate:18px 0; background:var(--ambar)}
+
+/* La barra del cronómetro: flota sobre todo y sigue ahí aunque cambies de sección */
+.n-cron{
+  position:fixed; z-index:50; left:14px; right:14px;
+  bottom:calc(max(14px,env(safe-area-inset-bottom)) + 84px);
+  display:grid; grid-template-columns:auto 1fr auto; grid-template-areas:"ico txt reloj" "btns btns btns";
+  gap:10px 12px; align-items:center; padding:13px 14px 14px; border-radius:var(--r-l);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--panel-luz) 97%,transparent),color-mix(in srgb,var(--panel) 98%,transparent));
+  backdrop-filter:saturate(1.4) blur(14px); border:1px solid var(--linea-fuerte);
+  box-shadow:inset 0 1px 0 var(--canto), 0 18px 40px rgba(0,0,0,.5);
+  overflow:hidden; animation:n-entra .28s var(--salida);
+}
+.n-cron[hidden]{display:none}
+@keyframes n-entra{from{opacity:0; translate:0 16px}}
+.n-cron::before{content:""; position:absolute; left:0; top:0; height:3px; width:var(--pct,0%); background:var(--tc); transition:width .25s linear}
+.n-cron-ico{grid-area:ico; width:42px; height:42px; border-radius:50%; display:grid; place-items:center; background:color-mix(in srgb,var(--tc) 16%,var(--fondo)); border:1px solid color-mix(in srgb,var(--tc) 50%,transparent)}
+.n-cron-txt{grid-area:txt; min-width:0}
+.n-cron-txt b{display:block; font-size:16px; font-weight:620; letter-spacing:-.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.n-cron-txt small{display:block; color:var(--texto-2); font-size:13px; line-height:1.35; margin-top:2px; white-space:normal}
+.n-cron-reloj{grid-area:reloj; font-family:var(--mono); font-weight:500; font-size:34px; letter-spacing:-.03em; font-variant-numeric:tabular-nums; line-height:1}
+.n-cron[data-estado="listo"] .n-cron-reloj{color:var(--verde); animation:n-late .8s ease-in-out infinite}
+.n-cron[data-estado="pausa"] .n-cron-reloj{color:var(--texto-3)}
+@keyframes n-late{50%{opacity:.45}}
+.n-cron-btns{grid-area:btns; display:flex; gap:8px}
+.n-cb{height:50px; min-width:50px; padding:0 16px; border-radius:var(--r-m); border:1px solid var(--linea-fuerte); background:var(--panel-2); color:var(--texto); font-size:15.5px; font-weight:600; cursor:pointer; display:grid; place-items:center}
+.n-cb svg{width:20px; height:20px}
+.n-cb-ok{flex:1 1 auto; background:linear-gradient(180deg,var(--tinta),var(--tinta-2)); color:var(--tinta-txt); border-color:transparent}
+.n-cb-x{color:var(--texto-3)}
+@media (max-width:860px){
+  body[data-ficha="on"] .n-cron{bottom:max(14px,env(safe-area-inset-bottom))}
+}
+@media (min-width:861px){
+  .n-cron{left:auto; right:22px; bottom:22px; width:min(430px,calc(100vw - 44px))}
+}
+@media (prefers-reduced-motion:reduce){ .n-cron{animation:none} .n-cron[data-estado="listo"] .n-cron-reloj{animation:none} }
+
+/* La pestaña de Notas no tiene riel ni botón de PDF */
+body[data-seccion="notas"] .riel{display:none !important}
+body[data-seccion="notas"] #btn-pdf{display:none}
+
+/* ── EL ARCHIVADOR ─────────────────────────────────────────────────── */
+.g-vista{display:inline-grid; margin-left:auto; flex:0 0 auto}
+.g-vista[hidden]{display:none}
+.g-vista button{height:32px; padding:0 14px; font-size:13px}
+.arch-lleva{padding:2px 0 10px}
+.arch-lleva .g-ceja{display:block; margin:0 2px 7px}
+.arch-chips{display:flex; gap:7px; overflow-x:auto; padding:0 0 4px; scrollbar-width:none; margin:0 -2px}
+.arch-chips::-webkit-scrollbar{display:none}
+.arch-chip{flex:0 0 auto; height:38px; gap:8px; padding:0 13px 0 9px}
+.arch-chip .g-gota{flex:0 0 auto}
+.arch-chip[aria-pressed="true"]{background:var(--tinta); color:var(--tinta-txt); border-color:transparent}
+.arch-rej{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:11px}
+.arch-t{
+  display:flex; flex-direction:column; gap:4px; text-align:left; cursor:pointer; min-width:0;
+  background:linear-gradient(180deg,var(--panel-luz),var(--panel)); border:1px solid var(--linea); border-radius:var(--r-l);
+  padding:8px 8px 11px; box-shadow:inset 0 1px 0 var(--canto), var(--sombra-2);
+  transition:translate calc(.18s * var(--ritmo)) var(--salida), box-shadow calc(.18s * var(--ritmo)) var(--salida);
+}
+.arch-t:hover{translate:0 -2px}
+.arch-t:active{scale:.985}
+.arch-t[aria-current="true"]{box-shadow:inset 0 0 0 2px var(--tinta)}
+.arch-foto{
+  position:relative; aspect-ratio:1; border-radius:var(--r-m); overflow:hidden; background:var(--panel-2);
+  outline:1px solid var(--contorno); outline-offset:-1px; display:grid; place-items:center; margin-bottom:5px;
+}
+.arch-foto.sin svg{width:34px; height:34px; opacity:.28}
+.arch-foto img{position:absolute; inset:0; width:100%; height:100%; object-fit:contain}
+.arch-foto.con-foto{background-color:var(--panel-2)}
+.arch-n{
+  position:absolute; left:6px; top:6px; z-index:2; height:22px; padding:0 8px; border-radius:999px; display:inline-flex; align-items:center;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.05em; background:rgba(0,0,0,.62); color:#fff; backdrop-filter:blur(6px);
+}
+.arch-t b{font-size:14px; font-weight:620; letter-spacing:-.008em; padding:0 4px; line-height:1.2; overflow-wrap:anywhere}
+.arch-sub{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--texto-3); padding:0 4px}
+.arch-pastillas{display:flex; align-items:center; padding:5px 4px 0 11px; min-height:28px}
+.arch-pastillas .g-gota{margin-left:-7px; flex:0 0 auto}
+.arch-pastillas span{margin-left:7px; font-family:var(--mono); font-size:11px; color:var(--texto-3)}
+@media (min-width:861px){ .arch-rej{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
+/* Con una pestaña más, la barra de abajo se queda justa en el móvil: las que
+   no están elegidas se estrechan y la elegida crece lo justo para que su
+   nombre quepa entero («Colores» se cortaba). No toca el modo Cristal, que va
+   en vertical. */
+@media (max-width:520px){
+  html:not([data-cristal="on"]) .barra{gap:2px; padding:6px 5px}
+  html:not([data-cristal="on"]) #solapas button[aria-pressed="true"]{flex-grow:2.7; font-size:14.5px; gap:6px}
+  html:not([data-cristal="on"]) .barra .btn-icono,
+  html:not([data-cristal="on"]) .barra #solapas button{min-width:0}
+}
+
+/* Duplicar / Eliminar: aparte de la barra fija, para que la barra sea solo «Empezar» + «Editar». */
+.n-otras{display:flex; gap:10px; margin:22px 0 4px}
+.n-otras .btn{flex:1 1 0; height:46px; font-size:14.5px; gap:8px}
+.n-otras .btn svg{width:18px; height:18px}
+.n-t-corto{display:none}
+@media (max-width: 700px){
+  .barra-ficha #n-guiar{flex:1 1 0; min-width:0}
+  .barra-ficha #n-editar{flex:0 0 auto}
+}
+@media (max-width: 430px){
+  .n-t-largo{display:none}
+  .n-t-corto{display:inline}
+}
 </style>
 </head>
 <body>
@@ -3598,6 +3831,10 @@ dialog.dlg-eliminar .btn-peligro:not([disabled]){
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z" fill="currentColor" stroke="none" opacity=".3"/><path d="M8.5 4h7v5h-7z"/><path d="M5 12.5A2.5 2.5 0 0 1 7.5 10h9a2.5 2.5 0 0 1 2.5 2.5V15H5z"/><path d="M4 19.5h16"/></svg>
         <span>Sellos</span>
       </button>
+      <button data-sec="notas" aria-pressed="false" role="tab" aria-label="Notas" title="Notas de trabajo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5h7.5L19 8v12.5H7z" fill="currentColor" stroke="none" opacity=".3"/><path d="M7 3.5h7.5L19 8v12.5H7z"/><path d="M14.5 3.5V8H19"/><path d="M10 12.5h6"/><path d="M10 16h6"/></svg>
+        <span>Notas</span>
+      </button>
       <!-- Escanear no es una sección: abre la cámara. Va en la barra porque es
            lo que se hace con el móvil en la mano delante del molde o del bote. -->
       <button data-sec="escanear" aria-pressed="false" role="tab" aria-label="Escanear" title="Escanear el QR de una pegatina">
@@ -3634,6 +3871,10 @@ dialog.dlg-eliminar .btn-peligro:not([disabled]){
         <span id="contador"></span>
         <button id="chip-pigmento" class="chip chip-filtro" hidden></button>
         <button id="chip-pend" class="chip" hidden></button>
+        <div class="g-seg g-vista" id="g-vista" role="radiogroup" aria-label="Cómo ver los sellos" hidden>
+          <button type="button" role="radio" data-vista="lista" aria-checked="true">Lista</button>
+          <button type="button" role="radio" data-vista="arch" aria-checked="false">Archivador</button>
+        </div>
       </div>
       <div class="lista" id="lista" role="listbox" aria-label="Fórmulas"></div>
       <!-- Riel A–Z (solo móvil): lo pinta 05-lista.js con las letras de lo filtrado. -->
@@ -4879,6 +5120,11 @@ function crearNube({url, clave}){
       else if(a.clave === 'tipos_agujas') d.tipos_agujas = a.datos;
       else if(a.clave === 'clientes') d.clientes = a.datos;
       else if(a.clave === 'robots') d.robots = a.datos;
+      else if(String(a.clave).startsWith('nota:')){
+        const nn = a.datos && !a.datos.borrada ? nLimpia(a.datos) : null;
+        d.notas = (d.notas || []).filter(x => x.id !== (a.datos && a.datos.id));
+        if(nn) d.notas.push(nn);
+      }
       else if(a.clave === 'papelera_hasta') d.papelera_hasta = a.datos;
     }
     d.historial = res.preparaciones || [];
@@ -5680,6 +5926,11 @@ const HAY_GRAMOS = MODO === 'nube';
 if(!Array.isArray(DATOS.gramos)) DATOS.gramos = [];
 let porIdG = new Map(DATOS.gramos.map(g => [g.id, g]));
 let gramoSel = null;        // el sello abierto
+let notaSel = null;         // la nota abierta (Notas de trabajo)
+let notaCat = null;         // categoría de notas filtrada (null = todas)
+let nFiltradas = [];
+let gArch = (()=>{ try{ return localStorage.getItem('sellos-vista') === 'arch'; }catch(_){ return false; } })();
+let gColorFiltro = null;    // el color de la fila «Lleva» del archivador
 let gVista = 'ficha';       // 'ficha' | 'calc'
 let gCalc = null;           // {id, n, margen} mientras se calcula un pedido
 let gFiltrados = [];
@@ -6545,6 +6796,7 @@ function actualizar(tarde = false){
   // En la solapa de sellos manda otro listado entero. Se reutiliza el mismo
   // hueco de pantalla: así el botón de atrás del móvil, el abrir y cerrar
   // ficha y el resto del andamiaje valen igual para las dos cosas.
+  if(SECCION === 'notas') return actualizarNotas();
   if(SECCION === 'gramos') return actualizarGramos();
   if(SECCION === 'sellos') return actualizarSellos();
   intentarEnlace();
@@ -6698,6 +6950,7 @@ $lista.addEventListener('click', e=>{
   // editor lo recupera solo, porque el borrador va guardado con su mismo id.
   if(b.dataset.medias) return SECCION === 'sellos'
     ? editarSello(null, false, b.dataset.medias) : seguirFormula(b.dataset.medias);
+  if(SECCION === 'notas') return;                  // cada fila de nota lleva su propio clic
   if(SECCION === 'gramos') return abrirGramo(b.dataset.id);
   if(SECCION === 'sellos') return abrirSello(b.dataset.id);
   abrir(b.dataset.id, b.querySelector('.muestra'));
@@ -6962,9 +7215,9 @@ function cerrarFicha(){
   cerrarCapa('ficha');
   document.body.dataset.ficha='';
   seleccion = null; selloSel = null; rectificando = null;
-  gramoSel = null; gVista = 'ficha'; gCalc = null;
-  for(const el of $lista.querySelectorAll('.fila')) el.setAttribute('aria-current','false');
-  if(SECCION === 'sellos') muroDeSellos(); else pintarFicha();
+  gramoSel = null; gVista = 'ficha'; gCalc = null; notaSel = null;
+  for(const el of $lista.querySelectorAll('.fila, .arch-t')) el.setAttribute('aria-current','false');
+  if(SECCION === 'sellos') muroDeSellos(); else if(SECCION === 'notas') muroDeNotas(); else pintarFicha();
 }
 
 const MURO_TOPE = 240;
@@ -11129,6 +11382,8 @@ function aplicarDeLaNube(res){
       CLIENTES.length = 0; CLIENTES.push(...a.datos); DATOS.clientes = CLIENTES; n++;
     }else if(a.clave === 'robots' && Array.isArray(a.datos)){
       ROBOTS.length = 0; ROBOTS.push(...a.datos); DATOS.robots = ROBOTS; n++;
+    }else if(String(a.clave).startsWith('nota:')){
+      n += notaDeNube(a.datos);
     }else if(a.clave === 'papelera_hasta' && typeof a.datos === 'string'){
       papeleraHasta = a.datos; DATOS.papelera_hasta = papeleraHasta; n++;
     }
@@ -11231,7 +11486,7 @@ if(MODO === 'nube'){
    OPCIONES
    ═══════════════════════════════════════════════════════════════════ */
 document.getElementById('btn-nuevo').onclick =
-  ()=>SECCION === 'gramos' ? editarGramo(null) : SECCION === 'sellos' ? editarSello(null) : elegirNueva();
+  ()=>SECCION === 'notas' ? editarNota(null) : SECCION === 'gramos' ? editarGramo(null) : SECCION === 'sellos' ? editarSello(null) : elegirNueva();
 /* ═══════════════════════════════════════════════════════════════════
    OPCIONES
 
@@ -11472,7 +11727,7 @@ function pantallaCopia(volver){
   $dc.innerHTML = `
     <p class="op-p">${MODO === 'nube'
       ? `Es la única red de seguridad fuera de la nube: un archivo que se abre y
-         se lee por sí solo, sin depender de nada. Lleva fórmulas, pigmentos, sellos,
+         se lee por sí solo, sin depender de nada. Lleva fórmulas, pigmentos, sellos, notas,
          clientes y robots; <b>las fotos no</b>. ${(()=>{
            const u = leerFecha(CLAVE_COPIA);
            if(!u) return '<b>Todavía no has descargado ninguna.</b>';
@@ -11504,7 +11759,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">2b76536a</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">8728e6d6</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -11997,7 +12252,7 @@ function copiaNoValida(j){
 /** Qué REPONDRÍA la copia respecto a lo que hay AHORA (no respecto a los datos de
     fábrica). Nunca borra: lo que tienes y no está en la copia se queda. */
 function reconciliarActual(copia){
-  const r = {formulas: {}, nuevas: [], materias: [], gramos: [], ajustes: [], danadas: 0};
+  const r = {formulas: {}, nuevas: [], materias: [], gramos: [], notas: [], ajustes: [], danadas: 0};
   for(const f of (copia.formulas || [])){
     if(!formulaValida(f)){ r.danadas++; continue; }
     const actual = porId.get(f.id);
@@ -12016,6 +12271,11 @@ function reconciliarActual(copia){
   for(const g of (copia.gramos || [])){
     if(!g || typeof g.id !== 'string' || typeof g.nombre !== 'string'){ r.danadas++; continue; }
     if(!porIdG.has(g.id)) r.gramos.push(g);          // los que faltan (borrados) vuelven
+  }
+  for(const x of (copia.notas || [])){
+    const nn = nLimpia(x);
+    if(!nn){ r.danadas++; continue; }
+    if(!nPorId(nn.id)) r.notas.push(nn);             // las notas que faltan vuelven
   }
   for(const [clave, lista, actual] of [['clientes', copia.clientes, CLIENTES],
                                         ['robots', copia.robots, ROBOTS],
@@ -12047,7 +12307,7 @@ function restaurarNube(j){
   const nuevo = reconciliarActual(j);
   const nEd = Object.keys(nuevo.formulas).length;
   const total = nEd + nuevo.nuevas.length + nuevo.materias.length +
-                nuevo.gramos.length + nuevo.ajustes.reduce((s, a) => s + a.faltan.length, 0);
+                nuevo.gramos.length + nuevo.notas.length + nuevo.ajustes.reduce((s, a) => s + a.faltan.length, 0);
   const fecha = j.fecha ? new Date(j.fecha).toLocaleString('es-ES',
     {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}) : null;
   const pl = (q, uno, varios) => `${q} ${q === 1 ? uno : varios}`;
@@ -12056,6 +12316,7 @@ function restaurarNube(j){
     nuevo.nuevas.length ? `${pl(nuevo.nuevas.length, 'fórmula que no está ahora se recupera', 'fórmulas que no están ahora se recuperan')}` : '',
     nuevo.materias.length ? `${pl(nuevo.materias.length, 'pigmento', 'pigmentos')} repuesto${nuevo.materias.length === 1 ? '' : 's'}` : '',
     nuevo.gramos.length ? `${pl(nuevo.gramos.length, 'sello', 'sellos')} recuperado${nuevo.gramos.length === 1 ? '' : 's'}` : '',
+    nuevo.notas.length ? `${pl(nuevo.notas.length, 'nota', 'notas')} recuperada${nuevo.notas.length === 1 ? '' : 's'}` : '',
     ...nuevo.ajustes.map(a => `${pl(a.faltan.length, 'elemento', 'elementos')} de «${a.clave}» repuesto${a.faltan.length === 1 ? '' : 's'}`),
   ].filter(Boolean);
 
@@ -12111,6 +12372,11 @@ function restaurarNube(j){
       DATOS.gramos.push(g2); porIdG.set(g2.id, g2);
       await subir(nube.guardarGramo(g2));
     }
+    for(const x of nuevo.notas){
+      nLista().push(x);
+      await subir(nube.subirAjustes([{clave: 'nota:' + x.id, datos: x}]));
+    }
+    nLista().sort(nCmp);
     for(const {clave, faltan} of nuevo.ajustes){
       const destino = clave === 'clientes' ? CLIENTES : clave === 'robots' ? ROBOTS : AGUJAS;
       destino.push(...faltan); DATOS[clave] = destino;
@@ -15071,24 +15337,27 @@ function pintarSolapas(){
     /* Sin nube (el archivo suelto) no hay a dónde cambiar: se quita el
        botón de Sellos y el de Colores se queda como "inicio". */
     $s.querySelector('[data-sec="gramos"]')?.remove();
+    $s.querySelector('[data-sec="notas"]')?.remove();
     $s.dataset.sola = 'colores';
   }
   for(const b of $s.querySelectorAll('[data-sec]'))
     b.setAttribute('aria-pressed', String(b.dataset.sec === SECCION));
   document.body.dataset.seccion = SECCION;
+  pintarVistaSellos();
   /* En el móvil el buscador comparte fila con «Goma» y el texto largo se
      cortaba a media palabra: ahí va la versión corta. */
   const corto = matchMedia('(max-width:860px)').matches;
   /* Y en los móviles de 360 px de ancho ni el corto cabe: se quita el verbo. */
   const minimo = matchMedia('(max-width:380px)').matches;
-  $q.placeholder = SECCION === 'gramos'
+  $q.placeholder = SECCION === 'notas' ? (minimo ? 'Buscar nota' : 'Buscar en las notas')
+    : SECCION === 'gramos'
     ? (minimo ? 'Sello o molde' : corto ? 'Buscar sello o molde' : 'Buscar sello, molde o color')
     : SECCION === 'sellos'
     ? (minimo ? 'Molde o sello' : corto ? 'Buscar molde o sello' : 'Buscar molde, sello o cliente')
     : (minimo ? 'Color o cliente' : corto ? 'Buscar color o cliente' : 'Buscar color, cliente o pigmento');
   const nuevo = document.getElementById('btn-nuevo');
   if(nuevo){
-    nuevo.title = SECCION === 'gramos' ? 'Nuevo sello' : SECCION === 'sellos' ? 'Nuevo molde' : 'Nueva fórmula';
+    nuevo.title = SECCION === 'notas' ? 'Nueva nota' : SECCION === 'gramos' ? 'Nuevo sello' : SECCION === 'sellos' ? 'Nuevo molde' : 'Nueva fórmula';
     nuevo.setAttribute('aria-label', nuevo.title);
   }
 }
@@ -15102,6 +15371,7 @@ function cambiarSeccion(sec){
   if(SECCION === sec) return;
   SECCION = sec;
   seleccion = null; selloSel = null; gramoSel = null; gVista = 'ficha'; gCalc = null;
+  notaSel = null; notaCat = null; gColorFiltro = null;
   $q.value = '';
   ponerFiltro(null);
   soloFaltaS = false;
@@ -15174,7 +15444,7 @@ function escucharDeslizar(zona, {puede, izquierda, derecha}){
 }
 
 if(HAY_GRAMOS) escucharDeslizar(document.querySelector('.cuerpo'), {
-  puede: ()=> document.body.dataset.ficha !== 'on' && !$dlg.open,
+  puede: ()=> document.body.dataset.ficha !== 'on' && !$dlg.open && SECCION !== 'notas',
   izquierda: ()=>deslizarSeccion('gramos'),
   derecha:   ()=>deslizarSeccion('colores'),
 });
@@ -15571,7 +15841,7 @@ function gBuscarColores(txt, max = 40){
 
 function actualizarGramos(){
   muroTope = 120;
-  gFiltrados = gFiltrar($q.value);
+  gFiltrados = gFiltroColor(gFiltrar($q.value));
   const total = DATOS.gramos.length;
   document.getElementById('contador').innerHTML = gFiltrados.length === total
     ? `<b>${total}</b> sello${total === 1 ? '' : 's'}`
@@ -15592,6 +15862,7 @@ function actualizarGramos(){
 }
 
 function pintarListaGramos(){
+  if(gArch) return pintarArchivador();
   soltarFotos($lista);
   $lista.innerHTML = '';
   const frag = document.createDocumentFragment();
@@ -16943,7 +17214,851 @@ function altaBase(){
   pintar();
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   NOTAS DE TRABAJO (13 nov)
+
+   Apuntes de cómo se hace un trabajo concreto de la goma —poner un fieltro,
+   un horneado especial, la limpieza de la prensa—: cada uno con su título,
+   sus pasos en orden (con el tipo de paso, los grados y el tiempo), avisos,
+   materiales y fotos.
+
+   Dónde se guardan: cada nota es UNA fila de `colores_ajustes` con la clave
+   «nota:<id>». Esa tabla ya tiene cola sin cobertura, copia en el aparato y
+   permisos (lee todo el que tiene acceso, escribe el editor), así que las
+   notas heredan todo eso sin tabla nueva ni SQL. Borrar una nota la marca
+   `borrada` (nunca se quita la fila: así «Deshacer» siempre puede devolverla).
+   Las fotos van al cubo de siempre con el nombre «n-<id>-<n>.jpg».
+   ═══════════════════════════════════════════════════════════════════════ */
+ICONOS.notas = {
+  t: ['M7 3.5h7.5L19 8v12.5H7z', 'M14.5 3.5V8H19', 'M10 12.5h6', 'M10 16h6'],
+  f: ['M7 3.5h7.5L19 8v12.5H7z'],
+};
+
+const N_TIPOS = {
+  prensa: {n: 'Prensa',    color: '#d9a441', t: ['M5 6h14', 'M7 6v3h10V6', 'M12 9v6', 'M6 19h12', 'M9 15h6v4H9z']},
+  horno:  {n: 'Horneado',  color: '#f0857f', t: ['M12 3.5c1 3 4 4.6 4 8.6a4 4 0 0 1-8 0c0-1.6.7-2.7 1.5-3.6.2 1 .7 1.6 1.2 1.9C10.5 8 11 5.8 12 3.5z']},
+  frio:   {n: 'Enfriado',  color: '#6fa8d6', t: ['M12 3v18', 'M4.2 7.5l15.6 9', 'M19.8 7.5l-15.6 9']},
+  reposo: {n: 'Reposo',    color: '#a9a498', t: ['M12 8v4.5l3 2', 'M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17z']},
+  mano:   {n: 'A mano',    color: '#8fbf6a', t: ['M8 12V6.5a1.5 1.5 0 0 1 3 0V11', 'M11 11V5a1.5 1.5 0 0 1 3 0v6', 'M14 11V6.5a1.5 1.5 0 0 1 3 0V14a6 6 0 0 1-6 6h-.5a5 5 0 0 1-4-2L4 14.5a1.5 1.5 0 0 1 2.3-1.9L8 14']},
+};
+const N_ORDEN_TIPOS = ['prensa', 'horno', 'frio', 'reposo', 'mano'];
+const N_CATS_BASE = ['Fieltros', 'Prensa', 'Horneado', 'Engomado'];
+const nIcoTipo = (t, px) => {
+  const x = N_TIPOS[t] || N_TIPOS.mano;
+  return `<svg class="n-ico" style="--tc:${x.color}${px ? `;width:${px}px;height:${px}px` : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${x.t.map(d => `<path d="${d}"/>`).join('')}</svg>`;
+};
+const N_PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6l-1 6 3 3H7l3-3z"/><path d="M12 13v7"/></svg>';
+const N_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>';
+const N_PAUSA = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>';
+const N_RELOJ = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="6.5"/><path d="M12 10.5v3l2 1.5M9.5 3.5h5"/></svg>';
+
+// ── Utilidades ─────────────────────────────────────────────────────────
+/* Funciones y no constantes: se usan al ARRANCAR (las notas guardadas llegan
+   antes de que este módulo haya terminado de ejecutarse) y una constante aún
+   no inicializada tira un error en ese momento. */
+function nLista(){ return DATOS.notas || (DATOS.notas = []); }
+function nPorId(id){ return nLista().find(n => n.id === id); }
+function nIdNuevo(){ return 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+function nIdPaso(){ return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+const nPasos = n => Array.isArray(n.pasos) ? n.pasos : [];
+
+/** 40 -> «40 s» · 90 -> «1 min 30 s» · 3900 -> «1 h 05 min». */
+function nTiempo(seg){
+  seg = Math.max(0, Math.round(Number(seg) || 0));
+  if(seg < 60) return seg + ' s';
+  if(seg < 3600){
+    const m = Math.floor(seg / 60), s = seg % 60;
+    return s ? `${m} min ${s} s` : `${m} min`;
+  }
+  const h = Math.floor(seg / 3600), m = Math.round((seg % 3600) / 60);
+  return `${h} h${m ? ' ' + String(m).padStart(2, '0') + ' min' : ''}`;
+}
+/** La cuenta atrás: 83 -> «1:23». */
+const nReloj = seg => {
+  seg = Math.max(0, Math.ceil(seg));
+  const h = Math.floor(seg / 3600), m = Math.floor(seg % 3600 / 60), s = seg % 60;
+  return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0');
+};
+/** Lo que un resumen enseña de cada clase de paso: los grados más altos y el tiempo total. */
+function nResumen(n){
+  const out = [];
+  for(const t of N_ORDEN_TIPOS){
+    const ps = nPasos(n).filter(p => p.tipo === t);
+    if(!ps.length) continue;
+    const temp = Math.max(0, ...ps.map(p => Number(p.temp) || 0));
+    const seg = ps.reduce((a, p) => a + (Number(p.seg) || 0), 0);
+    if(!temp && !seg) continue;
+    out.push({tipo: t, temp, seg,
+      txt: [temp ? temp + ' °C' : '', seg ? nTiempo(seg) : ''].filter(Boolean).join(' · ')});
+  }
+  return out;
+}
+const nCats = () => {
+  const extra = nLista().map(n => (n.cat || '').trim()).filter(c => c && !N_CATS_BASE.includes(c));
+  return [...N_CATS_BASE, ...new Set(extra)];
+};
+const nFechaCorta = iso => {
+  const d = new Date(iso);
+  return isNaN(d) ? '' : d.toLocaleDateString('es-ES', {day: 'numeric', month: 'short'}).replace('.', '').toUpperCase();
+};
+function nCmp(a, b){
+  return (b.fijada ? 1 : 0) - (a.fijada ? 1 : 0)
+    || String(b.editado || '').localeCompare(String(a.editado || ''))
+    || String(a.titulo).localeCompare(String(b.titulo), 'es');
+}
+
+/** Una nota que llega de fuera (la nube, una copia) puede venir rota: se arregla o se tira. */
+function nLimpia(d){
+  if(!d || typeof d !== 'object' || typeof d.id !== 'string' || !d.id) return null;
+  const txt = (v, max) => String(v == null ? '' : v).slice(0, max);
+  const num = (v, lo, hi) => { v = Number(v); return Number.isFinite(v) && v >= lo && v <= hi ? Math.round(v) : null; };
+  return {
+    id: d.id, titulo: txt(d.titulo, 120), cat: txt(d.cat, 40), resumen: txt(d.resumen, 300),
+    fijada: !!d.fijada,
+    pasos: (Array.isArray(d.pasos) ? d.pasos : []).filter(p => p && typeof p === 'object').slice(0, 60).map(p => ({
+      id: typeof p.id === 'string' && p.id ? p.id : nIdPaso(),
+      tipo: ['prensa', 'horno', 'frio', 'reposo', 'mano'].includes(p.tipo) ? p.tipo : 'mano',
+      titulo: txt(p.titulo, 100), texto: txt(p.texto, 600),
+      temp: num(p.temp, 0, 500), seg: num(p.seg, 0, 86400),
+    })),
+    avisos: (Array.isArray(d.avisos) ? d.avisos : []).map(a => txt(a, 300)).filter(Boolean).slice(0, 30),
+    materiales: (Array.isArray(d.materiales) ? d.materiales : []).map(a => txt(a, 100)).filter(Boolean).slice(0, 60),
+    fotos: (Array.isArray(d.fotos) ? d.fotos : []).filter(f => typeof f === 'string' && /^n-[\w-]+$/.test(f)).slice(0, 40),
+    notas: txt(d.notas, 4000),
+    creado: txt(d.creado, 40), editado: txt(d.editado, 40),
+    autor: txt(d.autor, 40), creadoPor: txt(d.creadoPor, 40),
+    ...(d.borrada ? {borrada: true} : {}),
+  };
+}
+
+/** Llega una fila «nota:…» de la nube. Devuelve 1 si algo cambió en pantalla. */
+function notaDeNube(d){
+  if(!d || typeof d.id !== 'string') return 0;
+  const l = nLista();
+  const i = l.findIndex(x => x.id === d.id);
+  if(d.borrada){
+    if(i < 0) return 0;
+    l.splice(i, 1);
+    if(notaSel === d.id){ notaSel = null; if(SECCION === 'notas') cerrarFicha(); }
+    return 1;
+  }
+  const n = nLimpia(d);
+  if(!n) return 0;
+  if(i >= 0){ if(igualJSON(l[i], n)) return 0; l[i] = n; }
+  else l.push(n);
+  l.sort(nCmp);
+  return 1;
+}
+
+/** Guarda una nota: en la lista de este aparato, en el espejo y hacia la nube (con cola). */
+function guardarNota(n){
+  if(!puedeEditar){ brindis(SIN_PERMISO); return false; }
+  const ahora = new Date().toISOString();
+  n.editado = ahora; n.autor = NOMBRE;
+  if(!n.creado){ n.creado = ahora; n.creadoPor = NOMBRE; }
+  const l = nLista();
+  const i = l.findIndex(x => x.id === n.id);
+  if(n.borrada){ if(i >= 0) l.splice(i, 1); }
+  else if(i >= 0) l[i] = n; else l.push(n);
+  l.sort(nCmp);
+  if(MODO === 'nube'){
+    marcarSync('subiendo');
+    nube.subirAjustes([{clave: 'nota:' + n.id, datos: n}])
+      .then(ok => marcarSync(ok ? 'al-dia' : 'pendiente'))
+      .catch(e => falloNube(e));
+    nube.guardarEspejo(DATOS, ultimaSync, ROL);
+  }
+  return true;
+}
+
+// ── Búsqueda y lista ───────────────────────────────────────────────────
+function nFiltrar(txt){
+  let l = nLista().slice().sort(nCmp);
+  if(notaCat) l = l.filter(n => (n.cat || '') === notaCat);
+  const t = norm(txt || '');
+  if(!t) return l;
+  const ps = t.split(' ');
+  return l.filter(n => {
+    const hay = norm([n.titulo, n.cat, n.resumen, n.notas, ...(n.materiales || []), ...(n.avisos || []),
+      ...nPasos(n).flatMap(p => [p.titulo, p.texto, N_TIPOS[p.tipo].n])].join(' '));
+    return ps.every(p => hay.includes(p));
+  });
+}
+
+function actualizarNotas(){
+  nFiltradas = nFiltrar($q.value);
+  const total = nLista().length;
+  document.getElementById('contador').innerHTML = nFiltradas.length === total
+    ? `<b>${total}</b> nota${total === 1 ? '' : 's'}`
+    : `<b>${nFiltradas.length}</b> de ${total} nota${total === 1 ? '' : 's'}`;
+  for(const id of ['chip-pend', 'chip-pigmento', 'aviso-cal', 'riel']){
+    const el = document.getElementById(id);
+    if(el) el.hidden = true;
+  }
+  // Las categorías ocupan el sitio de los chips de clientes.
+  const $c = document.getElementById('chips-cli');
+  if($c){
+    const cats = nCats();
+    $c.hidden = !total;
+    $c.innerHTML = total
+      ? [['', 'Todas'], ...cats.map(c => [c, c])].map(([v, e]) =>
+          `<button class="chip n-cat" type="button" data-ncat="${esc(v)}" aria-pressed="${(notaCat || '') === v}">${esc(e)}</button>`).join('')
+      : '';
+    for(const b of $c.querySelectorAll('[data-ncat]'))
+      b.onclick = () => { notaCat = b.dataset.ncat || null; actualizar(); };
+  }
+  document.getElementById('limpiar').classList.toggle('on', !!$q.value);
+  pintarListaNotas();
+  if(!notaSel) muroDeNotas(); else pintarFichaNota();
+}
+
+function pintarListaNotas(){
+  $lista.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  for(const n of nFiltradas){
+    const b = document.createElement('button');
+    b.className = 'fila fila-nota'; b.type = 'button'; b.role = 'option';
+    b.dataset.id = n.id;
+    b.setAttribute('aria-current', String(n.id === notaSel));
+    const res = nResumen(n);
+    const sub = n.resumen || (nPasos(n).find(p => p.texto) || {}).texto || '';
+    b.innerHTML =
+      `<div class="n-fila-cab"><span class="g-ceja">${esc(n.cat || 'General')}</span>${n.fijada ? `<span class="n-pin" title="Fijada arriba">${N_PIN}</span>` : ''}</div>` +
+      `<div class="fila-nombre">${resaltar(n.titulo || 'Sin título', $q.value)}</div>` +
+      (sub ? `<div class="n-fila-txt">${esc(sub)}</div>` : '') +
+      `<div class="n-fila-pie">${res.map(r => `<span class="n-dato" style="--tc:${N_TIPOS[r.tipo].color}"><i></i>${esc(r.txt)}</span>`).join('')}` +
+      `<span class="n-firma">${esc((n.autor || '').toUpperCase())}${n.editado ? ' · ' + esc(nFechaCorta(n.editado)) : ''}</span></div>`;
+    b.onclick = () => abrirNota(n.id);
+    frag.appendChild(b);
+  }
+  if(!nFiltradas.length){
+    const v = document.createElement('div');
+    v.className = 'lista-nada';
+    v.innerHTML = nLista().length
+      ? '<b>Ninguna nota coincide</b>Prueba con menos letras o quita la categoría.'
+      : '<b>Todavía no hay notas</b>' + (puedeEditar
+        ? 'Apunta aquí cómo se hace un trabajo: poner un fieltro, un horneado especial, limpiar la prensa…<button class="btn btn-1" id="n-primera-lista" type="button">Escribir la primera</button>'
+        : 'Aparecerán aquí en cuanto se vayan apuntando.');
+    frag.appendChild(v);
+  }
+  $lista.appendChild(frag);
+  document.getElementById('n-primera-lista')?.addEventListener('click', () => editarNota(null));
+}
+
+function abrirNota(id){
+  abrirCapa('ficha');
+  notaSel = id;
+  document.body.dataset.ficha = 'on';
+  pintarFichaNota();
+  pintarListaNotas();
+  document.getElementById('columna-ficha').scrollTop = 0;
+}
+
+/** La ficha cuando no hay ninguna nota abierta (en el ordenador, la columna de la derecha). */
+function muroDeNotas(){
+  $ficha.classList.remove('es-muro');
+  const $col = document.getElementById('columna-ficha');
+  if($col) $col.style.removeProperty('--tono');
+  $ficha.innerHTML = `<div class="vacio">${icono('notas')}
+    <p><b>${nLista().length ? 'Elige una nota' : 'Todavía no hay notas'}</b>${nLista().length
+      ? 'Cada nota guarda un trabajo paso a paso, con sus grados y sus tiempos.'
+      : (puedeEditar
+        ? 'Apunta aquí cómo se hace un trabajo concreto de la goma: los pasos en orden, los grados, los tiempos, los avisos y las fotos.'
+        : 'Aquí aparecerán los trabajos apuntados.')}</p>
+    ${puedeEditar ? '<button class="btn btn-1" id="n-primera">Escribir una nota</button>' : ''}
+    </div>`;
+  document.getElementById('n-primera')?.addEventListener('click', () => editarNota(null));
+}
+
+// ── La nota abierta ────────────────────────────────────────────────────
+function pintarFichaNota(){
+  const n = nPorId(notaSel);
+  if(!n){
+    const abierto = document.body.dataset.ficha === 'on';
+    notaSel = null;
+    if(abierto){ cerrarFicha(); brindis('Esa nota ya no existe: la ha borrado otro aparato'); }
+    muroDeNotas(); return;
+  }
+  $ficha.classList.remove('es-muro');
+  soltarFotos($ficha);
+  const pasos = nPasos(n);
+  const res = nResumen(n);
+  const conTiempo = pasos.some(p => p.seg > 0);
+  const lect = res.slice(0, 3).map(r => {
+    const grande = r.temp ? `${r.temp}<small> °C</small>` : nTiempo(r.seg).replace(/ (s|min|h)\b/g, '<small> $1</small>');
+    return `<div class="n-lect" style="--tc:${N_TIPOS[r.tipo].color}"><span class="g-ceja">${esc(N_TIPOS[r.tipo].n)}</span>
+      <b>${grande}</b>${r.temp && r.seg ? `<em>${esc(nTiempo(r.seg))}</em>` : ''}</div>`;
+  }).join('');
+  const fotos = n.fotos || [];
+  const fid = 'n-' + n.id.slice(1) + '-' + Date.now().toString(36);
+  $ficha.innerHTML = `
+    <button class="volver" id="n-volver" type="button">${G_ICONO_ATRAS} Todas las notas</button>
+    <div class="s-titulo n-tit">
+      <div class="n-tit-cab"><span class="chip n-cat-ficha">${esc(n.cat || 'General')}</span>${n.fijada ? `<span class="n-pin">${N_PIN}</span>` : ''}</div>
+      <h2>${esc(n.titulo || 'Sin título')}</h2>
+      ${n.resumen ? `<p class="n-resumen">${esc(n.resumen)}</p>` : ''}
+    </div>
+    ${lect ? `<div class="n-lects n-lects-${Math.min(3, res.length)}">${lect}</div>` : ''}
+    ${(n.avisos || []).map(a => `<div class="aviso">${ICONO_ALERTA}<span>${esc(a)}</span></div>`).join('')}
+    ${pasos.length ? `<div class="g-cabsec n-cabsec"><span>Pasos</span><span>${pasos.length} paso${pasos.length === 1 ? '' : 's'}</span></div>
+    <ol class="n-pasos">${pasos.map((p, i) => `
+      <li class="n-paso" style="--tc:${N_TIPOS[p.tipo].color}" data-i="${i}">
+        <span class="n-paso-ico">${nIcoTipo(p.tipo)}</span>
+        <div class="n-paso-cuerpo">
+          <span class="g-ceja">${i + 1} · ${esc(N_TIPOS[p.tipo].n)}</span>
+          <b>${esc(p.titulo || N_TIPOS[p.tipo].n)}</b>
+          ${p.texto ? `<p>${esc(p.texto)}</p>` : ''}
+          ${p.temp || p.seg ? `<div class="n-paso-datos">${p.temp ? `<span class="n-dato" style="--tc:${N_TIPOS[p.tipo].color}"><i></i>${p.temp} °C</span>` : ''}${
+            p.seg ? `<span class="n-dato" style="--tc:${N_TIPOS[p.tipo].color}"><i></i>${esc(nTiempo(p.seg))}</span>` : ''}</div>` : ''}
+        </div>
+        ${p.seg > 0 ? `<button class="n-reloj" type="button" data-cron="${i}" aria-label="Cronómetro de ${esc(p.titulo || N_TIPOS[p.tipo].n)}: ${esc(nTiempo(p.seg))}">${N_RELOJ}</button>` : ''}
+      </li>`).join('')}</ol>` : '<p class="g-vacio">Esta nota todavía no tiene pasos.</p>'}
+    ${(n.materiales || []).length ? `<div class="g-cabsec n-cabsec"><span>Materiales</span></div>
+      <div class="n-mats">${n.materiales.map(m => `<span class="chip">${esc(m)}</span>`).join('')}</div>` : ''}
+    ${n.notas ? `<div class="g-cabsec n-cabsec"><span>Notas</span></div><p class="n-libre">${esc(n.notas)}</p>` : ''}
+    <div class="g-cabsec n-cabsec"><span>Fotos</span></div>
+    <div class="n-fotos">
+      ${fotos.map(f => `<div class="n-foto${tieneFoto(f) ? '' : ' sin'}"${marcaFoto(f)} data-nfoto="${esc(f)}" ${tieneFoto(f) ? 'role="button" tabindex="0" aria-label="Ver la foto"' : ''}>
+        ${tieneFoto(f) ? '' : '<span>Sin foto<br>todavía</span>'}
+        ${puedeEditar ? `<button class="n-foto-x" type="button" data-nquitar="${esc(f)}" aria-label="Quitar esta foto de la nota">${icono('cerrar')}</button>` : ''}
+      </div>`).join('')}
+      ${puedeEditar && HAY_FOTOS ? `<div class="n-foto-nueva foto-elige">${botonesFoto('nf', false)}</div>` : ''}
+    </div>
+    <p class="n-pie">${n.editado ? `Editada el ${esc(new Date(n.editado).toLocaleDateString('es-ES', {day: 'numeric', month: 'long'}))}${n.autor ? ' por ' + esc(n.autor) : ''}` : ''}</p>
+    ${puedeEditar ? `<div class="n-otras">
+      <button class="btn" id="n-duplicar" type="button" title="Hacer otra a partir de esta">${G_ICONO_COPIA} Duplicar</button>
+      <button class="btn btn-sec g-borrar" id="n-borrar" type="button" title="Eliminar esta nota">${icono('borrar')} Eliminar</button>
+    </div>` : ''}
+    <div class="barra-ficha g-barra">
+      <button class="btn btn-marca" id="n-guiar" type="button"${pasos.length ? '' : ' disabled'}>${N_PLAY} <span class="n-t-largo">Empezar paso a paso</span><span class="n-t-corto">Paso a paso</span></button>
+      ${puedeEditar ? `<button class="btn" id="n-editar" type="button">${icono('editar')} Editar</button>` : ''}
+    </div>`;
+  enlazarFotos($ficha);
+  document.getElementById('n-volver').onclick = cerrarFicha;
+  for(const b of $ficha.querySelectorAll('[data-cron]'))
+    b.onclick = () => nCronIniciar(n, Number(b.dataset.cron), true);
+  document.getElementById('n-guiar').onclick = () => nCronIniciar(n, 0, false);
+  for(const el of $ficha.querySelectorAll('[data-nfoto]')){
+    const id = el.dataset.nfoto;
+    if(!tieneFoto(id)) continue;
+    const ver = () => verFotoGrande(id, n.titulo);
+    el.onclick = e => { if(e.target.closest('[data-nquitar]')) return; ver(); };
+    el.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); ver(); } };
+  }
+  for(const b of $ficha.querySelectorAll('[data-nquitar]'))
+    b.onclick = async e => {
+      e.stopPropagation();
+      const id = b.dataset.nquitar;
+      if(!await pedirEliminar({titulo: 'Quitar la foto', boton: 'Quitar',
+        texto: `Vas a quitar esta foto de <b>${esc(n.titulo)}</b>.`})) return;
+      const copia = {...n, fotos: (n.fotos || []).filter(f => f !== id)};
+      guardarNota(copia);
+      if(tieneFoto(id)) nube.quitarFoto(id).catch(() => {});
+      pintarFichaNota();
+    };
+  if(puedeEditar && HAY_FOTOS)
+    enlazarBotonesFoto('nf', {id: fid, nombre: n.titulo || 'la nota', crudo: true, sinRegistro: true}, () => {
+      const actual = nPorId(n.id);
+      if(!actual) return;
+      guardarNota({...actual, fotos: [...(actual.fotos || []), fid]});
+      pintarFichaNota();
+    });
+  document.getElementById('n-editar')?.addEventListener('click', () => editarNota(n));
+  document.getElementById('n-duplicar')?.addEventListener('click', () => editarNota(n, true));
+  document.getElementById('n-borrar')?.addEventListener('click', async () => {
+    if(!await pedirEliminar({titulo: 'Eliminar nota',
+      texto: `Vas a eliminar la nota <b>${esc(n.titulo || 'sin título')}</b>.`})) return;
+    guardarNota({...n, borrada: true});
+    notaSel = null;
+    if(document.body.dataset.ficha === 'on') cerrarFicha();
+    actualizar();
+    brindisAccion('Nota eliminada', 'Deshacer', () => {
+      guardarNota({...n, borrada: false});
+      actualizar();
+    });
+  });
+}
+
+// ── El cronómetro de los pasos ─────────────────────────────────────────
+/* Dos usos con la misma barra: el reloj de UN paso (el botón del reloj) o la
+   guía de TODA la nota, que va paso a paso: los que tienen tiempo cuentan
+   hacia atrás y suenan al terminar; los que no, esperan a que toques «Hecho».
+   Nunca pasa sola al siguiente: quien está poniendo la prensa necesita tener
+   las manos libres antes de que arranque el siguiente tiempo.
+
+   La cuenta va contra la HORA (no suma segundos): si el móvil duerme la
+   pantalla o la app pasa a segundo plano, al volver marca lo que toca. */
+const nCron = {nota: null, i: 0, solo: false, fin: 0, resta: 0, estado: 'parado', timer: 0, aviso: 0};
+
+function nCronBarra(){
+  let b = document.getElementById('n-cron');
+  if(!b){
+    b = document.createElement('div');
+    b.id = 'n-cron'; b.className = 'n-cron'; b.hidden = true;
+    b.setAttribute('role', 'timer');
+    document.body.appendChild(b);
+  }
+  return b;
+}
+function nCronIniciar(n, i, solo){
+  clearInterval(nCron.timer); clearInterval(nCron.aviso);
+  Object.assign(nCron, {nota: JSON.parse(JSON.stringify(n)), i, solo, estado: 'parado'});
+  if(!solo) mantenerPantalla(true);
+  nCronPaso();
+}
+function nCronPaso(){
+  const p = nPasos(nCron.nota)[nCron.i];
+  if(!p) return nCronFin();
+  if(p.seg > 0){
+    nCron.fin = Date.now() + p.seg * 1000;
+    nCron.estado = 'corre';
+    clearInterval(nCron.timer);
+    nCron.timer = setInterval(nCronTic, 250);
+  }else nCron.estado = 'espera';
+  nCronPintar();
+}
+function nCronTic(){
+  if(nCron.estado !== 'corre') return;
+  if(Date.now() >= nCron.fin){
+    clearInterval(nCron.timer);
+    nCron.estado = 'listo';
+    nAlarma();
+    clearInterval(nCron.aviso);
+    let veces = 0;
+    nCron.aviso = setInterval(() => { if(nCron.estado !== 'listo' || ++veces > 6) return clearInterval(nCron.aviso); nAlarma(); }, 4000);
+  }
+  nCronPintar();
+}
+function nAlarma(){
+  try{ navigator.vibrate && navigator.vibrate([300, 150, 300, 150, 600]); }catch(_){}
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    const ac = nAlarma.ac || (nAlarma.ac = new AC());
+    if(ac.state === 'suspended') ac.resume();
+    for(let k = 0; k < 3; k++){
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'sine'; o.frequency.value = 880;
+      const t0 = ac.currentTime + k * 0.32;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.35, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.24);
+      o.connect(g).connect(ac.destination);
+      o.start(t0); o.stop(t0 + 0.26);
+    }
+  }catch(_){}
+}
+function nCronSiguiente(){
+  clearInterval(nCron.aviso);
+  if(nCron.solo) return nCronFin();
+  nCron.i++;
+  nCronPaso();
+}
+function nCronFin(){
+  clearInterval(nCron.timer); clearInterval(nCron.aviso);
+  const acabo = !nCron.solo && nCron.nota;
+  const titulo = nCron.nota && nCron.nota.titulo;
+  nCron.estado = 'parado'; nCron.nota = null;
+  nCronBarra().hidden = true;
+  document.body.classList.remove('n-guiando');
+  if(!nCron.solo) mantenerPantalla(false);
+  if(acabo) brindis('Terminado: ' + (titulo || 'la nota'));
+}
+function nCronPintar(){
+  const b = nCronBarra();
+  const n = nCron.nota;
+  if(!n){ b.hidden = true; return; }
+  const pasos = nPasos(n), p = pasos[nCron.i];
+  if(!p){ b.hidden = true; return; }
+  const resta = nCron.estado === 'corre' ? (nCron.fin - Date.now()) / 1000
+              : nCron.estado === 'pausa' ? nCron.resta
+              : nCron.estado === 'listo' ? 0 : (p.seg || 0);
+  const total = p.seg || 1;
+  const ultimo = nCron.i >= pasos.length - 1;
+  b.hidden = false;
+  document.body.classList.add('n-guiando');
+  b.dataset.estado = nCron.estado;
+  b.style.setProperty('--tc', N_TIPOS[p.tipo].color);
+  b.style.setProperty('--pct', p.seg ? Math.max(0, Math.min(1, 1 - resta / total)) * 100 + '%' : '0%');
+  const etiqueta = nCron.solo ? 'Cronómetro' : `Paso ${nCron.i + 1} de ${pasos.length}`;
+  b.innerHTML = `
+    <div class="n-cron-ico">${nIcoTipo(p.tipo, 22)}</div>
+    <div class="n-cron-txt">
+      <span class="g-ceja">${esc(etiqueta)} · ${esc(N_TIPOS[p.tipo].n)}</span>
+      <b>${esc(p.titulo || N_TIPOS[p.tipo].n)}</b>
+      ${p.texto && nCron.estado === 'espera' ? `<small>${esc(p.texto)}</small>` : ''}
+    </div>
+    ${p.seg ? `<div class="n-cron-reloj" aria-live="off">${nCron.estado === 'listo' ? '¡Ya!' : nReloj(resta)}</div>` : ''}
+    <div class="n-cron-btns">
+      ${nCron.estado === 'corre' ? `<button type="button" class="n-cb" data-c="pausa" aria-label="Pausar">${N_PAUSA}</button>` : ''}
+      ${nCron.estado === 'pausa' ? `<button type="button" class="n-cb" data-c="seguir" aria-label="Seguir">${N_PLAY}</button>` : ''}
+      <button type="button" class="n-cb n-cb-ok" data-c="sig">${
+        nCron.solo ? 'Cerrar' : nCron.estado === 'espera' ? 'Hecho' : nCron.estado === 'listo' ? (ultimo ? 'Terminar' : 'Siguiente') : (ultimo ? 'Terminar' : 'Saltar')}</button>
+      ${nCron.solo ? '' : '<button type="button" class="n-cb n-cb-x" data-c="fin" aria-label="Parar la guía">' + icono('cerrar') + '</button>'}
+    </div>`;
+  for(const x of b.querySelectorAll('[data-c]'))
+    x.onclick = () => {
+      const c = x.dataset.c;
+      if(c === 'pausa'){ nCron.resta = Math.max(0, (nCron.fin - Date.now()) / 1000); nCron.estado = 'pausa'; clearInterval(nCron.timer); nCronPintar(); }
+      else if(c === 'seguir'){ nCron.fin = Date.now() + nCron.resta * 1000; nCron.estado = 'corre'; nCron.timer = setInterval(nCronTic, 250); nCronPintar(); }
+      else if(c === 'sig'){ nCron.solo && nCron.estado === 'corre' ? nCronFin() : nCronSiguiente(); }
+      else nCronFin();
+    };
+}
+// Al volver a la app tras tenerla apagada, se pone al día en el acto.
+document.addEventListener('visibilitychange', () => { if(!document.hidden && nCron.estado === 'corre') nCronTic(); });
+
+// ── Escribir y editar una nota ─────────────────────────────────────────
+const nLeerBorr = () => { try{ return JSON.parse(localStorage.getItem('nota-borradores') || '{}') || {}; }catch(_){ return {}; } };
+const nEscBorr = m => { try{ localStorage.setItem('nota-borradores', JSON.stringify(m)); }catch(_){} };
+const nTirarBorr = clave => { const m = nLeerBorr(); delete m[clave]; nEscBorr(m); };
+
+/** Siguiente valor al pulsar + o −: pasos pequeños para tiempos cortos, grandes para los largos. */
+function nPasoSeg(v, sube){
+  v = Number(v) || 0;
+  const w = sube ? v : v - 1;
+  const paso = w < 60 ? 5 : w < 300 ? 15 : w < 1200 ? 60 : 300;
+  return sube ? v + paso : Math.max(0, v - paso);
+}
+
+function editarNota(base, duplicar){
+  if(!puedeEditar) return brindis(SIN_PERMISO);
+  const esNueva = !base || !!duplicar;
+  const clave = esNueva ? 'nueva' : base.id;
+  const n = base ? JSON.parse(JSON.stringify(base)) : {
+    id: nIdNuevo(), titulo: '', cat: notaCat || '', resumen: '', fijada: false,
+    pasos: [{id: nIdPaso(), tipo: 'prensa', titulo: '', texto: '', temp: null, seg: null}],
+    avisos: [], materiales: [], fotos: [], notas: '',
+  };
+  if(duplicar){
+    n.id = nIdNuevo(); n.titulo = (n.titulo || '') + ' (copia)'; n.fotos = [];
+    delete n.creado; delete n.creadoPor; delete n.editado; delete n.autor;
+    n.fijada = false;
+    n.pasos = nPasos(n).map(p => ({...p, id: nIdPaso()}));
+  }
+  n.avisos = n.avisos || []; n.materiales = n.materiales || []; n.fotos = n.fotos || [];
+  n.pasos = nPasos(n); n.cat = n.cat || '';
+  let recuperada = false, quiereDescartar = false, catNueva = false;
+  const bor = nLeerBorr()[clave];
+  if(bor && bor.n && !duplicar){ Object.assign(n, bor.n); recuperada = true; }
+
+  const apuntarBorrador = () => {
+    const m = nLeerBorr();
+    const algo = (n.titulo || '').trim() || n.pasos.some(p => (p.titulo || '').trim() || (p.texto || '').trim())
+      || n.avisos.some(a => a.trim()) || (n.materiales || []).length || (n.notas || '').trim();
+    if(algo) m[clave] = {n, cuando: Date.now()}; else delete m[clave];
+    nEscBorr(m);
+  };
+  escribiendoEnDlg = {
+    guardar: apuntarBorrador, id: clave, seccion: 'notas', parar: () => {},
+    hay: () => !!nLeerBorr()[clave],
+  };
+
+  const cats = () => {
+    const l = [...nCats()];
+    if(n.cat && !l.includes(n.cat)) l.push(n.cat);
+    return l;
+  };
+
+  function pintar(){
+    const scroll = $dc.scrollTop;
+    $dt.textContent = esNueva ? (duplicar ? 'Otra nota a partir de esta' : 'Nueva nota') : 'Editar nota';
+    const pasosHtml = n.pasos.map((p, i) => `
+      <div class="n-ed-paso" data-i="${i}" style="--tc:${N_TIPOS[p.tipo].color}">
+        <div class="n-ed-paso-cab">
+          <span class="g-ceja">Paso ${i + 1}</span>
+          <span class="n-ed-mover">
+            <button type="button" class="btn-icono" data-sube="${i}" aria-label="Subir el paso ${i + 1}"${i === 0 ? ' disabled' : ''}>↑</button>
+            <button type="button" class="btn-icono" data-baja="${i}" aria-label="Bajar el paso ${i + 1}"${i === n.pasos.length - 1 ? ' disabled' : ''}>↓</button>
+            <button type="button" class="btn-icono" data-quita="${i}" aria-label="Quitar el paso ${i + 1}">${icono('borrar')}</button>
+          </span>
+        </div>
+        <div class="n-tipos" role="radiogroup" aria-label="Tipo de paso">
+          ${N_ORDEN_TIPOS.map(t => `<button type="button" role="radio" class="n-tipo${p.tipo === t ? ' on' : ''}" style="--tc:${N_TIPOS[t].color}" data-tipo="${t}" data-i="${i}" aria-checked="${p.tipo === t}">
+            ${nIcoTipo(t, 19)}<span>${N_TIPOS[t].n}</span></button>`).join('')}
+        </div>
+        <label class="campo"><span>Qué se hace</span>
+          <input data-f="titulo" data-i="${i}" value="${esc(p.titulo || '')}" maxlength="100" autocomplete="off" placeholder="${esc(N_TIPOS[p.tipo].n === 'Prensa' ? 'Por ejemplo: Precalentar la prensa' : 'Por ejemplo: Colocar el fieltro')}"></label>
+        <label class="campo"><span>Detalle <em>(opcional)</em></span>
+          <textarea data-f="texto" data-i="${i}" rows="2" maxlength="600" placeholder="Cómo, con qué cuidado…">${esc(p.texto || '')}</textarea></label>
+        <div class="n-pasos-num">
+          <div class="n-num" data-num="temp" data-i="${i}">
+            <button type="button" data-d="-" aria-label="Menos grados">−</button>
+            <div><b>${p.temp ? p.temp + '<small> °C</small>' : '<small>—</small>'}</b><span class="g-ceja">Temperatura</span></div>
+            <button type="button" data-d="+" aria-label="Más grados">+</button>
+          </div>
+          <div class="n-num" data-num="seg" data-i="${i}">
+            <button type="button" data-d="-" aria-label="Menos tiempo">−</button>
+            <div><b>${p.seg ? esc(nTiempo(p.seg)) : '<small>—</small>'}</b><span class="g-ceja">Tiempo</span></div>
+            <button type="button" data-d="+" aria-label="Más tiempo">+</button>
+          </div>
+        </div>
+      </div>`).join('');
+    $dc.innerHTML = `
+      ${recuperada ? `<div class="aviso g-rec"><span>Recuperado lo que tenías a medias.</span>
+        <button type="button" id="n-tirar" class="g-enlace">Empezar de cero</button></div>` : ''}
+      <label class="campo"><span>Título</span>
+        <input id="n-e-titulo" value="${esc(n.titulo)}" maxlength="120" autocomplete="off" placeholder="Por ejemplo: Poner fieltro a un emblema"></label>
+      <div class="campo"><span>Categoría</span>
+        <div class="n-cats">
+          ${cats().map(c => `<button type="button" class="chip" data-cat="${esc(c)}" aria-pressed="${n.cat === c}">${esc(c)}</button>`).join('')}
+          ${catNueva
+            ? `<input id="n-e-catnueva" class="n-catnueva" maxlength="40" autocomplete="off" placeholder="Nombre de la categoría">`
+            : `<button type="button" class="chip n-cat-mas" id="n-e-catmas">+ Nueva</button>`}
+        </div></div>
+      <label class="campo"><span>Para qué sirve <em>(opcional)</em></span>
+        <textarea id="n-e-resumen" rows="2" maxlength="300" placeholder="Una frase que se vea en la lista">${esc(n.resumen || '')}</textarea></label>
+      <div class="g-cabsec n-cabsec"><span>Pasos · en orden</span></div>
+      ${pasosHtml || '<p class="g-vacio">Todavía no hay ningún paso.</p>'}
+      <button class="g-anadir" type="button" id="n-e-addpaso">${icono('nuevo')} Añadir paso</button>
+      <div class="g-cabsec n-cabsec"><span>Avisos · lo que no hay que olvidar</span></div>
+      ${n.avisos.map((a, i) => `<div class="n-ed-aviso"><input data-aviso="${i}" value="${esc(a)}" maxlength="300" autocomplete="off" placeholder="Por ejemplo: con doble capa, bajar 10 °C" aria-label="Aviso ${i + 1}">
+        <button type="button" class="btn-icono" data-quita-aviso="${i}" aria-label="Quitar el aviso ${i + 1}">${icono('cerrar')}</button></div>`).join('')}
+      <button class="g-anadir" type="button" id="n-e-addaviso">${icono('nuevo')} Añadir aviso</button>
+      <label class="campo" style="margin-top:14px"><span>Materiales <em>(uno por línea)</em></span>
+        <textarea id="n-e-mats" rows="3" maxlength="1500" placeholder="Fieltro 2 mm&#10;Papel antiadherente">${esc((n.materiales || []).join('\n'))}</textarea></label>
+      <label class="campo"><span>Notas <em>(opcional)</em></span>
+        <textarea id="n-e-notas" rows="3" maxlength="4000" placeholder="Lo que quieras recordar de este trabajo">${esc(n.notas || '')}</textarea></label>
+      <button type="button" class="n-fijar" id="n-e-fijar" role="switch" aria-checked="${!!n.fijada}">
+        <span>${N_PIN} Fijar arriba en la lista</span><i></i></button>
+      ${!esNueva ? `<button class="btn btn-peligro" type="button" id="n-e-borrar" style="margin-top:18px;width:100%">Eliminar la nota</button>` : ''}`;
+    $dp.innerHTML = `<button class="btn" type="button" id="n-e-cancelar">Cancelar</button>
+      <button class="btn btn-1" type="button" id="n-e-guardar">Guardar</button>`;
+    enlazar();
+    $dc.scrollTop = scroll;
+  }
+
+  function enlazar(){
+    const $ = id => document.getElementById(id);
+    $('n-e-titulo').oninput = e => { n.titulo = e.target.value; };
+    $('n-e-resumen').oninput = e => { n.resumen = e.target.value; };
+    $('n-e-mats').oninput = e => { n.materiales = e.target.value.split('\n').map(s => s.trim()).filter(Boolean); };
+    $('n-e-notas').oninput = e => { n.notas = e.target.value; };
+    for(const b of $dc.querySelectorAll('[data-cat]'))
+      b.onclick = () => { n.cat = n.cat === b.dataset.cat ? '' : b.dataset.cat; apuntarBorrador(); pintar(); };
+    $('n-e-catmas')?.addEventListener('click', () => { catNueva = true; pintar(); setTimeout(() => $('n-e-catnueva')?.focus(), 30); });
+    const cn = $('n-e-catnueva');
+    if(cn){
+      const fijar = () => {
+        const v = cn.value.trim();
+        catNueva = false;
+        if(v){ n.cat = v; apuntarBorrador(); }
+        pintar();
+      };
+      cn.onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); fijar(); } };
+      cn.onblur = fijar;
+    }
+    for(const i2 of $dc.querySelectorAll('[data-f]'))
+      i2.oninput = e => { n.pasos[+i2.dataset.i][i2.dataset.f] = e.target.value; };
+    for(const b of $dc.querySelectorAll('[data-tipo]'))
+      b.onclick = () => { n.pasos[+b.dataset.i].tipo = b.dataset.tipo; apuntarBorrador(); pintar(); };
+    for(const b of $dc.querySelectorAll('[data-sube]'))
+      b.onclick = () => { const i = +b.dataset.sube; [n.pasos[i - 1], n.pasos[i]] = [n.pasos[i], n.pasos[i - 1]]; apuntarBorrador(); pintar(); };
+    for(const b of $dc.querySelectorAll('[data-baja]'))
+      b.onclick = () => { const i = +b.dataset.baja; [n.pasos[i + 1], n.pasos[i]] = [n.pasos[i], n.pasos[i + 1]]; apuntarBorrador(); pintar(); };
+    for(const b of $dc.querySelectorAll('[data-quita]'))
+      b.onclick = () => { n.pasos.splice(+b.dataset.quita, 1); apuntarBorrador(); pintar(); };
+    for(const num of $dc.querySelectorAll('[data-num]'))
+      for(const b of num.querySelectorAll('[data-d]'))
+        b.onclick = () => {
+          const p = n.pasos[+num.dataset.i], sube = b.dataset.d === '+';
+          if(num.dataset.num === 'temp'){
+            const v = p.temp || 0;
+            p.temp = sube ? Math.min(400, v ? v + 5 : 160) : (v <= 5 ? null : v - 5);
+          }else{
+            const v = nPasoSeg(p.seg || 0, sube);
+            p.seg = v > 0 ? Math.min(86400, v) : null;
+          }
+          apuntarBorrador();
+          num.querySelector('b').innerHTML = num.dataset.num === 'temp'
+            ? (p.temp ? p.temp + '<small> °C</small>' : '<small>—</small>')
+            : (p.seg ? esc(nTiempo(p.seg)) : '<small>—</small>');
+        };
+    $('n-e-addpaso').onclick = () => {
+      const ult = n.pasos[n.pasos.length - 1];
+      n.pasos.push({id: nIdPaso(), tipo: ult && ult.tipo === 'prensa' ? 'horno' : 'mano', titulo: '', texto: '', temp: null, seg: null});
+      apuntarBorrador(); pintar();
+      setTimeout(() => { const l = $dc.querySelectorAll('.n-ed-paso'); l[l.length - 1]?.querySelector('input')?.focus(); l[l.length - 1]?.scrollIntoView({block: 'center'}); }, 40);
+    };
+    for(const i2 of $dc.querySelectorAll('[data-aviso]'))
+      i2.oninput = e => { n.avisos[+i2.dataset.aviso] = e.target.value; };
+    for(const b of $dc.querySelectorAll('[data-quita-aviso]'))
+      b.onclick = () => { n.avisos.splice(+b.dataset.quitaAviso, 1); apuntarBorrador(); pintar(); };
+    $('n-e-addaviso').onclick = () => {
+      n.avisos.push(''); apuntarBorrador(); pintar();
+      setTimeout(() => { const l = $dc.querySelectorAll('[data-aviso]'); l[l.length - 1]?.focus(); }, 40);
+    };
+    $('n-e-fijar').onclick = e => { n.fijada = !n.fijada; e.currentTarget.setAttribute('aria-checked', String(n.fijada)); apuntarBorrador(); };
+    $('n-tirar')?.addEventListener('click', () => {
+      nTirarBorr(clave); escribiendoEnDlg = null; $dlg.close();
+      setTimeout(() => editarNota(base, duplicar), 80);
+    });
+    $('n-e-cancelar').onclick = ev2 => {
+      if(nLeerBorr()[clave] && !quiereDescartar){
+        quiereDescartar = true;
+        const b = ev2.currentTarget;
+        b.textContent = '¿Tirar lo escrito?'; b.style.borderColor = 'var(--rojo)';
+        setTimeout(() => { if(b.isConnected){ quiereDescartar = false; b.textContent = 'Cancelar'; b.style.borderColor = ''; } }, 4000);
+        return;
+      }
+      nTirarBorr(clave); escribiendoEnDlg = null; $dlg.close();
+    };
+    $('n-e-borrar')?.addEventListener('click', async () => {
+      if(!await pedirEliminar({titulo: 'Eliminar nota',
+        texto: `Vas a eliminar la nota <b>${esc(base.titulo || 'sin título')}</b>.`})) return;
+      nTirarBorr(clave); escribiendoEnDlg = null;
+      cerrarDlgYLuego(() => {
+        guardarNota({...base, borrada: true});
+        notaSel = null;
+        if(document.body.dataset.ficha === 'on') cerrarFicha();
+        actualizar();
+        brindisAccion('Nota eliminada', 'Deshacer', () => { guardarNota({...base, borrada: false}); actualizar(); });
+      });
+    });
+    $('n-e-guardar').onclick = guardar;
+    if(!n.titulo && !recuperada) setTimeout(() => $('n-e-titulo')?.focus(), 80);
+  }
+
+  function guardar(){
+    const titulo = (n.titulo || '').trim();
+    if(!titulo){
+      brindis('Ponle un título a la nota');
+      document.getElementById('n-e-titulo')?.focus();
+      return;
+    }
+    // Un paso en blanco del todo sobra; uno con algo pero sin título coge el nombre de su tipo.
+    const pasos = n.pasos
+      .filter(p => (p.titulo || '').trim() || (p.texto || '').trim() || p.temp || p.seg)
+      .map(p => ({id: p.id || nIdPaso(), tipo: N_TIPOS[p.tipo] ? p.tipo : 'mano',
+        titulo: (p.titulo || '').trim() || N_TIPOS[p.tipo].n, texto: (p.texto || '').trim(),
+        temp: p.temp || null, seg: p.seg || null}));
+    const r = {
+      id: n.id, titulo, cat: (n.cat || '').trim(), resumen: (n.resumen || '').trim(),
+      fijada: !!n.fijada, pasos,
+      avisos: n.avisos.map(a => a.trim()).filter(Boolean),
+      materiales: (n.materiales || []).map(m => m.trim()).filter(Boolean),
+      fotos: n.fotos || [], notas: (n.notas || '').trim(),
+      ...(base && !duplicar ? {creado: base.creado, creadoPor: base.creadoPor} : {}),
+    };
+    nTirarBorr(clave);
+    escribiendoEnDlg = null;
+    guardarNota(r);
+    cerrarDlgYLuego(() => {
+      actualizar();
+      abrirNota(r.id);
+      brindis('Guardada');
+    });
+  }
+
+  pintar();
+  if(!$dlg.open) $dlg.showModal();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   EL ARCHIVADOR DE SELLOS (13 nov)
+
+   Los datos ya estaban: cada sello guarda su foto y los gramos de cada color
+   que lleva. Lo que cambia es CÓMO SE VE: en vez de una lista, una cuadrícula
+   de fotos —como un archivador— con los colores en pastillas debajo de cada
+   una, y una fila de colores para ver de un toque «qué sellos llevan este».
+   No hay datos nuevos ni tabla nueva; la lista de siempre sigue ahí, con un
+   interruptor Lista / Archivador (se recuerda en este aparato).
+   ═══════════════════════════════════════════════════════════════════════ */
+const gGuardarVista = v => { try{ localStorage.setItem('sellos-vista', v ? 'arch' : 'lista'); }catch(_){} };
+
+/** Los colores (sin repetir) que lleva un sello, en todas sus variantes, por orden de aparición. */
+const gColoresDe = g => {
+  const vistos = new Set(), out = [];
+  for(const v of gVars(g)) for(const c of (v.colores || [])) if(!vistos.has(c.ref)){ vistos.add(c.ref); out.push(c.ref); }
+  return out;
+};
+/** Deja solo los sellos que llevan el color elegido en la fila «Lleva». */
+const gFiltroColor = lista => gColorFiltro ? lista.filter(g => gColoresDe(g).includes(gColorFiltro)) : lista;
+
+/** El interruptor Lista / Archivador de la cabecera: solo se ve en Sellos. */
+function pintarVistaSellos(){
+  const $v = document.getElementById('g-vista');
+  if(!$v) return;
+  $v.hidden = SECCION !== 'gramos';
+  for(const b of $v.querySelectorAll('[data-vista]'))
+    b.setAttribute('aria-checked', String((b.dataset.vista === 'arch') === gArch));
+  document.body.dataset.sellosVista = SECCION === 'gramos' && gArch ? 'arch' : '';
+}
+document.getElementById('g-vista')?.addEventListener('click', e => {
+  const b = e.target.closest('[data-vista]');
+  if(!b) return;
+  const quiere = b.dataset.vista === 'arch';
+  if(quiere === gArch) return;
+  gArch = quiere; gGuardarVista(gArch);
+  if(!gArch) gColorFiltro = null;
+  pintarVistaSellos();
+  if(SECCION === 'gramos') actualizar();
+});
+
+/** La cuadrícula. Sustituye a la lista de filas cuando el interruptor está en «Archivador». */
+function pintarArchivador(){
+  soltarFotos($lista);
+  $lista.innerHTML = '';
+  // Los colores más usados en los sellos, para tener a mano la fila «Lleva».
+  const uso = new Map();
+  for(const g of DATOS.gramos) for(const r of gColoresDe(g)) uso.set(r, (uso.get(r) || 0) + 1);
+  const top = [...uso.entries()].filter(([r]) => porId.has(r))
+    .sort((a, b) => b[1] - a[1] || gCmp(porId.get(a[0]).nombre, porId.get(b[0]).nombre)).slice(0, 18);
+  if(gColorFiltro && !top.some(([r]) => r === gColorFiltro) && porId.has(gColorFiltro))
+    top.unshift([gColorFiltro, uso.get(gColorFiltro) || 0]);
+
+  const frag = document.createDocumentFragment();
+  if(top.length){
+    const fila = document.createElement('div');
+    fila.className = 'arch-lleva';
+    fila.innerHTML = `<span class="g-ceja">Lleva</span><div class="arch-chips" role="group" aria-label="Filtrar por color">${
+      top.map(([r, n]) => {
+        const nom = gPartes(porId.get(r).nombre).base;
+        return `<button type="button" class="chip arch-chip" data-lleva="${esc(r)}" aria-pressed="${r === gColorFiltro}" title="${esc(nom)} · ${n} sello${n === 1 ? '' : 's'}">${gGota(gHex(r), 14)}<span>${esc(nom)}</span></button>`;
+      }).join('')}</div>`;
+    frag.appendChild(fila);
+  }
+  const rej = document.createElement('div');
+  rej.className = 'arch-rej';
+  for(const g of gFiltrados){
+    const fid = gFotoId(g);
+    const con = tieneFoto(fid);
+    const cols = gColoresDe(g);
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'arch-t'; b.dataset.id = g.id;
+    b.setAttribute('aria-current', String(g.id === gramoSel));
+    const nv = gVars(g).length;
+    b.innerHTML =
+      `<div class="arch-foto${con ? '' : ' sin'}"${marcaFoto(fid)}>${con ? '' : icono('sellos')}
+        ${gPorMolde(g) > 1 ? `<span class="arch-n">${gPorMolde(g)} sellos</span>` : ''}</div>` +
+      `<b>${resaltar(g.nombre, $q.value)}</b>` +
+      `<span class="arch-sub">${esc([gMoldeTxt(g), nv > 1 ? nv + ' variantes' : ''].filter(Boolean).join(' · ') || 'Sin molde')}</span>` +
+      `<div class="arch-pastillas">${cols.slice(0, 6).map(r => gGota(gHex(r), 20)).join('')}${
+        cols.length > 6 ? `<span>+${cols.length - 6}</span>` : ''}${
+        cols.length ? '' : '<em class="falta">sin colores</em>'}</div>`;
+    b.onclick = () => abrirGramo(g.id);
+    rej.appendChild(b);
+  }
+  if(!gFiltrados.length){
+    const v = document.createElement('div');
+    v.className = 'lista-nada';
+    v.innerHTML = DATOS.gramos.length
+      ? '<b>Ningún sello coincide</b>Prueba con menos letras, o quita el color de arriba.'
+      : '<b>Todavía no hay sellos</b>' + (puedeEditar
+        ? 'Cada sello guarda su foto y los gramos de cada color.<button class="btn btn-1" id="g-primero-lista" type="button">Añadir el primero</button>'
+        : 'Aparecerán aquí en cuanto se vayan apuntando.');
+    frag.appendChild(v);
+  }else frag.appendChild(rej);
+  $lista.appendChild(frag);
+  for(const c of $lista.querySelectorAll('[data-lleva]'))
+    c.onclick = () => { gColorFiltro = gColorFiltro === c.dataset.lleva ? null : c.dataset.lleva; actualizar(); };
+  document.getElementById('g-primero-lista')?.addEventListener('click', () => editarGramo(null));
+  enlazarFotos($lista);
+}
+
 window.__app = {
+  nLista, nPorId, nLimpia, guardarNota, editarNota, abrirNota, nResumen, nTiempo, nCron, nCronIniciar, nFiltrar,
+  gColoresDe, get notaSel(){ return notaSel; }, get gArch(){ return gArch; },
   get DATOS(){ return DATOS; }, porId, materias, busq, norm, nube, MODO,
   anotar, anotarMateria, empujar, guardar, reconstruir, actualizar, sincronizar,
   verPigmento, pantallaChoques, avisarCopia, mantenerPantalla,

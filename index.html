@@ -1259,8 +1259,6 @@ body[data-ficha="on"] .tarjeta-fm{border-top:2px solid var(--tono, var(--linea))
 
 /* ── Modo pesaje: números grandes, para leerlos de un vistazo con el
    móvil en la mesa y las manos ocupadas ───────────────────────────── */
-@property --v{syntax:'<number>'; inherits:false; initial-value:0}
-@property --p{syntax:'<number>'; inherits:true; initial-value:.62}
 /* El bloque grande del ingrediente que toca. Es un botón entero. */
 .pes-heroe{
   display:flex; flex-direction:column; align-items:center; gap:12px; width:100%;
@@ -1273,34 +1271,6 @@ body[data-ficha="on"] .tarjeta-fm{border-top:2px solid var(--tono, var(--linea))
 .pes-heroe:active{translate:0 2px; box-shadow:inset 0 2px 5px rgba(0,0,0,.25)}
 .pes-heroe.pes-hecho{cursor:default}
 .pes-heroe.pes-hecho:active{translate:none; box-shadow:inset 0 1px 0 var(--canto), var(--sombra-3)}
-/* El aro: cuánto del bote va hecho. Es un gradiente cónico, sin SVG. */
-.pes-aro{
-  width:188px; height:188px; border-radius:50%; position:relative; flex:0 0 auto;
-  background:conic-gradient(var(--tinta) calc(var(--v,0) * 1%), var(--linea) 0);
-  box-shadow:var(--sombra-2);
-  transition:--v .3s var(--salida);
-}
-.pes-aro.receta{box-shadow:var(--sombra-2), 0 0 0 1px var(--linea); animation:pulso-aro 1.6s ease-in-out 6 alternate}
-/* Late unos segundos cada vez que cambia el ingrediente y se queda quieto: un
-   aro repintándose sin parar es batería, y aquí la pantalla no se apaga. */
-@keyframes pulso-aro{from{--p:.5} to{--p:1}}
-.pes-aro::before{
-  content:""; position:absolute; inset:12px; border-radius:50%;
-  background:linear-gradient(180deg,var(--panel),var(--panel-luz));
-  box-shadow:inset 0 2px 6px rgba(0,0,0,.35), inset 0 1px 0 var(--canto);
-}
-.pes-num{
-  position:absolute; inset:0; display:flex; flex-direction:column; align-items:center;
-  justify-content:center; gap:5px; padding:0 22px;
-}
-.pes-num b{font-size:50px; font-weight:700; letter-spacing:-.045em; line-height:1}
-.pes-num b em{font-style:normal; font-family:var(--mono); font-size:15px; font-weight:500; letter-spacing:.06em; color:var(--texto-2); margin-left:4px}
-.pes-num span{font-family:var(--mono); font-size:9.5px; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:var(--texto-3); line-height:1.3}
-.pes-num svg{width:56px; height:56px; color:var(--verde)}
-.pes-heroe-txt{display:flex; align-items:center; gap:12px; max-width:100%; min-width:0}
-.pes-heroe-txt .pes-color{width:34px; height:34px; display:block; flex:0 0 auto}
-.pes-heroe-txt b{display:block; font-size:19px; font-weight:700; letter-spacing:-.02em; text-align:left}
-.pes-heroe-txt small{display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--texto-3); text-align:left; margin-top:2px}
 .pes-ya-txt{
   display:inline-flex; align-items:center; gap:8px; height:46px; padding:0 22px; border-radius:999px;
   background:linear-gradient(180deg,var(--tinta),var(--tinta-2)); color:var(--tinta-txt);
@@ -1348,9 +1318,7 @@ body[data-ficha="on"] .tarjeta-fm{border-top:2px solid var(--tono, var(--linea))
 /* En el móvil el aro y el atajo tienen que caber JUNTOS sin arrastrar: si
    'Me he equivocado' queda debajo del doblez, no existe. */
 @media (max-width:420px){
-  .pes-aro{width:162px; height:162px} .pes-num b{font-size:42px}
   .pes-heroe{gap:9px; padding:13px 13px 11px}
-  .pes-heroe-txt .pes-color{width:30px; height:30px}
   .pes-ya-txt{height:42px; padding:0 18px}
   .pes-pase{min-height:48px; padding:9px 16px}
 }
@@ -1668,7 +1636,6 @@ dialog[open] .hoja{animation:entra .2s var(--salida)}
   *{animation-duration:.01ms !important; transition-duration:.01ms !important;
     animation-delay:0ms !important}
   :root{--ritmo:0}
-  .pes-aro.receta{animation:none}
   ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none !important}
 }
 
@@ -2180,11 +2147,7 @@ body[data-ficha="on"] .actualiza{bottom:calc(max(14px,env(safe-area-inset-bottom
   background:linear-gradient(180deg,var(--alarma),var(--alarma-2)); color:#fff;
   border-color:var(--alarma-borde); box-shadow:0 0 0 3px var(--alarma-halo), var(--sombra-3);
 }
-.pes-heroe.en-rojo .pes-heroe-txt small,.pes-heroe.en-rojo .pes-ya-txt{color:rgba(255,255,255,.92)}
-.pes-heroe.en-rojo .pes-heroe-txt b{color:#fff}
-/* El centro del aro sigue siendo del color del panel: sin esto heredaba el
-   blanco del bloque y el número desaparecía sobre el fondo claro. */
-.pes-heroe.en-rojo .pes-num{color:var(--texto)}
+.pes-heroe.en-rojo .pes-ya-txt{color:rgba(255,255,255,.92)}
 .pes-fila.en-rojo{
   background:linear-gradient(180deg,var(--alarma),var(--alarma-2)); color:#fff; border-color:var(--alarma-borde);
 }
@@ -3433,7 +3396,6 @@ body:has(.avisa-copia) .brindis.con-accion{bottom:calc(max(14px,env(safe-area-in
    botones comían tanto que «Ya está · siguiente» quedaba por debajo y había que
    arrastrar para llegar al botón que más se pulsa. Se compacta SOLO ahí. */
 @media (max-width:420px) and (max-height:720px){
-  .pes-aro{width:128px; height:128px} .pes-num b{font-size:34px}
   .pes-heroe{padding:10px 12px 9px; gap:7px}
   .pes-cab{margin-bottom:6px}
   .pes-cab small{white-space:normal; line-height:1.25}
@@ -3441,14 +3403,6 @@ body:has(.avisa-copia) .brindis.con-accion{bottom:calc(max(14px,env(safe-area-in
   .pes-btn{margin-top:2px}
   #dlg:has(#pes-fin) .hoja-pie{flex-wrap:nowrap; gap:8px; padding:8px 12px max(8px,env(safe-area-inset-bottom))}
   #dlg:has(#pes-fin) .hoja-pie .btn{height:42px; padding:0 10px; font-size:13px; white-space:nowrap}
-}
-
-/* Pesaje en Cristal: el disco de dentro del aro era translúcido y dejaba pasar
-   los trozos de color de cada ingrediente POR DETRÁS del rótulo («A echar ·
-   báscula a cero» quedaba encima de un trozo rojo u oliva, ilegible). Opaco,
-   con un pelo más de luz arriba para que siga teniendo volumen. */
-html[data-cristal="on"] .pes-aro::before{
-  background:linear-gradient(180deg, color-mix(in srgb, var(--fondo) 90%, white), var(--fondo));
 }
 
 /* ── Crudo y pigmentos (27-oct) ──────────────────────────────────────────
@@ -3483,9 +3437,7 @@ html[data-cristal="on"] .pes-aro::before{
   border-color:var(--pig-borde);
   box-shadow:0 0 0 3px rgba(244,188,12,.45), var(--sombra-3);
 }
-.pes-heroe.en-pigmento .pes-heroe-txt small,.pes-heroe.en-pigmento .pes-ya-txt{color:rgba(27,20,0,.88)}
-.pes-heroe.en-pigmento .pes-heroe-txt b{color:var(--pig-tinta)}
-.pes-heroe.en-pigmento .pes-num{color:var(--texto)}
+.pes-heroe.en-pigmento .pes-ya-txt{color:rgba(27,20,0,.88)}
 .pes-heroe.en-crudo{
   background:color-mix(in srgb, var(--texto) 9%, var(--panel));
 }
@@ -3774,6 +3726,180 @@ body[data-seccion="notas"] #btn-pdf{display:none}
   .n-t-largo{display:none}
   .n-t-corto{display:inline}
 }
+
+/* ═══ PESAJE «INSTRUMENTO» ═══════════════════════════════════════════════
+   El bote que se llena sustituye al aro. Maqueta aprobada:
+   claude/maqueta-instrumento.html. Lo caro (chorro, olas, remolino, luz de
+   fondo) va detrás de html[data-efectos="on"]; con "off" queda el mismo
+   diseño, quieto: el bote, la escala y las cifras se ven igual. */
+.pes-heroe.ins{position:relative; overflow:hidden; align-items:stretch; gap:12px; padding:14px 14px 13px; text-align:left}
+.pes-heroe.ins > *{position:relative}
+html[data-efectos="on"] .pes-heroe.ins::before{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(75% 60% at 38% 42%, color-mix(in srgb, var(--cur) 24%, transparent), transparent 72%);
+}
+.pes-heroe.ins.en-rojo::before{display:none}
+
+.ins-zona{
+  --bw:124px; --bh:200px;
+  display:grid; grid-template-columns:34px var(--bw) minmax(0,1fr); gap:8px; align-items:start; width:100%;
+}
+@media (min-width:480px){ .ins-zona{--bw:156px; --bh:248px; grid-template-columns:40px var(--bw) minmax(0,1fr); gap:14px} }
+@media (max-width:420px) and (max-height:720px){ .ins-zona{--bw:100px; --bh:150px; grid-template-columns:30px var(--bw) minmax(0,1fr)} }
+
+/* Escala milimetrada + línea de nivel */
+.ins-escala{position:relative; z-index:5; height:var(--bh); margin-top:14px}
+.ins-escala i{position:absolute; right:0; height:1px; width:7px; background:var(--linea-fuerte)}
+.ins-escala i.g{width:13px; background:var(--texto-3)}
+.ins-escala i b{position:absolute; right:17px; top:-7px; font:500 9.5px var(--mono); letter-spacing:.02em; color:var(--texto-3); transition:opacity .3s}
+.ins-nivel{
+  position:absolute; left:0; width:calc(100% + var(--bw) + 10px); height:0; z-index:5; pointer-events:none;
+  border-top:1.5px dashed color-mix(in srgb, var(--cur) 80%, var(--texto) 12%);
+  transition:bottom 1s var(--salida);
+}
+.ins-nivel span{
+  position:absolute; left:0; top:-10px; padding:2px 6px; border-radius:6px;
+  background:var(--cur); color:var(--cur-txt,#0a0b0d); font:600 10px var(--mono); letter-spacing:-.01em;
+  box-shadow:0 0 0 1px color-mix(in srgb, var(--texto) 22%, transparent);
+}
+html[data-efectos="off"] .ins-nivel{transition:none}
+
+/* El bote */
+.ins-bote{position:relative; margin-top:14px; width:var(--bw); height:var(--bh)}
+.ins-boca{
+  position:absolute; left:-3px; right:-3px; top:-8px; height:13px; border-radius:8px; z-index:6;
+  background:linear-gradient(180deg, rgba(255,255,255,.3), rgba(255,255,255,.08));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.24), 0 3px 6px rgba(0,0,0,.28);
+}
+.ins-cristal{
+  position:absolute; inset:0; border-radius:12px 12px 28px 28px; overflow:hidden; z-index:2;
+  background:linear-gradient(90deg, rgba(255,255,255,.07), rgba(255,255,255,.015) 40%, rgba(255,255,255,.05));
+  box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--texto) 26%, transparent), inset 0 -14px 24px rgba(0,0,0,.25);
+}
+.ins-liquido{position:absolute; inset:5px; border-radius:8px 8px 24px 24px; overflow:hidden; background:color-mix(in srgb, var(--texto) 9%, var(--panel))}
+.ins-capas{position:absolute; inset:0; display:flex; flex-direction:column-reverse}
+.ins-capa{position:relative; flex:0 0 auto; height:0; background:var(--k); transition:height 1s var(--salida), background 1.6s ease}
+html[data-efectos="off"] .ins-capa{transition:none}
+html[data-efectos="on"] .ins-capa.sup::after{
+  content:""; position:absolute; left:-30%; top:-6px; width:160%; height:12px; background:inherit; border-radius:50%;
+  animation:ins-ola 3.4s ease-in-out infinite alternate;
+}
+@keyframes ins-ola{from{transform:translateX(-9%) scaleY(1)} to{transform:translateX(9%) scaleY(.55)}}
+.ins-velo{position:absolute; inset:0; z-index:8; pointer-events:none;
+  background:linear-gradient(90deg, rgba(255,255,255,.12), transparent 30%, transparent 70%, rgba(0,0,0,.2)), linear-gradient(180deg, rgba(255,255,255,.1), transparent 25%, rgba(0,0,0,.16))}
+.ins-remolino{display:none; position:absolute; inset:-30%; opacity:0; pointer-events:none; mix-blend-mode:screen; filter:blur(16px);
+  background:conic-gradient(from 0deg, var(--r1), var(--r2), var(--r3), var(--r1))}
+html[data-efectos="on"] .ins-remolino{display:block}
+.ins-liquido.mezclando .ins-remolino{animation:ins-giro 1.7s ease-in-out forwards}
+@keyframes ins-giro{0%{opacity:0; transform:rotate(0)} 35%{opacity:.85} 100%{opacity:0; transform:rotate(300deg)}}
+.ins-brillo{position:absolute; left:11px; top:14px; bottom:34px; width:8px; border-radius:6px; z-index:4; background:linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,.04) 70%); opacity:.65}
+.ins-brillo2{position:absolute; right:12px; top:24px; height:60px; width:3px; border-radius:3px; z-index:4; background:rgba(255,255,255,.25)}
+.ins-sombra{position:absolute; left:8%; right:8%; bottom:-13px; height:15px; border-radius:50%; background:radial-gradient(closest-side, rgba(0,0,0,.5), transparent); z-index:0}
+.ins-chorro{position:absolute; left:50%; top:-60px; width:8px; margin-left:-4px; border-radius:6px; z-index:7; transform-origin:top; opacity:0; pointer-events:none;
+  background:var(--k); box-shadow:inset 2px 0 0 rgba(255,255,255,.35)}
+.ins-bote.sacude{animation:ins-sacude .46s var(--salida)}
+@keyframes ins-sacude{15%{transform:translateX(-5px) rotate(-1.5deg)} 40%{transform:translateX(4px) rotate(1.2deg)} 65%{transform:translateX(-2px)} 100%{transform:none}}
+
+/* La lectura: cifras de aparato, mono y quietas */
+.ins-lectura{display:flex; flex-direction:column; gap:5px; min-width:0; padding:10px 0 0 2px}
+.ins-rot{font-family:var(--mono); font-size:9.5px; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--texto-3); line-height:1.3}
+.ins-gran{font-family:var(--mono); font-size:40px; font-weight:500; line-height:1; letter-spacing:-.05em; font-variant-numeric:tabular-nums; animation:ins-entra .26s var(--salida) both}
+.ins-gran small{font-size:16px; letter-spacing:0; color:var(--texto-2); margin-left:2px}
+.ins-gran.l4{font-size:34px} .ins-gran.l5{font-size:28px}
+@media (min-width:480px){ .ins-gran{font-size:50px} .ins-gran.l4{font-size:42px} .ins-gran.l5{font-size:35px} }
+@keyframes ins-entra{from{opacity:0; transform:translateY(4px)}}
+.ins-quien{display:flex; align-items:center; gap:9px; margin-top:6px; min-width:0}
+.ins-quien b{font-size:15.5px; font-weight:700; letter-spacing:-.015em; line-height:1.15; min-width:0; overflow-wrap:anywhere}
+.ins-pas{width:30px; height:30px; flex:0 0 auto; display:block}
+.ins-sub{font-family:var(--mono); font-size:10px; letter-spacing:.06em; color:var(--texto-3); line-height:1.35}
+.ins-echado{display:flex; flex-wrap:wrap; align-items:baseline; gap:3px 6px; margin-top:6px; padding-top:8px; border-top:1px solid var(--linea)}
+.ins-echado b{font-family:var(--mono); font-size:18px; font-weight:500; letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+.ins-ok{width:34px; height:34px; border-radius:50%; background:var(--verde); display:grid; place-items:center; color:#0a0b0d}
+.ins-ok svg{width:19px; height:19px}
+.ins-foto{display:flex; align-items:center; gap:9px; margin:8px 0 0}
+.ins-foto img{width:52px; height:52px; border-radius:50%; object-fit:cover; flex:0 0 auto; background:var(--panel-2);
+  box-shadow:0 0 0 2px var(--panel), 0 0 0 3px var(--linea-fuerte), 0 4px 9px rgba(0,0,0,.35)}
+.ins-foto img:not([src]){visibility:hidden}
+.ins-foto figcaption{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--texto-3); line-height:1.3}
+.pes-heroe.en-rojo .ins-rot,.pes-heroe.en-rojo .ins-sub,.pes-heroe.en-rojo .ins-gran small,.pes-heroe.en-rojo .ins-foto figcaption{color:rgba(255,255,255,.9)}
+.pes-heroe.en-rojo .ins-echado{border-top-color:rgba(255,255,255,.35)}
+.pes-heroe.en-rojo .ins-quien b{color:#fff}
+
+/* Al terminar: el botón se vuelve verde y pide la etiqueta */
+.ins-etq{
+  display:flex; align-items:center; justify-content:center; gap:9px; width:100%; min-height:54px; border-radius:var(--r-l);
+  background:var(--verde); color:#0a0b0d; font:inherit; font-size:16px; font-weight:700; letter-spacing:-.01em; cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4), var(--sombra-2); transition:translate .1s var(--salida);
+}
+.ins-etq:active{translate:0 2px}
+.ins-etq svg{width:20px; height:20px}
+
+/* Pastillas de goma: un taco con volumen (brillo arriba, sombra abajo). El
+   color va en línea, así que el relieve se pinta con un pseudo-elemento. */
+.pes-fila .pes-color,.ins-pas{position:relative; box-shadow:var(--sombra-gota)}
+.pes-fila .pes-color::after,.ins-pas::after{
+  content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle at 32% 24%, rgba(255,255,255,.4), transparent 46%);
+}
+.pes-fila.en-rojo .pes-color{box-shadow:0 0 0 2px #fff, var(--sombra-gota)}
+
+/* Progreso: regla con marcas, no barra lisa */
+.pes-barra{position:relative; overflow:visible; background:none; height:14px; margin-bottom:10px}
+.pes-barra::before{content:""; position:absolute; left:0; right:0; top:5px; height:4px; border-radius:4px; background:var(--linea)}
+.pes-barra i{position:absolute; left:0; top:5px; height:4px; border-radius:4px}
+.pes-barra::after{
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:.7;
+  background:repeating-linear-gradient(90deg, var(--linea-fuerte) 0 1px, transparent 1px 12px);
+  -webkit-mask:linear-gradient(180deg, transparent 0 62%, #000 62%); mask:linear-gradient(180deg, transparent 0 62%, #000 62%);
+}
+
+/* Botones de la lista más grandes en pantallas táctiles */
+@media (pointer:coarse){ .pes-btn .btn{height:46px} }
+
+@media (prefers-reduced-motion:reduce){
+  .ins-capa.sup::after,.ins-liquido.mezclando .ins-remolino,.ins-bote.sacude,.ins-gran{animation:none !important}
+}
+
+/* Móvil: la franja de botones de abajo en UNA fila (antes solo en móviles
+   bajitos), para que «Me he equivocado» quede a la vista sin arrastrar. */
+@media (max-width:420px){
+  #dlg:has(#pes-fin) .hoja-pie{flex-wrap:nowrap; gap:8px; padding:8px 12px max(8px,env(safe-area-inset-bottom))}
+  #dlg:has(#pes-fin) .hoja-pie .btn{height:44px; padding:0 10px; font-size:13px; white-space:nowrap}
+}
+
+/* Móviles bajitos: «Ya está» y «Me he equivocado» tienen que verse sin
+   arrastrar. Se aprieta el bote y se esconde la fila «En el bote» (la línea de
+   nivel de la escala ya dice lo mismo). */
+@media (max-width:420px) and (max-height:780px){
+  .pes-heroe.ins{padding:11px 12px 10px; gap:9px}
+  .ins-zona{--bh:156px}
+  .ins-escala,.ins-bote{margin-top:10px}
+  .ins-echado{display:none}
+  .ins-lectura{padding-top:4px; gap:4px}
+  .ins-gran{font-size:36px} .ins-gran.l4{font-size:31px} .ins-gran.l5{font-size:26px}
+  .ins-quien{margin-top:3px}
+  .pes-heroe.ins .pes-ya-txt{height:40px}
+  .pes-pase-fila{margin-bottom:8px}
+  .pes-pase{min-height:44px; padding:7px 16px}
+}
+@media (max-width:420px) and (max-height:700px){
+  .ins-zona{--bh:128px; --bw:92px; grid-template-columns:28px var(--bw) minmax(0,1fr)}
+  .ins-foto{display:none}
+  .pes-cab{margin-bottom:6px}
+  .pes-barra{margin-bottom:6px}
+  .pes-bote{padding:6px 10px; font-size:12px; line-height:1.25}
+}
+
+/* Los otros dos fondos del bloque grande: pigmento (amarillo) y 90/10 (rojo).
+   La escala y los rótulos pequeños se leen sobre ellos. */
+.pes-heroe.en-pigmento::before{display:none}
+.pes-heroe.en-pigmento .ins-rot,.pes-heroe.en-pigmento .ins-sub,.pes-heroe.en-pigmento .ins-gran small,
+.pes-heroe.en-pigmento .ins-foto figcaption,.pes-heroe.en-pigmento .ins-escala i b{color:rgba(27,20,0,.85)}
+.pes-heroe.en-pigmento .ins-quien b,.pes-heroe.en-pigmento .ins-echado b{color:var(--pig-tinta)}
+.pes-heroe.en-pigmento .ins-echado{border-top-color:rgba(27,20,0,.3)}
+.pes-heroe.en-pigmento .ins-escala i{background:rgba(27,20,0,.5)}
+.pes-heroe.en-rojo .ins-escala i b{color:rgba(255,255,255,.88)}
+.pes-heroe.en-rojo .ins-escala i{background:rgba(255,255,255,.55)}
 /* ═══ LA BARRA DE ABAJO · versión «dock» (13 nov) ═══
    Tres secciones + Escanear + Opciones, TODAS con su nombre escrito, y el «+»
    fuera de la barra, flotando encima con lo que va a crear («Nuevo color»,
@@ -8967,6 +9093,7 @@ function pintarPesaje(){
   if($pc) requestAnimationFrame(()=>$pc.scrollIntoView({block:'nearest'}));
   // La animación se dispara al crearse la fila, así que el aviso se consume:
   // si no, cada repintado la haría revivir.
+  instrumentoPost();
   pes.recien = null;
   mantenerPantalla(true).then(puesto=>{
     const el = document.getElementById('pes-sub');
@@ -9008,7 +9135,8 @@ function pintarPesaje(){
     pes.piso.set(k, pl.T);        // y el lote que estaba vigente al echarlo
     pes.recien = k;               // solo esta fila hace el barrido verde
     const listo = plan().filas.every(x=>x.falta===0);
-    vibrar(listo ? [30, 60, 30] : 25);
+    vibrar(listo ? [40, 60, 40, 60, 220] : 25);
+    pitido(listo ? [[660, .12], [880, .24]] : [[880, .06]]);
     pintarPesaje(); guardarPesaje();
   };
   for(const b of $dc.querySelectorAll('[data-echar]'))
@@ -9077,30 +9205,6 @@ function pintarPesaje(){
    goma no hay que buscar nada pequeño. Y vibra un instante al confirmar,
    para saber que ha cogido el toque sin mirar. */
 function vibrar(patron){ try{ navigator.vibrate && navigator.vibrate(patron); }catch(_){} }
-/* El aro ya no es una barra gris que se llena: es la RECETA. Un arco por
-   ingrediente, de su color y tan ancho como su cantidad. Los que ya están
-   echados van a todo color, el que toca late (--p, ver el CSS) y los que
-   faltan están apagados. De un vistazo se ve cuánto queda y de qué es cada
-   trozo. Un pequeño hueco entre arcos para que se lean por separado. */
-function fondoAro(p){
-  const cant = p.filas.map(x=> Math.max(0, x.previsto ?? x.objetivo ?? 0));
-  const tot = cant.reduce((t,c)=>t+c, 0) || p.filas.length;
-  const gap = p.filas.length > 1 ? 2.4 : 0;
-  const actual = p.filas.findIndex(x=>x.falta !== 0);
-  let a = 0; const st = [];
-  p.filas.forEach((x,k)=>{
-    const span = (tot === p.filas.length && !cant.some(c=>c>0) ? 1 : cant[k]) / tot * 360;
-    const ini = a + gap/2, fin = a + span - gap/2; a += span;
-    const m = x.i.tipo==='materia' ? materias.get(x.i.ref) : null;
-    const sub = x.i.tipo==='formula' ? porId.get(x.i.ref) : null;
-    const hex = m?.hex_referencia || (sub ? color(sub).hex : null) || '#888888';
-    const col = x.falta === 0 ? hex
-      : k === actual ? `color-mix(in srgb, ${hex} calc(var(--p) * 100%), var(--linea))`
-      : `color-mix(in srgb, ${hex} 26%, var(--linea))`;
-    st.push(`var(--panel) ${a-span}deg ${ini}deg`, `${col} ${ini}deg ${fin}deg`, `var(--panel) ${fin}deg ${a}deg`);
-  });
-  return `conic-gradient(from 0deg, ${st.join(',')})`;
-}
 /* ── LOS 90/10 EN ROJO ────────────────────────────────────────────────
    Tres capas, de menos a más, para que echar 32 g de azul puro donde tocaba el
    90/10 no vuelva a pasar:
@@ -9160,53 +9264,6 @@ function avisoCapacidad(p){
     <span>Este lote pesa <b>${fmt(p.total)} g</b> y tu máximo por preparación son <b>4,5 kg</b>:
     no cabe en un solo bote. Mejor hazlo en <b>${partes} preparaciones</b> de unos
     <b>${fmt(Math.ceil(p.total / partes))} g</b>.</span></div>`;
-}
-
-function heroePesaje(p, hechas){
-  const n = p.filas.length;
-  if(hechas === n){
-    return `<div class="pes-heroe pes-hecho" id="pes-heroe">
-      <div class="pes-aro" style="--v:100"><div class="pes-num">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>
-      </div></div>
-      <div class="pes-heroe-txt"><b>Bote hecho</b><small>${fmt(p.total)} g · ${n} ingrediente${n===1?'':'s'}</small></div>
-    </div>`;
-  }
-  const x = p.filas.find(x=>x.falta !== 0);
-  const k = x.k;
-  const m = x.i.tipo==='materia' ? materias.get(x.i.ref) : null;
-  const sub = x.i.tipo==='formula' ? porId.get(x.i.ref) : null;
-  const hex = m?.hex_referencia || (sub ? color(sub).hex : null);
-  const acumulado = pes.modo === 'acumulado';
-  const grande = acumulado ? x.acumulado : (x.falta || x.objetivo);
-  const echar = x.falta || x.objetivo;
-  const rojo = ingResaltado(x.i);
-  return `<button class="pes-heroe${rojo?' en-rojo':''}${claseRol(x.i)}" id="pes-ya" data-ya="${k}" type="button"
-      title="Toca en cualquier parte cuando la báscula marque ${fmt(grande)} g">
-    <div class="pes-aro receta" style="--v:${Math.round(hechas/n*100)};background:${fondoAro(p)}">
-      <div class="pes-num"><b class="num">${fmt(grande)}<em>g</em></b>
-        <span>${acumulado ? 'La báscula tiene que marcar' : 'A echar · báscula a cero'}</span></div>
-    </div>
-    <div class="pes-heroe-txt">
-      <i class="pes-color" style="background:${hex||'var(--linea)'}"></i>
-      <div><b>${esc(x.i.nombre)}${chipRol(x.i)}${rojo ? `<span class="chip-rojo">${esNombre9010(x.i.nombre)?'90/10':'OJO'}</span>` : ''}</b>
-        <small>${x.real !== undefined
-          ? (x.real < x.previsto - 1e-9
-              ? `echaste ${fmt(x.real)} g · te faltan ${fmt(x.falta)} g`
-              : (x.exacto
-                  ? `ya lo diste por hecho · echa ${fmt(x.falta)} g más`
-                  : `echaste ${fmt(x.real)} g · echa ${fmt(x.falta)} g más`))
-          : `${hechas + 1} de ${n}${acumulado ? ` · +${fmt(echar)} g de este` : ''}`}</small></div>
-    </div>
-    <div class="pes-ya-txt">Ya está · siguiente
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></div>
-  </button>
-  <div class="pes-pase-fila">
-    <button class="pes-pase" data-pase="${k}" type="button">
-      <b>Me he equivocado</b>
-      <small>Escribe lo que marca la báscula</small>
-    </button>
-  </div>`;
 }
 
 function filaPesaje(x, modo, recien){
@@ -9294,6 +9351,7 @@ function ajustar(k){
     }
     // Una cantidad escrita a mano SÍ es una medida: puede subir el lote.
     pes.hechos.set(k, v); pes.exactos.delete(k);
+    pes.sacudir = true;       // el bote se estremece: se ha corregido algo
     pintarPesaje(); guardarPesaje();
   };
   document.getElementById('aj-g').select();
@@ -11651,6 +11709,16 @@ function abrirOpciones(){
           <small>Superficies de cristal y una luz de fondo del color que estás mirando. Apagado va más ligero: ideal en móviles lentos.</small></span>
         <span class="interruptor"><input type="checkbox" id="op-cristal" role="switch" ${cristalActivo() ? 'checked' : ''}><span class="pista"></span></span>
       </label>
+      <label class="aj aj-cristal" for="op-efectos">
+        <span class="aj-txt"><span class="aj-et">Efectos del pesaje</span>
+          <small>El bote se llena con chorro, olas y remolino, y la pantalla toma el color. Apagado va más ligero: mismo diseño, quieto.</small></span>
+        <span class="interruptor"><input type="checkbox" id="op-efectos" role="switch" ${efectosActivos() ? 'checked' : ''}><span class="pista"></span></span>
+      </label>
+      <label class="aj aj-cristal" for="op-sonido">
+        <span class="aj-txt"><span class="aj-et">Sonido al echar</span>
+          <small>Un pitido suave cada vez que echas un ingrediente y otro al terminar el bote.</small></span>
+        <span class="interruptor"><input type="checkbox" id="op-sonido" role="switch" ${sonidoActivo() ? 'checked' : ''}><span class="pista"></span></span>
+      </label>
       ${filaAjuste('op-cuenta', MODO === 'nube' ? 'Cuenta' : 'Sesión',
         (MODO === 'nube' && sesion.email ? esc(NOMBRE) + ' · ' : '') +
         (puedeEditar ? 'Editor' : 'Solo consulta'))}
@@ -11728,6 +11796,8 @@ function abrirOpciones(){
     };
   }
   document.getElementById('op-cristal').onchange = e => ponerCristal(e.target.checked);
+  document.getElementById('op-efectos').onchange = e => ponerEfectos(e.target.checked);
+  document.getElementById('op-sonido').onchange = e => { ponerSonido(e.target.checked); if(e.target.checked) pitido([[880, .08]]); };
   const ir = (id, f) => document.getElementById(id)?.addEventListener('click', f);
   ir('op-cuenta',       ()=>pantallaCuenta(abrirOpciones));
   ir('op-sync-ir',      ()=>pantallaSync(abrirOpciones));
@@ -11851,7 +11921,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">41f09463</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">e0d36d15</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -18146,6 +18216,221 @@ function pintarArchivador(){
     c.onclick = () => { gColorFiltro = gColorFiltro === c.dataset.lleva ? null : c.dataset.lleva; actualizar(); };
   document.getElementById('g-primero-lista')?.addEventListener('click', () => editarGramo(null));
   enlazarFotos($lista);
+}
+
+/* ═══ PESAJE «INSTRUMENTO» ═══════════════════════════════════════════════
+   El bote que se llena. NO toca la lógica de los gramos: se dibuja a partir de
+   lo que ya dice plan() (x.real = lo que hay echado de cada ingrediente,
+   p.total = el lote). El número grande sigue siendo SIEMPRE lo que hay que
+   echar (tarando) o lo que debe marcar la báscula (sin tarar): por eso NO se
+   anima contando de un número a otro, para que nadie lea una cifra a medias.
+
+   Opciones por aparato (localStorage, como Cristal):
+     · «efectos»  chorro, olas, remolino y luz de fondo. De serie encendido,
+                  salvo móvil flojo (poca memoria/núcleos) o movimiento reducido.
+     · «sonido-pesaje»  un pitido suave al echar. De serie apagado. */
+const INS = {audio: null};
+function efectosActivos(){ return document.documentElement.dataset.efectos === 'on'; }
+function aplicarEfectos(on){ document.documentElement.dataset.efectos = on ? 'on' : 'off'; }
+function ponerEfectos(on){ try{ localStorage.setItem('efectos', on ? 'on' : 'off'); }catch(_){} aplicarEfectos(on); }
+function sonidoActivo(){ try{ return localStorage.getItem('sonido-pesaje') === 'on'; }catch(_){ return false; } }
+function ponerSonido(on){ try{ localStorage.setItem('sonido-pesaje', on ? 'on' : 'off'); }catch(_){} }
+function efectosDeSerie(){
+  let g = null; try{ g = localStorage.getItem('efectos'); }catch(_){}
+  if(g === 'on' || g === 'off') return g === 'on';
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches) return false;
+  const mem = navigator.deviceMemory, nuc = navigator.hardwareConcurrency;
+  return !((mem && mem <= 3) || (nuc && nuc <= 3));
+}
+aplicarEfectos(efectosDeSerie());
+const movimientoReducido = () => matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+function pitido(notas){
+  if(!sonidoActivo()) return;
+  try{
+    const A = INS.audio || (INS.audio = new (window.AudioContext || window.webkitAudioContext)());
+    if(A.state === 'suspended') A.resume();
+    let t = A.currentTime;
+    for(const [f, d] of notas){
+      const o = A.createOscillator(), g = A.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(.0001, t);
+      g.gain.exponentialRampToValueAtTime(.1, t + .01);
+      g.gain.exponentialRampToValueAtTime(.0001, t + d);
+      o.connect(g); g.connect(A.destination); o.start(t); o.stop(t + d + .02); t += d;
+    }
+  }catch(_){}
+}
+
+/* ── Piezas ── */
+function hexIng(x){
+  const m = x.i.tipo==='materia' ? materias.get(x.i.ref) : null;
+  const sub = x.i.tipo==='formula' ? porId.get(x.i.ref) : null;
+  const h = m?.hex_referencia || (sub ? color(sub).hex : null);
+  return /^#[0-9a-f]{6}$/i.test(h || '') ? h : '#888888';
+}
+const textoSobre = hex => luminancia(hex) > .35 ? '#0a0b0d' : '#f4efe4';
+const claseLargo = txt => txt.length >= 5 ? ' l5' : txt.length === 4 ? ' l4' : '';
+
+/** Marcas de la escala: una grande cada «gran» gramos y cinco pequeñas entre medias. */
+function escalaBote(max){
+  const grans = [10,20,50,100,200,250,500,1000,2000,2500,5000,10000];
+  const gran = grans.find(g => max / g <= 4) || 10000, menor = gran / 5, marcas = [];
+  for(let g = menor; g < max - 1e-9; g += menor) marcas.push(Math.round(g * 100) / 100);
+  return {gran, marcas};
+}
+
+/** El bote y su escala, a partir del plan. Deja en pes.jar lo que se pintó (para
+    animar desde ahí la próxima vez) y en pes.jarNext lo que hay que animar. */
+function boteInstr(p, hechas){
+  const n = p.filas.length, fin = hechas === n, mezcla = color(pes.f).hex;
+  const real = p.filas.map(x => Math.max(0, x.real || 0));
+  const enBote = real.reduce((a, b) => a + b, 0);
+  const max = Math.max(p.total, enBote, 1);
+  const h = real.map(g => g / max * 100);
+  const anim = efectosActivos() && !movimientoReducido();
+  const prev = anim && pes.jar && pes.jar.n === n ? pes.jar : null;
+  const mezclar = !!(fin && prev && !prev.listo);
+  const k0 = h.map((v, k) => prev && v > prev.h[k] + .05 ? k : -1).find(k => k >= 0);
+  const colores = p.filas.map(hexIng);
+  const sup = h.reduce((s, v, k) => v > 0 ? k : s, -1);
+  const nivelPrev = prev ? prev.h.reduce((a, b) => a + b, 0) : h.reduce((a, b) => a + b, 0);
+  pes.jar = {n, h, listo: fin};
+  pes.jarNext = prev ? {h, mezclar, mezcla, colores, crecida: k0 === undefined ? -1 : k0, nivelPrev} : null;
+
+  const eb = escalaBote(max);
+  const cerca = g => Math.abs(g - enBote) < eb.gran * .22;
+  const escala = `<div class="ins-escala" aria-hidden="true">
+    ${eb.marcas.map(g => {
+      const grande = Math.abs(g / eb.gran - Math.round(g / eb.gran)) < 1e-6;
+      return `<i class="${grande ? 'g' : ''}" style="bottom:${g / max * 100}%">${grande ? `<b${cerca(g) ? ' style="opacity:.12"' : ''}>${fmt(g)}</b>` : ''}</i>`;
+    }).join('')}
+    <div class="ins-nivel" style="bottom:${nivelPrev}%"><span class="num">${fmt(enBote)}</span></div></div>`;
+  const bote = `<div class="ins-bote" aria-hidden="true">
+    <div class="ins-boca"></div>
+    <div class="ins-cristal"><div class="ins-liquido">
+      <div class="ins-capas">${p.filas.map((x, k) =>
+        `<div class="ins-capa${k === sup ? ' sup' : ''}" style="--k:${fin && !mezclar ? mezcla : colores[k]};height:${prev ? prev.h[k] : h[k]}%"></div>`).join('')}</div>
+      <div class="ins-remolino" style="--r1:${colores[0]};--r2:${colores[1] || colores[0]};--r3:${colores[2] || colores[0]}"></div>
+      <div class="ins-velo"></div></div></div>
+    <div class="ins-brillo"></div><div class="ins-brillo2"></div>
+    <div class="ins-chorro"></div><div class="ins-sombra"></div></div>`;
+  return {escala, bote, enBote};
+}
+
+/** La foto real del color, ya cocido, en una pastilla al lado del bote. */
+function fotoInstr(){
+  if(!tieneFoto(pes.f.id)) return '';
+  return `<figure class="ins-foto"><img alt="Foto del color ya cocido" ${pes.fotoUrl ? `src="${pes.fotoUrl}"` : ''}>
+    <figcaption>Así sale cocido</figcaption></figure>`;
+}
+
+function heroePesaje(p, hechas){
+  const n = p.filas.length, mezcla = color(pes.f).hex;
+  const {escala, bote, enBote} = boteInstr(p, hechas);
+  if(hechas === n){
+    const tot = fmt(p.total);
+    return `<div class="pes-heroe pes-hecho ins" id="pes-heroe" style="--cur:${mezcla};--cur-txt:${textoSobre(mezcla)}">
+      <div class="ins-zona">${escala}${bote}
+        <div class="ins-lectura">
+          <span class="ins-ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg></span>
+          <span class="ins-rot">Bote hecho</span>
+          <div class="ins-gran num${claseLargo(tot)}">${tot}<small>g</small></div>
+          <div class="ins-sub">${n} ingrediente${n===1?'':'s'} · color orientativo</div>
+          ${fotoInstr()}
+        </div></div>
+      <button class="ins-etq" type="button" data-etq>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h6.6c.5 0 1 .2 1.4.6l6.9 6.9a2 2 0 0 1 0 2.8l-4.1 4.1a2 2 0 0 1-2.8 0l-6.9-6.9A2 2 0 0 1 6 11.1V7.5z"/><circle cx="8.3" cy="8.3" r="1.2"/></svg>
+        Imprimir etiqueta</button>
+    </div>`;
+  }
+  const x = p.filas.find(x=>x.falta !== 0);
+  const k = x.k, hex = hexIng(x);
+  const acumulado = pes.modo === 'acumulado';
+  const grande = acumulado ? x.acumulado : (x.falta || x.objetivo);
+  const echar = x.falta || x.objetivo;
+  const rojo = ingResaltado(x.i);
+  const gtxt = fmt(grande);
+  return `<button class="pes-heroe ins${rojo?' en-rojo':''}${claseRol(x.i)}" id="pes-ya" data-ya="${k}" type="button"
+      style="--cur:${hex};--cur-txt:${textoSobre(hex)}"
+      title="Toca en cualquier parte cuando la báscula marque ${gtxt} g">
+    <div class="ins-zona">${escala}${bote}
+      <div class="ins-lectura">
+        <span class="ins-rot">${acumulado ? 'La báscula tiene que marcar' : 'A echar · báscula a cero'}</span>
+        <div class="ins-gran num${claseLargo(gtxt)}">${gtxt}<small>g</small></div>
+        <div class="ins-quien"><i class="pes-color ins-pas" style="background:${hex}"></i>
+          <b>${esc(x.i.nombre)}${chipRol(x.i)}${rojo ? `<span class="chip-rojo">${esNombre9010(x.i.nombre)?'90/10':'OJO'}</span>` : ''}</b></div>
+        <div class="ins-sub">${x.real !== undefined
+          ? (x.real < x.previsto - 1e-9
+              ? `echaste ${fmt(x.real)} g · te faltan ${fmt(x.falta)} g`
+              : (x.exacto
+                  ? `ya lo diste por hecho · echa ${fmt(x.falta)} g más`
+                  : `echaste ${fmt(x.real)} g · echa ${fmt(x.falta)} g más`))
+          : `${hechas + 1} de ${n}${acumulado ? ` · +${fmt(echar)} g de este` : ''}`}</div>
+        <div class="ins-echado"><span class="ins-rot">En el bote</span><b class="num">${fmt(enBote)}</b>
+          <span class="ins-rot">/ ${fmt(p.total)} g</span></div>
+        ${fotoInstr()}
+      </div></div>
+    <div class="pes-ya-txt">Ya está · siguiente
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></div>
+  </button>
+  <div class="pes-pase-fila">
+    <button class="pes-pase" data-pase="${k}" type="button">
+      <b>Me he equivocado</b>
+      <small>Escribe lo que marca la báscula</small>
+    </button>
+  </div>`;
+}
+
+/** Tras pintar el diálogo: lo que solo se puede hacer con el DOM ya puesto. */
+function instrumentoPost(){
+  const nx = pes.jarNext; pes.jarNext = null;
+  const sacudir = pes.sacudir; pes.sacudir = false;
+  // La foto del color (si la hay) se pide una vez y se recuerda para los repintados.
+  if($dc.querySelector('.ins-foto img') && !pes.fotoUrl && !pes.pidiendoFoto){
+    pes.pidiendoFoto = true;
+    nube.fotoUrl(pes.f.id).then(u=>{
+      if(!u || !pes) return;
+      pes.fotoUrl = u;
+      for(const i of document.querySelectorAll('.ins-foto img')) i.src = u;
+    }).catch(()=>{});
+  }
+  const etq = $dc.querySelector('[data-etq]');
+  if(etq) etq.onclick = ()=> document.getElementById('pes-etiqueta')?.click();
+  const bote = $dc.querySelector('.ins-bote');
+  if(!bote) return;
+  const fx = efectosActivos() && !movimientoReducido();
+  if(sacudir && fx) bote.classList.add('sacude');
+  if(!nx) return;
+  const capas = [...bote.querySelectorAll('.ins-capa')];
+  const nivel = $dc.querySelector('.ins-nivel');
+  const llenar = ()=>{
+    capas.forEach((c, k) => { c.style.height = nx.h[k] + '%'; });
+    if(nivel) nivel.style.bottom = nx.h.reduce((a, b) => a + b, 0) + '%';
+  };
+  let espera = 0;
+  const ch = bote.querySelector('.ins-chorro');
+  if(nx.crecida >= 0 && ch){
+    const bh = bote.clientHeight;
+    const alto = 60 + (bh - 5) - nx.nivelPrev / 100 * (bh - 10) - 4;
+    ch.style.setProperty('--k', nx.colores[nx.crecida]);
+    ch.style.height = Math.max(40, alto) + 'px';
+    ch.animate([
+      {transform:'scaleY(0)', opacity:1},
+      {transform:'scaleY(1)', opacity:1, offset:.35},
+      {transform:'scaleY(1)', opacity:1, offset:.75},
+      {transform:'scaleY(1)', opacity:0}], {duration:950, easing:'ease-out'});
+    espera = 300;
+  }
+  setTimeout(llenar, espera || 20);
+  if(nx.mezclar){
+    const liq = bote.querySelector('.ins-liquido');
+    setTimeout(()=>{
+      liq.classList.add('mezclando');
+      setTimeout(()=>capas.forEach(c => c.style.setProperty('--k', nx.mezcla)), 450);
+      setTimeout(()=>liq.classList.remove('mezclando'), 1800);
+    }, espera + 1100);
+  }
 }
 
 window.__app = {

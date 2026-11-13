@@ -3900,6 +3900,119 @@ html[data-efectos="on"] .ins-remolino{display:block}
 .pes-heroe.en-pigmento .ins-escala i{background:rgba(27,20,0,.5)}
 .pes-heroe.en-rojo .ins-escala i b{color:rgba(255,255,255,.88)}
 .pes-heroe.en-rojo .ins-escala i{background:rgba(255,255,255,.55)}
+
+/* ═══════════════ ENTREGA B · La ficha «Instrumento» ═══════════════ */
+
+/* La muestra pasa a ser una pastilla redonda con su anillo de proporciones.
+   Centrada y vertical en el móvil; en el monitor ancho vuelve a ir al lado del
+   nombre (ver abajo). */
+.hero{flex-direction:column; align-items:center; text-align:center; gap:2px; position:relative; isolation:isolate; margin-bottom:10px}
+.hero .hero-envoltura{display:grid; grid-template-columns:auto auto; justify-content:center; justify-items:center; gap:7px}
+.hero-envoltura > .puck-zona{grid-column:1 / -1}
+.hero-envoltura > .foto-btn:nth-child(2):last-child{grid-column:1 / -1}
+.puck-zona{position:relative; width:206px; height:206px; flex:0 0 auto; display:grid; place-items:center}
+.ficha-anillo{position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none}
+.fa-marca{stroke:color-mix(in srgb,var(--texto) 26%,transparent); stroke-width:1}
+.fa-marca.larga{stroke:color-mix(in srgb,var(--texto) 52%,transparent); stroke-width:1.6}
+.fa-borde{stroke:color-mix(in srgb,var(--texto) 34%,transparent)}
+.fa-arco{pointer-events:stroke}
+.fa-arco,.fa-borde{
+  animation:fa-arco calc(.9s * var(--ritmo)) var(--salida) both;
+  animation-delay:calc(var(--i,0) * 90ms * var(--ritmo))}
+@keyframes fa-arco{from{stroke-dasharray:.01 100; opacity:0}}
+
+.hero .hero-muestra{
+  width:136px; height:136px; border-radius:50%;
+  box-shadow:inset 0 -12px 22px rgba(0,0,0,.34), inset 0 0 0 1px rgba(255,255,255,.18),
+             0 22px 40px -10px color-mix(in srgb,var(--tono,#000) 55%,#000), 0 2px 4px rgba(0,0,0,.5);
+}
+.hero .hero-muestra::before{
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255,255,255,.4), transparent 42%),
+    radial-gradient(circle at 50% 50%, transparent 58%, rgba(0,0,0,.26));
+}
+
+/* Los efectos (luz de fondo y respiración) cuelgan del mismo interruptor que
+   en el pesaje: «Efectos del pesaje» en Opciones, y se apagan solos en un
+   móvil flojo. */
+html[data-efectos="on"] .hero::before{
+  content:""; position:absolute; left:50%; top:-14px; width:min(560px,100%); height:270px;
+  transform:translateX(-50%); z-index:-1; pointer-events:none;
+  background:radial-gradient(60% 60% at 50% 46%, color-mix(in srgb,var(--tono,transparent) 24%,transparent), transparent 72%);
+}
+html[data-efectos="on"] .hero .hero-muestra{animation:fa-respira 6s ease-in-out infinite}
+@keyframes fa-respira{50%{transform:translateY(-3px)}}
+
+.hero-txt{width:100%; padding-top:2px}
+.hero-txt h2{font-size:28px; margin-bottom:10px}
+.hero-meta{justify-content:center}
+.hero-datos{justify-content:center}
+.ficha-lecturas + .hero-datos{margin-top:10px; padding-top:0; border-top:0}
+.hero-datos .hero-dato{display:flex; align-items:center; justify-content:center; gap:10px}
+.hero-datos .hero-dato dt{margin:0}
+
+/* Tres lecturas, como un aparato. */
+.ficha-lecturas{
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); margin-top:14px; text-align:left;
+  border:1px solid var(--linea); border-radius:var(--r-l); overflow:hidden;
+  background:linear-gradient(180deg,var(--panel-luz),var(--panel));
+  box-shadow:inset 0 1px 0 var(--canto), var(--sombra-1);
+}
+.ficha-lecturas > div{padding:12px 12px 11px; min-width:0}
+.ficha-lecturas > div + div{border-left:1px solid var(--linea)}
+.fl-et{display:block; font-family:var(--mono); font-size:9.5px; font-weight:500; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--texto-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.ficha-lecturas b{display:flex; align-items:baseline; gap:3px; margin-top:5px;
+  font-family:var(--mono); font-size:20px; font-weight:500; letter-spacing:-.04em; font-variant-numeric:tabular-nums}
+.ficha-lecturas b small{font-size:12px; color:var(--texto-3); letter-spacing:0}
+.ficha-lecturas b.fl-fecha{font-size:16px; padding-top:3px; gap:5px; align-items:center; white-space:nowrap}
+.ficha-lecturas .fl-fecha.ok{color:var(--verde)}
+.ficha-lecturas .fl-fecha svg{width:14px; height:14px; flex:0 0 auto}
+.ficha-lecturas .fl-flojo{color:var(--texto-3)}
+
+/* La receta, con regla: cada ingrediente mide lo que pesa frente al mayor. */
+.ing{padding:10px 0}
+.ing-regla{display:block; position:relative; height:8px; margin-top:6px; border-radius:3px;
+  background:repeating-linear-gradient(90deg, color-mix(in srgb,var(--texto) 22%,transparent) 0 1px, transparent 1px 7px) bottom/100% 4px no-repeat}
+.ing-regla i{position:absolute; left:0; top:0; height:3px; min-width:3px; border-radius:3px; transform-origin:left;
+  box-shadow:0 0 0 .5px color-mix(in srgb,var(--texto) 25%,transparent)}
+.zona-lote-nueva .ing-regla i{
+  animation:fa-regla calc(.8s * var(--ritmo)) var(--salida) both;
+  animation-delay:calc(var(--i,0) * 38ms * var(--ritmo));
+}
+@keyframes fa-regla{from{transform:scaleX(0)}}
+.ing.en-rojo .ing-regla{background-image:repeating-linear-gradient(90deg, rgba(255,255,255,.55) 0 1px, transparent 1px 7px)}
+.ing.en-rojo .ing-regla i{background:#fff !important; box-shadow:none}
+
+/* Último lote: cuándo, cuánto y quién. */
+.ficha-ultimo{
+  display:flex; align-items:center; gap:10px; margin:10px 0 0; padding:10px 14px;
+  border:1px dashed var(--linea-fuerte); border-radius:var(--r-l);
+  font-size:13px; line-height:1.4; color:var(--texto-2);
+}
+.ficha-ultimo svg{width:18px; height:18px; flex:0 0 auto; color:var(--texto-3)}
+.ficha-ultimo b{color:var(--texto); font-weight:600}
+.ficha-ultimo em{font-style:normal; color:var(--texto-3)}
+
+/* Móvil bajito: la pastilla se encoge para que la receta asome sin arrastrar. */
+@media (max-height:740px){
+  .puck-zona{width:164px; height:164px}
+  .hero .hero-muestra{width:108px; height:108px}
+  .hero-txt h2{font-size:25px; margin-bottom:8px}
+}
+
+/* En el monitor ancho vuelve a ir pastilla a la izquierda y datos a la derecha. */
+@media (min-width:1180px){
+  .hero{flex-direction:row; align-items:center; text-align:left; gap:26px}
+  .hero-meta,.hero-datos{justify-content:flex-start}
+  .hero-datos .hero-dato{justify-content:flex-start}
+  .hero-txt{flex:1 1 auto; min-width:0}
+  .ficha-lecturas{max-width:460px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .fa-arco,.fa-borde,.ing-regla i,.hero .hero-muestra{animation:none !important}
+}
 /* ═══ LA BARRA DE ABAJO · versión «dock» (13 nov) ═══
    Tres secciones + Escanear + Opciones, TODAS con su nombre escrito, y el «+»
    fuera de la barra, flotando encima con lo que va a crear («Nuevo color»,
@@ -7609,8 +7722,7 @@ function haceCuanto(iso){
 function selloActualizacion(f){
   if(!estadoAct(f).aldia) return '';
   return `<span class="etiqueta ok" id="sello-act" title="Rectificada a los pigmentos nuevos">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>Rectificada</span>` +
-    (f.fecha_actualizacion ? `<span class="etiqueta">${fecha(f.fecha_actualizacion)}</span>` : '');
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>Rectificada</span>`;
 }
 
 /* El sello del bote va en la cabecera, pegado al nombre: la pregunta "¿tengo
@@ -7630,11 +7742,6 @@ function selloBote(f){
 
 function datosHero(f, total, usan){
   const clis  = clientesDe(f.nombre);
-  // Del cuaderno, no del campo viejo de dentro de la fórmula: ahora también
-  // cuentan los botes que ha hecho el taller, que antes no se apuntaban.
-  const hechas = prepsDe(f.id);
-  const ultima = hechas.length ? hechas[hechas.length-1].cuando : f.ultima_preparacion;
-  const veces = hechas.length || (f.preparaciones||[]).length;
   const d = [];
   // Pulsando el cliente se ven todos sus colores. Era texto muerto, y la
   // pregunta "¿qué le hacemos a este cliente?" es de las que más se hacen.
@@ -7642,9 +7749,6 @@ function datosHero(f, total, usan){
     ? clis.map(cli=>`<button class="enlace-cliente" data-cliente="${esc(cli)}">${esc(cli)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>`).join(' ')
     : '<span class="flojo">Sin cliente</span>']);
-  if(ultima)
-    d.push(['Última vez', `${haceCuanto(ultima)}<small>${fechaCorta(ultima)}${
-      veces>1 ? ' · '+veces+' veces' : ''}</small>`]);
   return `<dl class="hero-datos">${d.map(([k,v])=>
     `<div class="hero-dato"><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
 }
@@ -7732,7 +7836,7 @@ function plantillaFicha(f, x){
 
     <div class="hero">
       <div class="hero-envoltura">
-        <div class="hero-muestra${c.metalizado?' metal':''}" style="background:${c.hex}"${marcaFoto(f.id)}></div>
+        <div class="puck-zona">${fichaAnillo(f, total)}<div class="hero-muestra${c.metalizado?' metal':''}" style="background:${c.hex}"${marcaFoto(f.id)}></div></div>
         ${tieneFoto(f.id)
           ? `<button class="foto-btn" id="foto-ver" title="Ver la muestra en grande">
                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -7753,7 +7857,7 @@ function plantillaFicha(f, x){
           ${selloActualizacion(f)}
           ${hermanas.length ? `<span class="etiqueta info">${grupo.tipo==='identica'?'Idéntica a':'Misma proporción que'} ${hermanas.length}</span>`:''}
         </div>
-        ${datosHero(f, total, usan)}
+        ${fichaLecturas(f, total)}${datosHero(f, total, usan)}
       </div>
     </div>
 
@@ -7799,6 +7903,7 @@ function plantillaFicha(f, x){
       <div id="zona-lote">${zonaLote(f, total, totalMovido)}</div>
     </div>
 
+    ${fichaUltimoLote(f)}
     <div id="zona-desarrollo">${anidada ? tarjetaDesarrollo(f) : ''}</div>
     </div><div class="ficha-col">
     ${f.solo_referencia ? '' : tarjetaParecidas(f, hermanas)}
@@ -8135,6 +8240,7 @@ function atajosCantidad(base){
 }
 
 function zonaLote(f, total, totalMovido){
+  FICHA_MAX = Math.max(1, ...f.ingredientes.map(i=>i.cantidad));
   return `${notaLote(total)}
     <div class="tarjeta-cuerpo">
       ${barraProporcion(f, total)}
@@ -8314,6 +8420,7 @@ function filaIng(i, total, idx){
         : i.tipo==='sin_resolver' ? resolvedor(i, idx)
         : m && m.abierto ? `<small>Eliges cuál al preparar</small>`
         : m && m.familia!=='base' && !rojo ? `<small>Pigmento</small>` : ''}
+      ${fichaRegla(i)}
     </div>
     <span class="ing-pct num">${Math.round(pct)}%</span>
     <span class="ing-g num${movido?' cambia':''}">${fmt(g)}<em>g</em></span>
@@ -11921,7 +12028,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">e0d36d15</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">970bf1ff</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -13452,7 +13559,10 @@ function panelPdf(seg){
       <input id="pdf-sub" value="${esc(d.sub)}" placeholder="Ej. LEZNA" autocomplete="off"></label>
     <label class="interruptor"><input type="checkbox" id="pdf-solo-act"><span class="pista"></span>
       <span class="interruptor-txt">Solo las rectificadas a pigmentos nuevos
-        <small>Deja fuera las que aún no se han vuelto a ajustar</small></span></label>`;
+        <small>Deja fuera las que aún no se han vuelto a ajustar</small></span></label>
+    ${HAY_FOTOS && filtradas.some(f=>tieneFoto(f.id)) ? `<label class="interruptor"><input type="checkbox" id="pdf-fotos"><span class="pista"></span>
+      <span class="interruptor-txt">Con la foto real de la muestra
+        <small id="pdf-fotos-n"></small></span></label>` : ''}`;
   $dp.innerHTML = `<button class="btn" data-cerrar>Cancelar</button><button class="btn btn-1" id="pdf-ir">Generar</button>`;
   $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
   const ayuda = ()=>{
@@ -13472,13 +13582,32 @@ function panelPdf(seg){
   // real fuera la mitad.
   const cuales = ()=> document.getElementById('pdf-solo-act').checked
     ? filtradas.filter(f=>estadoAct(f).aldia) : filtradas;
+  const cuentaFotos = ()=>{
+    const el = document.getElementById('pdf-fotos-n');
+    if(!el) return;
+    const l = cuales(), n = l.filter(f=>tieneFoto(f.id)).length;
+    el.textContent = `${n} de ${l.length} tienen foto; el resto sale sin ella`;
+  };
+  cuentaFotos();
   document.getElementById('pdf-solo-act').onchange = ()=>{
     document.getElementById('pdf-cuantas').textContent = cuales().length;
+    cuentaFotos();
   };
-  document.getElementById('pdf-ir').onclick = ()=>{
+  document.getElementById('pdf-ir').onclick = async ()=>{
     const lista = cuales();
     if(!lista.length) return brindis('No hay ninguna fórmula que cumpla eso');
-    generarPDF(lista, document.getElementById('pdf-tit').value, document.getElementById('pdf-sub').value, orden);
+    const tit = document.getElementById('pdf-tit').value, sub = document.getElementById('pdf-sub').value;
+    const conFotos = !!document.getElementById('pdf-fotos')?.checked && lista.some(f=>tieneFoto(f.id));
+    if(!conFotos){ generarPDF(lista, tit, sub, orden); $dlg.close(); return; }
+    // La ventana se abre YA, con el toque: si se abriera después de bajar las
+    // fotos, el navegador la tomaría por una ventana emergente y la bloquearía.
+    const w = window.open('','_blank');
+    if(!w) return brindis('El navegador ha bloqueado la ventana del PDF');
+    try{ w.document.write('<!DOCTYPE html><meta charset="utf-8"><title>PDF</title><body style="font:15px system-ui;padding:40px;color:#555">Preparando las fotos de las muestras…</body>'); w.document.close(); }catch(_){}
+    const ir = document.getElementById('pdf-ir');
+    ir.disabled = true; ir.textContent = 'Preparando fotos…';
+    const fotos = await fichaFotosPdf(lista);
+    generarPDF(lista, tit, sub, orden, fotos, w);
     $dlg.close();
   };
 }
@@ -13622,7 +13751,7 @@ function muestrarioPortada(lista){
   return `<div class="muestrario" style="--cols:${cols}">${q.map(x=>`<i style="background:${x.hex}"></i>`).join('')}</div>`;
 }
 
-function generarPDF(lista, titulo, sub, orden){
+function generarPDF(lista, titulo, sub, orden, fotosPdf, ventana){
   if(!puedeEditar) return brindis(SIN_PERMISO);
   const hoy = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
   const carta = (f, ini)=>{
@@ -13633,6 +13762,7 @@ function generarPDF(lista, titulo, sub, orden){
     return `<article data-ini="${esc(ini)}">
       <header><i style="background:${c.hex}"></i><h4>${esc(f.nombre)}</h4>
         ${rect?'<b>✓</b>':''}</header>
+      ${fotosPdf && fotosPdf.has(f.id) ? `<img class="muestra-foto" src="${fotosPdf.get(f.id)}" alt="">` : ''}
       <table>${ing.map(i=>`<tr><td>${esc(i.nombre)}</td><td>${fmt(i.cantidad)}</td></tr>`).join('')}
         <tr class="tot"><td>Total</td><td>${fmt(ing.reduce((s,i)=>s+i.cantidad,0))}</td></tr></table>
       ${rect ? `<p class="rect">Rectificada a pigmentos nuevos${
@@ -13660,8 +13790,9 @@ function generarPDF(lista, titulo, sub, orden){
                 .map(f=>carta(f, inicial(f.nombre))).join('');
   }
   const nRect = lista.filter(f=>estadoAct(f).aldia).length;
-  const w = window.open('','_blank');
+  const w = ventana || window.open('','_blank');
   if(!w) return brindis('El navegador ha bloqueado la ventana del PDF');
+  if(ventana){ try{ w.document.open(); }catch(_){} }
   w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>${esc(titulo)}</title>
   <script>
     var PIE_TITULO = ${JSON.stringify(sub ? sub.toUpperCase() : titulo.toUpperCase())};
@@ -13716,6 +13847,7 @@ function generarPDF(lista, titulo, sub, orden){
     article.famcab b{font-size:9.6pt;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
     article.famcab span{font-size:7.6pt;color:#777}
     p.rect{margin:1.1mm 0 0;font-size:6.8pt;font-weight:600;color:#136c46}
+    .muestra-foto{display:block;width:100%;height:12mm;object-fit:cover;border-radius:1.2mm;margin:0 0 1.4mm;border:.3pt solid rgba(0,0,0,.18)}
     .portada .nota{font-size:8.5pt;color:#777;margin-top:2mm}
     #indice{width:84mm;margin-top:8mm;font-size:8.6pt;color:#444;text-align:left}
     #indice:empty{display:none}
@@ -13737,6 +13869,7 @@ function generarPDF(lista, titulo, sub, orden){
     ${sub?`<h2>${esc(sub)}</h2>`:''}
     <p>Listado de fórmulas</p>
     <p class="n">${lista.length} colores</p>
+    ${fotosPdf && fotosPdf.size ? `<p class="nota">Con la foto real de ${fotosPdf.size} muestra${fotosPdf.size===1?'':'s'}</p>` : ''}
     ${nRect ? `<p class="nota">${nRect === lista.length ? 'Todas rectificadas' : nRect + ' rectificada' + (nRect===1?'':'s')} a los pigmentos nuevos (marcadas con ✓ y su fecha)</p>` : ''}
     <p style="margin-top:10mm">Generado el ${hoy}</p>
     <div id="indice"></div>
@@ -18431,6 +18564,130 @@ function instrumentoPost(){
       setTimeout(()=>liq.classList.remove('mezclando'), 1800);
     }, espera + 1100);
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ENTREGA B · La ficha «Instrumento»
+
+   Solo piel y datos que ya existían: ni una fórmula cambia, ni un permiso.
+   · La muestra del color pasa a ser una PASTILLA redonda con un anillo
+     alrededor: cada pigmento ocupa su arco, del tamaño de lo que pesa.
+     (Es el mismo lenguaje del bote del pesaje: el color, hecho de sus partes.)
+   · Tres lecturas bajo el nombre: total, ingredientes y fecha de actualización.
+   · La receta lleva una regla milimetrada por ingrediente.
+   · «Último lote»: cuándo, cuánto y quién lo preparó (antes «Última vez»).
+   · El PDF puede llevar la foto real de cada muestra (ver fichaFotosPdf).
+   ═══════════════════════════════════════════════════════════════════ */
+
+/** Color de un ingrediente, o null si no se conoce (se pintará a rayas). */
+function fichaHex(i){
+  const m   = i.tipo === 'materia' ? materias.get(i.ref) : null;
+  const sub = i.tipo === 'formula' ? porId.get(i.ref)    : null;
+  return (m && m.hex_referencia) || (sub ? color(sub).hex : null);
+}
+
+/** El anillo: 72 marcas de regla y, encima, un arco por ingrediente. */
+function fichaAnillo(f, total){
+  const ing = f.ingredientes.filter(i => i.cantidad > 0);
+  let marcas = '';
+  for(let k = 0; k < 72; k++){
+    const a = k / 72 * Math.PI * 2, larga = k % 6 === 0, r1 = 108, r2 = larga ? 100 : 104;
+    marcas += `<line x1="${(120 + Math.cos(a) * r1).toFixed(2)}" y1="${(120 + Math.sin(a) * r1).toFixed(2)}" ` +
+              `x2="${(120 + Math.cos(a) * r2).toFixed(2)}" y2="${(120 + Math.sin(a) * r2).toFixed(2)}" ` +
+              `class="fa-marca${larga ? ' larga' : ''}"/>`;
+  }
+  let arcos = '', ini = 0;
+  const suma = ing.reduce((s, i) => s + i.cantidad, 0);
+  if(suma > 0){
+    const hueco = ing.length > 1 ? 1.4 : 0.0001;
+    ing.forEach((i, k) => {
+      const L = i.cantidad / suma * 100, d = Math.max(0.2, L - hueco);
+      const pct = Math.round(L);
+      const trazo = `style="--i:${k}" cx="120" cy="120" r="92" pathLength="100" fill="none" stroke-linecap="round" ` +
+                    `stroke-dasharray="${d.toFixed(3)} ${(100 - d).toFixed(3)}" ` +
+                    `stroke-dashoffset="${(-(ini + hueco / 2)).toFixed(3)}"`;
+      // Un filo por debajo: sin él, el BLANCO desaparece sobre fondo claro y el NEGRO sobre fondo oscuro.
+      arcos += `<circle class="fa-borde" ${trazo} stroke-width="7.4"/>`;
+      arcos += `<circle class="fa-arco" style="--i:${k}" cx="120" cy="120" r="92" pathLength="100" fill="none" ` +
+               `stroke="${fichaHex(i) || '#6b7078'}" stroke-width="5" stroke-linecap="round" ` +
+               `stroke-dasharray="${d.toFixed(3)} ${(100 - d).toFixed(3)}" ` +
+               `stroke-dashoffset="${(-(ini + hueco / 2)).toFixed(3)}"><title>${esc(i.nombre)} · ${pct} %</title></circle>`;
+      ini += L;
+    });
+  }
+  const resumen = ing.map(i => `${i.nombre} ${Math.round(i.cantidad / (suma || 1) * 100)} %`).join(', ');
+  return `<svg class="ficha-anillo" viewBox="0 0 240 240" role="img" ` +
+         `aria-label="${esc(resumen ? 'Proporción de cada ingrediente: ' + resumen : 'Sin ingredientes')}">` +
+         `<g>${marcas}</g><g transform="rotate(-90 120 120)">${arcos}</g></svg>`;
+}
+
+/** Tres lecturas, como un aparato: total, ingredientes, actualizada. */
+function fichaLecturas(f, total){
+  if(f.solo_referencia) return '';
+  const n = f.ingredientes.filter(i => i.cantidad > 0).length;
+  if(!n) return '';
+  const aldia = estadoAct(f).aldia;
+  const act = f.fecha_actualizacion
+    ? `<b class="num fl-fecha${aldia ? ' ok' : ''}">${aldia ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>' : ''}${esc(fechaCorta(f.fecha_actualizacion))}</b>`
+    : aldia ? `<b class="num fl-fecha ok">Sí</b>`
+            : `<b class="num fl-flojo" title="Nunca se ha rectificado">—</b>`;
+  return `<div class="ficha-lecturas">
+    <div><span class="fl-et">Total</span><b class="num">${fmt(total)}<small>g</small></b></div>
+    <div><span class="fl-et">Ingredientes</span><b class="num">${n}</b></div>
+    <div><span class="fl-et">Actualizada</span>${act}</div>
+  </div>`;
+}
+
+/** «Último lote»: cuándo, cuánto y quién. Sale del cuaderno de preparaciones. */
+function fichaUltimoLote(f){
+  if(f.solo_referencia) return '';
+  const hechas = prepsDe(f.id);
+  // Un color anterior al cuaderno solo trae la fecha de su campo viejo.
+  const u = hechas.length ? hechas[hechas.length - 1]
+          : f.ultima_preparacion ? {cuando: f.ultima_preparacion} : null;
+  if(!u) return '';
+  const veces = hechas.length || (f.preparaciones || []).length;
+  const quien = u.papel ? quienDe(u) : '';
+  return `<div class="ficha-ultimo" id="ficha-ultimo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+    <span>Último lote <b>${esc(fechaCorta(u.cuando))}</b> <em>${esc(haceCuanto(u.cuando))}</em>${
+      u.gramos ? ` · <b>${fmt(u.gramos)} g</b>` : ''}${
+      quien ? ` · preparado por <b>${esc(quien)}</b>` : ''}${
+      veces > 1 ? ` · ${veces} veces` : ''}</span></div>`;
+}
+
+/** Mayor cantidad de la receta que se está pintando: la regla se mide contra ella. */
+var FICHA_MAX = 1;   // var y no let: se escribe en zonaLote, que puede correr antes que este módulo
+
+/** La regla de un ingrediente: una barra que mide lo que pesa frente al mayor. */
+function fichaRegla(i){
+  const w = Math.max(0, Math.min(100, i.cantidad / (FICHA_MAX || 1) * 100));
+  return `<span class="ing-regla" aria-hidden="true"><i style="width:${w.toFixed(1)}%;background:${fichaHex(i) || '#6b7078'}"></i></span>`;
+}
+
+/* ── PDF con la foto real de cada muestra ───────────────────────────────
+   Las fotos viven en la nube y se bajan bajo demanda. Para el papel se
+   reducen (220 px, JPEG) y se incrustan en la propia hoja, así la ventana de
+   impresión no depende de nada externo. Devuelve Map(id → dataURL). */
+async function fichaFotosPdf(lista){
+  const out = new Map();
+  if(!HAY_FOTOS) return out;
+  for(const f of lista){
+    if(!tieneFoto(f.id)) continue;
+    try{
+      const url = await nube.fotoUrl(f.id);
+      if(!url) continue;
+      const blob = await (await fetch(url)).blob();
+      const bmp = await createImageBitmap(blob);
+      const k = Math.min(1, 220 / Math.max(bmp.width, bmp.height));
+      const cv = document.createElement('canvas');
+      cv.width = Math.max(1, Math.round(bmp.width * k)); cv.height = Math.max(1, Math.round(bmp.height * k));
+      cv.getContext('2d').drawImage(bmp, 0, 0, cv.width, cv.height);
+      try{ bmp.close(); }catch(_){}
+      out.set(f.id, cv.toDataURL('image/jpeg', .72));
+    }catch(_){ /* una foto que no baja no tumba el PDF: esa carta sale sin ella */ }
+  }
+  return out;
 }
 
 window.__app = {

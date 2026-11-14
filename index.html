@@ -2,7 +2,15 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<script>try{var _t=localStorage.getItem('tema');if(_t&&_t!=='auto')document.documentElement.dataset.tema=_t}catch(_){}</script>
+<script>(function(){var d=document.documentElement.dataset;d.estilo='blanda';d.acento='coral';d.relieve='completo';d.tamano='normal';d.pesaje='bote';d.ficha='anillo';d.lista='filas';
+try{var g=function(k){return localStorage.getItem(k)},t=g('tema');if(t&&t!=='auto')d.tema=t;
+if(g('estilo')==='instrumento')d.estilo='instrumento';
+var a=g('acento');d.acento=/^(coral|menta|lavanda|ambar|azul|rosa|hueso)$/.test(a)?a:(d.estilo==='instrumento'?'hueso':'coral');
+var r=g('relieve');if(!/^(completo|ligero|plano)$/.test(r)){var m=navigator.deviceMemory,n=navigator.hardwareConcurrency;r=(m&&m<=3)||(n&&n<=3)?'ligero':'completo'}d.relieve=r;
+if(g('tamano')==='grande')d.tamano='grande';
+var pv=g('pesaje');d.pesaje=/^(capas|barra)$/.test(pv)?pv:'bote';
+var fv=g('ficha');d.ficha=/^(bote|bandeja)$/.test(fv)?fv:'anillo';
+var lv=g('lista');d.lista=lv==='mosaico'?lv:'filas'}catch(_){}})()</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Goma · SeriAdornos</title>
 
@@ -3675,9 +3683,6 @@ body[data-seccion="notas"] .riel{display:none !important}
 body[data-seccion="notas"] #btn-pdf{display:none}
 
 /* ── EL ARCHIVADOR ─────────────────────────────────────────────────── */
-.g-vista{display:inline-grid; margin-left:auto; flex:0 0 auto}
-.g-vista[hidden]{display:none}
-.g-vista button{height:32px; padding:0 14px; font-size:13px}
 .arch-lleva{padding:2px 0 10px}
 .arch-lleva .g-ceja{display:block; margin:0 2px 7px}
 .arch-chips{display:flex; gap:7px; overflow-x:auto; padding:0 0 4px; scrollbar-width:none; margin:0 -2px}
@@ -3726,6 +3731,13 @@ body[data-seccion="notas"] #btn-pdf{display:none}
   .n-t-largo{display:none}
   .n-t-corto{display:inline}
 }
+
+/* El botón del «no hay nada» iba en línea con el texto (inline-flex): el margen de arriba no hacía nada y quedaba pegado a la última palabra. En su propia línea y centrado. */
+.lista-nada .btn{display:flex; width:max-content; max-width:100%; margin:18px auto 0}
+
+/* Entrega E · sin gramos: la fila de color de la ficha y del editor pierde su última columna */
+.g-col{grid-template-columns:36px minmax(0,1fr)}
+.g-ed-col{grid-template-columns:30px minmax(0,1fr) 40px}
 
 /* ═══ PESAJE «INSTRUMENTO» ═══════════════════════════════════════════════
    El bote que se llena sustituye al aro. Maqueta aprobada:
@@ -3900,6 +3912,107 @@ html[data-efectos="on"] .ins-remolino{display:block}
 .pes-heroe.en-pigmento .ins-escala i{background:rgba(27,20,0,.5)}
 .pes-heroe.en-rojo .ins-escala i b{color:rgba(255,255,255,.88)}
 .pes-heroe.en-rojo .ins-escala i{background:rgba(255,255,255,.55)}
+/* ═══ PESAJE · tres variantes (data-pesaje en <html>) ══════════════════════
+   El DOM es siempre el mismo (bote, escala, barra y lectura): cada variante
+   enseña unas piezas y esconde otras. Los números grandes y la lógica de los
+   gramos no cambian NUNCA: solo cómo se dibuja el avance.
+
+     bote   el bote que se llena, con escala milimetrada (el de siempre)
+     capas  bote más ancho, sin tapa, con los gramos de cada capa DENTRO y el
+            hueco punteado de lo que viene («+ AMARILLO 10 g»)
+     barra  una barra horizontal grande con las mismas capas y el número a lo
+            grande: para leer de lejos o en pantallas pequeñas */
+
+/* De serie solo se ve lo del bote clásico */
+.ins-barra,.ins-pend-j{display:none}
+.ins-g{display:none}
+
+/* ── CAPAS ─────────────────────────────────────────────────────────────── */
+/* mismo ancho que el bote (la columna de la derecha necesita sitio para «AMARILLO»), un poco más alto */
+html[data-pesaje="capas"] .ins-zona{--bh:214px}
+@media (min-width:480px){ html[data-pesaje="capas"] .ins-zona{--bh:268px} }
+@media (max-width:420px) and (max-height:780px){ html[data-pesaje="capas"] .ins-zona{--bh:156px} }
+@media (max-width:420px) and (max-height:700px){ html[data-pesaje="capas"] .ins-zona{--bh:128px} }
+html[data-pesaje="capas"] .ins-boca,
+html[data-pesaje="capas"] .ins-brillo2{display:none}
+html[data-pesaje="capas"] .ins-cristal{border-radius:18px 18px 40px 40px}
+html[data-pesaje="capas"] .ins-liquido{inset:4px; border-radius:14px 14px 36px 36px}
+html[data-pesaje="capas"] .ins-capa{display:grid; place-items:center}
+html[data-pesaje="capas"] .ins-capa + .ins-capa{box-shadow:0 -1px 0 rgba(255,255,255,.3)}
+html[data-pesaje="capas"] .ins-g{
+  display:block; font:700 12px var(--mono); letter-spacing:-.01em; color:var(--kt); white-space:nowrap;
+  font-variant-numeric:tabular-nums; text-shadow:0 0 1px color-mix(in srgb,var(--k) 60%,transparent);
+}
+html[data-pesaje="capas"] .ins-pend-j{
+  display:grid; place-items:center; flex:0 0 auto; padding:0 6px; overflow:hidden; text-align:center;
+  border-top:2px dashed color-mix(in srgb,var(--texto) 40%,transparent); color:var(--texto-2);
+  font:600 10px/1.15 var(--mono); letter-spacing:.02em; text-transform:uppercase; transition:height .6s var(--salida);
+}
+html[data-pesaje="capas"] .ins-pend-j span{display:block; max-width:100%; overflow:hidden; white-space:nowrap; text-overflow:ellipsis}
+
+/* ── BARRA ─────────────────────────────────────────────────────────────── */
+html[data-pesaje="barra"] .ins-escala,
+html[data-pesaje="barra"] .ins-bote{display:none}
+html[data-pesaje="barra"] .ins-zona{display:block}
+html[data-pesaje="barra"] .ins-lectura{padding:2px 0 0; gap:6px}
+html[data-pesaje="barra"] .ins-gran{font-size:68px}
+html[data-pesaje="barra"] .ins-gran.l4{font-size:58px}
+html[data-pesaje="barra"] .ins-gran.l5{font-size:48px}
+html[data-pesaje="barra"] .ins-gran small{font-size:24px}
+html[data-pesaje="barra"] .ins-quien{margin-top:8px}
+html[data-pesaje="barra"] .ins-quien b{font-size:19px}
+html[data-pesaje="barra"] .ins-pas{width:36px; height:36px}
+html[data-pesaje="barra"] .ins-sub{font-size:11px}
+/* con la barra, «En el bote» ya lo dice el pie de la propia barra */
+html[data-pesaje="barra"] .ins-echado{display:none}
+html[data-pesaje="barra"] .ins-foto{margin-top:10px}
+html[data-pesaje="barra"] .ins-barra{display:block; margin-top:6px}
+.ins-pista{
+  display:flex; height:48px; border-radius:24px; overflow:hidden; position:relative;
+  background:color-mix(in srgb,var(--texto) 9%,var(--panel));
+  box-shadow:var(--hundido, inset 0 2px 7px rgba(0,0,0,.4));
+}
+.ins-pista::after{   /* un brillo suave por arriba, como el vidrio del bote */
+  content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 45%,rgba(0,0,0,.14));
+}
+.ins-pista.sacude{animation:ins-sacude .46s var(--salida)}
+.ins-seg{
+  flex:0 0 auto; min-width:0; height:100%; overflow:hidden; display:grid; place-items:center;
+  background:var(--k); transition:width 1s var(--salida), background 1.6s ease;
+}
+html[data-efectos="off"] .ins-seg{transition:none}
+.ins-seg + .ins-seg{box-shadow:-1px 0 0 rgba(255,255,255,.3)}
+.ins-seg .ins-g{display:block; font:700 13px var(--mono); letter-spacing:-.01em; color:var(--kt); white-space:nowrap; font-variant-numeric:tabular-nums}
+.ins-pend{
+  flex:0 0 auto; min-width:0; overflow:hidden; display:grid; place-items:center; padding:0 3px; text-align:center;
+  border-left:2px dashed color-mix(in srgb,var(--texto) 40%,transparent); color:var(--texto-2);
+  font:600 10px/1.15 var(--mono); letter-spacing:.02em; text-transform:uppercase; transition:width .6s var(--salida);
+}
+.ins-pend span{display:block; max-width:100%; overflow:hidden; white-space:nowrap}
+.ins-barra-pie{display:flex; justify-content:space-between; gap:10px; margin-top:7px; font:500 11px var(--mono); letter-spacing:.04em; color:var(--texto-3)}
+.pes-heroe.en-rojo .ins-barra-pie{color:rgba(255,255,255,.9)}
+.pes-heroe.en-pigmento .ins-barra-pie{color:rgba(27,20,0,.85)}
+@media (prefers-reduced-motion:reduce){ .ins-pista.sacude{animation:none !important} }
+/* Móviles bajitos: «Ya está» y «Me he equivocado» tienen que verse sin arrastrar (como en el bote) */
+@media (max-width:420px) and (max-height:780px){
+  html[data-pesaje="barra"] .ins-gran{font-size:56px} html[data-pesaje="barra"] .ins-gran.l4{font-size:48px} html[data-pesaje="barra"] .ins-gran.l5{font-size:40px}
+  html[data-pesaje="barra"] .ins-quien{margin-top:4px}
+  html[data-pesaje="barra"] .ins-quien b{font-size:17px}
+  html[data-pesaje="barra"] .ins-pas{width:30px; height:30px}
+  html[data-pesaje="barra"] .ins-pista{height:40px}
+}
+@media (max-width:420px) and (max-height:700px){
+  html[data-pesaje="barra"] .ins-gran{font-size:46px} html[data-pesaje="barra"] .ins-gran.l4{font-size:40px} html[data-pesaje="barra"] .ins-gran.l5{font-size:34px}
+  html[data-pesaje="barra"] .ins-foto,
+  html[data-pesaje="barra"] .ins-sub{display:none}
+  html[data-pesaje="barra"] .ins-pista{height:32px}
+  html[data-pesaje="barra"] .ins-barra-pie{display:none}   /* el «30» dentro de la barra ya lo dice */
+  html[data-pesaje="barra"] .ins-gran{font-size:38px} html[data-pesaje="barra"] .ins-gran.l4{font-size:34px} html[data-pesaje="barra"] .ins-gran.l5{font-size:30px}
+  html[data-pesaje="barra"] .ins-lectura{gap:3px}
+  html[data-pesaje="barra"] .ins-quien{margin-top:2px}
+  html[data-pesaje="barra"] .ins-barra{margin-top:2px}
+}
 
 /* ═══════════════ ENTREGA B · La ficha «Instrumento» ═══════════════ */
 
@@ -4224,6 +4337,383 @@ html[data-cristal="on"] .lista{padding-bottom:180px}
 }
 
 }
+/* ═══ APARIENCIA · estilo, acento, relieve y tamaño ═══════════════════════════
+   Cuatro ajustes por aparato (localStorage), puestos como atributos de <html>
+   ANTES de pintar (script de la cabecera), para que no haya parpadeo:
+
+     data-estilo   blanda (por defecto) | instrumento (el de siempre)
+     data-acento   coral | menta | lavanda | ambar | azul | rosa | hueso
+     data-relieve  completo | ligero | plano        (solo estilo blanda)
+     data-tamano   normal | grande
+
+   El tema claro/oscuro sigue siendo el de siempre (data-tema + sistema): el
+   estilo «blanda» tiene su propia versión oscura (Noche) y clara (Arcilla).
+
+   LO QUE NO CAMBIA NUNCA con el estilo: los avisos (90/10 en rojo, tarjetas de
+   confirmación, avisos del bote). Usan --marca, --ambar, --rojo, --verde, y
+   aquí no se tocan. El acento solo pinta lo «de la app» (botón principal,
+   chips activos, rayita de la barra), jamás un aviso.
+
+   Ojo con la especificidad: el tema claro de siempre es (0,2,0); por eso los
+   bloques claros de aquí llevan :not([data-tema="oscuro"]) y van después. */
+
+/* ── BLANDA · Noche (oscuro) ───────────────────────────────────────────── */
+html[data-estilo="blanda"]{
+  --fondo:#2a2730;  --panel:#2a2730;  --panel-2:#302d38;  --panel-luz:#2a2730;
+  --linea:rgba(255,255,255,.045);  --linea-fuerte:rgba(255,255,255,.10);
+  --texto:#f1e9e4;  --texto-2:#bcb1b6;  --texto-3:#a0959b;
+  --tinta:#ece4de;  --tinta-2:#d6cdc7;  --tinta-txt:#241f26;  --tinta-suave:#39353f;
+  --canto:rgba(255,255,255,.03);
+  --sd:rgba(0,0,0,.55);  --sl:rgba(255,255,255,.055);  --k:1;
+  --r-xl:34px; --r-l:26px; --r-m:20px; --r-s:14px;
+  color-scheme:dark;
+}
+/* ── BLANDA · Arcilla (claro) ──────────────────────────────────────────── */
+@media (prefers-color-scheme:light){
+  html[data-estilo="blanda"]:not([data-tema="oscuro"]){
+    --fondo:#e5ded6;  --panel:#e5ded6;  --panel-2:#ebe5de;  --panel-luz:#e5ded6;
+    --linea:rgba(110,90,80,.10);  --linea-fuerte:rgba(110,90,80,.22);
+    --texto:#463d43;  --texto-2:#5a4f55;  --texto-3:#6a5f65;
+    --tinta:#463d43;  --tinta-2:#352d33;  --tinta-txt:#f6f1ec;  --tinta-suave:#d9d1c8;
+    --canto:rgba(255,255,255,.5);
+    --sd:rgba(150,135,125,.5);  --sl:rgba(255,255,255,.85);
+    color-scheme:light;
+  }
+}
+html[data-estilo="blanda"][data-tema="claro"]{
+  --fondo:#e5ded6;  --panel:#e5ded6;  --panel-2:#ebe5de;  --panel-luz:#e5ded6;
+  --linea:rgba(110,90,80,.10);  --linea-fuerte:rgba(110,90,80,.22);
+  --texto:#463d43;  --texto-2:#5a4f55;  --texto-3:#6a5f65;
+  --tinta:#463d43;  --tinta-2:#352d33;  --tinta-txt:#f6f1ec;  --tinta-suave:#d9d1c8;
+  --canto:rgba(255,255,255,.5);
+  --sd:rgba(150,135,125,.5);  --sl:rgba(255,255,255,.85);
+  color-scheme:light;
+}
+
+/* ── RELIEVE ───────────────────────────────────────────────────────────────
+   Todas las sombras salen de --sd (la oscura), --sl (la luz) y --k (la
+   fuerza). Completo = las dos; ligero = solo la oscura y más corta (una sola
+   capa: mucho más barato de pintar en móviles flojos); plano = ninguna, solo
+   un filo fino. El [data-acento] de más (siempre está puesto) sube la
+   especificidad a (0,3,1) para ganar a los bloques de Noche y Arcilla de arriba. */
+html[data-estilo="blanda"][data-relieve="ligero"][data-acento]{--k:.55; --sl:transparent}
+html[data-estilo="blanda"][data-relieve="plano"][data-acento]{
+  --k:0; --sd:transparent; --sl:transparent;
+  --panel:color-mix(in srgb,var(--fondo) 90%,var(--texto));
+  --panel-luz:var(--panel); --panel-2:color-mix(in srgb,var(--fondo) 84%,var(--texto));
+  --linea:color-mix(in srgb,var(--texto) 14%,transparent);
+  --linea-fuerte:color-mix(in srgb,var(--texto) 26%,transparent);
+  /* el panel se acerca al color de la letra: la letra tenue sube un poco para seguir leyéndose (AA) */
+  --texto-2:color-mix(in srgb,var(--texto-2) 70%,var(--texto));
+  --texto-3:color-mix(in srgb,var(--texto-3) 55%,var(--texto));
+}
+
+/* Las sombras de siempre, rehechas a partir de lo de arriba */
+html[data-estilo="blanda"]{
+  --sombra-1:calc(3px*var(--k)) calc(3px*var(--k)) calc(6px*var(--k)) var(--sd),
+             calc(-3px*var(--k)) calc(-3px*var(--k)) calc(6px*var(--k)) var(--sl);
+  --sombra-2:calc(6px*var(--k)) calc(6px*var(--k)) calc(13px*var(--k)) var(--sd),
+             calc(-6px*var(--k)) calc(-6px*var(--k)) calc(13px*var(--k)) var(--sl);
+  --sombra-3:calc(14px*var(--k)) calc(16px*var(--k)) calc(34px*var(--k)) var(--sd),
+             calc(-8px*var(--k)) calc(-8px*var(--k)) calc(22px*var(--k)) var(--sl);
+  --sombra-boton:calc(5px*var(--k)) calc(5px*var(--k)) calc(11px*var(--k)) var(--sd),
+                 calc(-4px*var(--k)) calc(-4px*var(--k)) calc(9px*var(--k)) var(--sl);
+  --hundido:inset calc(4px*var(--k)) calc(4px*var(--k)) calc(8px*var(--k)) var(--sd),
+            inset calc(-4px*var(--k)) calc(-4px*var(--k)) calc(8px*var(--k)) var(--sl);
+}
+
+/* ── Fondo, cristal y letra ─────────────────────────────────────────────── */
+html[data-estilo="blanda"] body{background:var(--fondo)}
+@media (prefers-color-scheme:light){
+  html[data-estilo="blanda"]:not([data-tema="oscuro"]) body{background:var(--fondo)}
+}
+html[data-estilo="blanda"][data-tema="claro"] body{background:var(--fondo)}
+html[data-estilo="blanda"] #aurora{display:none}
+
+/* ── Piezas ────────────────────────────────────────────────────────────── */
+/* Botones: relieve; el principal, relleno de acento con un resplandor suave */
+html[data-estilo="blanda"] .btn{
+  background:var(--panel); border-color:transparent; box-shadow:var(--sombra-boton);
+}
+html[data-estilo="blanda"] .btn:hover{background:var(--panel-2)}
+html[data-estilo="blanda"] .btn:active{translate:0 1px; box-shadow:var(--hundido)}
+html[data-estilo="blanda"] .btn-1,
+html[data-estilo="blanda"] .btn-marca{
+  background:linear-gradient(180deg,var(--tinta),var(--tinta-2)); color:var(--tinta-txt); border-color:transparent;
+  box-shadow:var(--sombra-boton), 0 8px 22px -8px color-mix(in srgb,var(--tinta) 60%,transparent);
+}
+html[data-estilo="blanda"] .btn-1:active,
+html[data-estilo="blanda"] .btn-marca:active{box-shadow:inset 0 2px 6px rgba(0,0,0,.28)}
+
+/* Chips: hundidos; el activo sale a la superficie con el acento */
+html[data-estilo="blanda"] .chip{
+  background:var(--panel); border-color:transparent; box-shadow:var(--hundido);
+}
+html[data-estilo="blanda"] .chip[aria-pressed="true"],
+html[data-estilo="blanda"] .chip.on,
+html[data-estilo="blanda"] .multi button[aria-pressed="true"]{
+  background:linear-gradient(180deg,var(--tinta),var(--tinta-2)); color:var(--tinta-txt); border-color:transparent;
+  box-shadow:var(--sombra-1), 0 6px 16px -6px color-mix(in srgb,var(--tinta) 55%,transparent);
+}
+
+/* Buscador, campos y selectores: hundidos */
+html[data-estilo="blanda"] #q{background:var(--panel); border-color:transparent; box-shadow:var(--hundido)}
+html[data-estilo="blanda"] #q:focus{
+  border-color:transparent; background:var(--panel);
+  box-shadow:var(--hundido), 0 0 0 2px color-mix(in srgb,var(--tinta) 55%,transparent);
+}
+html[data-estilo="blanda"] .campo input,
+html[data-estilo="blanda"] .campo textarea,
+html[data-estilo="blanda"] .campo select{
+  background:var(--panel); border-color:transparent; box-shadow:var(--hundido);
+}
+html[data-estilo="blanda"] .campo input:focus,
+html[data-estilo="blanda"] .campo textarea:focus,
+html[data-estilo="blanda"] .campo select:focus{
+  border-color:transparent; box-shadow:var(--hundido), 0 0 0 2px color-mix(in srgb,var(--tinta) 55%,transparent);
+}
+html[data-estilo="blanda"] .seg{background:var(--panel); border-color:transparent; box-shadow:var(--hundido)}
+html[data-estilo="blanda"] .seg button[aria-pressed="true"]{
+  background:linear-gradient(180deg,var(--tinta),var(--tinta-2)); color:var(--tinta-txt); box-shadow:var(--sombra-1);
+}
+
+/* Filas de la lista: cada fórmula, una tarjeta que sobresale */
+html[data-estilo="blanda"] .lista{padding:8px 20px 110px}
+html[data-estilo="blanda"] .fila{
+  border:0 !important; border-radius:var(--r-l) !important; margin:0 0 14px;
+  background:var(--panel); box-shadow:var(--sombra-2);
+}
+html[data-estilo="blanda"] .fila:hover{background:color-mix(in srgb,var(--tono,transparent) 8%,var(--panel))}
+html[data-estilo="blanda"] .fila:active{
+  background:color-mix(in srgb,var(--tono,transparent) 10%,var(--panel)); box-shadow:var(--hundido); scale:.997;
+}
+html[data-estilo="blanda"] .fila[aria-current="true"]{background:var(--panel); box-shadow:var(--hundido)}
+html[data-estilo="blanda"] .letra{background:color-mix(in srgb,var(--fondo) 90%,transparent)}
+
+/* Tarjetas, ajustes y hojas */
+html[data-estilo="blanda"] .aj-grupo{background:var(--panel); border-color:transparent; box-shadow:var(--sombra-2)}
+html[data-estilo="blanda"] .aj{border-bottom-color:var(--linea)}
+html[data-estilo="blanda"] .hoja{background:var(--panel); border-color:transparent; box-shadow:var(--sombra-3)}
+html[data-estilo="blanda"] dialog::backdrop{background:color-mix(in srgb,var(--fondo) 55%,transparent)}
+html[data-estilo="blanda"] .tema-t,
+html[data-estilo="blanda"] .apa-t{background:var(--panel); border-color:transparent; box-shadow:var(--sombra-1)}
+html[data-estilo="blanda"] .tema-t.on,
+html[data-estilo="blanda"] .apa-t.on{box-shadow:var(--hundido), 0 0 0 2px var(--tinta)}
+
+/* La barra de abajo: una pastilla que flota */
+html[data-estilo="blanda"] .barra{
+  background:var(--panel); backdrop-filter:none; border-color:transparent;
+  box-shadow:var(--sombra-3);
+}
+html[data-estilo="blanda"] #solapas button[aria-pressed="true"]{color:var(--tinta)}
+html[data-estilo="blanda"] .barra #btn-nuevo{
+  background:linear-gradient(180deg,var(--tinta),var(--tinta-2));
+  box-shadow:var(--sombra-boton), 0 10px 26px -8px color-mix(in srgb,var(--tinta) 65%,transparent);
+}
+
+/* Interruptores */
+html[data-estilo="blanda"] .interruptor .pista{box-shadow:var(--hundido); border-color:transparent}
+
+/* ── ACENTO ────────────────────────────────────────────────────────────────
+   Se genera desde parchear_notas.py (tabla ACENTOS): un bloque por acento y
+   por modo (oscuro, claro del sistema, claro forzado). «hueso» no genera
+   nada: es el color de tinta propio de cada estilo. */
+html[data-acento="coral"]{--tinta:#ff7a62; --tinta-2:color-mix(in srgb,#ff7a62 84%,#000); --tinta-txt:#17110f; --tinta-suave:color-mix(in srgb,#ff7a62 18%,var(--panel));}
+html[data-acento="menta"]{--tinta:#4fcf9c; --tinta-2:color-mix(in srgb,#4fcf9c 84%,#000); --tinta-txt:#17110f; --tinta-suave:color-mix(in srgb,#4fcf9c 18%,var(--panel));}
+html[data-acento="lavanda"]{--tinta:#a58bff; --tinta-2:color-mix(in srgb,#a58bff 84%,#000); --tinta-txt:#17110f; --tinta-suave:color-mix(in srgb,#a58bff 18%,var(--panel));}
+html[data-acento="ambar"]{--tinta:#ffb347; --tinta-2:color-mix(in srgb,#ffb347 84%,#000); --tinta-txt:#17110f; --tinta-suave:color-mix(in srgb,#ffb347 18%,var(--panel));}
+html[data-acento="azul"]{--tinta:#5aa9ff; --tinta-2:color-mix(in srgb,#5aa9ff 84%,#000); --tinta-txt:#17110f; --tinta-suave:color-mix(in srgb,#5aa9ff 18%,var(--panel));}
+html[data-acento="rosa"]{--tinta:#ff7fae; --tinta-2:color-mix(in srgb,#ff7fae 84%,#000); --tinta-txt:#17110f; --tinta-suave:color-mix(in srgb,#ff7fae 18%,var(--panel));}
+@media (prefers-color-scheme:light){
+html[data-acento="coral"]:not([data-tema="oscuro"]){--tinta:#e65a40; --tinta-2:color-mix(in srgb,#e65a40 84%,#000); --tinta-txt:#17110f; --tinta-suave:color-mix(in srgb,#e65a40 18%,var(--panel));}
+html[data-acento="menta"]:not([data-tema="oscuro"]){--tinta:#1a8f66; --tinta-2:color-mix(in srgb,#1a8f66 84%,#000); --tinta-txt:#17110f; --tinta-suave:color-mix(in srgb,#1a8f66 18%,var(--panel));}
+html[data-acento="lavanda"]:not([data-tema="oscuro"]){--tinta:#7556ea; --tinta-2:color-mix(in srgb,#7556ea 84%,#000); --tinta-txt:#ffffff; --tinta-suave:color-mix(in srgb,#7556ea 18%,var(--panel));}
+html[data-acento="ambar"]:not([data-tema="oscuro"]){--tinta:#cf7a0a; --tinta-2:color-mix(in srgb,#cf7a0a 84%,#000); --tinta-txt:#17110f; --tinta-suave:color-mix(in srgb,#cf7a0a 18%,var(--panel));}
+html[data-acento="azul"]:not([data-tema="oscuro"]){--tinta:#2a6fd6; --tinta-2:color-mix(in srgb,#2a6fd6 84%,#000); --tinta-txt:#ffffff; --tinta-suave:color-mix(in srgb,#2a6fd6 18%,var(--panel));}
+html[data-acento="rosa"]:not([data-tema="oscuro"]){--tinta:#cc3070; --tinta-2:color-mix(in srgb,#cc3070 84%,#000); --tinta-txt:#ffffff; --tinta-suave:color-mix(in srgb,#cc3070 18%,var(--panel));}
+}
+html[data-acento="coral"][data-tema="claro"]{--tinta:#e65a40; --tinta-2:color-mix(in srgb,#e65a40 84%,#000); --tinta-txt:#17110f; --tinta-suave:color-mix(in srgb,#e65a40 18%,var(--panel));}
+html[data-acento="menta"][data-tema="claro"]{--tinta:#1a8f66; --tinta-2:color-mix(in srgb,#1a8f66 84%,#000); --tinta-txt:#17110f; --tinta-suave:color-mix(in srgb,#1a8f66 18%,var(--panel));}
+html[data-acento="lavanda"][data-tema="claro"]{--tinta:#7556ea; --tinta-2:color-mix(in srgb,#7556ea 84%,#000); --tinta-txt:#ffffff; --tinta-suave:color-mix(in srgb,#7556ea 18%,var(--panel));}
+html[data-acento="ambar"][data-tema="claro"]{--tinta:#cf7a0a; --tinta-2:color-mix(in srgb,#cf7a0a 84%,#000); --tinta-txt:#17110f; --tinta-suave:color-mix(in srgb,#cf7a0a 18%,var(--panel));}
+html[data-acento="azul"][data-tema="claro"]{--tinta:#2a6fd6; --tinta-2:color-mix(in srgb,#2a6fd6 84%,#000); --tinta-txt:#ffffff; --tinta-suave:color-mix(in srgb,#2a6fd6 18%,var(--panel));}
+html[data-acento="rosa"][data-tema="claro"]{--tinta:#cc3070; --tinta-2:color-mix(in srgb,#cc3070 84%,#000); --tinta-txt:#ffffff; --tinta-suave:color-mix(in srgb,#cc3070 18%,var(--panel));}
+
+
+/* ── TAMAÑO GRANDE ─────────────────────────────────────────────────────────
+   Para leer a más distancia o con prisa: letra, filas, botones y campos más
+   grandes. No toca la rejilla ni los textos de aviso. */
+html[data-tamano="grande"]{--alto-fila:80px}
+html[data-tamano="grande"] body{font-size:17px}
+html[data-tamano="grande"] .fila-nombre{font-size:19px}
+html[data-tamano="grande"] .fila-sub{font-size:11.5px}
+html[data-tamano="grande"] .fila .muestra{width:56px; height:56px}
+html[data-tamano="grande"] .btn{height:56px; font-size:17px}
+html[data-tamano="grande"] .chip{height:46px; font-size:11.5px}
+html[data-tamano="grande"] #q{height:60px; font-size:17px}
+html[data-tamano="grande"] .campo input,
+html[data-tamano="grande"] .campo select{height:56px; font-size:17px}
+html[data-tamano="grande"] .aj{padding-top:19px; padding-bottom:19px}
+html[data-tamano="grande"] .aj-et{font-size:17.5px}
+html[data-tamano="grande"] .barra #solapas button{font-size:11.5px}
+
+/* ── El panel «Apariencia» de Opciones ─────────────────────────────────── */
+.apa-bloque{padding:16px 18px 18px; border-bottom:1px solid var(--linea)}
+.apa-bloque:last-child{border-bottom:0}
+.apa-bloque .aj-et{display:block; margin-bottom:12px}
+.apa-bloque small{display:block; margin-top:10px; font-size:12.5px; line-height:1.45; color:var(--texto-3)}
+.apa-tiles{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
+.apa-t{
+  border:1.5px solid var(--linea); background:var(--panel-2); border-radius:var(--r-m);
+  padding:8px 8px 10px; cursor:pointer; color:var(--texto-2); text-align:center;
+  display:flex; flex-direction:column; gap:8px; align-items:stretch; font:inherit;
+  transition:border-color .16s var(--salida), transform .16s var(--salida), box-shadow .16s var(--salida);
+}
+.apa-t:hover{transform:translateY(-2px)}
+.apa-t.on{border-color:var(--tinta); color:var(--texto); box-shadow:0 0 0 3px color-mix(in srgb,var(--tinta) 14%,transparent)}
+.apa-t em{font-style:normal; font-size:13px; font-weight:600}
+/* Miniaturas con colores fijos: tienen que verse bien estés en el modo que estés */
+.apa-mini{display:block; position:relative; height:70px; border-radius:11px; overflow:hidden}
+.apa-mini i{position:absolute; left:9px; right:9px; height:15px; border-radius:8px}
+.apa-mini i:nth-child(1){top:10px}
+.apa-mini i:nth-child(2){top:31px; right:34px}
+.apa-mini i:nth-child(3){top:50px; right:58px; height:9px}
+.apa-mini b{position:absolute; right:9px; bottom:9px; width:20px; height:20px; border-radius:50%}
+.apa-mini-blanda{background:#2a2730}
+.apa-mini-blanda i{background:#2a2730; box-shadow:3px 3px 6px rgba(0,0,0,.55),-3px -3px 6px rgba(255,255,255,.07)}
+.apa-mini-blanda b{background:#ff7a62; box-shadow:0 0 10px rgba(255,122,98,.5)}
+.apa-mini-instrumento{background:#0a0b0d}
+.apa-mini-instrumento i{background:#121417; border:1px solid rgba(232,226,212,.2); border-radius:6px}
+.apa-mini-instrumento b{background:#e8e2d4; border-radius:5px}
+.apa-tres{grid-template-columns:repeat(3,1fr); gap:9px}
+.apa-tres .apa-t{padding:6px 6px 9px}
+.apa-tres .apa-t em{font-size:12px}
+.apa-mini-var{background:#2a2730; height:62px}
+.apa-mini-var svg{display:block; width:100%; height:100%}
+.apa-acentos{display:flex; flex-wrap:wrap; gap:12px}
+.apa-ac{
+  width:44px; height:44px; border-radius:50%; border:0; cursor:pointer; padding:0; position:relative;
+  box-shadow:inset 0 -4px 7px rgba(0,0,0,.22), inset 0 3px 5px rgba(255,255,255,.3), 0 4px 9px rgba(0,0,0,.3);
+  transition:transform .2s cubic-bezier(.34,1.5,.5,1), box-shadow .2s;
+}
+.apa-ac:hover{transform:scale(1.08)}
+.apa-ac.on{transform:scale(1.08); outline:3px solid var(--texto); outline-offset:3px}
+.apa-ac svg{position:absolute; inset:0; margin:auto; width:20px; height:20px; stroke-width:3; opacity:0; transition:opacity .15s}
+.apa-ac.on svg{opacity:1}
+.apa-seg{display:flex; gap:4px; background:var(--panel-2); padding:4px; border-radius:999px; border:1px solid var(--linea)}
+.apa-seg button{
+  flex:1 1 0; height:40px; border-radius:999px; font:inherit; font-size:13.5px; font-weight:600;
+  color:var(--texto-2); border:0; background:none; cursor:pointer;
+  transition:background-color .15s var(--salida), color .15s var(--salida);
+}
+.apa-seg button[aria-checked="true"]{
+  background:linear-gradient(180deg,var(--tinta),var(--tinta-2)); color:var(--tinta-txt);
+  box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+@media (prefers-reduced-motion:reduce){ .apa-t,.apa-ac{transition:none} }
+
+/* Lo que solo tiene sentido en un estilo */
+html[data-estilo="blanda"] .aj-cristal[for="op-cristal"]{display:none}
+html:not([data-estilo="blanda"]) .apa-b-relieve{display:none}
+/* ═══ FICHA Y LISTA · variantes (data-ficha, data-lista en <html>) ═══════════
+   Van DESPUÉS de apariencia.css: tienen que ganar a las filas de «blanda».
+   Ninguna toca datos: solo cómo se dibuja la muestra y cómo se reparte la lista.
+
+   FICHA   anillo   la pastilla con su anillo de proporciones (el de siempre)
+           bote     un bote en capas (una por ingrediente, con sus gramos) y la
+                    muestra del color pequeña a su lado
+           bandeja  la muestra con una luz grande detrás y la receta en una
+                    «bandeja» que sube por abajo, como una hoja
+   LISTA   filas    una fila por color (la de siempre)
+           mosaico  cuadrícula de muestras grandes con el nombre debajo
+                    (solo en Colores: Sellos y Notas siguen en filas) */
+
+/* ── FICHA · bote en capas ─────────────────────────────────────────────── */
+.ficha-bote{display:none}
+html[data-ficha="bote"] .ficha-anillo{display:none}
+html[data-ficha="bote"] .ficha-bote{display:grid; place-items:center; position:absolute; inset:0}
+.fb-jar{
+  position:relative; height:calc(100% - 22px); aspect-ratio:.68; overflow:hidden;
+  display:flex; flex-direction:column-reverse; border-radius:16px 16px 38px 38px;
+  background:rgba(255,255,255,.04);
+  box-shadow:0 16px 26px -10px rgba(0,0,0,.55);
+}
+.fb-jar i{
+  display:grid; place-items:center; flex:var(--g) 1 0; min-height:0; background:var(--c); color:var(--ink);
+  font:700 12px var(--mono); font-style:normal; letter-spacing:-.01em; font-variant-numeric:tabular-nums;
+}
+.fb-jar i + i{box-shadow:0 -1px 0 rgba(255,255,255,.32)}
+.fb-jar::before{   /* el cristal por ENCIMA de las capas (un inset del propio bote quedaría debajo) */
+  content:""; position:absolute; inset:0; border-radius:inherit; z-index:2; pointer-events:none;
+  box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--texto) 30%,transparent), inset 0 -16px 22px rgba(0,0,0,.2);
+}
+.fb-jar::after{z-index:3;
+  content:""; position:absolute; left:11%; top:6%; width:12%; bottom:15%; border-radius:10px; pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.32),rgba(255,255,255,.03));
+}
+html[data-ficha="bote"] .hero .hero-muestra{
+  position:absolute; right:-2px; bottom:2px; width:30%; height:30%; z-index:3;
+  box-shadow:0 0 0 4px var(--panel), inset 0 -6px 10px rgba(0,0,0,.3), 0 8px 16px -4px rgba(0,0,0,.5);
+  animation:none;
+}
+html[data-ficha="bote"] .hero .hero-muestra::before{background:radial-gradient(circle at 30% 22%, rgba(255,255,255,.4), transparent 46%)}
+
+/* ── FICHA · bandeja ───────────────────────────────────────────────────── */
+html[data-ficha="bandeja"] .ficha-anillo{display:none}
+html[data-ficha="bandeja"] .puck-zona{width:170px; height:170px}
+html[data-ficha="bandeja"] .hero .hero-muestra{width:128px; height:128px}
+html[data-ficha="bandeja"] .hero::before{
+  content:""; position:absolute; left:50%; top:-26px; width:min(680px,130%); height:340px;
+  transform:translateX(-50%); z-index:-1; pointer-events:none;
+  background:radial-gradient(60% 62% at 50% 40%, color-mix(in srgb,var(--tono,transparent) 50%,transparent), transparent 74%);
+}
+html[data-ficha="bandeja"] .ficha-lecturas{border:0; box-shadow:none; background:none}
+html[data-ficha="bandeja"] .ficha-lecturas > div + div{border-left-color:var(--linea)}
+html[data-ficha="bandeja"] .tarjeta-fm{
+  position:relative; border-radius:34px 34px 14px 14px; padding-top:14px;
+  box-shadow:0 -18px 34px -12px rgba(0,0,0,.45), inset 0 1px 0 var(--canto);
+}
+html[data-ficha="bandeja"] .tarjeta-fm::before{
+  content:""; display:block; width:42px; height:5px; border-radius:9px; margin:0 auto 6px; background:var(--linea-fuerte);
+}
+@media (max-height:740px){
+  html[data-ficha="bandeja"] .puck-zona{width:140px; height:140px}
+  html[data-ficha="bandeja"] .hero .hero-muestra{width:104px; height:104px}
+}
+
+/* ── LISTA · mosaico (solo la lista de colores) ────────────────────────────
+   Con «flex-wrap», no con una cuadrícula: en una cuadrícula de CSS cada fila
+   salía de 47 px (la muestra se salía de su tarjeta y las letras se montaban
+   encima). Dos columnas en el móvil y en la columna del monitor; más cuando
+   la lista ocupa toda la pantalla (tablet). */
+html[data-lista="mosaico"] body[data-seccion="colores"] .lista{
+  display:flex; flex-wrap:wrap; align-content:flex-start; gap:14px; --cols:2;
+}
+@media (min-width:560px) and (max-width:860px){ html[data-lista="mosaico"] body[data-seccion="colores"] .lista{--cols:3} }
+@media (min-width:760px) and (max-width:860px){ html[data-lista="mosaico"] body[data-seccion="colores"] .lista{--cols:4} }
+html[data-lista="mosaico"] body[data-seccion="colores"] .lista > :not(.fila),
+html[data-lista="mosaico"] body[data-seccion="colores"] .lista > .fila-medias{flex:0 0 100%; width:100%}
+html[data-lista="mosaico"] body[data-seccion="colores"] .lista > .letra{margin-bottom:-6px}
+html[data-lista="mosaico"] body[data-seccion="colores"] .lista > .fila:not(.fila-medias){
+  position:relative; flex:0 0 calc((100% - 14px * (var(--cols) - 1)) / var(--cols)); width:auto; box-sizing:border-box;
+  flex-direction:column; align-items:stretch; gap:8px; min-height:0; min-width:0; margin:0; padding:10px 10px 13px;
+}
+html[data-lista="mosaico"]:not([data-estilo="blanda"]) body[data-seccion="colores"] .lista > .fila:not(.fila-medias){
+  border:1px solid var(--linea) !important; border-radius:var(--r-l) !important;
+}
+html[data-lista="mosaico"] body[data-seccion="colores"] .lista > .fila:not(.fila-medias) .muestra{
+  width:100%; height:100px; border-radius:var(--r-m);
+}
+html[data-tamano="grande"][data-lista="mosaico"] body[data-seccion="colores"] .lista > .fila:not(.fila-medias) .muestra{height:116px}
+html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) .fila-flecha{display:none}
+html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) .pin{position:absolute; top:16px; right:16px}
+html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) .fila-txt{min-width:0; padding:0 2px; width:100%}
+html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) .fila-nombre{
+  white-space:normal; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-height:1.18; font-size:15px;
+  min-height:2.36em;   /* dos renglones siempre: todas las tarjetas de una fila miden igual */
+}
+html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) .tira{width:100%}
+html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) .fila-sub{font-size:9.5px; letter-spacing:.1em}
 </style>
 </head>
 <body>
@@ -4317,10 +4807,6 @@ html[data-cristal="on"] .lista{padding-bottom:180px}
         <span id="contador"></span>
         <button id="chip-pigmento" class="chip chip-filtro" hidden></button>
         <button id="chip-pend" class="chip" hidden></button>
-        <div class="g-seg g-vista" id="g-vista" role="radiogroup" aria-label="Cómo ver los sellos" hidden>
-          <button type="button" role="radio" data-vista="lista" aria-checked="true">Lista</button>
-          <button type="button" role="radio" data-vista="arch" aria-checked="false">Archivador</button>
-        </div>
       </div>
       <div class="lista" id="lista" role="listbox" aria-label="Fórmulas"></div>
       <!-- Riel A–Z (solo móvil): lo pinta 05-lista.js con las letras de lo filtrado. -->
@@ -6375,10 +6861,7 @@ let gramoSel = null;        // el sello abierto
 let notaSel = null;         // la nota abierta (Notas de trabajo)
 let notaCat = null;         // categoría de notas filtrada (null = todas)
 let nFiltradas = [];
-let gArch = (()=>{ try{ return localStorage.getItem('sellos-vista') === 'arch'; }catch(_){ return false; } })();
 let gColorFiltro = null;    // el color de la fila «Lleva» del archivador
-let gVista = 'ficha';       // 'ficha' | 'calc'
-let gCalc = null;           // {id, n, margen} mientras se calcula un pedido
 let gFiltrados = [];
 if(!Array.isArray(DATOS.sellos)) DATOS.sellos = [];
 let porIdS = new Map(DATOS.sellos.map(s => [s.id, s]));
@@ -7662,7 +8145,7 @@ function cerrarFicha(){
   cerrarCapa('ficha');
   document.body.dataset.ficha='';
   seleccion = null; selloSel = null; rectificando = null;
-  gramoSel = null; gVista = 'ficha'; gCalc = null; notaSel = null;
+  gramoSel = null; notaSel = null;
   for(const el of $lista.querySelectorAll('.fila, .arch-t')) el.setAttribute('aria-current','false');
   if(SECCION === 'sellos') muroDeSellos(); else if(SECCION === 'notas') muroDeNotas(); else pintarFicha();
 }
@@ -7952,7 +8435,7 @@ function plantillaFicha(f, x){
 
     <div class="hero">
       <div class="hero-envoltura">
-        <div class="puck-zona">${fichaAnillo(f, total)}<div class="hero-muestra${c.metalizado?' metal':''}" style="background:${c.hex}"${marcaFoto(f.id)}></div></div>
+        <div class="puck-zona">${fichaAnillo(f, total)}${fichaBote(f, total)}<div class="hero-muestra${c.metalizado?' metal':''}" style="background:${c.hex}"${marcaFoto(f.id)}></div></div>
         ${tieneFoto(f.id)
           ? `<button class="foto-btn" id="foto-ver" title="Ver la muestra en grande">
                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0z" fill="currentColor" stroke="none" opacity=".3"/><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -11922,6 +12405,8 @@ function abrirOpciones(){
 
   $dt.textContent = 'Opciones';
   $dc.innerHTML = `
+    ${apaPanel()}
+    <p class="aj-titulo">Pantalla y cuenta</p>
     <div class="aj-grupo">
       <div class="aj aj-tema">
         <span class="aj-et" id="op-tema-et">Aspecto</span>
@@ -12024,6 +12509,7 @@ function abrirOpciones(){
   }
   document.getElementById('op-cristal').onchange = e => ponerCristal(e.target.checked);
   document.getElementById('op-efectos').onchange = e => ponerEfectos(e.target.checked);
+  apaEnlazar();
   document.getElementById('op-sonido').onchange = e => { ponerSonido(e.target.checked); if(e.target.checked) pitido([[880, .08]]); };
   const ir = (id, f) => document.getElementById(id)?.addEventListener('click', f);
   ir('op-cuenta',       ()=>pantallaCuenta(abrirOpciones));
@@ -12148,7 +12634,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">534dc692</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">0e0d4821</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -15759,7 +16245,6 @@ function pintarSolapas(){
   for(const b of $s.querySelectorAll('[data-sec]'))
     b.setAttribute('aria-pressed', String(b.dataset.sec === SECCION));
   document.body.dataset.seccion = SECCION;
-  pintarVistaSellos();
   /* En el móvil el buscador comparte fila con «Goma» y el texto largo se
      cortaba a media palabra: ahí va la versión corta. */
   const corto = matchMedia('(max-width:860px)').matches;
@@ -15786,7 +16271,7 @@ matchMedia('(max-width:860px)').addEventListener('change', ()=>{
 function cambiarSeccion(sec){
   if(SECCION === sec) return;
   SECCION = sec;
-  seleccion = null; selloSel = null; gramoSel = null; gVista = 'ficha'; gCalc = null;
+  seleccion = null; selloSel = null; gramoSel = null;
   notaSel = null; notaCat = null; gColorFiltro = null;
   $q.value = '';
   ponerFiltro(null);
@@ -16022,14 +16507,7 @@ addEventListener('resize', ()=>{
    ven y otros no era una fuente de líos. Si algún día hace falta, se añade.
    ═══════════════════════════════════════════════════════════════════ */
 
-const G_ATAJOS = [100, 250, 400, 500, 1000];
 const G_MARGEN_POR_DEFECTO = 10;
-const G_PASO_MARGEN = 5;
-const G_MARGEN_MAX = 50;
-/* Lo máximo que cabe en la máquina de una vez: 4,5 kilos (lo dijo Juanjo, 21 oct).
-   No es un freno: la app da el peso total y OFRECE partirlo en tandas iguales. */
-const G_TANDA_MAX = 4500;
-const G_TANDAS_TOPE = 20;
 /* Los 9 colores BASE (blanco 4, blanco op, rojo 1, rojo 3, amarillo 1, amarillo 2,
    magenta, negro y azul base) se reconocen por el nombre de la fórmula (sin
    acentos ni signos). Solo sirven para marcar «Color base» en la ficha del color.
@@ -16040,32 +16518,7 @@ const G_BASES = new Set(['BLANCO 4', 'BLANCO OP', 'BLANCO OPTICO', 'ROJO 1', 'RO
                          'AMARILLO 1', 'AMARILLO 2', 'MAGENTA', 'NEGRO', 'AZUL BASE']);
 const gNorm = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
   .toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
-/** 7301 g en 2 tandas -> 3651 g cada una (hacia arriba, como todo lo demás). */
-function gPesoTanda(total, n){ return Math.ceil(total / n - 1e-9); }
-
 // ── Pequeñas utilidades ─────────────────────────────────────────────
-
-/** 1409 -> «1.409». El separador de miles se pone a mano porque
-    toLocaleString('es-ES') no lo pone en los números de cuatro cifras. */
-function gMiles(n){ return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
-
-/** 1200 -> «1 kilo 200 gramos»; 484 -> «484 gramos»; 2000 -> «2 kilos».
-    Es como se habla en el taller: nadie dice «mil doscientos gramos». */
-function gPesoTxt(n){
-  const t = Math.round(Number(n) || 0), k = Math.floor(t / 1000), g = t % 1000;
-  const partes = [];
-  if(k) partes.push(`${k} ${k === 1 ? 'kilo' : 'kilos'}`);
-  if(g || !k) partes.push(`${g} ${g === 1 ? 'gramo' : 'gramos'}`);
-  return partes.join(' ');
-}
-/** Lo mismo, pero con los números grandes y las palabras pequeñas. */
-function gPesoHtml(n){
-  const t = Math.round(Number(n) || 0), k = Math.floor(t / 1000), g = t % 1000;
-  const p = (v, uno, varios) => `<b>${v}</b><small>${v === 1 ? uno : varios}</small>`;
-  return `<span class="g-peso" data-g="${t}" aria-label="${gPesoTxt(t)}">`
-    + (k ? p(k, 'kilo', 'kilos') : '')
-    + (g || !k ? p(g, 'gramo', 'gramos') : '') + '</span>';
-}
 
 /** 3.2 -> «3,2». Hasta 3 decimales, sin ceros de sobra. */
 function gDec(n, dec = 3){
@@ -16136,37 +16589,13 @@ const gCmp = (a, b) => String(a).localeCompare(String(b), 'es', {numeric: true})
    que él pesó, tal cual, y se divide al calcular: así no se arrastra un
    redondeo (7 g entre 6 sellos no es 1,167 g exactos). */
 const gPorMolde = g => Math.max(1, Math.floor(Number(g && g.porMolde)) || 1);
-const gTotalSello = g => (g.colores || []).reduce((a, c) => a + (Number(c.gramos) || 0), 0);
-const gTotalPorSello = g => gTotalSello(g) / gPorMolde(g);
 /** El número de molde tal como se escribió, sin un «molde» delante si lo puso él. */
 const gMoldeNum = g => String((g && g.molde) || '').trim().replace(/^(molde|n[º°o.]*)\s*/i, '');
 const gMoldeTxt = g => gMoldeNum(g) ? 'Molde ' + gMoldeNum(g) : '';
-/** «sello» o «molde de 6 sellos», para rotular. */
-const gUnidad = g => gPorMolde(g) > 1 ? `molde de ${gPorMolde(g)} sellos` : 'sello';
 const gNombreColor = c => { const f = porId.get(c.ref); return f ? f.nombre : (c.nombre || 'Color'); };
 
-/** La cuenta de todo el módulo. Se redondea HACIA ARRIBA cada color: si
-    salen 1.408,0000000002 g no se piden 1.409, y si salen 1.408,3 sí; y nunca
-    se prepara de menos. Cada fila es un bote que se pesa entero. */
-function gCalcular(g, n, margen){
-  const k = 1 + (Number(margen) || 0) / 100;
-  const filas = (g.colores || []).map(c => {
-    const gps = (Number(c.gramos) || 0) / gPorMolde(g);
-    const bruto = gps * n * k;
-    return {ref: c.ref, gps, bruto, g: Math.ceil(bruto - 1e-6)};
-  });
-  return {k, filas, total: filas.reduce((a, f) => a + f.g, 0)};
-}
-
-// Lo último que se calculó de cada sello, en ESTE aparato (comodidad, no dato).
-const gLeerN = id => { try{ const v = parseInt(localStorage.getItem('gramos-n:' + id), 10); return v > 0 ? v : null; }catch(_){ return null; } };
-const gGuardarN = (id, n) => { try{ localStorage.setItem('gramos-n:' + id, String(n)); }catch(_){} };
-
-const G_ICONO_CALC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3.5" width="14" height="17" rx="2.5"/><path d="M8.5 7.5h7M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 15.5h.01M12 15.5h.01M15.5 15.5h.01"/></svg>';
-const G_ICONO_PESAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M6 20h12M5 8h14M5 8l-2.5 6a3 3 0 0 0 5 0zM19 8l-2.5 6a3 3 0 0 0 5 0z"/></svg>';
 const G_ICONO_COPIA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h9.5V14H4z"/><path d="M10.5 10h9.5v9.5h-9.5z"/></svg>';
 const G_ICONO_ATRAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
-const G_ICONO_SIG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
 
 // ── Guardar ─────────────────────────────────────────────────────────
 
@@ -16269,65 +16698,14 @@ function actualizarGramos(){
   }
   document.getElementById('limpiar').classList.toggle('on', !!$q.value);
   pintarListaGramos();
-  /* Si estás escribiendo el número de sellos, la sincronización (que corre
-     sola cada 15 s) NO repinta la ficha: te quitaría el cursor de debajo. */
-  const ae = document.activeElement;
-  const escribiendo = ae && (ae.id === 'g-n' || ae.classList.contains('g-vn'));
-  if(!gramoSel) muroDeGramos();
-  else if(!(gVista === 'calc' && escribiendo)) pintarFichaGramo();
+  if(!gramoSel) muroDeGramos(); else pintarFichaGramo();
 }
 
-function pintarListaGramos(){
-  if(gArch) return pintarArchivador();
-  soltarFotos($lista);
-  $lista.innerHTML = '';
-  const frag = document.createDocumentFragment();
-  for(const g of gFiltrados){
-    const b = document.createElement('button');
-    b.className = 'fila fila-gramo'; b.type = 'button'; b.role = 'option';
-    b.dataset.id = g.id;
-    b.setAttribute('aria-current', String(g.id === gramoSel));
-    const vs = gVars(g);
-    const cols = vs[0].colores || [];
-    // Con variantes se ve el primer color de cada una; sin ellas, los primeros del sello.
-    const refs = vs.length > 1 ? vs.map(v => v.colores && v.colores[0] && v.colores[0].ref).filter(Boolean)
-                               : cols.map(c => c.ref);
-    const fid = gFotoId(g);
-    const con = tieneFoto(fid);
-    const puntos = refs.slice(0, 4).map(r => gGota(gHex(r), 16)).join('');
-    const sub = [esc(gMoldeTxt(g)),
-      vs.length > 1 ? `${vs.length} variantes`
-        : cols.length ? `${cols.length} color${cols.length === 1 ? '' : 'es'}` : '<em class="falta">sin colores</em>']
-      .filter(Boolean).join(' · ');
-    b.innerHTML =
-      `<div class="g-mini${con ? '' : ' sin'}"${marcaFoto(fid)}>${con ? '' : icono('sellos')}</div>` +
-      `<div class="fila-txt"><div class="fila-nombre">${resaltar(g.nombre, $q.value)}</div>` +
-      `<div class="fila-sub">${sub}</div></div>` +
-      (puntos ? `<div class="g-puntos">${puntos}${refs.length > 4 ? `<span>+${refs.length - 4}</span>` : ''}</div>` : '');
-    frag.appendChild(b);
-  }
-  if(!gFiltrados.length && DATOS.gramos.length){
-    const v = document.createElement('div');
-    v.className = 'lista-nada';
-    v.innerHTML = '<b>Ningún sello se llama así</b>Prueba con menos letras, o con el número de molde.';
-    frag.appendChild(v);
-  }else if(!DATOS.gramos.length){
-    // En el móvil el muro (donde está este mensaje) no se pinta: la lista no puede quedar en blanco.
-    const v = document.createElement('div');
-    v.className = 'lista-nada';
-    v.innerHTML = '<b>Todavía no hay sellos</b>' + (puedeEditar
-      ? 'Cada sello guarda sus colores y los gramos de cada uno.<button class="btn btn-1" id="g-primero-lista" type="button">Añadir el primero</button>'
-      : 'Aparecerán aquí en cuanto se vayan apuntando.');
-    frag.appendChild(v);
-  }
-  $lista.appendChild(frag);
-  document.getElementById('g-primero-lista')?.addEventListener('click', () => editarGramo(null));
-  enlazarFotos($lista);
-}
+function pintarListaGramos(){ pintarArchivador(); }
 
 function abrirGramo(id){
   abrirCapa('ficha');
-  gramoSel = id; gVista = 'ficha'; gCalc = null;
+  gramoSel = id;
   document.body.dataset.ficha = 'on';
   pintarFichaGramo();
   pintarListaGramos();
@@ -16342,8 +16720,8 @@ function muroDeGramos(){
   if(!DATOS.gramos.length){
     $ficha.innerHTML = `<div class="vacio">${icono('sellos')}
       <p><b>Todavía no hay sellos</b>${puedeEditar
-        ? 'Cada sello guarda su foto y los gramos de cada color que lleva. Con eso, el día que se repite un pedido, la app dice cuánta pintura preparar.'
-        : 'Aquí aparecerán los sellos, con los gramos de cada color, en cuanto se vayan apuntando.'}</p>
+        ? 'Cada sello guarda su foto y los colores que lleva, para encontrarlo de un vistazo.'
+        : 'Aquí aparecerán los sellos, con sus colores, en cuanto se vayan apuntando.'}</p>
       ${puedeEditar ? '<button class="btn btn-1" id="g-primero">Añadir el primero</button>' : ''}
       </div>`;
     document.getElementById('g-primero')?.addEventListener('click', () => editarGramo(null));
@@ -16389,11 +16767,10 @@ function pintarFichaGramo(){
   if(!raw){
     // Otro aparato lo ha borrado mientras lo mirabas: se dice, no se deja la pantalla vacía.
     const abierto = document.body.dataset.ficha === 'on';
-    gramoSel = null; gVista = 'ficha'; gCalc = null;
+    gramoSel = null;
     if(abierto){ cerrarFicha(); brindis('Ese sello ya no existe: lo ha borrado otro aparato'); }
     muroDeGramos(); return;
   }
-  if(gVista === 'calc') return pintarCalcGramo(raw);
   const vs = gVars(raw);
   const g = gProy(raw);              // el sello visto desde la variante abierta
   $ficha.classList.remove('es-muro');
@@ -16412,7 +16789,6 @@ function pintarFichaGramo(){
       ${gGota(gHex(c.ref), 36)}
       <span class="g-nm">${esc(p.base)}${p.cli ? `<small>${esc(p.cli)}</small>`
         : (f ? '' : '<small>Este color ya no existe</small>')}</span>
-      <span class="g-g">${gDec(c.gramos)}<small>g</small><em>${gPorMolde(g) > 1 ? 'por molde' : 'por sello'}</em></span>
     </button>`;
   }).join('');
   const sinColores = !cols.length;
@@ -16430,21 +16806,17 @@ function pintarFichaGramo(){
       <div class="g-cli">${gMoldeTxt(g) ? esc(gMoldeTxt(g)) : '<span class="flojo">Sin número de molde</span>'}</div>
     </div>
     <div class="g-tarj">
-      <div class="g-cabsec"><span>Colores${vs.length > 1 ? ` de «${esc(gNomVar(g._v, vs.indexOf(g._v)))}»` : ''} · gramos por ${esc(gUnidad(g))}</span></div>
+      <div class="g-cabsec"><span>Colores${vs.length > 1 ? ` de «${esc(gNomVar(g._v, vs.indexOf(g._v)))}»` : ''}</span></div>
       ${sinColores
         ? `<p class="g-vacio">Este sello todavía no tiene colores.${puedeEditar
-            ? ' Toca <b>Editar</b> para añadirlos con sus gramos.' : ' El editor los irá apuntando.'}</p>`
-        : filas + (gPorMolde(g) > 1
-          ? `<div class="g-total"><span>Total por molde</span><b>${gDec(gTotalSello(g))} g</b></div>
-             <div class="g-total g-total-ps"><span>Por sello</span><b>${gDec(gTotalPorSello(g), 2)} g</b></div>`
-          : `<div class="g-total"><span>Total por sello</span><b>${gDec(gTotalSello(g))} g</b></div>`)}
+            ? ' Toca <b>Editar</b> para añadirlos.' : ' El editor los irá apuntando.'}</p>`
+        : filas}
     </div>
-    <div class="barra-ficha g-barra">
-      <button class="btn btn-marca" id="g-calc" type="button"${sinColores ? ' disabled' : ''}>${G_ICONO_CALC} Calcular pedido</button>
-      ${puedeEditar ? `<button class="btn" id="g-editar" type="button">${icono('editar')} Editar</button>
+    ${puedeEditar ? `<div class="barra-ficha g-barra">
+      <button class="btn btn-marca" id="g-editar" type="button">${icono('editar')} Editar</button>
       <button class="btn btn-icono" id="g-duplicar" type="button" aria-label="Hacer otro sello a partir de este" title="Hacer otro a partir de este">${G_ICONO_COPIA}</button>
-      <button class="btn btn-icono g-borrar" id="g-borrar" type="button" aria-label="Eliminar este sello" title="Eliminar este sello">${icono('borrar')}</button>` : ''}
-    </div>`;
+      <button class="btn btn-icono g-borrar" id="g-borrar" type="button" aria-label="Eliminar este sello" title="Eliminar este sello">${icono('borrar')}</button>
+    </div>` : ''}`;
 
   enlazarFotos($ficha);
   document.getElementById('g-volver').onclick = cerrarFicha;
@@ -16477,10 +16849,6 @@ function pintarFichaGramo(){
       SECCION = 'colores'; pintarSolapas(); cerrarTodo();
       setTimeout(() => { actualizar(); abrir(id); }, 60);
     };
-  document.getElementById('g-calc').onclick = () => {
-    gVista = 'calc'; gCalc = null; pintarFichaGramo();
-    document.getElementById('g-n')?.focus({preventScroll: true});
-  };
   document.getElementById('g-editar')?.addEventListener('click', () => editarGramo(raw));
   document.getElementById('g-duplicar')?.addEventListener('click', () => editarGramo(raw, true));
   document.getElementById('g-borrar')?.addEventListener('click', () => borrarGramo(raw));
@@ -16565,10 +16933,10 @@ function gRecuperar(copias, motivo){
     primero = primero || g2; n++;
   });
   if(!primero) return 'No había nada que recuperar';
-  gVista = 'ficha'; gCalc = null;
+ 
   actualizar();
   if(gramoSel === primero.id) pintarFichaGramo();
-  return n > 1 ? `${primero.nombre} ha vuelto, con ${n - 1} más` : `${primero.nombre} está otra vez en la lista`;
+  return n > 1 ? `${primero.nombre} ha vuelto, con ${n - 1} más` : `${primero.nombre} ha vuelto`;
 }
 
 /** Eliminar un sello desde su ficha. Con variantes pregunta: ¿solo esta, o todo? */
@@ -16585,7 +16953,7 @@ function borrarGramo(g){
       guardarGramo({...g, borrado: true});
       gApuntar('sello-g-borrado', g, {completa: copia});
       delete gVarSel[g.id];
-      gramoSel = null; gVista = 'ficha'; gCalc = null;
+      gramoSel = null;
       if(document.body.dataset.ficha === 'on') cerrarFicha();
       actualizar();
       brindisAccion('Sello eliminado', 'Deshacer', () => brindis(gRecuperar([copia], 'Recuperado al momento')));
@@ -16594,7 +16962,7 @@ function borrarGramo(g){
   if(vs.length < 2){
     $dt.textContent = 'Eliminar sello';
     $dc.innerHTML = `<p class="g-borrar-p">¿Seguro que quieres eliminar <b>${esc(g.nombre)}</b>${sello}?</p>
-      <p class="g-borrar-s">Desaparece de la lista para todos. Los colores y fórmulas no se tocan.</p>`;
+      <p class="g-borrar-s">Desaparece para todos. Los colores y fórmulas no se tocan.</p>`;
     $dp.innerHTML = `<button class="btn" type="button" id="g-b-no">Cancelar</button>
       <button class="btn btn-peligro" type="button" id="g-b-si" style="border-color:var(--rojo)">Eliminar</button>`;
     document.getElementById('g-b-no').onclick = () => $dlg.close();
@@ -16634,7 +17002,7 @@ function borrarGramo(g){
     cerrarDlgYLuego(() => {
       guardarGramo(r);
       gApuntar('sello-g-cambiado', g, {que: 'variante', antes, variante: gNomVar(act, ini)});
-      gVista = 'ficha'; gCalc = null;
+     
       actualizar();
       brindisAccion(`Variante «${gNomVar(act, ini)}» eliminada`, 'Deshacer',
                     () => brindis(gRecuperar([antes], 'Recuperada al momento')));
@@ -16739,7 +17107,7 @@ function juntarGramos(base){
       for(const x of otros.filter(o => marcados.has(o.id))) guardarGramo({...x, borrado: true});
       gApuntar('sello-g-cambiado', base, {que: 'juntar', antes, unidos});
       gVarSel[r.id] = vars[0].id;
-      gVista = 'ficha'; gCalc = null;
+     
       actualizar();
       brindisAccion(`Juntados: ${vars.length} variantes` + (convertidos ? ' · gramos adaptados a sus sellos por molde' : ''),
                     'Deshacer', () => brindis(gRecuperar([antes, ...unidos], 'Deshecho al momento')));
@@ -16749,256 +17117,6 @@ function juntarGramos(base){
 }
 
 // ── Calcular un pedido ──────────────────────────────────────────────
-
-/** La clave de «lo último que calculé» de una variante (la primera conserva la de siempre). */
-const gClaveN = (g, v) => v.id === G_V0 ? g.id : g.id + ':' + v.id;
-
-function pintarCalcGramo(g){
-  const vs = gVars(g);
-  const multi = vs.length > 1;
-  const act = gVarActiva(g);
-  if(!gCalc || gCalc.id !== g.id){
-    gCalc = {id: g.id, ns: {}, foco: act.id, tandas: {},
-             margen: g.margen != null ? g.margen : G_MARGEN_POR_DEFECTO};
-    // Con variantes solo se rellena la que estabas mirando: las demás empiezan en 0.
-    for(const v of vs) if(!multi || v === act) gCalc.ns[v.id] = gLeerN(gClaveN(g, v));
-  }
-  const st = gCalc;
-  if(!vs.some(v => v.id === st.foco)) st.foco = act.id;
-  const fid = gFotoIdV(g, act), hay = tieneFoto(fid);
-  const nFoco = () => st.ns[st.foco] || null;
-
-  const entrada = multi
-    ? `<span class="g-ceja g-etq">Cuántos sellos de cada variante</span>
-       <div class="g-vrows">${vs.map((v, i) => {
-         const f2 = gFotoIdV(g, v), con = tieneFoto(f2);
-         const hex = gHex(v.colores && v.colores[0] && v.colores[0].ref);
-         const tot = gTotalPorSello({...g, colores: v.colores});
-         return `<div class="g-vrow${v.id === st.foco ? ' foco' : ''}" data-v="${esc(v.id)}">
-           <b class="g-pv${con ? '' : ' sin'}"${marcaFoto(f2)} style="--c:${esc(hex || '#5b5d62')}"></b>
-           <label class="g-vnm" for="g-vn-${i}"><b>${esc(gNomVar(v, i))}</b>
-             <small>${gDec(tot, 2)} g por sello</small></label>
-           <input class="g-vn" id="g-vn-${i}" data-v="${esc(v.id)}" type="text" inputmode="numeric" autocomplete="off" placeholder="0"
-             value="${st.ns[v.id] ? gMiles(st.ns[v.id]) : ''}" aria-label="Sellos de ${esc(gNomVar(v, i))}">
-         </div>`;
-       }).join('')}</div>`
-    : `<label class="g-ceja g-etq" for="g-n">Cuántos sellos quiero hacer</label>
-       <div class="g-tarj g-entrada">
-         <input id="g-n" type="text" inputmode="numeric" autocomplete="off" placeholder="0"
-                value="${st.ns[vs[0].id] ? gMiles(st.ns[vs[0].id]) : ''}" aria-label="Número de sellos">
-         <span>sellos</span>
-       </div>`;
-
-  $ficha.innerHTML = `
-    <button class="volver g-vol-calc" id="g-volver" type="button">${G_ICONO_ATRAS} Volver al sello</button>
-    <div class="g-minis">
-      <div class="g-foto g-peque${hay ? '' : ' sin'}"${marcaFoto(fid)}>${hay ? '' : icono('sellos')}</div>
-      <div><span class="g-ceja">Pedido de</span><b>${esc(g.nombre)}</b></div>
-    </div>
-    ${entrada}
-    <div class="g-chips" role="group" aria-label="Cantidades habituales">
-      ${G_ATAJOS.map(n => `<button class="g-chip" type="button" data-n="${n}" aria-pressed="${nFoco() === n}">${gMiles(n)}</button>`).join('')}
-    </div>
-    <div class="g-tarj g-margen">
-      <div class="g-txt"><b>Margen de seguridad</b><small>Para no quedarte corto al final</small></div>
-      <div class="g-paso" role="group" aria-label="Margen de seguridad">
-        <button type="button" id="g-menos" aria-label="Menos margen">−</button>
-        <b id="g-m">${st.margen} %</b>
-        <button type="button" id="g-mas" aria-label="Más margen">+</button>
-      </div>
-    </div>
-    <div class="g-tarj g-res" id="g-res" aria-live="polite"></div>
-    <div class="barra-ficha g-barra">
-      <button class="btn btn-marca" id="g-preparar" type="button">${G_ICONO_PESAR} <span id="g-prep-txt">Preparar</span></button>
-    </div>`;
-  enlazarFotos($ficha);
-  document.getElementById('g-volver').onclick = () => { gVista = 'ficha'; gCalc = null; pintarFichaGramo(); };
-
-  const pon = (vid, n) => {
-    const v = vs.find(x => x.id === vid);
-    st.ns[vid] = n > 0 ? n : null;
-    if(st.ns[vid] && v) gGuardarN(gClaveN(g, v), st.ns[vid]);
-    for(const c of $ficha.querySelectorAll('.g-chip')) c.setAttribute('aria-pressed', String(nFoco() === +c.dataset.n));
-    pintarResultadoGramo(g);
-  };
-  const leer = $i => { const v = gNumero($i.value, true); return v && Number.isInteger(v) && v <= 1000000 ? v : null; };
-  for(const $i of $ficha.querySelectorAll('#g-n, .g-vn')){
-    const vid = $i.dataset.v || vs[0].id;
-    $i.addEventListener('input', () => pon(vid, leer($i)));
-    $i.addEventListener('focus', () => {
-      if(!multi) return;
-      st.foco = vid;
-      for(const r of $ficha.querySelectorAll('.g-vrow')) r.classList.toggle('foco', r.dataset.v === vid);
-      for(const c of $ficha.querySelectorAll('.g-chip')) c.setAttribute('aria-pressed', String(nFoco() === +c.dataset.n));
-    });
-    // Al salir del campo se deja con su separador de miles.
-    $i.addEventListener('blur', () => { if(st.ns[vid]) $i.value = gMiles(st.ns[vid]); });
-    $i.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); $i.blur(); } });
-  }
-  for(const c of $ficha.querySelectorAll('.g-chip'))
-    c.onclick = () => {
-      const $i = multi ? $ficha.querySelector(`.g-vn[data-v="${CSS.escape(st.foco)}"]`) : document.getElementById('g-n');
-      if($i) $i.value = gMiles(+c.dataset.n);
-      pon(st.foco, +c.dataset.n);
-    };
-  const margen = d => {
-    st.margen = Math.min(G_MARGEN_MAX, Math.max(0, st.margen + d));
-    document.getElementById('g-m').textContent = st.margen + ' %';
-    pintarResultadoGramo(g);
-  };
-  document.getElementById('g-menos').onclick = () => margen(-G_PASO_MARGEN);
-  document.getElementById('g-mas').onclick = () => margen(G_PASO_MARGEN);
-  pintarResultadoGramo(g);
-}
-
-/** La cuenta de un pedido con una o varias variantes. Cada color sale UNA vez
-    con la suma de las variantes que lo llevan, y se redondea hacia arriba al
-    final (no por variante: dos redondeos sumarían gramos de más). */
-function gCalcularVarias(g, ns, margen){
-  const k = 1 + (Number(margen) || 0) / 100;
-  const mapa = new Map();
-  const partes = [];
-  gVars(g).forEach((v, i) => {
-    const n = ns[v.id] || 0;
-    if(!(n > 0)) return;
-    partes.push({v, i, n});
-    for(const c of v.colores || []){
-      const gps = (Number(c.gramos) || 0) / gPorMolde(g);
-      const e = mapa.get(c.ref) || {ref: c.ref, nombre: c.nombre, bruto: 0, en: []};
-      e.bruto += gps * n * k;
-      e.en.push({v, i, n, gps, gramos: c.gramos});
-      mapa.set(c.ref, e);
-    }
-  });
-  const filas = [...mapa.values()].map(e => ({...e, g: Math.ceil(e.bruto - 1e-6)}));
-  return {k, filas, partes, total: filas.reduce((a, f) => a + f.g, 0)};
-}
-
-function gResultado(g){
-  const st = gCalc;
-  if(!st) return null;
-  const r = gCalcularVarias(g, st.ns, st.margen);
-  return r.partes.length ? r : null;
-}
-
-function pintarResultadoGramo(g){
-  const $r = document.getElementById('g-res');
-  const $b = document.getElementById('g-preparar');
-  if(!$r || !$b) return;
-  const st = gCalc;
-  const r = gResultado(g);
-  if(!r){
-    $r.innerHTML = `<p class="g-vacio">Escribe cuántos sellos quieres hacer y aquí saldrá cuánta pintura preparar de cada color.</p>`;
-    $b.disabled = true;
-    document.getElementById('g-prep-txt').textContent = 'Preparar';
-    return;
-  }
-  const kTxt = gDec(r.k, 2);
-  st.tandas = st.tandas || {};
-  // Todos los colores se preparan: siempre fórmula y cantidades para botes NUEVOS.
-  const aPreparar = r.filas.map((f, i) => ({f, i}));
-  const totalPrep = aPreparar.reduce((a, x) => a + x.f.g, 0);
-
-  const nMolde = gPorMolde(g);
-  /* Debajo del nombre: la cuenta, si el pedido es de una sola variante; y si
-     son varias, qué variantes llevan ese color. */
-  const detalle = f => {
-    if(r.partes.length > 1){
-      const nombres = f.en.map(x => gNomVar(x.v, x.i));
-      return nombres.length === 1 ? `solo en ${esc(nombres[0])}` : `en ${esc(nombres.join(' y '))}`;
-    }
-    const e = f.en[0];
-    const cuenta = nMolde > 1 ? `${gDec(e.gramos)} g ÷ ${nMolde}` : `${gDec(e.gps)} g`;
-    return `${cuenta} × ${gMiles(e.n)} × ${kTxt}`;
-  };
-  const nombreDe = f => {
-    const fo = porId.get(f.ref);
-    return {fo, p: fo ? gPartes(fo.nombre) : {base: f.nombre || 'Color'}};
-  };
-  const filaHtml = ({f, i}) => {
-    const {fo, p} = nombreDe(f);
-    const nT = st.tandas[f.ref] >= 2 ? st.tandas[f.ref] : 0;
-    const pasa = f.g > G_TANDA_MAX;
-    let extra = '';
-    if(fo && nT){
-      const por = gPesoTanda(f.g, nT);
-      extra = `<div class="g-tandas" data-i="${i}">
-        <div class="g-t-cab">
-          <span class="g-t-tit">${nT} tandas iguales</span>
-          <span class="g-paso" role="group" aria-label="Número de tandas">
-            <button type="button" data-t="menos" aria-label="Una tanda menos"${nT <= 2 ? ' disabled' : ''}>−</button>
-            <b>${nT}</b>
-            <button type="button" data-t="mas" aria-label="Una tanda más"${nT >= G_TANDAS_TOPE ? ' disabled' : ''}>+</button>
-          </span>
-          <button type="button" class="g-enlace" data-t="juntar">Juntar</button>
-        </div>
-        ${Array.from({length: nT}, (_, k) => `<button type="button" class="g-tanda" data-t="tanda" data-k="${k}">
-          <span>Tanda ${k + 1} de ${nT}</span>${gPesoHtml(por)}<span class="g-ir">${G_ICONO_SIG}</span></button>`).join('')}
-        ${por > G_TANDA_MAX ? `<p class="g-t-aviso">Cada tanda sigue pasando de ${gPesoTxt(G_TANDA_MAX)}. Sube el número de tandas.</p>` : ''}
-      </div>`;
-    } else if(fo){
-      extra = pasa
-        ? `<div data-i="${i}" class="g-t-sug"><span>Pasa de ${gPesoTxt(G_TANDA_MAX)}.</span>
-             <button type="button" class="g-enlace" data-t="partir" data-i="${i}">Partir en tandas iguales</button></div>`
-        : `<div data-i="${i}" class="g-t-sug flojo"><button type="button" class="g-enlace" data-t="partir" data-i="${i}">Partir en tandas</button></div>`;
-    }
-    return `<div class="g-bloque" data-i="${i}">
-      <button class="g-fila-r" type="button" data-i="${i}"${fo ? '' : ' disabled'}>
-        ${gGota(gHex(f.ref), 36)}
-        <span class="g-nm">${esc(p.base)}<small>${detalle(f)}</small></span>
-        <span class="g-gr">${gPesoHtml(f.g)}</span>
-        <span class="g-ir">${fo ? G_ICONO_SIG : ''}</span>
-      </button>${extra}</div>`;
-  };
-  $r.innerHTML =
-    (aPreparar.length
-      ? `<div class="g-cabsec"><span>Tienes que preparar</span></div>` + aPreparar.map(filaHtml).join('')
-        + `<div class="g-tot-r"><span>Total a preparar</span>${gPesoHtml(totalPrep)}</div>`
-        + `<p class="g-pie">Redondeado hacia arriba.${r.partes.length > 1 ? ' Cada color suma las variantes que lo llevan.' : ''} Toca un color para empezar a pesarlo.</p>`
-      : `<p class="g-vacio">Este sello todavía no tiene colores.</p>`);
-  for(const b of $r.querySelectorAll('button.g-fila-r'))
-    b.onclick = () => {
-      const f = r.filas[+b.dataset.i];
-      const nT = st.tandas[f.ref] >= 2 ? st.tandas[f.ref] : 0;
-      prepararDeGramo(f.ref, nT ? gPesoTanda(f.g, nT) : f.g);
-    };
-  /* Partir en tandas: el estado vive en `st.tandas[ref]` (cuántas tandas tiene
-     ese color). Cambiar los sellos o el margen recalcula los pesos solo. */
-  for(const b of $r.querySelectorAll('[data-t]')){
-    const i = +(b.dataset.i ?? b.closest('[data-i]').dataset.i);
-    const f = r.filas[i];
-    b.onclick = () => {
-      const t = b.dataset.t;
-      if(t === 'partir') st.tandas[f.ref] = Math.max(2, Math.ceil(f.g / G_TANDA_MAX));
-      else if(t === 'juntar') delete st.tandas[f.ref];
-      else if(t === 'mas') st.tandas[f.ref] = Math.min(G_TANDAS_TOPE, (st.tandas[f.ref] || 2) + 1);
-      else if(t === 'menos') st.tandas[f.ref] = Math.max(2, (st.tandas[f.ref] || 2) - 1);
-      else if(t === 'tanda') return prepararDeGramo(f.ref, gPesoTanda(f.g, st.tandas[f.ref]));
-      pintarResultadoGramo(g);
-    };
-  }
-  const primeroX = aPreparar.find(x => porId.get(x.f.ref));
-  $b.disabled = !primeroX;
-  if(primeroX){
-    const primero = primeroX.f;
-    const nT = st.tandas[primero.ref] >= 2 ? st.tandas[primero.ref] : 0;
-    const cant = nT ? gPesoTanda(primero.g, nT) : primero.g;
-    document.getElementById('g-prep-txt').textContent =
-      'Preparar ' + gPartes(porId.get(primero.ref).nombre).base + (nT ? ` · tanda 1 de ${nT}` : '');
-    $b.onclick = () => prepararDeGramo(primero.ref, cant);
-  }else document.getElementById('g-prep-txt').textContent = 'Preparar';
-}
-
-/** Pasa a pesar ese color con esa cantidad. `preparar()` lee `objetivo`. */
-function prepararDeGramo(ref, gramos){
-  const f = porId.get(ref);
-  if(!f) return brindis('Ese color ya no existe en el recetario');
-  if(!(gramos > 0)) return brindis('No hay nada que preparar');
-  objetivo = Math.round(gramos);
-  // `minimo`: lo calculado aquí es lo MÍNIMO que hace falta; el pesaje no puede
-  // cuadrar un lote por debajo (antes salía menos en el 56 % de las recetas).
-  preparar(f, {minimo: true});
-}
 
 // ── El editor (solo el editor) ──────────────────────────────────────
 
@@ -17041,7 +17159,6 @@ function editarGramo(base, duplicar, modo){
   const cur = () => g.variantes[ev] || g.variantes[0];
   let idNueva = null;      // la variante recién añadida: la ficha se abre en ella
   g.porMolde = gPorMolde(g);
-  let ultimoMolde = g.porMolde > 1 ? g.porMolde : 6;   // al volver a «un molde» se recuerda el último número
   if(g.margen == null) g.margen = G_MARGEN_POR_DEFECTO;
   g.molde = String(g.molde || '');
   g.cliente = g.cliente || '';     // de antes: ya no se enseña, pero se conserva sin tocar
@@ -17068,8 +17185,6 @@ function editarGramo(base, duplicar, modo){
   if(ev >= g.variantes.length) ev = 0;
 
   let vista = 'form';          // 'form' | 'buscar' | 'real'
-  let idxReal = -1;            // el color de «desde un pedido real»
-  let real = {sellos: '', gramos: ''};
   let quiereBorrar = false;
   let quiereDescartar = false;
   let yaEditado = false;       // para el título «Nueva variante» solo la primera vez
@@ -17088,16 +17203,10 @@ function editarGramo(base, duplicar, modo){
 
   const pintar = () => {
     if(vista === 'buscar') return pintarBuscar();
-    if(vista === 'real') return pintarReal();
     pintarForm();
   };
 
-  const verCur = () => ({...g, colores: cur().colores});
-  const totalTxt = () => gPorMolde(g) > 1
-    ? `${gDec(gTotalSello(verCur()))} g · ${gDec(gTotalPorSello(verCur()), 2)} g por sello`
-    : `${gDec(gTotalSello(verCur()))} g`;
-
-  const cabTxt = () => 'Colores' + (g.variantes.length > 1 ? ` de «${gNomVar(cur(), ev)}»` : '') + ' · gramos por ' + gUnidad(g);
+  const cabTxt = () => 'Colores' + (g.variantes.length > 1 ? ` de «${gNomVar(cur(), ev)}»` : '');
 
   function pintarForm(){
     const scroll = $dc.scrollTop;
@@ -17116,10 +17225,7 @@ function editarGramo(base, duplicar, modo){
       return `<div class="g-ed-col" data-i="${i}">
         ${gGota(gHex(c.ref), 30)}
         <div class="g-ed-nm"><b>${esc(p.base)}</b>${p.cli ? `<small>${esc(p.cli)}</small>` : (f ? '' : '<small>Ya no existe</small>')}</div>
-        <label class="g-ed-g"><input inputmode="decimal" autocomplete="off" data-g="${i}"
-          value="${c.gramos ? gDec(c.gramos) : ''}" placeholder="0" aria-label="Gramos por ${esc(gUnidad(g))} de ${esc(p.base)}"><span>g</span></label>
         <button class="btn-icono g-x" type="button" data-quitar="${i}" aria-label="Quitar ${esc(p.base)}">${icono('cerrar')}</button>
-        <button class="g-real" type="button" data-real="${i}">Calcularlo con un pedido real</button>
       </div>`;
     }).join('');
     $dc.innerHTML = `
@@ -17129,33 +17235,13 @@ function editarGramo(base, duplicar, modo){
         <input id="g-e-molde" value="${esc(g.molde)}" autocomplete="off" inputmode="text" maxlength="24" placeholder="Por ejemplo: 235"></label>
       <label class="campo"><span>Nombre del sello</span>
         <input id="g-e-nombre" value="${esc(g.nombre)}" autocomplete="off" maxlength="80" placeholder="Por ejemplo: LLV. ELROW"></label>
-      <div class="g-ed-unidad">
-        <span class="g-ceja">Los gramos que apunto son de</span>
-        <div class="g-seg" role="radiogroup" aria-label="Unidad de los gramos">
-          <button type="button" role="radio" id="g-e-u1" aria-checked="${gPorMolde(g) === 1}">Un sello</button>
-          <button type="button" role="radio" id="g-e-uN" aria-checked="${gPorMolde(g) > 1}">Un molde entero</button>
-        </div>
-        ${gPorMolde(g) > 1 ? `<label class="g-ed-nmolde"><span>Sellos que salen de ese molde</span>
-          <input id="g-e-nm" inputmode="numeric" autocomplete="off" value="${gPorMolde(g)}" aria-label="Número de sellos del molde"></label>` : ''}
-        <small class="g-ayuda-u">${gPorMolde(g) > 1
-          ? 'Pesa lo que gasta el molde entero y la app lo reparte entre sus sellos.'
-          : 'Si no puedes pesar un sello suelto, elige «Un molde entero» y di cuántos sellos tiene.'}</small>
-      </div>
       ${pillsEd}
       <div class="g-ed-cab"><span class="g-ceja" id="g-e-cab">${esc(cabTxt())}</span></div>
       <div class="g-ed-cols">${filas || '<p class="g-vacio">Todavía no hay ningún color.</p>'}</div>
       <button class="g-anadir" type="button" id="g-e-add">${icono('nuevo')} Añadir color</button>
       ${multi ? `<button class="g-enlace g-quitarvar" type="button" id="g-e-quitarvar">Quitar esta variante</button>`
                 : `<button class="g-enlace g-masvar" type="button" id="g-e-addvar">+ Añadir otra variante de color</button>`}
-      <div class="g-ed-total"><span id="g-e-total-t">${gPorMolde(g) > 1 ? 'Total por molde' : 'Total por sello'}</span><b id="g-e-total">${totalTxt()}</b></div>
-      <div class="g-ed-margen">
-        <div class="g-txt"><b>Margen de seguridad habitual</b><small>Sale ya puesto al calcular un pedido</small></div>
-        <div class="g-paso" role="group" aria-label="Margen habitual">
-          <button type="button" id="g-e-menos" aria-label="Menos margen">−</button>
-          <b id="g-e-m">${g.margen} %</b>
-          <button type="button" id="g-e-mas" aria-label="Más margen">+</button>
-        </div>
-      </div>`;
+`;
     $dp.innerHTML = `<button class="btn" type="button" id="g-e-cancelar">Cancelar</button>
       ${!esNuevo ? `<button class="btn btn-peligro" type="button" id="g-e-borrar">Eliminar</button>` : ''}
       <button class="btn btn-1" type="button" id="g-e-guardar">Guardar</button>`;
@@ -17186,47 +17272,9 @@ function editarGramo(base, duplicar, modo){
 
     document.getElementById('g-e-nombre').addEventListener('input', e => { g.nombre = e.target.value; });
     document.getElementById('g-e-molde').addEventListener('input', e => { g.molde = e.target.value; });
-    for(const inp of $dc.querySelectorAll('[data-g]'))
-      inp.addEventListener('input', () => {
-        const v = gNumero(inp.value);
-        const c = cur().colores[+inp.dataset.g];
-        c.gramos = v;
-        inp.classList.toggle('mal', inp.value.trim() !== '' && v === null);
-        document.getElementById('g-e-total').textContent = totalTxt();
-      });
     for(const b of $dc.querySelectorAll('[data-quitar]'))
       b.onclick = () => { cur().colores.splice(+b.dataset.quitar, 1); apuntarBorrador(); pintar(); };
-    for(const b of $dc.querySelectorAll('[data-real]'))
-      b.onclick = () => { idxReal = +b.dataset.real; real = {sellos: '', gramos: ''}; vista = 'real'; pintar(); };
     document.getElementById('g-e-add').onclick = () => { vista = 'buscar'; pintar(); };
-    document.getElementById('g-e-u1').onclick = () => {
-      if(gPorMolde(g) > 1) ultimoMolde = gPorMolde(g);
-      g.porMolde = 1; apuntarBorrador(); pintar();
-    };
-    document.getElementById('g-e-uN').onclick = () => {
-      if(gPorMolde(g) > 1) return;
-      g.porMolde = ultimoMolde; apuntarBorrador(); pintar();
-      setTimeout(() => document.getElementById('g-e-nm')?.select(), 60);
-    };
-    document.getElementById('g-e-nm')?.addEventListener('input', e => {
-      const v = gNumero(e.target.value, true);
-      const ok = v && Number.isInteger(v) && v >= 2 && v <= 999;
-      e.target.classList.toggle('mal', !ok && e.target.value.trim() !== '');
-      if(!ok) return;
-      g.porMolde = v; ultimoMolde = v;
-      document.getElementById('g-e-cab').textContent = cabTxt();
-      document.getElementById('g-e-total').textContent = totalTxt();
-      for(const i2 of $dc.querySelectorAll('[data-g]'))
-        i2.setAttribute('aria-label', i2.getAttribute('aria-label').replace(/molde de \d+ sellos/, gUnidad(g)));
-      apuntarBorrador();
-    });
-    const mm = d => {
-      g.margen = Math.min(G_MARGEN_MAX, Math.max(0, g.margen + d));
-      document.getElementById('g-e-m').textContent = g.margen + ' %';
-      apuntarBorrador();
-    };
-    document.getElementById('g-e-menos').onclick = () => mm(-G_PASO_MARGEN);
-    document.getElementById('g-e-mas').onclick = () => mm(G_PASO_MARGEN);
     document.getElementById('g-tirar')?.addEventListener('click', () => {
       gTirarBorrador(clave);
       escribiendoEnDlg = null;
@@ -17254,7 +17302,7 @@ function editarGramo(base, duplicar, modo){
       const quitado = {...base, borrado: true};
       cerrarDlgYLuego(() => {
         guardarGramo(quitado);
-        gramoSel = null; gVista = 'ficha'; gCalc = null;
+        gramoSel = null;
         if(document.body.dataset.ficha === 'on') cerrarFicha();
         actualizar();
         brindis('Sello eliminado');
@@ -17270,15 +17318,6 @@ function editarGramo(base, duplicar, modo){
       brindis('Ponle un nombre al sello');
       document.getElementById('g-e-nombre')?.focus();
       return;
-    }
-    // «Sellos por molde» mal escrito NO se guarda con el valor de antes diciendo «Guardado».
-    const $nm = document.getElementById('g-e-nm');
-    if($nm){
-      const n = gNumero($nm.value, true);
-      if(!(n && Number.isInteger(n) && n >= 2 && n <= 999)){
-        $nm.classList.add('mal'); $nm.focus();
-        return brindis('Los sellos por molde: un número del 2 al 999');
-      }
     }
     for(let vi = 0; vi < g.variantes.length; vi++){
       const v = g.variantes[vi];
@@ -17296,9 +17335,6 @@ function editarGramo(base, duplicar, modo){
         const nm = gPartes(gNombreColor(c)).base;
         if(vistos.has(c.ref)) return ir(`${nm} está repetido${donde}`);
         vistos.add(c.ref);
-        if(!(c.gramos > 0)) return ir(`Falta el peso de ${nm}${donde}`, `[data-g="${i}"]`);
-        // Se guarda con tres decimales: 0,0004 g quedaría en 0 y el color desaparecería del cálculo.
-        if(Math.round(c.gramos * 1000) / 1000 <= 0) return ir(`El peso de ${nm} es demasiado pequeño (mínimo 0,001 g)${donde}`, `[data-g="${i}"]`);
       }
     }
     const repe = DATOS.gramos.find(x => x.id !== g.id && norm(x.nombre) === norm(nombre) &&
@@ -17306,7 +17342,7 @@ function editarGramo(base, duplicar, modo){
     const vars = g.variantes.map(v => ({
       id: v.id, nombre: (v.nombre || '').trim(), ...(v.foto ? {foto: v.foto} : {}),
       colores: v.colores.map(c => ({ref: c.ref, nombre: gNombreColor(c),
-                                    gramos: Math.round(c.gramos * 1000) / 1000})),
+                                    gramos: Math.round((Number(c.gramos) || 0) * 1000) / 1000})),   // los gramos de antes se conservan sin tocar
     }));
     // Un sello con una sola variante se guarda como siempre (sin `variantes`).
     const sencillo = vars.length === 1 && vars[0].id === G_V0 && !vars[0].foto;
@@ -17357,56 +17393,14 @@ function editarGramo(base, duplicar, modo){
         b.onclick = () => {
           const f = porId.get(b.dataset.ref);
           if(!f) return;
-          cur().colores.push({ref: f.id, nombre: f.nombre, gramos: null});
+          cur().colores.push({ref: f.id, nombre: f.nombre, gramos: 0});
           apuntarBorrador();
           vista = 'form'; pintar();
-          // El cursor directo al peso del color recién puesto.
-          setTimeout(() => $dc.querySelector(`[data-g="${cur().colores.length - 1}"]`)?.focus(), 60);
         };
     };
     $q2.addEventListener('input', llenar);
     document.getElementById('g-b-volver').onclick = () => { vista = 'form'; pintar(); };
     setTimeout(() => $q2.focus(), 60);
-  }
-
-  function pintarReal(){
-    const c = cur().colores[idxReal];
-    if(!c){ vista = 'form'; return pintar(); }
-    const nm = gPartes(gNombreColor(c)).base;
-    $dt.textContent = 'Gramos por ' + gUnidad(g) + ' de ' + nm;
-    $dc.innerHTML = `
-      <p class="g-ayuda">Apunta un pedido que ya hiciste: la app calcula los gramos por sello,
-        <b>con el desperdicio incluido</b>, sin tener que pesar sellos sueltos.</p>
-      <label class="campo"><span>Sellos que salieron</span>
-        <input id="g-r-sellos" inputmode="numeric" autocomplete="off" value="${esc(real.sellos)}" placeholder="400"></label>
-      <label class="campo"><span>Gramos de ${esc(nm)} que gastaste</span>
-        <input id="g-r-gramos" inputmode="decimal" autocomplete="off" value="${esc(real.gramos)}" placeholder="1.280"></label>
-      <div class="g-result" id="g-r-res" aria-live="polite"></div>`;
-    $dp.innerHTML = `<button class="btn" type="button" id="g-r-volver">Cancelar</button>
-      <button class="btn btn-1" type="button" id="g-r-usar" disabled>Usar este dato</button>`;
-    const $s = document.getElementById('g-r-sellos'), $g = document.getElementById('g-r-gramos');
-    const $res = document.getElementById('g-r-res'), $usar = document.getElementById('g-r-usar');
-    let valor = null;
-    const calc = () => {
-      real = {sellos: $s.value, gramos: $g.value};
-      const s = gNumero($s.value, true), gr = gNumero($g.value, true);
-      valor = (s && Number.isInteger(s) && gr) ? gr / s : null;
-      $usar.disabled = !(valor > 0);
-      $res.innerHTML = valor > 0
-        ? `<span class="g-ceja">Resultado</span><div class="g-gr-grande">${gDec(valor)}<small>g por sello</small></div>
-           <div class="g-ex">${gMiles(gr)} g ÷ ${gMiles(s)} sellos.</div>`
-        : '<span class="g-ceja">Resultado</span><div class="g-ex">Escribe los dos números.</div>';
-    };
-    $s.addEventListener('input', calc); $g.addEventListener('input', calc);
-    calc();
-    document.getElementById('g-r-volver').onclick = () => { vista = 'form'; pintar(); };
-    $usar.onclick = () => {
-      if(!(valor > 0)) return;
-      c.gramos = Math.round(valor * gPorMolde(g) * 1000) / 1000;   // por sello × sellos del molde
-      apuntarBorrador();
-      vista = 'form'; pintar();
-    };
-    setTimeout(() => $s.focus(), 60);
   }
 
   pintar();
@@ -18377,10 +18371,9 @@ function editarNota(base, duplicar){
    que lleva. Lo que cambia es CÓMO SE VE: en vez de una lista, una cuadrícula
    de fotos —como un archivador— con los colores en pastillas debajo de cada
    una, y una fila de colores para ver de un toque «qué sellos llevan este».
-   No hay datos nuevos ni tabla nueva; la lista de siempre sigue ahí, con un
-   interruptor Lista / Archivador (se recuerda en este aparato).
+   No hay datos nuevos ni tabla nueva. Desde el 15 nov es la ÚNICA vista de
+   Sellos (se quitaron la lista de filas y todo el sistema de gramos).
    ═══════════════════════════════════════════════════════════════════════ */
-const gGuardarVista = v => { try{ localStorage.setItem('sellos-vista', v ? 'arch' : 'lista'); }catch(_){} };
 
 /** Los colores (sin repetir) que lleva un sello, en todas sus variantes, por orden de aparición. */
 const gColoresDe = g => {
@@ -18391,27 +18384,7 @@ const gColoresDe = g => {
 /** Deja solo los sellos que llevan el color elegido en la fila «Lleva». */
 const gFiltroColor = lista => gColorFiltro ? lista.filter(g => gColoresDe(g).includes(gColorFiltro)) : lista;
 
-/** El interruptor Lista / Archivador de la cabecera: solo se ve en Sellos. */
-function pintarVistaSellos(){
-  const $v = document.getElementById('g-vista');
-  if(!$v) return;
-  $v.hidden = SECCION !== 'gramos';
-  for(const b of $v.querySelectorAll('[data-vista]'))
-    b.setAttribute('aria-checked', String((b.dataset.vista === 'arch') === gArch));
-  document.body.dataset.sellosVista = SECCION === 'gramos' && gArch ? 'arch' : '';
-}
-document.getElementById('g-vista')?.addEventListener('click', e => {
-  const b = e.target.closest('[data-vista]');
-  if(!b) return;
-  const quiere = b.dataset.vista === 'arch';
-  if(quiere === gArch) return;
-  gArch = quiere; gGuardarVista(gArch);
-  if(!gArch) gColorFiltro = null;
-  pintarVistaSellos();
-  if(SECCION === 'gramos') actualizar();
-});
-
-/** La cuadrícula. Sustituye a la lista de filas cuando el interruptor está en «Archivador». */
+/** La cuadrícula. Es lo que se ve en la pestaña Sellos. */
 function pintarArchivador(){
   soltarFotos($lista);
   $lista.innerHTML = '';
@@ -18446,7 +18419,7 @@ function pintarArchivador(){
     const nv = gVars(g).length;
     b.innerHTML =
       `<div class="arch-foto${con ? '' : ' sin'}"${marcaFoto(fid)}>${con ? '' : icono('sellos')}
-        ${gPorMolde(g) > 1 ? `<span class="arch-n">${gPorMolde(g)} sellos</span>` : ''}</div>` +
+</div>` +
       `<b>${resaltar(g.nombre, $q.value)}</b>` +
       `<span class="arch-sub">${esc([gMoldeTxt(g), nv > 1 ? nv + ' variantes' : ''].filter(Boolean).join(' · ') || 'Sin molde')}</span>` +
       `<div class="arch-pastillas">${cols.slice(0, 6).map(r => gGota(gHex(r), 20)).join('')}${
@@ -18461,7 +18434,7 @@ function pintarArchivador(){
     v.innerHTML = DATOS.gramos.length
       ? '<b>Ningún sello coincide</b>Prueba con menos letras, o quita el color de arriba.'
       : '<b>Todavía no hay sellos</b>' + (puedeEditar
-        ? 'Cada sello guarda su foto y los gramos de cada color.<button class="btn btn-1" id="g-primero-lista" type="button">Añadir el primero</button>'
+        ? 'Cada sello guarda su foto y los colores que lleva.<button class="btn btn-1" id="g-primero-lista" type="button">Añadir el primero</button>'
         : 'Aparecerán aquí en cuanto se vayan apuntando.');
     frag.appendChild(v);
   }else frag.appendChild(rej);
@@ -18560,16 +18533,27 @@ function boteInstr(p, hechas){
       return `<i class="${grande ? 'g' : ''}" style="bottom:${g / max * 100}%">${grande ? `<b${cerca(g) ? ' style="opacity:.12"' : ''}>${fmt(g)}</b>` : ''}</i>`;
     }).join('')}
     <div class="ins-nivel" style="bottom:${nivelPrev}%"><span class="num">${fmt(enBote)}</span></div></div>`;
+  // Lo que viene después: el hueco punteado de «+ AMARILLO 10 g» (variantes «capas» y «barra»)
+  const sig = fin ? null : p.filas.find(x => x.falta !== 0);
+  const pendH = sig ? Math.max(0, Math.min((sig.falta || sig.objetivo) / max * 100, 100 - h.reduce((a, b) => a + b, 0))) : 0;
+  const pendTxt = sig ? `+ ${esc(sig.i.nombre)} ${fmt(sig.falta || sig.objetivo)} g` : '';
+  const color0 = k => fin && !mezclar ? mezcla : colores[k];
+  const capaG = k => real[k] > 0 && !fin ? `<span class="ins-g">${fmt(real[k])}</span>` : '';
+  const barra = `<div class="ins-barra" aria-hidden="true"><div class="ins-pista">${p.filas.map((x, k) =>
+      `<div class="ins-seg" style="--k:${color0(k)};--kt:${textoSobre(colores[k])};width:${prev ? prev.h[k] : h[k]}%">${capaG(k)}</div>`).join('')}${
+      pendH > .4 ? `<div class="ins-pend" style="width:${pendH}%"><span>${pendH > 9 ? `+${fmt(sig.falta || sig.objetivo)}` : ''}</span></div>` : ''}</div>
+    <div class="ins-barra-pie"><span>${fmt(enBote)} g en el bote</span><span>de ${fmt(p.total)} g</span></div></div>`;
   const bote = `<div class="ins-bote" aria-hidden="true">
     <div class="ins-boca"></div>
     <div class="ins-cristal"><div class="ins-liquido">
       <div class="ins-capas">${p.filas.map((x, k) =>
-        `<div class="ins-capa${k === sup ? ' sup' : ''}" style="--k:${fin && !mezclar ? mezcla : colores[k]};height:${prev ? prev.h[k] : h[k]}%"></div>`).join('')}</div>
+        `<div class="ins-capa${k === sup ? ' sup' : ''}" style="--k:${color0(k)};--kt:${textoSobre(colores[k])};height:${prev ? prev.h[k] : h[k]}%">${capaG(k)}</div>`).join('')}${
+        pendH > .4 ? `<div class="ins-pend-j" style="height:${pendH}%"><span>${pendTxt}</span></div>` : ''}</div>
       <div class="ins-remolino" style="--r1:${colores[0]};--r2:${colores[1] || colores[0]};--r3:${colores[2] || colores[0]}"></div>
       <div class="ins-velo"></div></div></div>
     <div class="ins-brillo"></div><div class="ins-brillo2"></div>
     <div class="ins-chorro"></div><div class="ins-sombra"></div></div>`;
-  return {escala, bote, enBote};
+  return {escala, bote, barra, enBote};
 }
 
 /** La foto real del color, ya cocido, en una pastilla al lado del bote. */
@@ -18581,7 +18565,7 @@ function fotoInstr(){
 
 function heroePesaje(p, hechas){
   const n = p.filas.length, mezcla = color(pes.f).hex;
-  const {escala, bote, enBote} = boteInstr(p, hechas);
+  const {escala, bote, barra, enBote} = boteInstr(p, hechas);
   if(hechas === n){
     const tot = fmt(p.total);
     return `<div class="pes-heroe pes-hecho ins" id="pes-heroe" style="--cur:${mezcla};--cur-txt:${textoSobre(mezcla)}">
@@ -18593,6 +18577,7 @@ function heroePesaje(p, hechas){
           <div class="ins-sub">${n} ingrediente${n===1?'':'s'} · color orientativo</div>
           ${fotoInstr()}
         </div></div>
+      ${barra}
       <button class="ins-etq" type="button" data-etq>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h6.6c.5 0 1 .2 1.4.6l6.9 6.9a2 2 0 0 1 0 2.8l-4.1 4.1a2 2 0 0 1-2.8 0l-6.9-6.9A2 2 0 0 1 6 11.1V7.5z"/><circle cx="8.3" cy="8.3" r="1.2"/></svg>
         Imprimir etiqueta</button>
@@ -18625,6 +18610,7 @@ function heroePesaje(p, hechas){
           <span class="ins-rot">/ ${fmt(p.total)} g</span></div>
         ${fotoInstr()}
       </div></div>
+    ${barra}
     <div class="pes-ya-txt">Ya está · siguiente
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></div>
   </button>
@@ -18654,12 +18640,14 @@ function instrumentoPost(){
   const bote = $dc.querySelector('.ins-bote');
   if(!bote) return;
   const fx = efectosActivos() && !movimientoReducido();
-  if(sacudir && fx) bote.classList.add('sacude');
+  if(sacudir && fx){ bote.classList.add('sacude'); $dc.querySelector('.ins-pista')?.classList.add('sacude'); }
   if(!nx) return;
   const capas = [...bote.querySelectorAll('.ins-capa')];
+  const segs = [...$dc.querySelectorAll('.ins-seg')];      // la barra grande: lo mismo, en horizontal
   const nivel = $dc.querySelector('.ins-nivel');
   const llenar = ()=>{
     capas.forEach((c, k) => { c.style.height = nx.h[k] + '%'; });
+    segs.forEach((c, k) => { c.style.width = nx.h[k] + '%'; });
     if(nivel) nivel.style.bottom = nx.h.reduce((a, b) => a + b, 0) + '%';
   };
   let espera = 0;
@@ -18681,7 +18669,7 @@ function instrumentoPost(){
     const liq = bote.querySelector('.ins-liquido');
     setTimeout(()=>{
       liq.classList.add('mezclando');
-      setTimeout(()=>capas.forEach(c => c.style.setProperty('--k', nx.mezcla)), 450);
+      setTimeout(()=>capas.concat(segs).forEach(c => c.style.setProperty('--k', nx.mezcla)), 450);
       setTimeout(()=>liq.classList.remove('mezclando'), 1800);
     }, espera + 1100);
   }
@@ -18740,6 +18728,20 @@ function fichaAnillo(f, total){
   return `<svg class="ficha-anillo" viewBox="0 0 240 240" role="img" ` +
          `aria-label="${esc(resumen ? 'Proporción de cada ingrediente: ' + resumen : 'Sin ingredientes')}">` +
          `<g>${marcas}</g><g transform="rotate(-90 120 120)">${arcos}</g></svg>`;
+}
+
+/** El bote en capas (variante «bote» de la ficha): una capa por ingrediente, tan alta como lo que pesa,
+    con los gramos dentro. Siempre está en el HTML; solo se ve con data-ficha="bote". */
+function fichaBote(f, total){
+  const ing = f.ingredientes.filter(i => i.cantidad > 0);
+  const suma = ing.reduce((s, i) => s + i.cantidad, 0);
+  const resumen = ing.map(i => `${i.nombre} ${Math.round(i.cantidad / (suma || 1) * 100)} %`).join(', ');
+  const capas = ing.map(i => {
+    const hex = fichaHex(i) || '#6b7078', pct = i.cantidad / (suma || 1) * 100;
+    return `<i style="--g:${i.cantidad};--c:${hex};--ink:${textoSobre(hex)}" title="${esc(i.nombre)} · ${Math.round(pct)} %">${pct >= 11 ? fmt(i.cantidad) : ''}</i>`;
+  }).join('');
+  return `<div class="ficha-bote" role="img" aria-label="${esc(resumen ? 'Capas del bote: ' + resumen : 'Sin ingredientes')}">` +
+         `<div class="fb-jar">${capas}</div></div>`;
 }
 
 /** Tres lecturas, como un aparato: total, ingredientes, actualizada. */
@@ -19026,9 +19028,191 @@ function listaLateral(on){
 }
 $dlg.addEventListener('close', ()=>listaLateral(false));
 
+/* ═══ APARIENCIA ═══════════════════════════════════════════════════════════
+   Estilo, acento, relieve y tamaño. Cada uno es un atributo de <html>
+   (data-estilo, data-acento, data-relieve, data-tamano) que se pone ya en la
+   cabecera, antes de pintar, a partir de localStorage; aquí solo vive el panel
+   de Opciones y el cambio en caliente. Por aparato, como Cristal: el móvil de
+   uno puede ir «ligero» y el ordenador «completo» sin que se pisen.
+
+   Funciones con `function` y estado con `var`: la lista las usa al arrancar y
+   un `const` aún estaría en su zona muerta (lección de la Entrega C). */
+
+var APA_ACENTOS = [
+  // clave, nombre, color de la bolita, color del tic
+  ['coral',   'Coral',   '#ff7a62', '#1d1210'],
+  ['menta',   'Menta',   '#4fcf9c', '#0c1f17'],
+  ['lavanda', 'Lavanda', '#a58bff', '#150f2b'],
+  ['ambar',   'Ámbar',   '#ffb347', '#241706'],
+  ['azul',    'Azul',    '#5aa9ff', '#0a1a2e'],
+  ['rosa',    'Rosa',    '#ff7fae', '#2b0e1a'],
+  ['hueso',   'Hueso',   '#e8e2d4', '#1d1b17']
+];
+
+/* Variantes de pantallas: cada una es un atributo (data-<clave>) y unas miniaturas.
+   El dibujo lleva colores fijos para verse bien estés en el modo que estés. */
+var APA_VARIANTES = [
+  {clave: 'pesaje', et: 'Pesaje',
+   nota: 'Cómo se ve el avance mientras echas. Los gramos y los avisos son siempre los mismos; cambia solo el dibujo.',
+   ops: [
+     ['bote', 'Bote', '<rect x="22" y="7" width="16" height="31" rx="5" fill="none" stroke="#9a8f95" stroke-width="1.6"/><rect x="24" y="26" width="12" height="10" rx="3" fill="#ff7a62"/><rect x="24" y="19" width="12" height="7" fill="#f1e9e4"/><path d="M14 12h4M14 20h4M14 28h4" stroke="#867b82" stroke-width="1.2"/>'],
+     ['capas', 'Capas', '<rect x="17" y="6" width="26" height="33" rx="6" fill="none" stroke="#9a8f95" stroke-width="1.6"/><rect x="19" y="29" width="22" height="8" rx="3" fill="#ff7a62"/><rect x="19" y="21" width="22" height="8" fill="#f1e9e4"/><path d="M19 15h22" stroke="#bcb1b6" stroke-width="1.4" stroke-dasharray="3 2"/>'],
+     ['barra', 'Barra grande', '<rect x="9" y="7" width="22" height="9" rx="2" fill="#f1e9e4"/><rect x="6" y="24" width="48" height="13" rx="6.5" fill="#201d26"/><rect x="6" y="24" width="20" height="13" rx="6.5" fill="#ff7a62"/><rect x="26" y="24" width="14" height="13" fill="#f1e9e4"/><path d="M44 24v13" stroke="#bcb1b6" stroke-width="1.4" stroke-dasharray="3 2"/>']
+   ]},
+  {clave: 'ficha', et: 'Ficha del color',
+   nota: 'Cómo se enseña la receta arriba de cada color: anillo de proporciones, bote en capas o bandeja con luz de fondo.',
+   ops: [
+     ['anillo', 'Anillo', '<circle cx="30" cy="22" r="13" fill="none" stroke="#ff7a62" stroke-width="4" stroke-dasharray="26 56" stroke-linecap="round"/><circle cx="30" cy="22" r="13" fill="none" stroke="#f1e9e4" stroke-width="4" stroke-dasharray="34 48" stroke-dashoffset="-30" stroke-linecap="round"/><circle cx="30" cy="22" r="8" fill="#ff7a62"/>'],
+     ['bote', 'Bote', '<rect x="15" y="5" width="22" height="34" rx="6" fill="none" stroke="#9a8f95" stroke-width="1.6"/><rect x="17" y="27" width="18" height="10" rx="3" fill="#ff7a62"/><rect x="17" y="19" width="18" height="8" fill="#f1e9e4"/><rect x="17" y="13" width="18" height="6" fill="#ffd166"/><circle cx="43" cy="31" r="7" fill="#ff7a62" stroke="#2a2730" stroke-width="2"/>'],
+     ['bandeja', 'Bandeja', '<circle cx="30" cy="13" r="13" fill="#ff7a62" opacity=".25"/><circle cx="30" cy="13" r="8" fill="#ff7a62"/><rect x="6" y="25" width="48" height="24" rx="9" fill="#3a3642"/><path d="M26 29h8" stroke="#9a8f95" stroke-width="1.6" stroke-linecap="round"/><path d="M13 35h34M13 40h24" stroke="#bcb1b6" stroke-width="1.6" stroke-linecap="round"/>']
+   ]},
+  {clave: 'lista', et: 'Lista de colores',
+   nota: 'Filas con el nombre al lado, o mosaico de muestras grandes. El mosaico solo cambia la lista de Colores.',
+   ops: [
+     ['filas', 'Filas', '<circle cx="13" cy="10" r="5" fill="#ff7a62"/><path d="M23 8h26M23 13h16" stroke="#bcb1b6" stroke-width="2" stroke-linecap="round"/><circle cx="13" cy="24" r="5" fill="#f1e9e4"/><path d="M23 22h26M23 27h12" stroke="#bcb1b6" stroke-width="2" stroke-linecap="round"/><circle cx="13" cy="38" r="5" fill="#6aa8ff"/><path d="M23 36h26M23 41h18" stroke="#bcb1b6" stroke-width="2" stroke-linecap="round"/>'],
+     ['mosaico', 'Mosaico', '<rect x="7" y="5" width="21" height="17" rx="5" fill="#ff7a62"/><rect x="32" y="5" width="21" height="17" rx="5" fill="#f1e9e4"/><rect x="7" y="26" width="21" height="17" rx="5" fill="#6aa8ff"/><rect x="32" y="26" width="21" height="17" rx="5" fill="#7bd88f"/>']
+   ]}
+];
+
+function apaLeer(clave){ try{ return localStorage.getItem(clave); }catch(_){ return null; } }
+function apaGuardar(clave, valor){ try{ localStorage.setItem(clave, valor); }catch(_){ /* vale por esta sesión */ } }
+function apaEsBlanda(){ return document.documentElement.dataset.estilo === 'blanda'; }
+function apaActual(){
+  var d = document.documentElement.dataset;
+  var o = {estilo: d.estilo, acento: d.acento, relieve: d.relieve, tamano: d.tamano};
+  APA_VARIANTES.forEach(function(v){ o[v.clave] = d[v.clave]; });
+  return o;
+}
+
+/** Cambia un ajuste: lo guarda, lo aplica y, si es el estilo, rehace lo que depende de él. */
+function apaPoner(clave, valor){
+  var r = document.documentElement;
+  r.classList.add('cambiando-tema');                       // la app se ENCIENDE en vez de dar un corte
+  setTimeout(function(){ r.classList.remove('cambiando-tema'); }, 260);
+  apaGuardar(clave, valor);
+  r.dataset[clave] = valor;
+  if(clave === 'estilo'){
+    // sin acento elegido a mano, cada estilo se pone su color de siempre
+    if(!apaLeer('acento')) r.dataset.acento = valor === 'instrumento' ? 'hueso' : 'coral';
+    // el modo Cristal solo existe en «instrumento»; su ajuste guardado no se toca
+    if(typeof aplicarCristal === 'function') aplicarCristal(leerAjusteLocal(CLAVE_CRISTAL) === 'on');
+  }
+  apaTemaNavegador();
+}
+
+/** El color de la barra del navegador/PWA sigue al fondo del estilo (hay un meta para claro y otro para oscuro). */
+function apaTemaNavegador(){
+  try{
+    var blanda = apaEsBlanda();
+    var col = {light: blanda ? '#e5ded6' : '#f1efe9', dark: blanda ? '#2a2730' : '#0a0b0d'};
+    [].slice.call(document.querySelectorAll('meta[name="theme-color"]')).forEach(function(m){
+      m.setAttribute('content', /light/.test(m.getAttribute('media') || '') ? col.light : col.dark);
+    });
+  }catch(_){}
+}
+
+function apaPanel(){
+  var a = apaActual();
+  var estilos = [['blanda', 'Blanda'], ['instrumento', 'Instrumento']];
+  var relieves = [['completo', 'Completo'], ['ligero', 'Ligero'], ['plano', 'Plano']];
+  var tamanos = [['normal', 'Normal'], ['grande', 'Grande']];
+  var seg = function(id, lista, rotulo){
+    return '<div class="apa-seg" id="' + id + '" role="radiogroup" aria-label="' + rotulo + '">' +
+      lista.map(function(p){
+        return '<button type="button" role="radio" data-v="' + p[0] + '" aria-checked="false" tabindex="-1">' + p[1] + '</button>';
+      }).join('') + '</div>';
+  };
+  return '<p class="aj-titulo">Apariencia</p>' +
+    '<div class="aj-grupo" id="apa-grupo">' +
+      '<div class="apa-bloque">' +
+        '<span class="aj-et" id="apa-estilo-et">Estilo</span>' +
+        '<div class="apa-tiles" id="apa-estilo" role="radiogroup" aria-labelledby="apa-estilo-et">' +
+          estilos.map(function(p){
+            return '<button type="button" role="radio" class="apa-t" data-v="' + p[0] + '" aria-checked="false" tabindex="-1">' +
+              '<span class="apa-mini apa-mini-' + p[0] + '" aria-hidden="true"><i></i><i></i><i></i><b></b></span><em>' + p[1] + '</em></button>';
+          }).join('') +
+        '</div>' +
+        '<small>«Blanda» es el relieve suave; «Instrumento» el aspecto de siempre, de cantos finos. Va por aparato: cada móvil y el ordenador pueden llevar el suyo.</small>' +
+      '</div>' +
+      '<div class="apa-bloque">' +
+        '<span class="aj-et" id="apa-acento-et">Color de acento</span>' +
+        '<div class="apa-acentos" id="apa-acento" role="radiogroup" aria-labelledby="apa-acento-et">' +
+          APA_ACENTOS.map(function(p){
+            return '<button type="button" role="radio" class="apa-ac" data-v="' + p[0] + '" aria-checked="false" tabindex="-1" ' +
+              'aria-label="' + p[1] + '" title="' + p[1] + '" style="background:' + p[2] + '">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="' + p[3] + '" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>';
+          }).join('') +
+        '</div>' +
+        '<small>Pinta el botón principal, lo seleccionado y la barra de abajo. Los avisos (rojo, ámbar, verde) nunca cambian de color.</small>' +
+      '</div>' +
+      '<div class="apa-bloque apa-b-relieve">' +
+        '<span class="aj-et" id="apa-relieve-et">Relieve</span>' +
+        seg('apa-relieve', relieves, 'Relieve') +
+        '<small>«Ligero» pinta una sola sombra y va más fino en móviles lentos; «plano» quita las sombras y deja un filo.</small>' +
+      '</div>' +
+      '<div class="apa-bloque">' +
+        '<span class="aj-et" id="apa-tamano-et">Tamaño</span>' +
+        seg('apa-tamano', tamanos, 'Tamaño') +
+        '<small>«Grande» sube la letra, las filas y los botones para leer de lejos o con prisa.</small>' +
+      '</div>' +
+      APA_VARIANTES.map(function(v){
+        return '<div class="apa-bloque">' +
+          '<span class="aj-et" id="apa-' + v.clave + '-et">' + v.et + '</span>' +
+          '<div class="apa-tiles ' + (v.ops.length === 2 ? '' : 'apa-tres') + '" id="apa-' + v.clave + '" role="radiogroup" aria-labelledby="apa-' + v.clave + '-et">' +
+            v.ops.map(function(o){
+              return '<button type="button" role="radio" class="apa-t" data-v="' + o[0] + '" aria-checked="false" tabindex="-1">' +
+                '<span class="apa-mini apa-mini-var" aria-hidden="true"><svg viewBox="0 0 60 44">' + o[2] + '</svg></span><em>' + o[1] + '</em></button>';
+            }).join('') +
+          '</div><small>' + v.nota + '</small></div>';
+      }).join('') +
+    '</div>';
+}
+
+/** Radio de verdad: flechas para moverse, un solo tabulador dentro. */
+function apaEnlazarGrupo(id, clave){
+  var raiz = document.getElementById(id);
+  if(!raiz) return;
+  var bs = [].slice.call(raiz.querySelectorAll('[role="radio"]'));
+  var marcar = function(v){
+    bs.forEach(function(b){
+      var on = b.dataset.v === v;
+      b.classList.toggle('on', on); b.setAttribute('aria-checked', on ? 'true' : 'false'); b.tabIndex = on ? 0 : -1;
+    });
+  };
+  marcar(apaActual()[clave]);
+  bs.forEach(function(b, i){
+    b.onclick = function(){ apaPoner(clave, b.dataset.v); marcar(b.dataset.v); apaRefrescarGrupos(); };
+    b.onkeydown = function(e){
+      var d = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+      if(!d) return;
+      e.preventDefault();
+      var n = bs[(i + d + bs.length) % bs.length]; n.focus(); n.click();
+    };
+  });
+}
+/** Al cambiar de estilo cambia también el acento de serie: se vuelve a marcar todo. */
+function apaRefrescarGrupos(){
+  [['apa-estilo', 'estilo'], ['apa-acento', 'acento'], ['apa-relieve', 'relieve'], ['apa-tamano', 'tamano']]
+   .concat(APA_VARIANTES.map(function(v){ return ['apa-' + v.clave, v.clave]; })).forEach(function(p){
+    var raiz = document.getElementById(p[0]);
+    if(!raiz) return;
+    [].slice.call(raiz.querySelectorAll('[role="radio"]')).forEach(function(b){
+      var on = b.dataset.v === apaActual()[p[1]];
+      b.classList.toggle('on', on); b.setAttribute('aria-checked', on ? 'true' : 'false'); b.tabIndex = on ? 0 : -1;
+    });
+  });
+}
+function apaEnlazar(){
+  apaEnlazarGrupo('apa-estilo', 'estilo');
+  apaEnlazarGrupo('apa-acento', 'acento');
+  apaEnlazarGrupo('apa-relieve', 'relieve');
+  apaEnlazarGrupo('apa-tamano', 'tamano');
+  APA_VARIANTES.forEach(function(v){ apaEnlazarGrupo('apa-' + v.clave, v.clave); });
+}
+
 window.__app = {
   nLista, nPorId, nLimpia, guardarNota, editarNota, abrirNota, nResumen, nTiempo, nCron, nCronIniciar, nFiltrar,
-  gColoresDe, get notaSel(){ return notaSel; }, get gArch(){ return gArch; },
+  gColoresDe, get notaSel(){ return notaSel; },
   get DATOS(){ return DATOS; }, porId, materias, busq, norm, nube, MODO,
   anotar, anotarMateria, empujar, guardar, reconstruir, actualizar, sincronizar,
   verPigmento, pantallaChoques, avisarCopia, mantenerPantalla,
@@ -19049,8 +19233,8 @@ window.__app = {
   get SECCION(){ return SECCION; }, cambiarSeccion, deslizarSeccion, HAY_SELLOS,
   get SELLOS(){ return DATOS.sellos.slice(); }, porIdS,
   get GRAMOS(){ return DATOS.gramos.slice(); }, porIdG, HAY_GRAMOS,
-  get gramoSel(){ return gramoSel; }, get gVista(){ return gVista; },
-  abrirGramo, editarGramo, guardarGramo, gCalcular, gCalcularVarias, gVars, gFotoIdV, gVarSel, juntarGramos, gNumero, gMiles, gDec, bEsBase, marcarBase, altaBase, elegirNueva,
+  get gramoSel(){ return gramoSel; },
+  abrirGramo, editarGramo, guardarGramo, gVars, gFotoIdV, gVarSel, juntarGramos, gNumero, gDec, bEsBase, marcarBase, altaBase, elegirNueva,
   abrirSello, editarSello, borrarSello, guardarSello, hojaSello,
   faltaInfo, marcarFalta, quitarFalta, get soloFaltaS(){ return soloFaltaS; },
   enlaceDe, leerEnlace, intentarEnlace, qrSvg,
@@ -19408,7 +19592,7 @@ const cristalActivo = () => document.documentElement.dataset.cristal === 'on';
 
 function aplicarCristal(on){
   const r = document.documentElement;
-  if(on) r.dataset.cristal = 'on'; else delete r.dataset.cristal;
+  if(on && r.dataset.estilo !== 'blanda') r.dataset.cristal = 'on'; else delete r.dataset.cristal;
   sincronizarLuz();
 }
 function ponerCristal(on){

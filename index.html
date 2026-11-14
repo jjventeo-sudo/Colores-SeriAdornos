@@ -4013,6 +4013,114 @@ html[data-efectos="on"] .hero .hero-muestra{animation:fa-respira 6s ease-in-out 
 @media (prefers-reduced-motion:reduce){
   .fa-arco,.fa-borde,.ing-regla i,.hero .hero-muestra{animation:none !important}
 }
+
+/* ═══════════════ ENTREGA C · Lista y escritorio ═══════════════ */
+
+/* ── Marca de «tiene foto real» en la lista: una cámara pequeña en la muestra ── */
+.fila .muestra[data-foto]:not(.metal)::after,
+.tira-rec .muestra[data-foto]:not(.metal)::after{
+  content:""; position:absolute; right:6px; bottom:6px; width:15px; height:15px; border-radius:50%;
+  background:rgba(8,9,11,.66) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8h3l2-2.5h6L17 8h3v11H4z'/%3E%3Ccircle cx='12' cy='13' r='3.2'/%3E%3C/svg%3E") center/10px no-repeat;
+  box-shadow:0 0 0 1px rgba(255,255,255,.28);
+}
+.tira-rec .muestra[data-foto]:not(.metal)::after{right:3px; bottom:3px; width:13px; height:13px; background-size:8.5px}
+
+/* ── Favoritos y recientes ── */
+.tira-rec{
+  display:flex; gap:10px; overflow-x:auto; padding:8px 4px 10px; margin:2px 0 0;
+  scrollbar-width:none; overscroll-behavior-x:contain; scroll-snap-type:x proximity;
+  -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent); mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent);
+}
+.tira-rec::-webkit-scrollbar{display:none}
+.rec{
+  position:relative; flex:0 0 64px; display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:2px 0 0; background:none; border:0; color:var(--texto-2); cursor:pointer; scroll-snap-align:start;
+  font:inherit; -webkit-tap-highlight-color:transparent;
+  animation:rec-entra calc(.5s * var(--ritmo)) var(--salida) both;
+  animation-delay:calc(var(--i,0) * 36ms * var(--ritmo));
+}
+@keyframes rec-entra{from{opacity:0; transform:translateY(8px) scale(.94)}}
+.rec .rec-past{width:48px; height:48px; transition:transform calc(.25s * var(--ritmo)) var(--salida), box-shadow calc(.25s * var(--ritmo)) var(--salida)}
+.rec:hover .rec-past,.rec:focus-visible .rec-past{transform:translateY(-2px) scale(1.05); box-shadow:var(--sombra-gota), 0 8px 18px -6px color-mix(in srgb,var(--tono,#000) 70%,transparent)}
+.rec:active .rec-past{transform:scale(.94)}
+.rec:focus-visible{outline:2px solid var(--texto); outline-offset:3px; border-radius:10px}
+.rec-nom{max-width:64px; font-size:10.5px; line-height:1.15; text-align:center; letter-spacing:.01em;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.rec-fav{position:absolute; top:-2px; right:7px; width:17px; height:17px; border-radius:50%; display:grid; place-items:center;
+  background:var(--panel); color:#e8b83a; box-shadow:0 0 0 1px var(--linea-fuerte)}
+.rec-fav svg{width:11px; height:11px}
+
+/* ── El botón de favorito en la ficha ── */
+.fav-btn{
+  display:inline-flex; align-items:center; gap:5px; height:26px; padding:0 10px 0 8px; border-radius:99px;
+  border:1px solid var(--linea-fuerte); background:transparent; color:var(--texto-2); font:inherit; font-size:12px; cursor:pointer;
+  transition:background calc(.2s * var(--ritmo)), color calc(.2s * var(--ritmo)), border-color calc(.2s * var(--ritmo));
+}
+.fav-btn svg{width:14px; height:14px}
+.fav-btn:hover{color:var(--texto); border-color:var(--texto-3)}
+.fav-btn.on{color:#e8b83a; border-color:color-mix(in srgb,#e8b83a 55%,transparent); background:color-mix(in srgb,#e8b83a 10%,transparent)}
+.fav-btn.on svg{animation:fav-pop calc(.45s * var(--ritmo)) var(--salida)}
+@keyframes fav-pop{35%{transform:scale(1.45) rotate(-12deg)} }
+:root[data-tema="claro"] .fav-btn.on{color:#a97a00}
+
+/* ── «¿Querías decir…?» ── */
+.lista-sugiere{
+  display:block; margin:14px auto 0; padding:10px 16px; border-radius:99px; cursor:pointer;
+  border:1px solid var(--linea-fuerte); background:linear-gradient(180deg,var(--panel-luz),var(--panel));
+  color:var(--texto-2); font:inherit; font-size:14px; box-shadow:inset 0 1px 0 var(--canto), var(--sombra-1);
+  animation:rec-entra calc(.4s * var(--ritmo)) var(--salida) both;
+}
+.lista-sugiere b{color:var(--texto)}
+.lista-sugiere:hover{border-color:var(--texto-3)}
+.lista-sugiere:focus-visible{outline:2px solid var(--texto); outline-offset:3px}
+
+/* ── Comparar: veredicto ── */
+.cmp-veredicto{margin:14px 0 0; padding:12px 14px; border-radius:var(--r-l); border:1px solid var(--linea); background:var(--panel-2); display:grid; gap:3px}
+.cmp-veredicto b{font-size:15px}
+.cmp-veredicto span{font-size:12px; color:var(--texto-3)}
+.cmp-veredicto.igual{border-color:color-mix(in srgb,var(--verde) 55%,transparent)}
+.cmp-veredicto.igual b{color:var(--verde)}
+
+/* ── Cambiar de sección: entra suave ── */
+.sec-entra .columna-lista{animation:sec-entra calc(.34s * var(--ritmo)) var(--salida) both}
+@keyframes sec-entra{from{opacity:0; transform:translateY(7px)}}
+
+/* ── Pantalla de arranque: una gota que llena el nombre ── */
+#splash{display:none}
+#splash[data-on]{
+  position:fixed; inset:0; z-index:99999; display:grid; place-content:center; justify-items:center; gap:22px;
+  background:var(--fondo,#0a0b0d); color:var(--texto,#e8e2d4);
+  transition:opacity .5s ease, transform .5s ease;
+}
+#splash.se-va{opacity:0; transform:scale(1.04); pointer-events:none}
+#splash svg{width:74px; height:92px; overflow:visible}
+#splash .sp-borde{fill:none; stroke:currentColor; stroke-width:2.2; stroke-linejoin:round; opacity:.8}
+#splash .sp-nivel{animation:sp-sube 1.05s cubic-bezier(.3,.7,.2,1) .1s both}
+@keyframes sp-sube{from{transform:translateY(62px)}to{transform:none}}
+#splash .sp-onda{fill:currentColor; opacity:.9}
+#splash .sp-nombre{font:600 13px/1 "Plex Mono",ui-monospace,monospace; letter-spacing:.34em; text-transform:uppercase; opacity:0;
+  animation:sp-texto .7s ease .55s forwards}
+#splash .sp-nombre b{font-weight:800}
+@keyframes sp-texto{to{opacity:.85}}
+@media (prefers-reduced-motion:reduce){
+  #splash .sp-nivel{animation:none}
+  #splash .sp-nombre{animation:none; opacity:.85}
+  .rec,.sec-entra .columna-lista{animation:none !important}
+}
+
+/* ── Historial, Pigmentos y Papelera: en el monitor ancho salen como cajón por la derecha ── */
+@media (min-width:1180px){
+  dialog.dlg-lateral{margin:0 0 0 auto; height:100dvh; max-height:100dvh}
+  dialog.dlg-lateral::backdrop{background:rgba(10,12,14,.32); backdrop-filter:none}
+  dialog.dlg-lateral .hoja{
+    width:min(600px,46vw); height:100dvh; max-height:none; border-radius:var(--r-xl) 0 0 var(--r-xl); border-right:0;
+  }
+  dialog.dlg-lateral[open] .hoja{animation:cajon calc(.34s * var(--ritmo)) var(--salida)}
+}
+@keyframes cajon{from{opacity:.4; transform:translateX(36px)}}
+.lista-nada .lista-sugiere,.lista-nada .lista-sugiere b{display:inline; font-size:14px; margin:0; color:inherit}
+.lista-nada .lista-sugiere{display:block; margin:14px auto 0; color:var(--texto-2)}
+.lista-nada .lista-sugiere b{color:var(--texto); font-weight:700}
 /* ═══ LA BARRA DE ABAJO · versión «dock» (13 nov) ═══
    Tres secciones + Escanear + Opciones, TODAS con su nombre escrito, y el «+»
    fuera de la barra, flotando encima con lo que va a crear («Nuevo color»,
@@ -4119,6 +4227,13 @@ html[data-cristal="on"] .lista{padding-bottom:180px}
 </style>
 </head>
 <body>
+<div id="splash" aria-hidden="true">
+  <svg viewBox="0 0 64 80"><defs><clipPath id="sp-clip"><path d="M32 3C32 3 7 33 7 54a25 25 0 0 0 50 0C57 33 32 3 32 3Z"/></clipPath></defs>
+    <g clip-path="url(#sp-clip)"><g class="sp-nivel"><path class="sp-onda" d="M0 18Q16 10 32 18T64 18V90H0Z"/></g></g>
+    <path class="sp-borde" d="M32 3C32 3 7 33 7 54a25 25 0 0 0 50 0C57 33 32 3 32 3Z"/></svg>
+  <div class="sp-nombre">Goma · <b>S</b>eri<b>A</b>dornos</div>
+</div>
+<script>(function(){var s=document.getElementById('splash');if(!s)return;try{if(matchMedia('(display-mode: standalone)').matches||navigator.standalone||/[#&?]splash\b/.test(location.href)){window.__splashT=Date.now();s.setAttribute('data-on','');setTimeout(function(){s.className='se-va'},2400);setTimeout(function(){s.remove()},2950);return}}catch(_){}s.remove()})()</script>
 <!-- La luz de fondo de la opción Cristal: vacía y oculta si está apagada. -->
 <div id="aurora" aria-hidden="true"></div>
 <div class="app">
@@ -7007,7 +7122,7 @@ function pintarLista(reinicia=true){
   if(reinicia){ soltarFotos($lista); $lista.innerHTML=''; pintadas=0; letraActual=null; $lista.scrollTop=0; }
   const hasta = Math.min(pintadas+TANDA, filtradas.length);
   const frag = document.createDocumentFragment();
-  if(reinicia){ const u = filaUltima(); if(u) frag.appendChild(u); }
+  if(reinicia){ const u = filaUltima(); if(u) frag.appendChild(u); const tr = listaTira(); if(tr) frag.appendChild(tr); }
   const txt = $q.value;
   if(reinicia && !txt.trim() && puedeEditar)
     for(const b of borradoresNuevosF()){
@@ -7075,6 +7190,7 @@ function pintarLista(reinicia=true){
     v.className = 'lista-nada';
     v.innerHTML = `<b>Nada con ese nombre</b>Prueba con menos letras, o con el cliente entre paréntesis. Por ejemplo <em>lezna</em>, <em>fluor</em> o <em>plata</em>.`;
     $lista.appendChild(v);
+    listaSugerir(v, txt);
   }
   enlazarFotos($lista);
   pintadas = hasta;
@@ -7855,6 +7971,7 @@ function plantillaFicha(f, x){
             resaltado(f) ? 'quitar el rojo' : 'resaltar en rojo'}</button>` : ''}
           ${botonBase(f)}
           ${selloActualizacion(f)}
+          ${listaBotonFav(f)}
           ${hermanas.length ? `<span class="etiqueta info">${grupo.tipo==='identica'?'Idéntica a':'Misma proporción que'} ${hermanas.length}</span>`:''}
         </div>
         ${fichaLecturas(f, total)}${datosHero(f, total, usan)}
@@ -8097,6 +8214,7 @@ function pintarFicha(){
     $ficha.querySelector('.hero-muestra')?.addEventListener('click',
       ()=>verFotoGrande(f.id, f.nombre));
   document.getElementById('btn-comparar')?.addEventListener('click', ()=>compararColores(f));
+  listaEnlazarFav(f);
   document.getElementById('bote-cambiar')?.addEventListener('click', ()=>marcarBote(f, !tieneBote(f)));
   document.getElementById('base-cambiar')?.addEventListener('click', ()=>marcarBase(f, !bEsBase(f)));
   document.getElementById('rojo-cambiar')?.addEventListener('click', ()=>marcarRojo(f, !resaltado(f)));
@@ -8569,7 +8687,7 @@ function compararColores(f){
             <div class="busc-lista" id="cmp-lista" hidden></div>
           </div>
         </div>
-      </div>`;
+      </div>${otro ? listaVeredicto(f, otro) : ''}`;
     $dp.innerHTML = `${otro ? `<button class="btn" id="cmp-abrir">Abrir ${esc(otro.nombre)}</button>` : ''}
                      <button class="btn btn-1" data-cerrar>Cerrar</button>`;
     $dp.querySelector('[data-cerrar]').onclick = ()=>$dlg.close();
@@ -9620,6 +9738,7 @@ function lineasHist(){
 }
 
 function pantallaHistorial(volver){
+  listaLateral(true);
   const pintar = ()=>{
     $dt.textContent = 'Historial';
     const todas = lineasHist();
@@ -9881,6 +10000,7 @@ if(MODO !== 'nube'){
 }
 
 function pantallaPapelera(volver){
+  listaLateral(true);
   limpiarFotosDeBorradas();      // ver el comentario de esa función
   const pintar = ()=>{
     const cosas = papelera();
@@ -11785,7 +11905,7 @@ const grupoAjustes = (titulo, filas) => filas.filter(Boolean).length
 function pieVolver(volver, texto){
   $dp.innerHTML = `<button class="btn btn-1" id="op-volver">${
     volver ? (texto || 'Volver a Opciones') : 'Cerrar'}</button>`;
-  document.getElementById('op-volver').onclick = ()=>{ if(volver) volver(); else $dlg.close(); };
+  document.getElementById('op-volver').onclick = ()=>{ listaLateral(false); if(volver) volver(); else $dlg.close(); };
 }
 
 function abrirOpciones(){
@@ -12028,7 +12148,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">970bf1ff</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">534dc692</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -12114,6 +12234,7 @@ function cuantasLlevan(idMateria){
 }
 
 function pantallaPigmentos(volver){
+  listaLateral(true);
   const lista = DATOS.materias_primas
     .map(m=>({m, n: cuantasLlevan(m.id)}))
     .filter(x=>x.n > 0)
@@ -18689,6 +18810,221 @@ async function fichaFotosPdf(lista){
   }
   return out;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   ENTREGA C · Lista y escritorio
+
+   · «¿Querías decir…?»  cuando una búsqueda no da nada (una letra mal
+     puesta) se propone la palabra parecida que sí existe.
+   · Favoritos y recientes: una tira de pastillas arriba de la lista.
+     Los favoritos se guardan en ESTE aparato (cada uno los suyos).
+   · Comparar: el veredicto en palabras («casi iguales», «se distinguen»).
+   · Pantalla de arranque con una gota que llena el nombre (solo al abrir
+     la app instalada, nunca en una pestaña normal).
+   · Transición suave al cambiar de Colores a Sellos o a Notas.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Favoritos (en este aparato) ─────────────────────────────────── */
+var listaFavCache = null;
+function listaFavs(){
+  if(listaFavCache) return listaFavCache;
+  let a = [];
+  try{ a = JSON.parse(localStorage.getItem('seriadornos-favoritos') || '[]'); }catch(_){}
+  listaFavCache = new Set(Array.isArray(a) ? a : []);
+  return listaFavCache;
+}
+function listaEsFav(id){ return listaFavs().has(id); }
+function listaAlternarFav(id){
+  const s = listaFavs();
+  if(s.has(id)) s.delete(id); else s.add(id);
+  try{ localStorage.setItem('seriadornos-favoritos', JSON.stringify([...s])); }catch(_){}
+  listaRepintarTira();
+  return s.has(id);
+}
+/** La estrella: función y no constante, porque pintarLista puede correr antes que este módulo. */
+function listaEstrella(vacia){
+  return `<svg viewBox="0 0 24 24" fill="${vacia ? 'none' : 'currentColor'}" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6l2.5 5.3 5.8.7-4.3 4 1.1 5.7L12 16.4 6.9 19.3 8 13.6l-4.3-4 5.8-.7z"/></svg>`;
+}
+
+/** El botón de la ficha. */
+function listaBotonFav(f){
+  const on = listaEsFav(f.id);
+  return `<button class="fav-btn${on ? ' on' : ''}" id="fav-cambiar" type="button" aria-pressed="${on}" ` +
+         `title="${on ? 'Quitar de favoritos' : 'Poner en favoritos (solo en este aparato)'}">` +
+         `${listaEstrella(!on)}<span>Favorito</span></button>`;
+}
+function listaEnlazarFav(f){
+  const b = document.getElementById('fav-cambiar');
+  if(!b) return;
+  b.addEventListener('click', ()=>{
+    const on = listaAlternarFav(f.id);
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', String(on));
+    b.title = on ? 'Quitar de favoritos' : 'Poner en favoritos (solo en este aparato)';
+    b.innerHTML = listaEstrella(!on) + '<span>Favorito</span>';
+    brindis(on ? 'Añadido a favoritos' : 'Quitado de favoritos');
+  });
+}
+
+/* ── La tira «Favoritos y recientes» ──────────────────────────────── */
+function listaTira(){
+  if(typeof SECCION !== 'undefined' && SECCION !== 'colores') return null;
+  if($q.value.trim() || !sinFiltro()) return null;
+  const vistos = new Set(), items = [];
+  for(const id of listaFavs()){
+    if(porId.has(id) && !vistos.has(id)){ vistos.add(id); items.push({f: porId.get(id), fav: true}); }
+  }
+  // La última preparada ya sale en su propia fila: no se repite aquí.
+  const ult = HISTORIAL.length ? HISTORIAL[HISTORIAL.length - 1].formula : null;
+  if(ult) vistos.add(ult);
+  for(let k = HISTORIAL.length - 1; k >= 0 && items.length < 12; k--){
+    const id = HISTORIAL[k].formula;
+    if(!id || vistos.has(id) || !porId.has(id)) continue;
+    vistos.add(id); items.push({f: porId.get(id), fav: false});
+  }
+  if(!items.length) return null;
+  const el = document.createElement('div');
+  el.className = 'tira-rec';
+  el.setAttribute('role', 'group');
+  el.setAttribute('aria-label', 'Favoritos y recientes');
+  el.innerHTML = items.slice(0, 12).map(({f, fav}, i)=>{
+    const c = color(f);
+    return `<button class="rec" type="button" data-id="${esc(f.id)}" style="--i:${i};--tono:${c.hex}" ` +
+      `title="${esc(f.nombre)}${fav ? ' · favorito' : ''}">` +
+      `<span class="muestra rec-past${c.metalizado ? ' metal' : ''}" style="background:${c.hex}"${marcaFoto(f.id)}></span>` +
+      `${fav ? `<i class="rec-fav" aria-hidden="true">${listaEstrella(false)}</i>` : ''}` +
+      `<span class="rec-nom">${esc(f.nombre.replace(/\s*\(.*?\)\s*$/, ''))}</span></button>`;
+  }).join('');
+  el.addEventListener('click', e=>{
+    const b = e.target.closest('.rec');
+    if(b) abrir(b.dataset.id, b.querySelector('.muestra'));
+  });
+  return el;
+}
+/** Repinta solo la tira (al marcar un favorito con la lista a la vista). */
+function listaRepintarTira(){
+  if(typeof $lista === 'undefined' || !$lista) return;
+  const vieja = $lista.querySelector('.tira-rec');
+  const nueva = listaTira();
+  if(vieja && nueva) vieja.replaceWith(nueva);
+  else if(vieja) vieja.remove();
+  else if(nueva){
+    const u = $lista.querySelector('.fila-ultima');
+    if(u) u.after(nueva); else $lista.prepend(nueva);
+  }
+  if(nueva && typeof enlazarFotos === 'function') enlazarFotos(nueva);
+}
+
+/* ── «¿Querías decir…?» ───────────────────────────────────────────── */
+function listaDistancia(a, b){
+  if(a === b) return 0;
+  if(Math.abs(a.length - b.length) > 2) return 9;
+  const d = [];
+  for(let i = 0; i <= a.length; i++){ d[i] = [i]; }
+  for(let j = 1; j <= b.length; j++) d[0][j] = j;
+  for(let i = 1; i <= a.length; i++){
+    for(let j = 1; j <= b.length; j++){
+      d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+      // Dos letras cambiadas de sitio («lenza» por «lezna») cuentan como un solo fallo.
+      if(i > 1 && j > 1 && a[i-1] === b[j-2] && a[i-2] === b[j-1])
+        d[i][j] = Math.min(d[i][j], d[i-2][j-2] + 1);
+    }
+  }
+  return d[a.length][b.length];
+}
+var listaVocab = null, listaVocabRef = null;
+/** Palabras que existen en los nombres, ingredientes y clientes. */
+function listaPalabras(){
+  if(listaVocab && listaVocabRef === busq[0] && listaVocab.n === busq.length) return listaVocab;
+  const m = new Map();
+  for(const e of busq)
+    for(const w of ((e.n || '') + ' ' + (e.ing || '')).split(/[^A-Z0-9]+/i)){
+      if(w.length < 3) continue;
+      m.set(w, (m.get(w) || 0) + 1);
+    }
+  m.n = busq.length; listaVocab = m; listaVocabRef = busq[0];
+  return m;
+}
+/** Devuelve el texto corregido, o null si no hay una corrección razonable. */
+function listaSugerencia(txt){
+  const palabras = norm(txt).split(' ').filter(Boolean);
+  if(!palabras.length) return null;
+  const vocab = listaPalabras();
+  let cambio = false;
+  const fuera = palabras.map(p=>{
+    if(p.length < 3) return p;
+    if(vocab.has(p) || [...vocab.keys()].some(w=>w.startsWith(p))) return p;   // ya existe (o es un principio)
+    const tope = p.length <= 4 ? 1 : 2;
+    let mejor = null, d = 9, veces = 0;
+    for(const [w, n] of vocab){
+      const x = listaDistancia(p, w);
+      if(x <= tope && (x < d || (x === d && n > veces))){ mejor = w; d = x; veces = n; }
+    }
+    if(mejor){ cambio = true; return mejor; }
+    return p;
+  });
+  if(!cambio) return null;
+  const nuevo = fuera.join(' ');
+  return filtrar(nuevo).length ? nuevo : null;
+}
+/** Pone el botón «¿Querías decir…?» dentro del aviso de «Nada con ese nombre». */
+function listaSugerir(cont, txt){
+  const s = txt && txt.trim() ? listaSugerencia(txt) : null;
+  if(!s) return;
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'lista-sugiere';
+  b.innerHTML = `¿Querías decir <b>${esc(s.toLowerCase())}</b>?`;
+  b.onclick = ()=>{ $q.value = s.toLowerCase(); $q.dispatchEvent(new Event('input', {bubbles: true})); $q.focus(); };
+  cont.appendChild(b);
+}
+
+/* ── Comparar: el veredicto en palabras ───────────────────────────── */
+function listaVeredicto(a, b){
+  const ha = color(a).hex, hb = color(b).hex;
+  if(!/^#[0-9a-f]{6}$/i.test(ha) || !/^#[0-9a-f]{6}$/i.test(hb)) return '';
+  const A = labDe(ha), B = labDe(hb);
+  const dE = Math.hypot(A[0]-B[0], A[1]-B[1], A[2]-B[2]);
+  const [txt, cls] = dE < 4  ? ['Casi iguales: el ojo no los distingue', 'igual']
+                   : dE < 12 ? ['Parecidos, pero se nota la diferencia', 'cerca']
+                   : dE < 30 ? ['Distintos' + (A[0] > B[0] ? ' · el de la izquierda es más claro' : ' · el de la derecha es más claro'), 'lejos']
+                             : ['Muy distintos', 'lejos'];
+  return `<p class="cmp-veredicto ${cls}"><b>${txt}</b><span>Calculado con las muestras de pantalla: es orientativo.</span></p>`;
+}
+
+/* ── Pantalla de arranque ─────────────────────────────────────────── */
+function listaSplashFuera(){
+  const s = document.getElementById('splash');
+  if(!s) return;
+  const espera = Math.max(0, (window.__splashT || 0) + 1100 - Date.now());
+  setTimeout(()=>{
+    s.classList.add('se-va');
+    setTimeout(()=>s.remove(), 520);
+  }, espera);
+}
+listaSplashFuera();
+
+/* ── Transición al cambiar de sección ─────────────────────────────── */
+(function(){
+  const original = cambiarSeccion;
+  cambiarSeccion = function(sec){
+    const antes = SECCION;
+    const r = original.apply(this, arguments);
+    if(antes !== SECCION){
+      const c = document.querySelector('.cuerpo');
+      if(c){
+        c.classList.remove('sec-entra'); void c.offsetWidth; c.classList.add('sec-entra');
+        setTimeout(()=>c.classList.remove('sec-entra'), 420);
+      }
+    }
+    return r;
+  };
+})();
+
+/* ── Las hojas de Historial, Pigmentos y Papelera: cajón lateral en el monitor ── */
+function listaLateral(on){
+  $dlg.classList.toggle('dlg-lateral', !!on);
+}
+$dlg.addEventListener('close', ()=>listaLateral(false));
 
 window.__app = {
   nLista, nPorId, nLimpia, guardarNota, editarNota, abrirNota, nResumen, nTiempo, nCron, nCronIniciar, nFiltrar,

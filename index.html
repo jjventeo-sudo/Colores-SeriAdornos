@@ -3800,8 +3800,38 @@ body[data-seccion="notas"] #btn-pdf{display:none}
 @media (pointer:coarse){ .n-sw{width:36px; height:36px} }
 @media (prefers-reduced-motion:reduce){ .n-sw{animation:none} }
 
-/* en la fila de filtros la paleta va en línea, sin partirse */
-#chips-cli .n-paleta-fila{flex-wrap:nowrap; flex:0 0 auto; padding:0 8px 0 4px}
+/* Los filtros de categoría: se ven TODAS sin deslizar de lado. Si no caben en 2 líneas, «+N más» despliega el resto. */
+body[data-seccion="notas"] .chips-cli{display:block; overflow:visible; padding:2px 18px 10px}
+body[data-seccion="notas"] .chips-cli[hidden]{display:none}
+.n-cats-fila{display:flex; flex-wrap:wrap; gap:6px; position:relative}
+.n-cats-fila.n-plegada{max-height:calc(2 * 34px + 6px); overflow:hidden}
+body[data-seccion="notas"] .chips-cli .chip{height:34px; min-height:34px; padding:0 12px; flex:0 0 auto}
+@media (pointer:coarse){
+  body[data-seccion="notas"] .chips-cli .chip{height:40px; min-height:40px}
+  .n-cats-fila.n-plegada{max-height:calc(2 * 40px + 6px)}
+}
+body[data-seccion="notas"] .chips-cli .chip .n{margin-left:7px; opacity:.6}
+.n-cats-mas{
+  margin:8px 0 0 4px; padding:6px 4px; background:none; border:0; cursor:pointer; color:var(--texto-2);
+  font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+  text-decoration:underline; text-underline-offset:4px; text-decoration-color:var(--linea-fuerte);
+}
+.n-cats-mas:hover{color:var(--texto)}
+.n-cats-mas[hidden]{display:none}
+/* acciones de la categoría elegida: Color y Eliminar, en su línea */
+.n-cat-acc{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px}
+.n-cat-quitar{color:var(--texto-2)}
+.n-cat-quitar svg{width:15px; height:15px; margin-right:6px; vertical-align:-3px}
+.n-cat-quitar:hover{color:var(--rojo)}
+/* y la paleta, en su propia línea debajo */
+.chips-cli > .n-paleta-fila{display:flex; flex-wrap:wrap; padding:10px 2px 2px}
+/* eliminar desde el editor */
+.n-cat-borrar{
+  margin-top:12px; display:inline-flex; align-items:center; gap:7px; padding:6px 2px; background:none; border:0;
+  cursor:pointer; color:var(--texto-3); font-size:13px; font-weight:560;
+}
+.n-cat-borrar svg{width:15px; height:15px}
+.n-cat-borrar:hover{color:var(--rojo)}
 
 /* ═══ PESAJE «INSTRUMENTO» ═══════════════════════════════════════════════
    El bote que se llena sustituye al aro. Maqueta aprobada:
@@ -6286,6 +6316,7 @@ function crearNube({url, clave}){
       else if(a.clave === 'clientes') d.clientes = a.datos;
       else if(a.clave === 'robots') d.robots = a.datos;
       else if(a.clave === 'notas_cat_colores' && a.datos && typeof a.datos === 'object' && !Array.isArray(a.datos)) d.notas_cat_colores = a.datos;
+      else if(a.clave === 'notas_cats_ocultas' && Array.isArray(a.datos)) d.notas_cats_ocultas = a.datos;
       else if(String(a.clave).startsWith('nota:')){
         const nn = a.datos && !a.datos.borrada ? nLimpia(a.datos) : null;
         d.notas = (d.notas || []).filter(x => x.id !== (a.datos && a.datos.id));
@@ -12479,6 +12510,8 @@ function aplicarDeLaNube(res){
       ROBOTS.length = 0; ROBOTS.push(...a.datos); DATOS.robots = ROBOTS; n++;
     }else if(a.clave === 'notas_cat_colores' && a.datos && typeof a.datos === 'object' && !Array.isArray(a.datos)){
       DATOS.notas_cat_colores = a.datos; n++;
+    }else if(a.clave === 'notas_cats_ocultas' && Array.isArray(a.datos)){
+      DATOS.notas_cats_ocultas = a.datos; n++;
     }else if(String(a.clave).startsWith('nota:')){
       n += notaDeNube(a.datos);
     }else if(a.clave === 'papelera_hasta' && typeof a.datos === 'string'){
@@ -12871,7 +12904,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">4a522053</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">652e66b6</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -17942,9 +17975,13 @@ function nResumen(n){
   }
   return out;
 }
+/* Las categorías son las de siempre (menos las que se eliminaron) y las que se han ido escribiendo en las notas.
+   Una de las de siempre que se elimina se anota en «notas_cats_ocultas»; si una nota la vuelve a usar, reaparece. */
 const nCats = () => {
-  const extra = nLista().map(n => (n.cat || '').trim()).filter(c => c && !N_CATS_BASE.includes(c));
-  return [...N_CATS_BASE, ...new Set(extra)];
+  const ocultas = Array.isArray(DATOS.notas_cats_ocultas) ? DATOS.notas_cats_ocultas : [];
+  const usadas = [...new Set(nLista().map(n => (n.cat || '').trim()).filter(Boolean))];
+  const base = N_CATS_BASE.filter(c => !ocultas.includes(c) || usadas.includes(c));
+  return [...base, ...usadas.filter(c => !base.includes(c))];
 };
 /* ── El color de cada categoría ───────────────────────────────────────
    Ocho tonos apagados, distintos a los de los tipos de paso (ámbar, rojo, azul,
@@ -17957,6 +17994,7 @@ const N_PALETA = [
 ];
 const N_CAT_DEF = {Fieltros: '#44b8b4', Prensa: '#7088e6', Horneado: '#d4805a', Engomado: '#a58be6'};
 var notaPaleta = false;      // la paleta del filtro de categoría está desplegada
+var notaCatsAbiertas = false; // los filtros de categoría, desplegados del todo (si no caben en 2 líneas)
 const nHexOk = h => typeof h === 'string' && /^#[0-9a-f]{6}$/i.test(h);
 function nColorCat(cat){
   cat = (cat || '').trim();
@@ -17984,6 +18022,47 @@ function nPonerColorCat(cat, hex){
       .catch(e => falloNube(e));
     nube.guardarEspejo(DATOS, ultimaSync, ROL);
   }
+  return true;
+}
+function nSubirAjuste(clave, datos){
+  if(MODO !== 'nube') return;
+  marcarSync('subiendo');
+  nube.subirAjustes([{clave, datos}])
+    .then(ok => marcarSync(ok ? 'al-dia' : 'pendiente'))
+    .catch(e => falloNube(e));
+  nube.guardarEspejo(DATOS, ultimaSync, ROL);
+}
+/** Elimina una categoría SIN borrar sus notas: pasan a «General». Se puede deshacer. */
+async function nQuitarCat(cat){
+  cat = (cat || '').trim();
+  if(!cat) return false;
+  if(!puedeEditar){ brindis(SIN_PERMISO); return false; }
+  const afectadas = nLista().filter(n => (n.cat || '').trim() === cat);
+  const n = afectadas.length;
+  if(!await pedirEliminar({titulo: 'Eliminar categoría', boton: 'Eliminar',
+    texto: `Vas a eliminar la categoría <b>${esc(cat)}</b>.` + (n
+      ? ` Sus <b>${n}</b> nota${n === 1 ? '' : 's'} no se borra${n === 1 ? '' : 'n'}: pasa${n === 1 ? '' : 'n'} a <b>General</b>.`
+      : ' No tiene ninguna nota.')})) return false;
+  const colorAntes = (DATOS.notas_cat_colores || {})[cat];
+  const eraBase = N_CATS_BASE.includes(cat);
+  const ocultasAntes = Array.isArray(DATOS.notas_cats_ocultas) ? DATOS.notas_cats_ocultas.slice() : [];
+  for(const x of afectadas) guardarNota({...x, cat: ''}, true);
+  if(eraBase && !ocultasAntes.includes(cat)){
+    DATOS.notas_cats_ocultas = [...ocultasAntes, cat];
+    nSubirAjuste('notas_cats_ocultas', DATOS.notas_cats_ocultas);
+  }
+  if(colorAntes){
+    const m = {...DATOS.notas_cat_colores}; delete m[cat];
+    DATOS.notas_cat_colores = m; nSubirAjuste('notas_cat_colores', m);
+  }
+  if(notaCat === cat){ notaCat = null; notaPaleta = false; }
+  actualizar();
+  brindisAccion('Categoría eliminada', 'Deshacer', () => {
+    for(const x of afectadas){ const v = nPorId(x.id); if(v) guardarNota({...v, cat}, true); }
+    if(eraBase){ DATOS.notas_cats_ocultas = ocultasAntes; nSubirAjuste('notas_cats_ocultas', ocultasAntes); }
+    if(colorAntes){ const m = {...(DATOS.notas_cat_colores || {}), [cat]: colorAntes}; DATOS.notas_cat_colores = m; nSubirAjuste('notas_cat_colores', m); }
+    actualizar();
+  });
   return true;
 }
 const nPaletaHtml = (cat, actual, attr) => N_PALETA.map(([nom, hex]) =>
@@ -18042,10 +18121,10 @@ function notaDeNube(d){
 }
 
 /** Guarda una nota: en la lista de este aparato, en el espejo y hacia la nube (con cola). */
-function guardarNota(n){
+function guardarNota(n, sinFirma){
   if(!puedeEditar){ brindis(SIN_PERMISO); return false; }
   const ahora = new Date().toISOString();
-  n.editado = ahora; n.autor = NOMBRE;
+  if(!sinFirma){ n.editado = ahora; n.autor = NOMBRE; }     // cambiar de categoría no «edita» la nota
   if(!n.creado){ n.creado = ahora; n.creadoPor = NOMBRE; }
   const l = nLista();
   const i = l.findIndex(x => x.id === n.id);
@@ -18089,27 +18168,48 @@ function actualizarNotas(){
   // Las categorías ocupan el sitio de los chips de clientes.
   const $c = document.getElementById('chips-cli');
   if($c){
-    const cats = nCats();
+    // Solo las categorías que tienen notas (más la elegida), cada una con su cuenta: así caben todas a la vista.
+    const cuenta = new Map();
+    for(const x of nLista()){ const k = (x.cat || '').trim(); if(k) cuenta.set(k, (cuenta.get(k) || 0) + 1); }
+    const cats = nCats().filter(c => cuenta.get(c) || c === notaCat);
     $c.hidden = !total;
+    const chipsH = [['', 'Todas'], ...cats.map(c => [c, c])].map(([v, e]) => {
+      const cc = v ? nColorCat(v) : null;
+      return `<button class="chip n-cat" type="button" data-ncat="${esc(v)}" aria-pressed="${(notaCat || '') === v}"${cc ? ` style="--cc:${cc}"` : ''}>${esc(e)}${v ? ` <span class="n">${cuenta.get(v) || 0}</span>` : ''}</button>`;
+    }).join('');
     $c.innerHTML = total
-      ? [['', 'Todas'], ...cats.map(c => [c, c])].map(([v, e]) => {
-          const cc = v ? nColorCat(v) : null;
-          return `<button class="chip n-cat" type="button" data-ncat="${esc(v)}" aria-pressed="${(notaCat || '') === v}"${cc ? ` style="--cc:${cc}"` : ''}>${esc(e)}</button>`;
-        }).join('') +
-        // Con una categoría elegida, su color se cambia aquí mismo (solo quien puede editar)
+      ? `<div class="n-cats-fila${notaCatsAbiertas ? '' : ' n-plegada'}">${chipsH}</div>` +
+        `<button type="button" class="n-cats-mas" id="n-cats-mas" hidden></button>` +
+        // Con una categoría elegida: cambiarle el color o eliminarla (solo quien puede editar)
         (notaCat && puedeEditar
-          ? `<button class="chip n-cat-color" type="button" id="n-cat-color" aria-expanded="${notaPaleta}" style="--cc:${nColorCat(notaCat)}" title="Cambiar el color de ${esc(notaCat)}">Color</button>` +
-            (notaPaleta ? `<span class="n-paleta-fila" role="radiogroup" aria-label="Color de ${esc(notaCat)}">${nPaletaHtml(notaCat, nColorCat(notaCat), 'data-fcolor')}</span>` : '')
+          ? `<div class="n-cat-acc"><button class="chip n-cat-color" type="button" id="n-cat-color" aria-expanded="${notaPaleta}" style="--cc:${nColorCat(notaCat)}" title="Cambiar el color de ${esc(notaCat)}">Color</button>` +
+            `<button class="chip n-cat-quitar" type="button" id="n-cat-quitar" title="Eliminar la categoría ${esc(notaCat)}">${icono('borrar')} Eliminar categoría</button></div>` +
+            (notaPaleta ? `<div class="n-paleta-fila" role="radiogroup" aria-label="Color de ${esc(notaCat)}">${nPaletaHtml(notaCat, nColorCat(notaCat), 'data-fcolor')}</div>` : '')
           : '')
       : '';
     for(const b of $c.querySelectorAll('[data-ncat]'))
       b.onclick = () => { notaCat = b.dataset.ncat || null; notaPaleta = false; actualizar(); };
-    document.getElementById('n-cat-color')?.addEventListener('click', () => {
-      notaPaleta = !notaPaleta; actualizar();
-      if(notaPaleta) requestAnimationFrame(() => document.querySelector('#chips-cli .n-paleta-fila')?.scrollIntoView({inline: 'end', block: 'nearest', behavior: 'smooth'}));
-    });
+    document.getElementById('n-cat-color')?.addEventListener('click', () => { notaPaleta = !notaPaleta; actualizar(); });
+    document.getElementById('n-cat-quitar')?.addEventListener('click', () => { nQuitarCat(notaCat); });
     for(const b of $c.querySelectorAll('[data-fcolor]'))
       b.onclick = () => { if(nPonerColorCat(notaCat, b.dataset.fcolor)){ notaPaleta = false; actualizar(); } };
+    // Plegado: si no caben en 2 líneas, las que sobran se esconden tras «+N más»
+    const fila = $c.querySelector('.n-cats-fila'), mas = document.getElementById('n-cats-mas');
+    if(fila && mas){
+      const chips = [...fila.children];
+      if(!notaCatsAbiertas){
+        const fuera = chips.filter(b => b.offsetTop >= fila.clientHeight - 2);
+        if(fuera.length){
+          if(notaCat && fuera.some(b => b.dataset.ncat === notaCat)){ notaCatsAbiertas = true; return actualizar(); }
+          for(const b of fuera){ b.setAttribute('inert', ''); b.tabIndex = -1; }
+          mas.hidden = false; mas.textContent = `+${fuera.length} más`;
+          mas.setAttribute('aria-expanded', 'false');
+        }
+      }else if(new Set(chips.map(b => b.offsetTop)).size > 2){
+        mas.hidden = false; mas.textContent = 'Ver menos'; mas.setAttribute('aria-expanded', 'true');
+      }
+      mas.onclick = () => { notaCatsAbiertas = !notaCatsAbiertas; actualizar(); };
+    }
   }
   document.getElementById('limpiar').classList.toggle('on', !!$q.value);
   pintarListaNotas();
@@ -18483,7 +18583,8 @@ function editarNota(base, duplicar){
     return `<div class="n-cats">${catsHtml()}</div>` +
       (cc && puedeEditar
         ? `<div class="n-paleta"><span class="n-paleta-et">Color de «${esc(n.cat)}»</span>
-            <div class="n-paleta-fila" role="radiogroup" aria-label="Color de ${esc(n.cat)}">${nPaletaHtml(n.cat, cc, 'data-color')}</div></div>`
+            <div class="n-paleta-fila" role="radiogroup" aria-label="Color de ${esc(n.cat)}">${nPaletaHtml(n.cat, cc, 'data-color')}</div>
+            <button type="button" class="n-cat-borrar" data-quitar-cat>${icono('borrar')} Eliminar categoría</button></div>`
         : '');
   }
   function repintarCats(){
@@ -18497,6 +18598,9 @@ function editarNota(base, duplicar){
       b.onclick = () => { n.cat = n.cat === b.dataset.cat ? '' : b.dataset.cat; apuntarBorrador(); repintarCats(); };
     for(const b of $dc.querySelectorAll('[data-color]'))
       b.onclick = () => { if(nPonerColorCat(n.cat, b.dataset.color)) repintarCats(); };
+    $dc.querySelector('[data-quitar-cat]')?.addEventListener('click', async () => {
+      if(await nQuitarCat(n.cat)){ n.cat = ''; apuntarBorrador(); repintarCats(); }
+    });
     document.getElementById('n-e-catmas')?.addEventListener('click', () => {
       catNueva = true; repintarCats();
       document.getElementById('n-e-catnueva')?.focus();

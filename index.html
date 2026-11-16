@@ -3739,6 +3739,70 @@ body[data-seccion="notas"] #btn-pdf{display:none}
 .g-col{grid-template-columns:36px minmax(0,1fr)}
 .g-ed-col{grid-template-columns:30px minmax(0,1fr) 40px}
 
+/* ═══ Colores de categoría (16 nov) ═══════════════════════════════════════
+   Siempre apagados y siempre con --cc: el color de paso (ámbar, rojo, azul…)
+   sigue siendo otra cosa. Las tarjetas, los chips y la ficha lo heredan de aquí. */
+.fila-nota{position:relative}
+.fila-nota.con-cat::before{
+  content:""; position:absolute; left:0; top:14px; bottom:14px; width:4px; border-radius:0 5px 5px 0;
+  background:var(--cc); box-shadow:0 0 14px -2px color-mix(in srgb,var(--cc) 70%,transparent);
+  transition:top .25s var(--salida), bottom .25s var(--salida);
+}
+.fila-nota.con-cat::after{
+  content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--cc) 12%,transparent),transparent 58%);
+}
+.fila-nota.con-cat:hover::before,.fila-nota.con-cat[aria-current="true"]::before{top:8px; bottom:8px}
+.n-et-cat{display:inline-flex; align-items:center; gap:7px}
+.fila-nota.con-cat .n-et-cat{color:color-mix(in srgb,var(--cc) 62%,var(--texto-2))}
+.fila-nota.con-cat .n-et-cat::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--cc)}
+
+/* chips: puntito de color; al elegirla se rellena de su tono */
+.chip.n-cat[style*="--cc"]::before,.n-cats .chip[style*="--cc"]::before,.n-cat-color::before{
+  content:""; display:inline-block; width:8px; height:8px; margin-right:8px; border-radius:50%;
+  background:var(--cc); flex:0 0 auto; vertical-align:1px;
+}
+.chip.n-cat[style*="--cc"][aria-pressed="true"],.n-cats .chip[style*="--cc"][aria-pressed="true"]{
+  background:color-mix(in srgb,var(--cc) 26%,var(--panel)); color:var(--texto);
+  border-color:color-mix(in srgb,var(--cc) 72%,transparent);
+  box-shadow:0 6px 16px -8px color-mix(in srgb,var(--cc) 80%,transparent);
+}
+.n-cat-ficha[style*="--cc"]{
+  background:color-mix(in srgb,var(--cc) 24%,var(--panel)); color:var(--texto);
+  border-color:color-mix(in srgb,var(--cc) 70%,transparent);
+}
+.n-cat-ficha[style*="--cc"]::before{content:""; width:8px; height:8px; margin-right:8px; border-radius:50%; background:var(--cc)}
+
+/* la paleta (en el editor y en el filtro) */
+.n-paleta{display:flex; align-items:center; flex-wrap:wrap; gap:8px 12px; margin-top:12px}
+.n-paleta-et{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--texto-3)}
+.n-paleta-fila{display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap}
+.n-cat-color{flex:0 0 auto}
+.n-sw{
+  width:30px; height:30px; padding:0; border-radius:50%; border:0; cursor:pointer; flex:0 0 auto;
+  background:var(--cc); position:relative;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35), inset 0 -3px 5px rgba(0,0,0,.18), 0 3px 8px -3px rgba(0,0,0,.4);
+  transition:transform .25s cubic-bezier(.34,1.5,.5,1), box-shadow .2s;
+  animation:n-sw-entra .38s cubic-bezier(.34,1.5,.5,1) both;
+}
+.n-sw:nth-child(2){animation-delay:30ms}.n-sw:nth-child(3){animation-delay:60ms}.n-sw:nth-child(4){animation-delay:90ms}
+.n-sw:nth-child(5){animation-delay:120ms}.n-sw:nth-child(6){animation-delay:150ms}.n-sw:nth-child(7){animation-delay:180ms}.n-sw:nth-child(8){animation-delay:210ms}
+@keyframes n-sw-entra{from{opacity:0; transform:scale(.4)}}
+.n-sw:hover{transform:scale(1.12)}
+.n-sw:active{transform:scale(.92)}
+.n-sw:focus-visible{outline:2px solid var(--texto); outline-offset:3px}
+.n-sw.on{box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 0 0 2px var(--panel), 0 0 0 4px var(--cc)}
+.n-sw.on::after{
+  content:""; position:absolute; left:50%; top:50%; width:10px; height:6px; margin:-5px 0 0 -5px;
+  border-left:2.5px solid rgba(255,255,255,.95); border-bottom:2.5px solid rgba(255,255,255,.95);
+  transform:rotate(-45deg) scale(.9); filter:drop-shadow(0 1px 1px rgba(0,0,0,.35));
+}
+@media (pointer:coarse){ .n-sw{width:36px; height:36px} }
+@media (prefers-reduced-motion:reduce){ .n-sw{animation:none} }
+
+/* en la fila de filtros la paleta va en línea, sin partirse */
+#chips-cli .n-paleta-fila{flex-wrap:nowrap; flex:0 0 auto; padding:0 8px 0 4px}
+
 /* ═══ PESAJE «INSTRUMENTO» ═══════════════════════════════════════════════
    El bote que se llena sustituye al aro. Maqueta aprobada:
    claude/maqueta-instrumento.html. Lo caro (chorro, olas, remolino, luz de
@@ -6221,6 +6285,7 @@ function crearNube({url, clave}){
       else if(a.clave === 'tipos_agujas') d.tipos_agujas = a.datos;
       else if(a.clave === 'clientes') d.clientes = a.datos;
       else if(a.clave === 'robots') d.robots = a.datos;
+      else if(a.clave === 'notas_cat_colores' && a.datos && typeof a.datos === 'object' && !Array.isArray(a.datos)) d.notas_cat_colores = a.datos;
       else if(String(a.clave).startsWith('nota:')){
         const nn = a.datos && !a.datos.borrada ? nLimpia(a.datos) : null;
         d.notas = (d.notas || []).filter(x => x.id !== (a.datos && a.datos.id));
@@ -12412,6 +12477,8 @@ function aplicarDeLaNube(res){
       CLIENTES.length = 0; CLIENTES.push(...a.datos); DATOS.clientes = CLIENTES; n++;
     }else if(a.clave === 'robots' && Array.isArray(a.datos)){
       ROBOTS.length = 0; ROBOTS.push(...a.datos); DATOS.robots = ROBOTS; n++;
+    }else if(a.clave === 'notas_cat_colores' && a.datos && typeof a.datos === 'object' && !Array.isArray(a.datos)){
+      DATOS.notas_cat_colores = a.datos; n++;
     }else if(String(a.clave).startsWith('nota:')){
       n += notaDeNube(a.datos);
     }else if(a.clave === 'papelera_hasta' && typeof a.datos === 'string'){
@@ -12804,7 +12871,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">91b84b89</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">4a522053</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -17879,6 +17946,48 @@ const nCats = () => {
   const extra = nLista().map(n => (n.cat || '').trim()).filter(c => c && !N_CATS_BASE.includes(c));
   return [...N_CATS_BASE, ...new Set(extra)];
 };
+/* ── El color de cada categoría ───────────────────────────────────────
+   Ocho tonos apagados, distintos a los de los tipos de paso (ámbar, rojo, azul,
+   gris y verde), para que un color nunca signifique dos cosas. El elegido de cada
+   categoría vive en una fila propia de `colores_ajustes` («notas_cat_colores»);
+   mientras nadie elige, cada una usa el suyo por defecto (estable por nombre). */
+const N_PALETA = [
+  ['Violeta', '#a58be6'], ['Índigo', '#7088e6'], ['Turquesa', '#44b8b4'], ['Pizarra', '#8d9bb0'],
+  ['Rosa', '#e784ae'], ['Terracota', '#d4805a'], ['Ciruela', '#b8689a'], ['Oliva', '#b9b45c'],
+];
+const N_CAT_DEF = {Fieltros: '#44b8b4', Prensa: '#7088e6', Horneado: '#d4805a', Engomado: '#a58be6'};
+var notaPaleta = false;      // la paleta del filtro de categoría está desplegada
+const nHexOk = h => typeof h === 'string' && /^#[0-9a-f]{6}$/i.test(h);
+function nColorCat(cat){
+  cat = (cat || '').trim();
+  if(!cat) return null;
+  const mio = (DATOS.notas_cat_colores || {})[cat];
+  if(nHexOk(mio)) return mio;
+  if(N_CAT_DEF[cat]) return N_CAT_DEF[cat];
+  let h = 0;
+  for(const ch of cat.toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  // las categorías nuevas reparten entre los tonos que no usan las cuatro de siempre
+  const libres = N_PALETA.map(x => x[1]).filter(x => !Object.values(N_CAT_DEF).includes(x));
+  return libres[h % libres.length];
+}
+/** Elige el color de una categoría: se guarda en este aparato y se sube (con cola, como las notas). */
+function nPonerColorCat(cat, hex){
+  if(!puedeEditar){ brindis(SIN_PERMISO); return false; }
+  cat = (cat || '').trim();
+  if(!cat || !nHexOk(hex)) return false;
+  const m = {...(DATOS.notas_cat_colores || {}), [cat]: hex};
+  DATOS.notas_cat_colores = m;
+  if(MODO === 'nube'){
+    marcarSync('subiendo');
+    nube.subirAjustes([{clave: 'notas_cat_colores', datos: m}])
+      .then(ok => marcarSync(ok ? 'al-dia' : 'pendiente'))
+      .catch(e => falloNube(e));
+    nube.guardarEspejo(DATOS, ultimaSync, ROL);
+  }
+  return true;
+}
+const nPaletaHtml = (cat, actual, attr) => N_PALETA.map(([nom, hex]) =>
+  `<button type="button" role="radio" class="n-sw${hex.toLowerCase() === (actual || '').toLowerCase() ? ' on' : ''}" ${attr}="${hex}" aria-checked="${hex.toLowerCase() === (actual || '').toLowerCase()}" aria-label="${nom}" title="${nom}" style="--cc:${hex}"></button>`).join('');
 const nFechaCorta = iso => {
   const d = new Date(iso);
   return isNaN(d) ? '' : d.toLocaleDateString('es-ES', {day: 'numeric', month: 'short'}).replace('.', '').toUpperCase();
@@ -17983,11 +18092,24 @@ function actualizarNotas(){
     const cats = nCats();
     $c.hidden = !total;
     $c.innerHTML = total
-      ? [['', 'Todas'], ...cats.map(c => [c, c])].map(([v, e]) =>
-          `<button class="chip n-cat" type="button" data-ncat="${esc(v)}" aria-pressed="${(notaCat || '') === v}">${esc(e)}</button>`).join('')
+      ? [['', 'Todas'], ...cats.map(c => [c, c])].map(([v, e]) => {
+          const cc = v ? nColorCat(v) : null;
+          return `<button class="chip n-cat" type="button" data-ncat="${esc(v)}" aria-pressed="${(notaCat || '') === v}"${cc ? ` style="--cc:${cc}"` : ''}>${esc(e)}</button>`;
+        }).join('') +
+        // Con una categoría elegida, su color se cambia aquí mismo (solo quien puede editar)
+        (notaCat && puedeEditar
+          ? `<button class="chip n-cat-color" type="button" id="n-cat-color" aria-expanded="${notaPaleta}" style="--cc:${nColorCat(notaCat)}" title="Cambiar el color de ${esc(notaCat)}">Color</button>` +
+            (notaPaleta ? `<span class="n-paleta-fila" role="radiogroup" aria-label="Color de ${esc(notaCat)}">${nPaletaHtml(notaCat, nColorCat(notaCat), 'data-fcolor')}</span>` : '')
+          : '')
       : '';
     for(const b of $c.querySelectorAll('[data-ncat]'))
-      b.onclick = () => { notaCat = b.dataset.ncat || null; actualizar(); };
+      b.onclick = () => { notaCat = b.dataset.ncat || null; notaPaleta = false; actualizar(); };
+    document.getElementById('n-cat-color')?.addEventListener('click', () => {
+      notaPaleta = !notaPaleta; actualizar();
+      if(notaPaleta) requestAnimationFrame(() => document.querySelector('#chips-cli .n-paleta-fila')?.scrollIntoView({inline: 'end', block: 'nearest', behavior: 'smooth'}));
+    });
+    for(const b of $c.querySelectorAll('[data-fcolor]'))
+      b.onclick = () => { if(nPonerColorCat(notaCat, b.dataset.fcolor)){ notaPaleta = false; actualizar(); } };
   }
   document.getElementById('limpiar').classList.toggle('on', !!$q.value);
   pintarListaNotas();
@@ -18000,12 +18122,14 @@ function pintarListaNotas(){
   for(const n of nFiltradas){
     const b = document.createElement('button');
     b.className = 'fila fila-nota'; b.type = 'button'; b.role = 'option';
+    const cc = nColorCat(n.cat);
+    if(cc){ b.classList.add('con-cat'); b.style.setProperty('--cc', cc); }
     b.dataset.id = n.id;
     b.setAttribute('aria-current', String(n.id === notaSel));
     const res = nResumen(n);
     const sub = n.resumen || (nPasos(n).find(p => p.texto) || {}).texto || '';
     b.innerHTML =
-      `<div class="n-fila-cab"><span class="g-ceja">${esc(n.cat || 'General')}</span>${n.fijada ? `<span class="n-pin" title="Fijada arriba">${N_PIN}</span>` : ''}</div>` +
+      `<div class="n-fila-cab"><span class="g-ceja n-et-cat">${esc(n.cat || 'General')}</span>${n.fijada ? `<span class="n-pin" title="Fijada arriba">${N_PIN}</span>` : ''}</div>` +
       `<div class="fila-nombre">${resaltar(n.titulo || 'Sin título', $q.value)}</div>` +
       (sub ? `<div class="n-fila-txt">${esc(sub)}</div>` : '') +
       `<div class="n-fila-pie">${res.map(r => `<span class="n-dato" style="--tc:${N_TIPOS[r.tipo].color}"><i></i>${esc(r.txt)}</span>`).join('')}` +
@@ -18063,6 +18187,10 @@ function pintarFichaNota(){
   }
   $ficha.classList.remove('es-muro');
   soltarFotos($ficha);
+  { // el halo de detrás de la nota, del color de su categoría (el mismo recurso que usa la ficha de un color)
+    const cc = nColorCat(n.cat), col = document.getElementById('columna-ficha');
+    if(col){ if(cc) col.style.setProperty('--tono', cc); else col.style.removeProperty('--tono'); }
+  }
   const pasos = nPasos(n);
   const res = nResumen(n);
   const conTiempo = pasos.some(p => p.seg > 0);
@@ -18076,7 +18204,7 @@ function pintarFichaNota(){
   $ficha.innerHTML = `
     <button class="volver" id="n-volver" type="button">${G_ICONO_ATRAS} Todas las notas</button>
     <div class="s-titulo n-tit">
-      <div class="n-tit-cab"><span class="chip n-cat-ficha">${esc(n.cat || 'General')}</span>${n.fijada ? `<span class="n-pin">${N_PIN}</span>` : ''}</div>
+      <div class="n-tit-cab"><span class="chip n-cat-ficha"${nColorCat(n.cat) ? ` style="--cc:${nColorCat(n.cat)}"` : ''}>${esc(n.cat || 'General')}</span>${n.fijada ? `<span class="n-pin">${N_PIN}</span>` : ''}</div>
       <h2>${esc(n.titulo || 'Sin título')}</h2>
       ${n.resumen ? `<p class="n-resumen">${esc(n.resumen)}</p>` : ''}
     </div>
@@ -18343,22 +18471,32 @@ function editarNota(base, duplicar){
   };
 
   function catsHtml(){
-    return cats().map(c => `<button type="button" class="chip" data-cat="${esc(c)}" aria-pressed="${n.cat === c}">${esc(c)}</button>`).join('') +
+    return cats().map(c => `<button type="button" class="chip" data-cat="${esc(c)}" aria-pressed="${n.cat === c}" style="--cc:${nColorCat(c)}">${esc(c)}</button>`).join('') +
       (catNueva
         ? `<input id="n-e-catnueva" class="n-catnueva" maxlength="40" autocomplete="off" placeholder="Nombre de la categoría">`
         : `<button type="button" class="chip n-cat-mas" id="n-e-catmas">+ Nueva</button>`);
   }
   /* Solo se repintan las categorías, nunca el diálogo entero: si el campo de la categoría nueva
      pierde el foco porque has pulsado «Guardar», ese botón tiene que seguir ahí para recibir el toque. */
+  function catsBloque(){
+    const cc = n.cat ? nColorCat(n.cat) : null;
+    return `<div class="n-cats">${catsHtml()}</div>` +
+      (cc && puedeEditar
+        ? `<div class="n-paleta"><span class="n-paleta-et">Color de «${esc(n.cat)}»</span>
+            <div class="n-paleta-fila" role="radiogroup" aria-label="Color de ${esc(n.cat)}">${nPaletaHtml(n.cat, cc, 'data-color')}</div></div>`
+        : '');
+  }
   function repintarCats(){
-    const caja = $dc.querySelector('.n-cats');
+    const caja = document.getElementById('n-cats-caja');
     if(!caja) return;
-    caja.innerHTML = catsHtml();
+    caja.innerHTML = catsBloque();
     enlazarCats();
   }
   function enlazarCats(){
     for(const b of $dc.querySelectorAll('[data-cat]'))
       b.onclick = () => { n.cat = n.cat === b.dataset.cat ? '' : b.dataset.cat; apuntarBorrador(); repintarCats(); };
+    for(const b of $dc.querySelectorAll('[data-color]'))
+      b.onclick = () => { if(nPonerColorCat(n.cat, b.dataset.color)) repintarCats(); };
     document.getElementById('n-e-catmas')?.addEventListener('click', () => {
       catNueva = true; repintarCats();
       document.getElementById('n-e-catnueva')?.focus();
@@ -18418,7 +18556,7 @@ function editarNota(base, duplicar){
       <label class="campo"><span>Título</span>
         <input id="n-e-titulo" value="${esc(n.titulo)}" maxlength="120" autocomplete="off" placeholder="Por ejemplo: Poner fieltro a un emblema"></label>
       <div class="campo"><span>Categoría</span>
-        <div class="n-cats">${catsHtml()}</div></div>
+        <div id="n-cats-caja">${catsBloque()}</div></div>
       <label class="campo"><span>Para qué sirve <em>(opcional)</em></span>
         <textarea id="n-e-resumen" rows="2" maxlength="300" placeholder="Una frase que se vea en la lista">${esc(n.resumen || '')}</textarea></label>
       <div class="g-cabsec n-cabsec"><span>Pasos · en orden</span></div>

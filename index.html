@@ -4746,7 +4746,7 @@ html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) 
   /* ── Las tarjetas ── */
   body[data-seccion="colores"] .lista{
     display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
-    gap:16px; align-content:start; padding:8px 26px 130px;
+    gap:16px; align-content:start; padding:8px 26px 48px;
   }
   body[data-seccion="colores"] .lista > :not(.fila),
   body[data-seccion="colores"] .lista > .fila-medias,
@@ -4802,13 +4802,6 @@ html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) 
   .cajon-x svg{width:19px; height:19px}
   body[data-seccion="colores"][data-ficha="on"] .cajon-x{display:grid}
 
-  /* ── La barra de abajo: centrada en lo que queda de lista ── */
-  html:not([data-cristal="on"]) body[data-seccion="colores"] .barra{
-    left:calc((100% - var(--usado, 0px)) / 2 - 186px); width:372px;
-    transition:translate .26s var(--salida), opacity .2s var(--salida), left .5s var(--salida);
-  }
-  html:not([data-cristal="on"]) body[data-seccion="colores"][data-ficha="on"]{--usado:var(--cajon)}
-
   /* Modo Cristal ancho: el cajón respeta el marco redondeado del panel. */
   html[data-cristal="on"] body[data-seccion="colores"] .columna-lista{flex:1 1 0}
   html[data-cristal="on"] body[data-seccion="colores"] .columna-ficha{top:0; right:14px; bottom:14px; border-radius:26px}
@@ -4819,6 +4812,74 @@ html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) 
 
 /* En PC la lista de Colores ya son tarjetas anchas: el ajuste Filas/Mosaico solo vale para móvil y tableta. */
 @media (min-width:861px){ .apa-b-lista{display:none} }
+
+/* ═══ PC sin Cristal: la barra sube a la cabecera ═══
+   Pestañas, imprimir, Opciones y «Nuevo …» en la fila del buscador: abajo ya no
+   flota nada que tape las tarjetas. El móvil no se toca (sigue el dock) y el
+   modo Cristal conserva su menú lateral. */
+@media (min-width:861px){
+  html:not([data-cristal="on"]) .cabecera{padding-right:calc(var(--barra-w, 640px) + 22px + 22px)}
+  html:not([data-cristal="on"]) body .barra{
+    position:absolute; top:12px; right:22px; bottom:auto; left:auto; width:auto; height:54px;
+    padding:0; gap:6px; border:0; border-radius:0; background:none; box-shadow:none;
+    backdrop-filter:none; z-index:35;
+  }
+  html:not([data-cristal="on"]) body .barra #solapas{display:flex; align-items:center; gap:4px}
+  html:not([data-cristal="on"]) body .barra #solapas button,
+  html:not([data-cristal="on"]) body .barra .btn-icono{
+    flex:0 0 auto; flex-direction:row; gap:8px; height:44px; padding:0 14px; border-radius:999px;
+    font-size:13.5px; font-weight:600; width:auto;
+  }
+  html:not([data-cristal="on"]) body .barra #solapas button svg,
+  html:not([data-cristal="on"]) body .barra .btn-icono svg{width:20px; height:20px}
+  html:not([data-cristal="on"]) body .barra #solapas button:hover,
+  html:not([data-cristal="on"]) body .barra #btn-pdf:hover,
+  html:not([data-cristal="on"]) body .barra #btn-menu:hover{background:var(--panel-2); color:var(--texto)}
+  html:not([data-cristal="on"]) body .barra #solapas button[aria-pressed="true"]{
+    background:var(--panel); color:var(--texto); box-shadow:inset 0 1px 0 var(--canto), var(--sombra-1);
+  }
+  html:not([data-cristal="on"]) body .barra #solapas button[aria-pressed="true"] svg{transform:none; color:var(--tinta)}
+  html:not([data-cristal="on"]) body .barra #solapas button[aria-pressed="true"]::after{display:none}
+  html:not([data-cristal="on"]) body .barra #solapas [data-sec="escanear"]{margin-left:10px}
+  html:not([data-cristal="on"]) body .barra #solapas [data-sec="escanear"]::before{left:-7px; height:22px}
+  /* Imprimir y Opciones: solo icono (el rótulo sale al pasar el ratón) */
+  html:not([data-cristal="on"]) body .barra #btn-pdf,
+  html:not([data-cristal="on"]) body .barra #btn-menu{width:44px; padding:0; border-radius:50%; order:3; position:relative; bottom:auto; left:auto}
+  html:not([data-cristal="on"]) body .barra #btn-pdf{background:none; border:0; box-shadow:none; backdrop-filter:none; margin-left:6px}
+  html:not([data-cristal="on"]) body .barra #btn-menu{order:4}
+  html:not([data-cristal="on"]) body .barra #btn-menu::after{display:none}
+  html:not([data-cristal="on"]) body .barra #btn-menu.con-punto::before{top:6px; right:6px}
+  /* Nuevo …: el botón principal, a la derecha del todo */
+  html:not([data-cristal="on"]) body .barra #btn-nuevo{
+    order:5; position:relative; right:auto; bottom:auto; height:44px; padding:0 18px 0 14px; margin-left:8px;
+    font-size:14px; flex-direction:row;
+  }
+  /* Con poco ancho solo la pestaña abierta enseña su nombre */
+  @media (max-width:1319px){
+    html:not([data-cristal="on"]) body .barra #solapas button:not([aria-pressed="true"]){padding:0 12px}
+    html:not([data-cristal="on"]) body .barra #solapas button:not([aria-pressed="true"]) span{display:none}
+  }
+  /* Con poco ancho el buscador necesita el sitio del apellido del logo */
+  @media (max-width:1249px){ html:not([data-cristal="on"]) .cabecera .logo-marca{display:none} }
+  html:not([data-cristal="on"]) .lista{padding-bottom:48px}
+  html:not([data-cristal="on"]) body[data-seccion="colores"] .lista{padding-bottom:48px}
+}
+
+/* ═══ Los dos avisos de arriba, en una sola línea (PC) ═══ */
+.franja-avisos{display:contents}
+@media (min-width:861px){
+  .franja-avisos{display:flex; align-items:stretch}
+  .franja-avisos > .aviso-global{flex:1 1 auto; min-width:0}
+  .franja-avisos > .avisa-copia{
+    flex:0 1 auto; margin:0; background:none; border-top:1px solid var(--linea);
+    border-left:1px solid var(--linea); padding:8px 14px 8px 18px; white-space:nowrap;
+  }
+  .franja-avisos > .avisa-copia span{flex:0 1 auto}
+  /* Si el otro aviso no está, este ocupa la línea entera */
+  .franja-avisos > .aviso-global[hidden] ~ .avisa-copia{flex:1 1 auto; border-left:0}
+  .franja-avisos > .aviso-global[hidden] ~ .avisa-copia span{flex:1 1 auto}
+  html[data-cristal="on"] .app > .franja-avisos{grid-column:2}
+}
 </style>
 </head>
 <body>
@@ -12740,7 +12801,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">b2a3d794</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">11fa66f5</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -13417,8 +13478,10 @@ function avisarCopia(){
   el.querySelector('[data-tirar]').onclick = ()=>{
     el.remove(); ponerFecha(CLAVE_COPIA_LUEGO, Date.now());
   };
+  const franja = !matchMedia('(max-width:860px)').matches && document.querySelector('.franja-avisos');   // PC: en la misma línea que el otro aviso
   const col = document.querySelector('.columna-lista');
-  if(col) col.insertBefore(el, col.firstChild); else document.body.appendChild(el);
+  if(franja) franja.appendChild(el);
+  else if(col) col.insertBefore(el, col.firstChild); else document.body.appendChild(el);
 }
 
 /** El punto rojo de Opciones: hay que descargar una copia (solo el editor). */
@@ -19354,6 +19417,27 @@ function cajonVaciar(){
     if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
     cerrarFicha();
   });
+})();
+
+/* La franja de avisos: «muestras orientativas» y «copia del recetario» comparten línea en PC. */
+(function(){
+  const aviso = document.getElementById('aviso-cal');
+  if(!aviso || !aviso.parentNode || aviso.parentNode.classList.contains('franja-avisos')) return;
+  const f = document.createElement('div');
+  f.className = 'franja-avisos';
+  aviso.parentNode.insertBefore(f, aviso);
+  f.appendChild(aviso);
+})();
+/* El ancho de la barra, para que el buscador sepa cuánto sitio dejarle en la cabecera. */
+(function(){
+  const barra = document.getElementById('barra');
+  if(!barra || typeof ResizeObserver === 'undefined') return;
+  const medir = () => {
+    const w = Math.ceil(barra.getBoundingClientRect().width);
+    if(w > 0) document.documentElement.style.setProperty('--barra-w', w + 'px');
+  };
+  new ResizeObserver(medir).observe(barra);
+  medir();
 })();
 
 window.__app = {

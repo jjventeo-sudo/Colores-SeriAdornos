@@ -4686,6 +4686,8 @@ html[data-ficha="bandeja"] .tarjeta-fm::before{
    salía de 47 px (la muestra se salía de su tarjeta y las letras se montaban
    encima). Dos columnas en el móvil y en la columna del monitor; más cuando
    la lista ocupa toda la pantalla (tablet). */
+/* El mosaico es del móvil y la tableta: en el PC la lista son tarjetas anchas (escritorio.css). */
+@media (max-width:860px){
 html[data-lista="mosaico"] body[data-seccion="colores"] .lista{
   display:flex; flex-wrap:wrap; align-content:flex-start; gap:14px; --cols:2;
 }
@@ -4714,6 +4716,109 @@ html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) 
 }
 html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) .tira{width:100%}
 html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) .fila-sub{font-size:9.5px; letter-spacing:.1em}
+}
+/* ═══ ESCRITORIO · «tarjetas anchas + cajón» (solo Colores, solo PC) ═══════════
+   Juanjo (15 nov): «quita el muestrario de la derecha, lo importante es el
+   listado». Elegida la opción C de la maqueta:
+
+     · la lista ocupa toda la pantalla, en tarjetas anchas (muestra grande,
+       nombre, cliente, estado y la barra de la mezcla), en 2 a 4 columnas;
+     · la ficha ya no es una columna fija: sale como un CAJÓN por la derecha
+       al tocar una tarjeta, y la lista se estrecha para hacerle sitio;
+     · el muro de muestras desaparece (el orden «por tono» sigue en la lista).
+
+   Todo va dentro de @media (min-width:861px) y de body[data-seccion="colores"]:
+   el móvil, Sellos y Notas se quedan exactamente como estaban. */
+
+@media (min-width:861px){
+  body[data-seccion="colores"]{--cajon:clamp(560px,44vw,720px)}
+
+  /* ── La lista: toda la pantalla ── */
+  body[data-seccion="colores"] .cuerpo{position:relative; overflow:hidden}
+  body[data-seccion="colores"] .columna-lista{
+    flex:1 1 0; min-width:0; border-right:0; margin-right:0;
+    transition:margin-right .5s var(--salida);
+  }
+  body[data-seccion="colores"][data-ficha="on"] .columna-lista{margin-right:var(--cajon)}
+  body[data-seccion="colores"] .chips-cli{padding:2px 26px 10px}
+  body[data-seccion="colores"] .contador{padding:6px 28px 10px}
+
+  /* ── Las tarjetas ── */
+  body[data-seccion="colores"] .lista{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:16px; align-content:start; padding:8px 26px 130px;
+  }
+  body[data-seccion="colores"] .lista > :not(.fila),
+  body[data-seccion="colores"] .lista > .fila-medias,
+  body[data-seccion="colores"] .lista > .fila-ultima{grid-column:1 / -1; min-width:0}
+  body[data-seccion="colores"] .lista > .letra{margin:6px 0 -6px; padding:10px 6px 6px}
+  body[data-seccion="colores"] .lista > .fila:not(.fila-medias){
+    position:relative; display:grid; grid-template-columns:84px minmax(0,1fr); gap:0 16px; align-items:center;
+    width:auto; min-height:116px; min-width:0; margin:0; padding:16px;   /* 84 de muestra + 2 × 16 de aire */
+    border:1px solid var(--linea); border-radius:var(--r-l);
+    transition:transform .3s var(--salida), box-shadow .3s var(--salida), background-color .15s var(--salida);
+  }
+  html[data-estilo="blanda"] body[data-seccion="colores"] .lista > .fila:not(.fila-medias){border:0 !important; border-radius:30px !important}
+  body[data-seccion="colores"] .lista > .fila:not(.fila-medias):hover{transform:translateY(-3px)}
+  body[data-seccion="colores"] .lista > .fila:not(.fila-medias) .muestra{width:84px; height:84px; border-radius:30%}
+  body[data-seccion="colores"] .lista > .fila:not(.fila-medias) .fila-flecha{display:none}
+  body[data-seccion="colores"] .lista > .fila:not(.fila-medias) .pin{position:absolute; top:16px; right:16px}
+  body[data-seccion="colores"] .lista > .fila:not(.fila-medias) .fila-nombre{
+    font-size:17px; font-weight:700; line-height:1.15; white-space:normal;
+    display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden;
+  }
+  body[data-seccion="colores"] .lista > .fila:not(.fila-medias) .fila-sub{margin-top:5px}
+  body[data-seccion="colores"] .lista > .fila:not(.fila-medias) .tira{width:100%; height:6px; margin-top:10px}
+  html[data-tamano="grande"] body[data-seccion="colores"] .lista > .fila:not(.fila-medias) .fila-nombre{font-size:19px}
+  /* Sin resultados: antes lo decía el muro; ahora lo dice la lista. */
+  body[data-seccion="colores"] .lista-nada{display:block}
+
+  /* ── El cajón de la ficha ── */
+  body[data-seccion="colores"] .columna-ficha{
+    position:absolute; top:0; right:0; bottom:0; width:var(--cajon); z-index:20;
+    transform:translateX(104%); visibility:hidden; box-shadow:none;
+    border-left:1px solid var(--linea-fuerte);
+    transition:transform .5s var(--salida), visibility .5s var(--salida), box-shadow .5s var(--salida);
+  }
+  body[data-seccion="colores"][data-ficha="on"] .columna-ficha{
+    transform:none; visibility:visible; box-shadow:-26px 0 60px rgba(0,0,0,.28);
+  }
+  /* En el cajón la ficha va en UNA columna, aunque el monitor sea enorme. */
+  body[data-seccion="colores"] .ficha:not(.es-muro){max-width:none}
+  body[data-seccion="colores"] .ficha-cuerpo{display:block}
+  body[data-seccion="colores"] .acciones-ficha{margin-top:20px}
+  body[data-seccion="colores"] .hero-nav{padding-right:58px}   /* deja sitio al ✕ del cajón */
+  body[data-seccion="colores"] .barra-ficha{justify-content:flex-start}
+  body[data-seccion="colores"] .barra-ficha #btn-preparar{flex:1 1 auto}
+  /* El botón de cerrar (lo crea escritorio.js dentro de .cuerpo). */
+  .cajon-x{
+    position:absolute; top:16px; right:20px; z-index:30; width:44px; height:44px; border-radius:50%;
+    display:none; place-items:center; color:var(--texto-2); background:var(--panel);
+    border:1px solid var(--linea-fuerte); box-shadow:var(--sombra-1);
+    transition:color .15s, transform .25s var(--salida);
+  }
+  .cajon-x:hover{color:var(--texto); transform:scale(1.06)}
+  .cajon-x:active{transform:scale(.94)}
+  .cajon-x svg{width:19px; height:19px}
+  body[data-seccion="colores"][data-ficha="on"] .cajon-x{display:grid}
+
+  /* ── La barra de abajo: centrada en lo que queda de lista ── */
+  html:not([data-cristal="on"]) body[data-seccion="colores"] .barra{
+    left:calc((100% - var(--usado, 0px)) / 2 - 186px); width:372px;
+    transition:translate .26s var(--salida), opacity .2s var(--salida), left .5s var(--salida);
+  }
+  html:not([data-cristal="on"]) body[data-seccion="colores"][data-ficha="on"]{--usado:var(--cajon)}
+
+  /* Modo Cristal ancho: el cajón respeta el marco redondeado del panel. */
+  html[data-cristal="on"] body[data-seccion="colores"] .columna-lista{flex:1 1 0}
+  html[data-cristal="on"] body[data-seccion="colores"] .columna-ficha{top:0; right:14px; bottom:14px; border-radius:26px}
+  html[data-cristal="on"] body[data-seccion="colores"][data-ficha="on"] .columna-lista{margin-right:calc(var(--cajon) + 14px)}
+}
+/* El botón de cerrar nunca existe en el móvil. */
+@media (max-width:860px){ .cajon-x{display:none !important} }
+
+/* En PC la lista de Colores ya son tarjetas anchas: el ajuste Filas/Mosaico solo vale para móvil y tableta. */
+@media (min-width:861px){ .apa-b-lista{display:none} }
 </style>
 </head>
 <body>
@@ -8206,6 +8311,7 @@ let ordenMuro = leerOpcion('orden-muro', 'az') === 'tono' ? 'tono' : 'az';
 let mosaicoMuro = leerOpcion('muro-mosaico', '0') === '1';
 
 function muroDeColores(){
+  if(!matchMedia('(max-width:860px)').matches){ cajonVaciar(); return; }   // PC: sin muro, la ficha es un cajón
   soltarFotos($ficha);           // las baldosas de antes ya no están
   $ficha.classList.remove('es-muro');
   if(!filtradas.length){
@@ -12634,7 +12740,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">0e0d4821</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">b2a3d794</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -19156,7 +19262,7 @@ function apaPanel(){
         '<small>«Grande» sube la letra, las filas y los botones para leer de lejos o con prisa.</small>' +
       '</div>' +
       APA_VARIANTES.map(function(v){
-        return '<div class="apa-bloque">' +
+        return '<div class="apa-bloque apa-b-' + v.clave + '">' +
           '<span class="aj-et" id="apa-' + v.clave + '-et">' + v.et + '</span>' +
           '<div class="apa-tiles ' + (v.ops.length === 2 ? '' : 'apa-tres') + '" id="apa-' + v.clave + '" role="radiogroup" aria-labelledby="apa-' + v.clave + '-et">' +
             v.ops.map(function(o){
@@ -19209,6 +19315,46 @@ function apaEnlazar(){
   apaEnlazarGrupo('apa-tamano', 'tamano');
   APA_VARIANTES.forEach(function(v){ apaEnlazarGrupo('apa-' + v.clave, v.clave); });
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ESCRITORIO · el cajón de la ficha (solo Colores, solo PC). Ver escritorio.css.
+
+   · Un botón ✕ y la tecla Escape cierran la ficha.
+   · El muro de muestras ya no se pinta en el PC: al cerrar la ficha se espera
+     a que el cajón termine de esconderse y entonces se vacía (si se vaciara
+     antes, el cajón se iría vacío mientras se desliza).
+   ═══════════════════════════════════════════════════════════════════════ */
+function cajonActivo(){
+  return !matchMedia('(max-width:860px)').matches && SECCION === 'colores' && document.body.dataset.ficha === 'on';
+}
+var cajonTemporizador = 0;
+function cajonVaciar(){
+  clearTimeout(cajonTemporizador);
+  cajonTemporizador = setTimeout(() => {
+    if(SECCION === 'colores' && !seleccion && document.body.dataset.ficha !== 'on'){
+      $ficha.classList.remove('es-muro');
+      soltarFotos($ficha);
+      $ficha.innerHTML = '';
+    }
+  }, 560);
+}
+(function(){
+  const cuerpo = document.querySelector('.cuerpo');
+  if(!cuerpo) return;
+  const b = document.createElement('button');
+  b.type = 'button'; b.id = 'cajon-x'; b.className = 'cajon-x';
+  b.setAttribute('aria-label', 'Cerrar la ficha'); b.title = 'Cerrar (Esc)';
+  b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+  b.addEventListener('click', () => cerrarFicha());
+  cuerpo.appendChild(b);
+  document.addEventListener('keydown', e => {
+    if(e.key !== 'Escape' || e.defaultPrevented || !cajonActivo()) return;
+    if(document.querySelector('dialog[open]') || ($visor && !$visor.hidden)) return;
+    const a = document.activeElement;
+    if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
+    cerrarFicha();
+  });
+})();
 
 window.__app = {
   nLista, nPorId, nLimpia, guardarNota, editarNota, abrirNota, nResumen, nTiempo, nCron, nCronIniciar, nFiltrar,

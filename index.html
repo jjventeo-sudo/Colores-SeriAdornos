@@ -12804,7 +12804,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">a97affa0</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">91b84b89</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -18342,6 +18342,42 @@ function editarNota(base, duplicar){
     return l;
   };
 
+  function catsHtml(){
+    return cats().map(c => `<button type="button" class="chip" data-cat="${esc(c)}" aria-pressed="${n.cat === c}">${esc(c)}</button>`).join('') +
+      (catNueva
+        ? `<input id="n-e-catnueva" class="n-catnueva" maxlength="40" autocomplete="off" placeholder="Nombre de la categoría">`
+        : `<button type="button" class="chip n-cat-mas" id="n-e-catmas">+ Nueva</button>`);
+  }
+  /* Solo se repintan las categorías, nunca el diálogo entero: si el campo de la categoría nueva
+     pierde el foco porque has pulsado «Guardar», ese botón tiene que seguir ahí para recibir el toque. */
+  function repintarCats(){
+    const caja = $dc.querySelector('.n-cats');
+    if(!caja) return;
+    caja.innerHTML = catsHtml();
+    enlazarCats();
+  }
+  function enlazarCats(){
+    for(const b of $dc.querySelectorAll('[data-cat]'))
+      b.onclick = () => { n.cat = n.cat === b.dataset.cat ? '' : b.dataset.cat; apuntarBorrador(); repintarCats(); };
+    document.getElementById('n-e-catmas')?.addEventListener('click', () => {
+      catNueva = true; repintarCats();
+      document.getElementById('n-e-catnueva')?.focus();
+    });
+    const cn = document.getElementById('n-e-catnueva');
+    if(cn){
+      let hecho = false;
+      const fijar = () => {
+        if(hecho) return; hecho = true;
+        const v = cn.value.trim();
+        catNueva = false;
+        if(v){ n.cat = v; apuntarBorrador(); }
+        repintarCats();
+      };
+      cn.onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); fijar(); } };
+      cn.onblur = fijar;
+    }
+  }
+
   function pintar(){
     const scroll = $dc.scrollTop;
     $dt.textContent = esNueva ? (duplicar ? 'Otra nota a partir de esta' : 'Nueva nota') : 'Editar nota';
@@ -18382,12 +18418,7 @@ function editarNota(base, duplicar){
       <label class="campo"><span>Título</span>
         <input id="n-e-titulo" value="${esc(n.titulo)}" maxlength="120" autocomplete="off" placeholder="Por ejemplo: Poner fieltro a un emblema"></label>
       <div class="campo"><span>Categoría</span>
-        <div class="n-cats">
-          ${cats().map(c => `<button type="button" class="chip" data-cat="${esc(c)}" aria-pressed="${n.cat === c}">${esc(c)}</button>`).join('')}
-          ${catNueva
-            ? `<input id="n-e-catnueva" class="n-catnueva" maxlength="40" autocomplete="off" placeholder="Nombre de la categoría">`
-            : `<button type="button" class="chip n-cat-mas" id="n-e-catmas">+ Nueva</button>`}
-        </div></div>
+        <div class="n-cats">${catsHtml()}</div></div>
       <label class="campo"><span>Para qué sirve <em>(opcional)</em></span>
         <textarea id="n-e-resumen" rows="2" maxlength="300" placeholder="Una frase que se vea en la lista">${esc(n.resumen || '')}</textarea></label>
       <div class="g-cabsec n-cabsec"><span>Pasos · en orden</span></div>
@@ -18416,20 +18447,7 @@ function editarNota(base, duplicar){
     $('n-e-resumen').oninput = e => { n.resumen = e.target.value; };
     $('n-e-mats').oninput = e => { n.materiales = e.target.value.split('\n').map(s => s.trim()).filter(Boolean); };
     $('n-e-notas').oninput = e => { n.notas = e.target.value; };
-    for(const b of $dc.querySelectorAll('[data-cat]'))
-      b.onclick = () => { n.cat = n.cat === b.dataset.cat ? '' : b.dataset.cat; apuntarBorrador(); pintar(); };
-    $('n-e-catmas')?.addEventListener('click', () => { catNueva = true; pintar(); setTimeout(() => $('n-e-catnueva')?.focus(), 30); });
-    const cn = $('n-e-catnueva');
-    if(cn){
-      const fijar = () => {
-        const v = cn.value.trim();
-        catNueva = false;
-        if(v){ n.cat = v; apuntarBorrador(); }
-        pintar();
-      };
-      cn.onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); fijar(); } };
-      cn.onblur = fijar;
-    }
+    enlazarCats();
     for(const i2 of $dc.querySelectorAll('[data-f]'))
       i2.oninput = e => { n.pasos[+i2.dataset.i][i2.dataset.f] = e.target.value; };
     for(const b of $dc.querySelectorAll('[data-tipo]'))

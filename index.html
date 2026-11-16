@@ -4752,6 +4752,9 @@ html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) 
   body[data-seccion="colores"] .lista > .fila-medias,
   body[data-seccion="colores"] .lista > .fila-ultima{grid-column:1 / -1; min-width:0}
   body[data-seccion="colores"] .lista > .letra{margin:6px 0 -6px; padding:10px 6px 6px}
+  /* La tira de favoritos y recientes: la rejilla la dejaba en 18 px (se veían las muestras a medias y sin nombre) */
+  body[data-seccion="colores"] .lista > .tira-rec{min-height:96px; align-items:flex-start; padding:8px 4px 14px; margin:0}
+  body[data-seccion="colores"] .lista > .tira-rec .rec{flex:0 0 72px}
   body[data-seccion="colores"] .lista > .fila:not(.fila-medias){
     position:relative; display:grid; grid-template-columns:84px minmax(0,1fr); gap:0 16px; align-items:center;
     width:auto; min-height:116px; min-width:0; margin:0; padding:16px;   /* 84 de muestra + 2 × 16 de aire */
@@ -12801,7 +12804,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">11fa66f5</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">a97affa0</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

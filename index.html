@@ -4811,6 +4811,32 @@ html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) 
 html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) .tira{width:100%}
 html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) .fila-sub{font-size:9.5px; letter-spacing:.1em}
 }
+/* ═══ COPIAS AUTOMÁTICAS ═══════════════════════════════════════════════ */
+.cp-estado{
+  margin:2px 0 4px; padding:11px 14px; border-radius:var(--r-m); font-size:14px; line-height:1.45;
+  color:var(--texto-2); background:var(--panel-2); border:1px solid var(--linea);
+  box-shadow:inset 3px 0 0 var(--verde);
+}
+.cp-estado b{color:var(--texto); font-weight:620}
+.cp-estado.mal{box-shadow:inset 3px 0 0 var(--rojo)}
+.cp-tit{margin-top:20px}
+.cp-lista{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px}
+.cp-fila{
+  display:flex; align-items:center; gap:12px; padding:11px 12px 11px 14px; border-radius:var(--r-m);
+  background:var(--panel-2); border:1px solid var(--linea);
+  animation:g-aparece .32s var(--salida) both; animation-delay:calc(var(--i,0) * 28ms);
+}
+.cp-txt{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px}
+.cp-txt b{font-size:14.5px; font-weight:620; color:var(--texto); letter-spacing:-.005em}
+.cp-meta{font-family:var(--mono); font-size:12px; color:var(--texto-3); font-variant-numeric:tabular-nums}
+.cp-txt small{font-size:12.5px; color:var(--texto-2); line-height:1.35}
+.cp-manual{
+  font-style:normal; font-family:inherit; font-size:10.5px; font-weight:650; letter-spacing:.06em; text-transform:uppercase;
+  margin-left:6px; padding:2px 7px; border-radius:999px; color:var(--ambar); background:var(--ambar-suave);
+}
+.cp-fila .btn{flex:0 0 auto; min-height:38px}
+@media (pointer:coarse){ .cp-fila .btn{min-height:44px} }
+@media (prefers-reduced-motion:reduce){ .cp-fila{animation:none} }
 /* ═══ ESCRITORIO · «tarjetas anchas + cajón» (solo Colores, solo PC) ═══════════
    Juanjo (15 nov): «quita el muestrario de la derecha, lo importante es el
    listado». Elegida la opción C de la maqueta:
@@ -6584,7 +6610,22 @@ function crearNube({url, clave}){
     return idas;
   }
 
+  /* Las copias automáticas del servidor. Solo se LEEN (y se pide una ahora): escribirlas
+     o borrarlas lo impide la base de datos, no esta función. La lista pide solo las
+     columnas pequeñas; el contenido de una copia pesa y solo se baja al restaurarla. */
+  async function copias(limite = 40){
+    return await pedir('/rest/v1/colores_copias?select=id,hecha,revisada,tipo,resumen&order=hecha.desc&limit=' + limite) || [];
+  }
+  async function copia(id){
+    const f = await pedir('/rest/v1/colores_copias?id=eq.' + encodeURIComponent(id) + '&select=id,hecha,datos');
+    return f?.[0] || null;
+  }
+  async function copiaAhora(){
+    return await pedir('/rest/v1/rpc/colores_copia_ahora', {method: 'POST', body: '{}'});
+  }
+
   return {
+    copias, copia, copiaAhora,
     get sesion(){ return ses ? {email: ses.email, rol} : null; },
     get rol(){ return rol; },
     entrar, salir, arrancar,
@@ -12667,11 +12708,6 @@ function abrirOpciones(){
   const nRect = DATOS.formulas.filter(f=>estadoAct(f).aldia).length;
   const enPapelera = papelera().length;
   const choques = MODO === 'nube' ? nube.choques().length : 0;
-  const diasCopia = (()=>{
-    const u = leerFecha(CLAVE_COPIA);
-    if(!u) return null;
-    return Math.floor((Date.now() - u) / DIA);
-  })();
 
   $dt.textContent = 'Opciones';
   $dc.innerHTML = `
@@ -12734,11 +12770,8 @@ function abrirOpciones(){
       puedeEditar && MODO === 'archivo' ? filaAjuste('op-publicar-ir', 'Publicar cambios',
         n ? `${n} sin publicar` : 'Nada pendiente', n ? 'aj-avisa' : 'aj-flojo') : '',
       filaAjuste('op-copia', MODO === 'nube' ? 'Copia de seguridad' : 'Tus cambios en este aparato',
-        MODO === 'nube'
-          ? (diasCopia === null ? 'Nunca descargada'
-             : diasCopia < 1 ? 'Descargada hoy' : `Hace ${diasCopia} ${diasCopia === 1 ? 'día' : 'días'}`)
-          : (n ? `${n} sin publicar` : 'Ninguno'),
-        MODO === 'nube' && (diasCopia === null || diasCopia > 30) ? 'aj-avisa' : ''),
+        MODO === 'nube' ? copiaResumenFila() : (n ? `${n} sin publicar` : 'Ninguno'),
+        MODO === 'nube' && copiaProblema() ? 'aj-avisa' : ''),
       filaAjuste('op-datos', 'Datos y versión', nFormulas(DATOS.formulas.length)),
     ])}
 
@@ -12867,6 +12900,7 @@ function pantallaSync(volver){
 
 /* ── Copia de seguridad ──────────────────────────────────────────── */
 function pantallaCopia(volver){
+  if(MODO === 'nube') return pantallaCopiaAuto(volver);
   const n = Object.keys(cambios.formulas).length + cambios.nuevas.length + cambios.borradas.length;
   $dt.textContent = MODO === 'nube' ? 'Copia de seguridad' : 'Tus cambios en este aparato';
   $dc.innerHTML = `
@@ -12904,7 +12938,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">652e66b6</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">5b16e025</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -13564,6 +13598,7 @@ const leerFecha = k => { try{ return +localStorage.getItem(k) || 0; }catch(_){ r
 const ponerFecha = (k, v) => { try{ localStorage.setItem(k, String(v)); }catch(_){} };
 
 function avisarCopia(){
+  if(MODO === 'nube') return avisarCopiaAuto();   // en la nube la copia es automática: no se pide descargar nada
   if(!puedeEditar || document.querySelector('.avisa-copia')) return;
   const ultima = leerFecha(CLAVE_COPIA);
   const luego  = leerFecha(CLAVE_COPIA_LUEGO);
@@ -13589,6 +13624,7 @@ function avisarCopia(){
 
 /** El punto rojo de Opciones: hay que descargar una copia (solo el editor). */
 function puntoCopia(){
+  if(MODO === 'nube') return puntoCopiaAuto();
   const b = document.getElementById('btn-menu');
   if(!b) return;
   const ultima = leerFecha(CLAVE_COPIA);
@@ -14955,7 +14991,7 @@ function avisarPesajeAMedias(){
 avisarPesajeAMedias();
 // Y si hace un mes que no descarga copia, se lo dice. Solo al editor: el
 // taller no puede descargarla, avisarle sería mandarle a un botón que no tiene.
-setTimeout(()=>{ puntoCopia(); avisarCopia(); }, 1500);
+setTimeout(()=>{ puntoCopia(); avisarCopia(); comprobarCopias(); }, 1500);
 
 /* Una puerta para las pruebas automáticas. Sin esto, la sincronización solo
    se podría probar a ojo en dos aparatos, que es como se cuelan los fallos
@@ -19642,6 +19678,302 @@ function apaEnlazar(){
   APA_VARIANTES.forEach(function(v){ apaEnlazarGrupo('apa-' + v.clave, v.clave); });
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   COPIAS AUTOMÁTICAS (dentro de Supabase)
+
+   Cada noche el servidor hace una foto de todo (fórmulas, pigmentos, notas,
+   sellos, clientes, robots, botes preparados) y guarda las últimas 14. Si una
+   noche no ha cambiado nada, no se crea otra: las 14 son 14 estados distintos,
+   así que unas vacaciones no las gastan. Las fotos de los colores NO van en la
+   copia: viven en su propio almacén.
+
+   La app solo LEE esas copias (y pide «hacer una ahora»). No hay forma de
+   escribirlas ni borrarlas desde aquí: lo impide la base de datos.
+
+   Restaurar reutiliza el camino del archivo de siempre (restaurarNube): se
+   enseña qué volvería y NO se borra nada de lo que hay ahora.
+   ═══════════════════════════════════════════════════════════════════ */
+var COPIA_AUTO_CLAVE = 'copia-auto';
+var COPIA_ATRASO_H = 36;       // la del servidor corre cada 24 h: pasadas 36 hay algo roto
+var COPIA_AUTO = (function(){
+  var g = {estado: '?', hecha: 0, revisada: 0, n: 0, fresco: false};
+  try{
+    var c = JSON.parse(localStorage.getItem(COPIA_AUTO_CLAVE) || 'null');
+    if(c && typeof c === 'object') g = {estado: c.estado || '?', hecha: +c.hecha || 0, revisada: +c.revisada || 0, n: +c.n || 0, fresco: false};
+  }catch(_){}
+  return g;
+})();
+var copiaListaVista = null;    // la lista que enseña la pantalla, para repintar sin volver a pedirla
+
+function copiaActiva(){ return MODO === 'nube' && puedeEditar; }
+function msDe(s){ const t = Date.parse(s); return isNaN(t) ? 0 : t; }
+
+/** «hoy a las 04:23», «ayer a las 04:23», «el 12 nov a las 04:23». */
+function copiaCuando(ms){
+  if(!ms) return '';
+  const d = new Date(ms), ahora = new Date();
+  const hm = d.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+  const dia0 = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const dif = Math.round((dia0(ahora) - dia0(d)) / DIA);
+  if(dif === 0) return `hoy a las ${hm}`;
+  if(dif === 1) return `ayer a las ${hm}`;
+  return `el ${d.toLocaleDateString('es-ES', {day: 'numeric', month: 'short'})} a las ${hm}`;
+}
+
+/** Hace cuánto, en una frase corta. */
+function copiaHace(ms){
+  if(!ms) return '';
+  const h = (Date.now() - ms) / 3600000;
+  if(h < 1) return 'hace un momento';
+  if(h < 36) return h < 2 ? 'hace una hora' : `hace ${Math.floor(h)} horas`;
+  const d = Math.floor(h / 24);
+  return d < 60 ? `hace ${d} días` : `hace ${Math.floor(d / 30)} meses`;
+}
+
+/** ¿Hay algo roto? Solo se afirma con una respuesta de ESTA sesión: sin
+    cobertura no sabemos nada y no se avisa de lo que no se ha comprobado. */
+function copiaProblema(){
+  if(!copiaActiva() || !COPIA_AUTO.fresco) return '';
+  if(COPIA_AUTO.estado === 'sin-tabla') return 'sin-tabla';
+  if(COPIA_AUTO.estado === 'ok' && Date.now() - COPIA_AUTO.revisada > COPIA_ATRASO_H * 3600000) return 'atrasada';
+  return '';
+}
+
+function copiaGuardarEstado(){
+  try{
+    localStorage.setItem(COPIA_AUTO_CLAVE, JSON.stringify({
+      estado: COPIA_AUTO.estado, hecha: COPIA_AUTO.hecha, revisada: COPIA_AUTO.revisada, n: COPIA_AUTO.n}));
+  }catch(_){}
+}
+
+/** Pregunta al servidor por la última copia. Silencioso si no hay red. */
+async function comprobarCopias(){
+  if(!copiaActiva()) return;
+  try{
+    const filas = await nube.copias(1);
+    if(!filas.length){ COPIA_AUTO.estado = 'vacia'; COPIA_AUTO.hecha = COPIA_AUTO.revisada = 0; }
+    else{
+      COPIA_AUTO.estado = 'ok';
+      COPIA_AUTO.hecha = msDe(filas[0].hecha);
+      COPIA_AUTO.revisada = Math.max(msDe(filas[0].revisada), COPIA_AUTO.hecha);
+    }
+    COPIA_AUTO.fresco = true;
+  }catch(e){
+    // Sin tabla = todavía no se ha ejecutado el SQL. Otro fallo (sin red,
+    // proyecto dormido) NO es un problema de las copias: no se toca el estado.
+    if(e && e.status === 404){ COPIA_AUTO.estado = 'sin-tabla'; COPIA_AUTO.fresco = true; }
+    else return;
+  }
+  copiaGuardarEstado();
+  puntoCopia(); avisarCopia();
+}
+
+/** La frase de la fila «Copia de seguridad» de Opciones. */
+function copiaResumenFila(){
+  if(!copiaActiva()) return 'Las gestiona el editor';
+  if(COPIA_AUTO.estado === 'sin-tabla') return 'Sin activar';
+  if(COPIA_AUTO.estado === 'vacia') return 'Aún sin copias';
+  if(COPIA_AUTO.estado === 'ok') return `Automática · ${copiaHace(COPIA_AUTO.hecha)}`;
+  return 'Automática';
+}
+
+/** El aviso y el punto rojo cuando la copia automática NO está funcionando. */
+function avisarCopiaAuto(){
+  const previo = document.querySelector('.avisa-copia');
+  const problema = copiaProblema();
+  if(!problema){ previo?.remove(); return; }
+  if(previo) return;
+  const luego = leerFecha(CLAVE_COPIA_LUEGO);
+  if(Date.now() - luego < DIA) return;                    // aplazado hace poco
+  const el = document.createElement('div');
+  el.className = 'avisa-copia';
+  const dias = Math.floor((Date.now() - COPIA_AUTO.revisada) / DIA);
+  el.innerHTML = `<span>${problema === 'sin-tabla'
+      ? '<b>La copia automática no está activada</b> en Supabase'
+      : `<b>La copia automática lleva ${dias} día${dias === 1 ? '' : 's'} sin hacerse</b>`}</span>
+    <button type="button" data-ya>Ver</button>
+    <button type="button" data-tirar>Luego</button>`;
+  el.querySelector('[data-ya]').onclick = () => { el.remove(); pantallaCopia(null); };
+  el.querySelector('[data-tirar]').onclick = () => { el.remove(); ponerFecha(CLAVE_COPIA_LUEGO, Date.now()); };
+  const franja = !matchMedia('(max-width:860px)').matches && document.querySelector('.franja-avisos');
+  const col = document.querySelector('.columna-lista');
+  if(franja) franja.appendChild(el);
+  else if(col) col.insertBefore(el, col.firstChild); else document.body.appendChild(el);
+}
+
+function puntoCopiaAuto(){
+  const b = document.getElementById('btn-menu');
+  if(!b) return;
+  const falta = !!copiaProblema();
+  b.classList.toggle('con-punto', falta);
+  b.setAttribute('aria-label', falta ? 'Opciones (la copia automática no funciona)' : 'Opciones');
+}
+
+/** «861 fórmulas · 6 pigmentos · 12 notas» */
+function copiaResumenTexto(r){
+  r = r || {};
+  const pl = (q, a, b) => `${q} ${q === 1 ? a : b}`;
+  return [pl(r.formulas || 0, 'fórmula', 'fórmulas'), pl(r.materias || 0, 'pigmento', 'pigmentos'),
+          r.gramos ? pl(r.gramos, 'sello', 'sellos') : '', r.notas ? pl(r.notas, 'nota', 'notas') : '']
+    .filter(Boolean).join(' · ');
+}
+
+function copiaFilaHtml(c, i){
+  const ms = msDe(c.hecha);
+  let fecha = new Date(ms).toLocaleDateString('es-ES', {weekday: 'long', day: 'numeric', month: 'long'});
+  fecha = fecha.charAt(0).toUpperCase() + fecha.slice(1);
+  const hm = new Date(ms).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+  return `<li class="cp-fila" style="--i:${Math.min(i||0, 10)}" data-id="${esc(String(c.id))}">
+    <div class="cp-txt">
+      <b>${esc(fecha)}</b>
+      <span class="cp-meta">${esc(hm)}${c.tipo === 'manual' ? ' <i class="cp-manual">A mano</i>' : ''}</span>
+      <small>${esc(copiaResumenTexto(c.resumen))}</small>
+    </div>
+    <button type="button" class="btn" data-copia-rest="${esc(String(c.id))}">Restaurar</button>
+  </li>`;
+}
+
+function copiaPintarLista(filas){
+  const cont = document.getElementById('cp-lista');
+  if(!cont) return;
+  copiaListaVista = filas;
+  if(!filas.length){
+    cont.innerHTML = '<p class="op-p flojo">Todavía no hay ninguna. La primera se hace esta noche; si no quieres esperar, pulsa «Hacer copia ahora».</p>';
+    return;
+  }
+  cont.innerHTML = `<ul class="cp-lista">${filas.map((c, i) => copiaFilaHtml(c, i)).join('')}</ul>`;
+  for(const b of cont.querySelectorAll('[data-copia-rest]'))
+    b.onclick = () => restaurarCopiaAuto(b.dataset.copiaRest, b);
+}
+
+async function copiaCargarLista(){
+  const cont = document.getElementById('cp-lista');
+  if(!cont) return;
+  try{
+    const filas = await nube.copias(40);
+    if(!document.getElementById('cp-lista')) return;     // se cerró la pantalla mientras tanto
+    COPIA_AUTO.estado = filas.length ? 'ok' : 'vacia'; COPIA_AUTO.fresco = true;
+    if(filas.length){
+      COPIA_AUTO.hecha = msDe(filas[0].hecha);
+      COPIA_AUTO.revisada = Math.max(msDe(filas[0].revisada), COPIA_AUTO.hecha);
+    }
+    copiaGuardarEstado();
+    copiaPintarLista(filas);
+    copiaPintarEstado();
+    puntoCopia(); avisarCopia();
+  }catch(e){
+    if(!document.getElementById('cp-lista')) return;
+    if(e && e.status === 404){
+      COPIA_AUTO.estado = 'sin-tabla'; COPIA_AUTO.fresco = true; copiaGuardarEstado();
+      cont.innerHTML = `<div class="aviso">${ICONO_ALERTA}<span><b>Las copias automáticas aún no están activadas.</b>
+        Hay que ejecutar una vez el SQL de las copias en Supabase.</span></div>`;
+      copiaPintarEstado(); puntoCopia(); avisarCopia();
+    }else{
+      cont.innerHTML = `<p class="op-p flojo">${e && e.sinRed
+        ? 'Sin conexión: no se puede ver la lista ahora.' : 'No se ha podido leer la lista. Vuelve a intentarlo.'}</p>`;
+    }
+  }
+}
+
+function copiaPintarEstado(){
+  const el = document.getElementById('cp-estado');
+  if(!el) return;
+  const p = copiaProblema();
+  if(COPIA_AUTO.estado === 'ok'){
+    el.className = 'cp-estado' + (p ? ' mal' : '');
+    el.innerHTML = p
+      ? `<b>La copia automática se ha parado.</b> La última fue ${esc(copiaCuando(COPIA_AUTO.revisada))}.`
+      : `<b>Todo en orden.</b> Última copia ${esc(copiaCuando(COPIA_AUTO.hecha))}${
+          // «comprobada» solo dice algo si es distinto: es el aviso de «esta noche no había nada nuevo»
+          COPIA_AUTO.revisada - COPIA_AUTO.hecha > 3600000 ? `; comprobada ${esc(copiaCuando(COPIA_AUTO.revisada))}` : ''}.`;
+  }else if(COPIA_AUTO.estado === 'vacia'){
+    el.className = 'cp-estado'; el.innerHTML = '<b>Aún sin copias.</b> La primera se hace esta noche.';
+  }else if(COPIA_AUTO.estado === 'sin-tabla'){
+    el.className = 'cp-estado mal'; el.innerHTML = '<b>Sin activar.</b>';
+  }
+}
+
+/** Pide una copia al servidor ahora mismo. Si no hay nada nuevo desde la última,
+    el servidor no crea otra y lo dice. */
+async function copiaHacerAhora(btn){
+  btn.disabled = true; const t0 = btn.textContent; btn.textContent = 'Guardando…';
+  try{
+    const antes = new Set((copiaListaVista || []).map(c => String(c.id)));
+    const id = await nube.copiaAhora();
+    await copiaCargarLista();
+    brindis(antes.has(String(id)) ? 'Ya estaba al día: no hay nada nuevo que guardar' : 'Copia guardada');
+  }catch(e){
+    brindis(e && e.sinRed ? 'Sin conexión: no se ha podido hacer la copia'
+          : e && e.status === 404 ? 'Las copias automáticas aún no están activadas'
+          : 'No se ha podido hacer la copia');
+  }
+  btn.disabled = false; btn.textContent = t0;
+}
+
+/** Baja la copia elegida, la convierte en lo mismo que un archivo descargado y
+    pasa por la pantalla de siempre, que enseña QUÉ volvería antes de tocar nada. */
+async function restaurarCopiaAuto(id, btn){
+  if(!puedeEditar) return brindis(SIN_PERMISO);
+  const t0 = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = 'Abriendo…'; }
+  try{
+    const c = await nube.copia(id);
+    if(!c || !c.datos) throw new Error('vacía');
+    const r = c.datos;
+    const d = nube.montarDatos({
+      formulas: r.formulas || [], materias: r.materias || [], ajustes: r.ajustes || [],
+      preparaciones: r.preparaciones || [], registro: [], sellos: r.sellos || [], gramos: r.gramos || [],
+    });
+    const archivo = {
+      app: 'colores-seriadornos', version: 1, fecha: c.hecha,
+      formulas: d.formulas, materias_primas: d.materias_primas, gramos: d.gramos || [],
+      notas: d.notas || [], clientes: d.clientes, robots: d.robots, agujas: d.agujas,
+      historial_preparaciones: d.historial || [],
+    };
+    const fallo = copiaNoValida(archivo);
+    if(fallo) return brindis(fallo);
+    restaurarNube(archivo);
+  }catch(e){
+    brindis(e && e.sinRed ? 'Sin conexión: no se ha podido abrir la copia' : 'No se ha podido abrir la copia');
+  }
+  if(btn){ btn.disabled = false; btn.textContent = t0; }
+}
+
+/** La pantalla «Copia de seguridad» en modo nube. */
+function pantallaCopiaAuto(volver){
+  $dt.textContent = 'Copia de seguridad';
+  if(!puedeEditar){
+    $dc.innerHTML = `<p class="op-p">Las copias de seguridad las gestiona el editor.</p>`;
+    pieVolver(volver);
+    if(!$dlg.open) $dlg.showModal();
+    return;
+  }
+  $dc.innerHTML = `
+    <p class="op-p">Cada noche la app guarda <b>una copia completa dentro de Supabase</b> y conserva
+      las últimas 14. Lleva fórmulas, pigmentos, sellos, notas, clientes, robots y botes preparados;
+      <b>las fotos no</b>. Restaurar nunca borra nada de lo que tienes ahora.</p>
+    <div id="cp-estado" class="cp-estado">Comprobando…</div>
+    <div class="op-botones">
+      <button class="btn btn-1" id="cp-ahora">Hacer copia ahora</button>
+    </div>
+    <p class="aj-titulo cp-tit">Copias guardadas</p>
+    <div id="cp-lista"><p class="op-p flojo">Cargando…</p></div>
+    <p class="aj-titulo cp-tit">Aparte</p>
+    <p class="op-p flojo">Si algún día quieres una copia fuera de Supabase, puedes descargarla en un archivo y
+      volver a restaurarla desde él.</p>
+    <div class="op-botones">
+      <button class="btn" id="op-exportar">Descargar archivo</button>
+      <button class="btn" id="op-importar">Restaurar de un archivo</button>
+    </div>`;
+  pieVolver(volver);
+  document.getElementById('cp-ahora').onclick = e => copiaHacerAhora(e.currentTarget);
+  document.getElementById('op-exportar').addEventListener('click', exportar);
+  document.getElementById('op-importar').addEventListener('click', elegirCopia);
+  copiaPintarEstado();
+  copiaCargarLista();
+  if(!$dlg.open) $dlg.showModal();
+}
+
 /* ═══════════════════════════════════════════════════════════════════════
    ESCRITORIO · el cajón de la ficha (solo Colores, solo PC). Ver escritorio.css.
 
@@ -19704,6 +20036,7 @@ function cajonVaciar(){
 })();
 
 window.__app = {
+  comprobarCopias, copiaProblema, pantallaCopia, restaurarCopiaAuto, COPIA_AUTO,
   nLista, nPorId, nLimpia, guardarNota, editarNota, abrirNota, nResumen, nTiempo, nCron, nCronIniciar, nFiltrar,
   gColoresDe, get notaSel(){ return notaSel; },
   get DATOS(){ return DATOS; }, porId, materias, busq, norm, nube, MODO,

@@ -4837,6 +4837,54 @@ html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) 
 .cp-fila .btn{flex:0 0 auto; min-height:38px}
 @media (pointer:coarse){ .cp-fila .btn{min-height:44px} }
 @media (prefers-reduced-motion:reduce){ .cp-fila{animation:none} }
+/* ═══ TIPOS DE SELLO ═══════════════════════════════════════════════════ */
+.t-emblema{--tt:var(--ambar)}
+.t-sello{--tt:var(--texto-2)}
+.t-propio{--tt:var(--marca-2)}
+.g-tipo-emblema{--tt:var(--ambar)}
+.g-tipo-sello{--tt:var(--texto-2)}
+.g-tipo-propio{--tt:var(--marca-2)}
+.pto{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--tt,var(--texto-3)); flex:0 0 auto}
+
+.arch-tipos{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; margin:0 0 12px; padding:0}
+.arch-tipo-b{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-height:54px; padding:6px 4px 7px; min-width:0;
+  border-radius:var(--r-m); border:1px solid var(--linea); background:var(--panel-2); color:var(--texto-2);
+  font:inherit; font-size:12.5px; font-weight:620; letter-spacing:-.005em; cursor:pointer; line-height:1.15;
+  transition:background .22s var(--salida), color .22s var(--salida), border-color .22s var(--salida), transform .12s var(--salida);
+}
+.arch-tipo-b span{display:inline-flex; align-items:center; gap:6px; white-space:nowrap}
+.arch-tipo-b em{
+  font-style:normal; font-family:var(--mono); font-size:15px; font-weight:500; font-variant-numeric:tabular-nums;
+  color:var(--texto-3); transition:color .22s var(--salida);
+}
+.arch-tipo-b:active{transform:scale(.97)}
+.arch-tipo-b[aria-pressed="true"]{background:var(--tinta); color:var(--tinta-txt); border-color:transparent}
+.arch-tipo-b[aria-pressed="true"] em{color:inherit}
+.arch-tipo-b .pto{width:7px; height:7px}
+@media (max-width:380px){ .arch-tipo-b{font-size:11.5px} .arch-tipo-b .pto{display:none} }
+
+.g-tipo{
+  display:inline-flex; align-items:center; gap:6px; align-self:flex-start; padding:2px 9px 2px 8px; border-radius:999px;
+  font-size:11px; font-weight:650; letter-spacing:.03em; line-height:1.5;
+  color:var(--tt); background:color-mix(in srgb, var(--tt) 14%, transparent);
+}
+.g-tipo::before{content:''; width:6px; height:6px; border-radius:50%; background:var(--tt)}
+.arch-t .g-tipo{margin:1px 4px 0}
+.arch-t .g-tipo, .sello-t .g-tipo{font-family:inherit; text-transform:none; letter-spacing:.02em; white-space:nowrap; font-size:11px; color:var(--tt)}
+.s-titulo .g-tipo{margin:2px 0 8px}
+
+.g-tipo-ed{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px}
+.g-tipo-op{
+  display:inline-flex; align-items:center; gap:8px; min-height:42px; padding:0 15px; border-radius:999px;
+  border:1px solid var(--linea); background:var(--panel-2); color:var(--texto-2); font:inherit; font-size:14px; font-weight:600; cursor:pointer;
+  transition:background .2s var(--salida), border-color .2s var(--salida), color .2s var(--salida);
+}
+.g-tipo-op[aria-checked="true"]{
+  color:var(--texto); border-color:var(--tt); background:color-mix(in srgb, var(--tt) 16%, var(--panel-2));
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--tt) 18%, transparent);
+}
+@media (prefers-reduced-motion:reduce){ .arch-tipo-b, .arch-tipo-b em, .g-tipo-op{transition:none} }
 /* ═══ ESCRITORIO · «tarjetas anchas + cajón» (solo Colores, solo PC) ═══════════
    Juanjo (15 nov): «quita el muestrario de la derecha, lo importante es el
    listado». Elegida la opción C de la maqueta:
@@ -12938,7 +12986,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">5b16e025</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">960de07e</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -16969,7 +17017,7 @@ function gFiltrar(txt){
   const ps = t.split(' ');
   return DATOS.gramos.filter(g => {
     const vs = gVars(g);
-    const hay = norm([g.nombre, gMoldeNum(g), gMoldeNum(g) ? 'molde' : '',
+    const hay = norm([g.nombre, gTipoNombre(g), gMoldeNum(g), gMoldeNum(g) ? 'molde' : '',
       ...(vs.length > 1 ? vs.map(gNomVar) : []),
       ...vs.flatMap(v => (v.colores || []).map(gNombreColor))].join(' '));
     return ps.every(p => hay.includes(p));
@@ -16994,11 +17042,9 @@ function gBuscarColores(txt, max = 40){
 
 function actualizarGramos(){
   muroTope = 120;
-  gFiltrados = gFiltroColor(gFiltrar($q.value));
+  gFiltrados = gFiltroTipo(gFiltroColor(gFiltrar($q.value)));
   const total = DATOS.gramos.length;
-  document.getElementById('contador').innerHTML = gFiltrados.length === total
-    ? `<b>${total}</b> sello${total === 1 ? '' : 's'}`
-    : `<b>${gFiltrados.length}</b> de ${total} sello${total === 1 ? '' : 's'}`;
+  document.getElementById('contador').innerHTML = gContador(total);
   // Chips, aviso de calibración y filtro de pigmento hablan de colores.
   for(const id of ['chip-pend', 'chip-pigmento', 'chips-cli', 'aviso-cal', 'riel']){
     const el = document.getElementById(id);
@@ -17039,7 +17085,7 @@ function muroDeGramos(){
   const v = gFiltrados.slice(0, muroTope);
   $ficha.innerHTML = `<div class="muro">
     <div class="muro-cab">
-      <h2>${$q.value.trim() ? 'Resultados' : 'Todos los sellos'}</h2>
+      <h2>${$q.value.trim() ? 'Resultados' : gTituloMuro()}</h2>
       <span>${gFiltrados.length === 1 ? '1 sello' : gFiltrados.length + ' sellos'} · toca uno para ver sus colores</span>
     </div>
     <div class="muro-sellos">
@@ -17050,6 +17096,7 @@ function muroDeGramos(){
             : (g.colores || []).slice(0, 4).map(c => `<i style="background:${esc(gHex(c.ref) || '#5b5d62')}"></i>`).join('')}
         </div>
         <b>${esc(g.nombre)}</b>
+        ${gTipoPildora(g)}
         <span>${esc([gMoldeTxt(g) || 'Sin molde', gVars(g).length > 1 ? gVars(g).length + ' variantes' : ''].filter(Boolean).join(' · '))}</span>
       </button>`).join('')}
     </div>
@@ -17110,6 +17157,7 @@ function pintarFichaGramo(){
       hay ? '<button class="foto-btn" id="gf-quitar" type="button">Quitar</button>' : ''}</div>` : ''}
     ${pastillasVariantes(raw, vs, g._v)}
     <div class="s-titulo g-tit">
+      ${gTipoPildora(g)}
       <h2>${esc(g.nombre)}</h2>
       <div class="g-cli">${gMoldeTxt(g) ? esc(gMoldeTxt(g)) : '<span class="flojo">Sin número de molde</span>'}</div>
     </div>
@@ -17446,7 +17494,7 @@ function editarGramo(base, duplicar, modo){
   const clave = esNuevo ? 'nuevo' : base.id;
   const nuevoId = () => 'g-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
   const g = base ? JSON.parse(JSON.stringify(base))
-                 : {id: nuevoId(), nombre: '', molde: '', colores: [], margen: G_MARGEN_POR_DEFECTO};
+                 : {id: nuevoId(), nombre: '', molde: '', colores: [], margen: G_MARGEN_POR_DEFECTO, tipo: gTipoNuevo()};
   if(duplicar) g.id = nuevoId();
   const copiaCols = cs => (cs || []).map(c => ({ref: c.ref, nombre: c.nombre, gramos: c.gramos}));
   /* Las variantes que se editan. Duplicar copia SOLO la variante que se mira
@@ -17470,6 +17518,7 @@ function editarGramo(base, duplicar, modo){
   if(g.margen == null) g.margen = G_MARGEN_POR_DEFECTO;
   g.molde = String(g.molde || '');
   g.cliente = g.cliente || '';     // de antes: ya no se enseña, pero se conserva sin tocar
+  g.tipo = gTipoDe(g);
 
   /* ¿Algo a medias? Se recupera sin preguntar —como un editor de texto—
      pero SE DICE y hay botón para tirarlo. Recuperar callado sería peor que
@@ -17539,6 +17588,7 @@ function editarGramo(base, duplicar, modo){
     $dc.innerHTML = `
       ${recuperado ? `<div class="aviso g-rec"><span>Recuperado lo que tenías a medias.</span>
         <button type="button" id="g-tirar" class="g-enlace">Empezar de cero</button></div>` : ''}
+      ${gTipoEditorHtml(gTipoDe(g))}
       <label class="campo"><span>Número de molde <em>(opcional)</em></span>
         <input id="g-e-molde" value="${esc(g.molde)}" autocomplete="off" inputmode="text" maxlength="24" placeholder="Por ejemplo: 235"></label>
       <label class="campo"><span>Nombre del sello</span>
@@ -17579,6 +17629,7 @@ function editarGramo(base, duplicar, modo){
     });
 
     document.getElementById('g-e-nombre').addEventListener('input', e => { g.nombre = e.target.value; });
+    gTipoEditorEnlazar($dc, v => { g.tipo = v; apuntarBorrador(); });
     document.getElementById('g-e-molde').addEventListener('input', e => { g.molde = e.target.value; });
     for(const b of $dc.querySelectorAll('[data-quitar]'))
       b.onclick = () => { cur().colores.splice(+b.dataset.quitar, 1); apuntarBorrador(); pintar(); };
@@ -17655,7 +17706,7 @@ function editarGramo(base, duplicar, modo){
     // Un sello con una sola variante se guarda como siempre (sin `variantes`).
     const sencillo = vars.length === 1 && vars[0].id === G_V0 && !vars[0].foto;
     const r = {
-      id: g.id, nombre, molde: g.molde.trim(), cliente: (g.cliente || '').trim(),
+      id: g.id, nombre, tipo: gTipoDe(g), molde: g.molde.trim(), cliente: (g.cliente || '').trim(),
       colores: vars[0].colores,     // copia de la primera: para una app sin actualizar
       ...(sencillo ? {} : {variantes: vars}),
       ...(gPorMolde(g) > 1 ? {porMolde: gPorMolde(g)} : {}),
@@ -18858,13 +18909,14 @@ function pintarArchivador(){
   $lista.innerHTML = '';
   // Los colores más usados en los sellos, para tener a mano la fila «Lleva».
   const uso = new Map();
-  for(const g of DATOS.gramos) for(const r of gColoresDe(g)) uso.set(r, (uso.get(r) || 0) + 1);
+  for(const g of gFiltroTipo(DATOS.gramos)) for(const r of gColoresDe(g)) uso.set(r, (uso.get(r) || 0) + 1);
   const top = [...uso.entries()].filter(([r]) => porId.has(r))
     .sort((a, b) => b[1] - a[1] || gCmp(porId.get(a[0]).nombre, porId.get(b[0]).nombre)).slice(0, 18);
   if(gColorFiltro && !top.some(([r]) => r === gColorFiltro) && porId.has(gColorFiltro))
     top.unshift([gColorFiltro, uso.get(gColorFiltro) || 0]);
 
   const frag = document.createDocumentFragment();
+  if(DATOS.gramos.length) frag.appendChild(gBarraTipos());
   if(top.length){
     const fila = document.createElement('div');
     fila.className = 'arch-lleva';
@@ -18890,6 +18942,7 @@ function pintarArchivador(){
 </div>` +
       `<b>${resaltar(g.nombre, $q.value)}</b>` +
       `<span class="arch-sub">${esc([gMoldeTxt(g), nv > 1 ? nv + ' variantes' : ''].filter(Boolean).join(' · ') || 'Sin molde')}</span>` +
+      gTipoPildora(g) +
       `<div class="arch-pastillas">${cols.slice(0, 6).map(r => gGota(gHex(r), 20)).join('')}${
         cols.length > 6 ? `<span>+${cols.length - 6}</span>` : ''}${
         cols.length ? '' : '<em class="falta">sin colores</em>'}</div>`;
@@ -18900,7 +18953,11 @@ function pintarArchivador(){
     const v = document.createElement('div');
     v.className = 'lista-nada';
     v.innerHTML = DATOS.gramos.length
-      ? '<b>Ningún sello coincide</b>Prueba con menos letras, o quita el color de arriba.'
+      ? (gTipoFiltro && !gCuenta(gTipoFiltro)
+          ? `<b>Todavía no hay ${esc(gTipoInfo(gTipoFiltro).varios)}</b>` + (puedeEditar
+              ? `Al crear un sello eliges si es emblema, sello o sello SeriAdornos.<button class="btn btn-1" id="g-primero-lista" type="button">Añadir ${gTipoInfo(gTipoFiltro).id === 'emblema' ? 'el primer emblema' : 'el primero'}</button>`
+              : 'Aparecerán aquí en cuanto se vayan apuntando.')
+          : '<b>Ningún sello coincide</b>Prueba con menos letras, o quita el filtro de arriba.')
       : '<b>Todavía no hay sellos</b>' + (puedeEditar
         ? 'Cada sello guarda su foto y los colores que lleva.<button class="btn btn-1" id="g-primero-lista" type="button">Añadir el primero</button>'
         : 'Aparecerán aquí en cuanto se vayan apuntando.');
@@ -19973,6 +20030,89 @@ function pantallaCopiaAuto(volver){
   copiaCargarLista();
   if(!$dlg.open) $dlg.showModal();
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   TIPOS DE SELLO (17 nov)
+
+   Tres clases de cosas se archivan en Sellos y no son lo mismo:
+     · emblema           los de plastisol con fieltro de soporte
+     · sello             los que se hacen para clientes
+     · propio            «Sello SeriAdornos»: los sellos propios, no son de clientes
+
+   Es un campo más de la ficha (`tipo`), sin tabla nueva. Los que ya existían,
+   y cualquier ficha de una app sin actualizar, no lo traen: cuentan como
+   «sello», que es lo que eran.
+   ═══════════════════════════════════════════════════════════════════ */
+function gTipos(){
+  return [
+    {id: 'emblema', uno: 'Emblema', varios: 'emblemas', corto: 'Emblemas'},
+    {id: 'sello',   uno: 'Sello',   varios: 'sellos',   corto: 'Sellos'},
+    {id: 'propio',  uno: 'Sello SeriAdornos', varios: 'sellos SeriAdornos', corto: 'SeriAdornos'},
+  ];
+}
+function gTipoDe(g){ return g && (g.tipo === 'emblema' || g.tipo === 'propio') ? g.tipo : 'sello'; }
+function gTipoInfo(id){ return gTipos().find(t => t.id === id) || gTipos()[1]; }
+function gTipoNombre(g){ return gTipoInfo(gTipoDe(g)).uno; }
+
+/** El filtro elegido arriba (null = todos). Se recuerda en este aparato. */
+var gTipoFiltro = (function(){
+  try{ var v = localStorage.getItem('g-tipo'); return v === 'emblema' || v === 'sello' || v === 'propio' ? v : null; }
+  catch(_){ return null; }
+})();
+function gPonerTipoFiltro(v){
+  gTipoFiltro = v || null;
+  try{ if(gTipoFiltro) localStorage.setItem('g-tipo', gTipoFiltro); else localStorage.removeItem('g-tipo'); }catch(_){}
+}
+function gFiltroTipo(lista){ return gTipoFiltro ? lista.filter(g => gTipoDe(g) === gTipoFiltro) : lista; }
+/** Un sello nuevo sale del tipo que se está mirando. */
+function gTipoNuevo(){ return gTipoFiltro || 'sello'; }
+
+function gCuenta(tipo){ return DATOS.gramos.filter(g => gTipoDe(g) === tipo).length; }
+
+/** «N sellos», o «N de M emblemas» si hay un tipo elegido. */
+function gContador(total){
+  const t = gTipoFiltro ? gTipoInfo(gTipoFiltro) : null;
+  const base = t ? gCuenta(t.id) : total;
+  const nombre = t ? t.varios : (total === 1 ? 'sello' : 'sellos');
+  const n = gFiltrados.length;
+  return n === base ? `<b>${n}</b> ${t && n === 1 ? t.uno.toLowerCase() : nombre}`
+                    : `<b>${n}</b> de ${base} ${nombre}`;
+}
+
+/** La etiqueta pequeña de una tarjeta o ficha. */
+function gTipoPildora(g){
+  const id = gTipoDe(g);
+  return `<span class="g-tipo g-tipo-${id}">${esc(gTipoInfo(id).uno)}</span>`;
+}
+
+/** La barra de arriba: Todos · Emblemas · Sellos · SeriAdornos, con lo que hay de cada uno. */
+function gBarraTipos(){
+  const el = document.createElement('div');
+  el.className = 'arch-tipos'; el.setAttribute('role', 'group'); el.setAttribute('aria-label', 'Tipo de sello');
+  const b = (id, txt, n) => `<button type="button" class="arch-tipo-b${id ? ' t-' + id : ''}" data-tipo="${id}" aria-pressed="${(gTipoFiltro || '') === id}"><span>${
+    id ? '<i class="pto"></i>' : ''}${esc(txt)}</span><em>${n}</em></button>`;
+  el.innerHTML = b('', 'Todos', DATOS.gramos.length) + gTipos().map(t => b(t.id, t.corto, gCuenta(t.id))).join('');
+  for(const x of el.querySelectorAll('[data-tipo]'))
+    x.onclick = () => { gPonerTipoFiltro(x.dataset.tipo && x.dataset.tipo !== gTipoFiltro ? x.dataset.tipo : null); actualizar(); };
+  return el;
+}
+
+/** Las tres opciones del editor. Se cambian sin repintar el formulario. */
+function gTipoEditorHtml(actual){
+  return `<div class="campo g-tipo-campo"><span>Tipo</span>
+    <div class="g-tipo-ed" role="radiogroup" aria-label="Tipo">${gTipos().map(t =>
+      `<button type="button" class="g-tipo-op t-${t.id}" role="radio" data-tipo-ed="${t.id}" aria-checked="${t.id === actual}"><i class="pto"></i>${esc(t.uno)}</button>`).join('')}
+    </div></div>`;
+}
+function gTipoEditorEnlazar(raiz, poner){
+  for(const b of raiz.querySelectorAll('[data-tipo-ed]'))
+    b.onclick = () => {
+      poner(b.dataset.tipoEd);
+      for(const o of raiz.querySelectorAll('[data-tipo-ed]')) o.setAttribute('aria-checked', String(o === b));
+    };
+}
+
+function gTituloMuro(){ return gTipoFiltro ? 'Todos los ' + gTipoInfo(gTipoFiltro).varios : 'Todos los sellos'; }
 
 /* ═══════════════════════════════════════════════════════════════════════
    ESCRITORIO · el cajón de la ficha (solo Colores, solo PC). Ver escritorio.css.

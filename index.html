@@ -5051,6 +5051,76 @@ html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) 
   .franja-avisos > .aviso-global[hidden] ~ .avisa-copia span{flex:1 1 auto}
   html[data-cristal="on"] .app > .franja-avisos{grid-column:2}
 }
+/* ═══ ESCRITORIO · Sellos igual que Colores: tarjetas anchas + cajón (18 nov) ═══
+   Juanjo: «en los sellos podemos hacer como en los colores y que se vea
+   apaisado en tablet y pc». Antes: una columna estrecha de tarjetas a la
+   izquierda y, a la derecha, el muro repitiendo lo mismo.
+
+     · la lista ocupa toda la pantalla, en tarjetas apaisadas (foto a la
+       izquierda, nombre, tipo y colores a la derecha);
+     · la ficha sale como cajón por la derecha al tocar una tarjeta;
+     · el muro desaparece (era la misma lista dos veces).
+
+   Solo con ≥ 861 px de ancho. El móvil no cambia. En tableta vertical
+   (601–860 px) las tarjetas se reparten en más columnas. */
+
+@media (min-width:861px){
+  body[data-seccion="gramos"]{--cajon:clamp(560px,44vw,720px)}
+
+  body[data-seccion="gramos"] .cuerpo{position:relative; overflow:hidden}
+  body[data-seccion="gramos"] .columna-lista{
+    flex:1 1 0; min-width:0; border-right:0; margin-right:0;
+    transition:margin-right .5s var(--salida);
+  }
+  body[data-seccion="gramos"][data-ficha="on"] .columna-lista{margin-right:var(--cajon)}
+  body[data-seccion="gramos"] .contador{padding:6px 28px 10px}
+  body[data-seccion="gramos"] .lista{padding:4px 26px 48px}
+
+  /* Barra de tipos y fila «Lleva»: a lo ancho, sin estirarse de más */
+  body[data-seccion="gramos"] .arch-tipos{max-width:560px; margin-bottom:14px}
+  body[data-seccion="gramos"] .arch-lleva{padding:2px 0 14px}
+
+  /* El cajón de la ficha */
+  body[data-seccion="gramos"] .columna-ficha{
+    position:absolute; top:0; right:0; bottom:0; width:var(--cajon); z-index:20;
+    transform:translateX(104%); visibility:hidden; box-shadow:none;
+    border-left:1px solid var(--linea-fuerte);
+    transition:transform .5s var(--salida), visibility .5s var(--salida), box-shadow .5s var(--salida);
+  }
+  body[data-seccion="gramos"][data-ficha="on"] .columna-ficha{
+    transform:none; visibility:visible; box-shadow:-26px 0 60px rgba(0,0,0,.28);
+  }
+  body[data-seccion="gramos"] .ficha:not(.es-muro){max-width:none; padding-top:22px}
+  body[data-seccion="gramos"] #g-volver{display:none}            /* en el cajón se cierra con la ✕ o Esc */
+  body[data-seccion="gramos"] .s-titulo{padding-right:58px}
+  body[data-seccion="gramos"][data-ficha="on"] .cajon-x{display:grid}
+
+  html[data-cristal="on"] body[data-seccion="gramos"] .columna-lista{flex:1 1 0}
+  html[data-cristal="on"] body[data-seccion="gramos"] .columna-ficha{top:0; right:14px; bottom:14px; border-radius:26px}
+  html[data-cristal="on"] body[data-seccion="gramos"][data-ficha="on"] .columna-lista{margin-right:calc(var(--cajon) + 14px)}
+}
+
+/* Las tarjetas apaisadas: PC y tableta (también en vertical, 601 px o más) */
+@media (min-width:601px){
+/* Las tarjetas apaisadas */
+body[data-seccion="gramos"] .arch-rej{grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px}
+body[data-seccion="gramos"] .arch-t{
+  display:grid; grid-template-columns:128px minmax(0,1fr); grid-template-rows:repeat(4,auto);
+  column-gap:18px; row-gap:5px; align-content:center; min-height:158px; padding:15px;
+  transition:translate .3s var(--salida), box-shadow .3s var(--salida);
+}
+body[data-seccion="gramos"] .arch-t:hover{translate:0 -3px}
+body[data-seccion="gramos"] .arch-t > :not(.arch-foto){grid-column:2; min-width:0}
+body[data-seccion="gramos"] .arch-t .arch-foto{grid-column:1; grid-row:1 / span 4; width:128px; height:128px; aspect-ratio:auto; margin:0; align-self:center}
+body[data-seccion="gramos"] .arch-t b{padding:0; font-size:17px; font-weight:700; line-height:1.18; align-self:end}
+body[data-seccion="gramos"] .arch-t .arch-sub{padding:0}
+body[data-seccion="gramos"] .arch-t .g-tipo{margin:2px 0 0; justify-self:start}
+body[data-seccion="gramos"] .arch-t .arch-pastillas{padding:6px 0 0 7px; min-height:30px}
+html[data-tamano="grande"] body[data-seccion="gramos"] .arch-t b{font-size:19px}
+html[data-estilo="blanda"] body[data-seccion="gramos"] .arch-t{border:0 !important; border-radius:30px !important}
+
+
+}
 </style>
 </head>
 <body>
@@ -12986,7 +13056,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">960de07e</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">e3ff5256</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -17068,6 +17138,7 @@ function abrirGramo(id){
 // ── El muro (la ficha cuando no hay ninguna abierta) ────────────────
 
 function muroDeGramos(){
+  if(!matchMedia('(max-width:860px)').matches && DATOS.gramos.length){ cajonVaciar(); return; }   // PC: sin muro, la ficha es un cajón
   $ficha.classList.remove('es-muro');
   const $col = document.getElementById('columna-ficha');
   if($col) $col.style.removeProperty('--tono');
@@ -20123,13 +20194,13 @@ function gTituloMuro(){ return gTipoFiltro ? 'Todos los ' + gTipoInfo(gTipoFiltr
      antes, el cajón se iría vacío mientras se desliza).
    ═══════════════════════════════════════════════════════════════════════ */
 function cajonActivo(){
-  return !matchMedia('(max-width:860px)').matches && SECCION === 'colores' && document.body.dataset.ficha === 'on';
+  return !matchMedia('(max-width:860px)').matches && (SECCION === 'colores' || SECCION === 'gramos') && document.body.dataset.ficha === 'on';
 }
 var cajonTemporizador = 0;
 function cajonVaciar(){
   clearTimeout(cajonTemporizador);
   cajonTemporizador = setTimeout(() => {
-    if(SECCION === 'colores' && !seleccion && document.body.dataset.ficha !== 'on'){
+    if(((SECCION === 'colores' && !seleccion) || (SECCION === 'gramos' && !gramoSel)) && document.body.dataset.ficha !== 'on'){
       $ficha.classList.remove('es-muro');
       soltarFotos($ficha);
       $ficha.innerHTML = '';

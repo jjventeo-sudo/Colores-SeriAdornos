@@ -4838,11 +4838,12 @@ html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) 
 @media (pointer:coarse){ .cp-fila .btn{min-height:44px} }
 @media (prefers-reduced-motion:reduce){ .cp-fila{animation:none} }
 /* ═══ TIPOS DE SELLO ═══════════════════════════════════════════════════ */
+:root{--tipo-sello:#7f9bd0}
 .t-emblema{--tt:var(--ambar)}
-.t-sello{--tt:var(--texto-2)}
+.t-sello{--tt:var(--tipo-sello)}
 .t-propio{--tt:var(--marca-2)}
 .g-tipo-emblema{--tt:var(--ambar)}
-.g-tipo-sello{--tt:var(--texto-2)}
+.g-tipo-sello{--tt:var(--tipo-sello)}
 .g-tipo-propio{--tt:var(--marca-2)}
 .pto{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--tt,var(--texto-3)); flex:0 0 auto}
 
@@ -4867,11 +4868,11 @@ html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) 
 .g-tipo{
   display:inline-flex; align-items:center; gap:6px; align-self:flex-start; padding:2px 9px 2px 8px; border-radius:999px;
   font-size:11px; font-weight:650; letter-spacing:.03em; line-height:1.5;
-  color:var(--tt); background:color-mix(in srgb, var(--tt) 14%, transparent);
+  color:color-mix(in srgb, var(--tt) 68%, var(--texto)); background:color-mix(in srgb, var(--tt) 15%, transparent);
 }
 .g-tipo::before{content:''; width:6px; height:6px; border-radius:50%; background:var(--tt)}
 .arch-t .g-tipo{margin:1px 4px 0}
-.arch-t .g-tipo, .sello-t .g-tipo{font-family:inherit; text-transform:none; letter-spacing:.02em; white-space:nowrap; font-size:11px; color:var(--tt)}
+.arch-t .g-tipo, .sello-t .g-tipo{font-family:inherit; text-transform:none; letter-spacing:.02em; white-space:nowrap; font-size:11px; color:color-mix(in srgb, var(--tt) 68%, var(--texto))}
 .s-titulo .g-tipo{margin:2px 0 8px}
 
 .g-tipo-ed{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px}
@@ -4885,6 +4886,97 @@ html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) 
   box-shadow:0 0 0 3px color-mix(in srgb, var(--tt) 18%, transparent);
 }
 @media (prefers-reduced-motion:reduce){ .arch-tipo-b, .arch-tipo-b em, .g-tipo-op{transition:none} }
+
+/* ═══ APARTADOS CON FONDO PROPIO + SELLOS DE VARIOS MODELOS (19 nov) ═══
+   Cada tipo es una banda con su color (dorado · azul · coral), tinta sobre el
+   fondo de la app —por eso vale igual en oscuro, Arcilla y el estilo de
+   siempre—. Un sello con varios modelos se ve como un montón de cartas con
+   una cinta «3 modelos»; al pasar el ratón por encima, las cartas se abren. */
+.arch-banda{
+  position:relative; isolation:isolate; overflow:hidden; margin:0 0 16px; padding:14px 12px 16px;
+  border-radius:var(--r-xl,28px);
+  border:1px solid color-mix(in srgb, var(--tt) 30%, transparent);
+  background:
+    radial-gradient(420px 180px at 100% 0%, color-mix(in srgb, var(--tt) 20%, transparent), transparent 70%),
+    linear-gradient(135deg, color-mix(in srgb, var(--tt) 14%, var(--panel)), color-mix(in srgb, var(--tt) 5%, var(--panel)) 65%);
+}
+.arch-banda::after{
+  content:''; position:absolute; left:0; top:16px; bottom:16px; width:4px; border-radius:0 6px 6px 0; z-index:-1;
+  background:linear-gradient(var(--tt), color-mix(in srgb, var(--tt) 25%, transparent));
+}
+.arch-bh{display:flex; align-items:center; gap:11px; margin:0 0 12px 4px}
+.arch-bico{
+  flex:0 0 auto; width:38px; height:38px; border-radius:13px; display:grid; place-items:center; color:var(--tt);
+  background:color-mix(in srgb, var(--tt) 16%, var(--panel)); border:1px solid color-mix(in srgb, var(--tt) 35%, transparent);
+  box-shadow:0 6px 16px color-mix(in srgb, var(--tt) 16%, transparent);
+}
+.arch-bico svg{width:21px; height:21px}
+.arch-bt{min-width:0}
+.arch-bt h2{margin:0; font-size:17px; font-weight:700; letter-spacing:-.015em; line-height:1.15; color:var(--texto)}
+.arch-bt p{margin:1px 0 0; font-size:12.5px; line-height:1.3; color:var(--texto-2)}
+.arch-bn{
+  margin-left:auto; font-family:var(--mono); font-weight:300; font-size:30px; line-height:1; letter-spacing:-.04em; font-variant-numeric:tabular-nums;
+  color:color-mix(in srgb, var(--tt) 55%, transparent);
+}
+.arch-banda .arch-rej{gap:10px}
+
+/* Entrada: solo cuando cambia lo que se mira */
+@keyframes banda-entra{from{opacity:0; transform:translateY(12px)}to{opacity:1; transform:none}}
+.arch-banda.entra{animation:banda-entra calc(.55s * var(--ritmo,1)) var(--salida) both; animation-delay:calc(var(--b,0) * 110ms * var(--ritmo,1))}
+.arch-banda.entra .arch-t, .arch-banda.entra .arch-pila{
+  animation:banda-entra calc(.5s * var(--ritmo,1)) var(--salida) both;
+  animation-delay:calc(var(--b,0) * 110ms * var(--ritmo,1) + 130ms + var(--i,0) * 55ms * var(--ritmo,1));
+}
+.arch-banda.entra .arch-pila .arch-t{animation:none}
+
+/* Varios modelos: la pila de cartas y la cinta */
+.arch-pila{position:relative; isolation:isolate; display:grid}
+.arch-pila::before, .arch-pila::after{
+  content:''; position:absolute; inset:0; z-index:-1; border-radius:var(--r-l);
+  background:var(--panel-2); border:1px solid var(--linea-fuerte);
+  box-shadow:0 3px 8px var(--sd, rgba(0,0,0,.28));
+  transition:transform calc(.45s * var(--ritmo,1)) var(--salida);
+}
+.arch-pila::before{transform:translate(5px,6px) rotate(1deg)}
+.arch-pila::after{transform:translate(10px,12px) rotate(2deg); opacity:.7}
+@media (hover:hover){
+  .arch-pila:hover::before{transform:translate(14px,3px) rotate(3deg)}
+  .arch-pila:hover::after{transform:translate(26px,7px) rotate(5.5deg)}
+}
+.arch-pila .arch-t{position:relative}
+/* móvil: la cinta es una píldora sobre la esquina de la foto (así todas las fotos quedan a la misma altura) */
+.cinta{
+  position:absolute; top:14px; right:14px; z-index:3; display:inline-flex; align-items:center; gap:5px;
+  padding:4px 10px 4px 8px; border-radius:999px; white-space:nowrap; pointer-events:none;
+  background:linear-gradient(180deg,#f7968b,#e96f63); color:#2a0b08; font:780 11px/1.2 var(--sans,inherit); letter-spacing:.02em;
+  box-shadow:0 6px 14px rgba(232,111,99,.32);
+}
+.cinta svg{width:13px; height:13px; flex:0 0 auto}
+@media (min-width:601px){
+  .arch-banda{padding:20px 22px 24px; margin-bottom:20px}
+  .arch-banda::after{width:5px; top:18px; bottom:18px}
+  .arch-bh{gap:14px; margin:0 0 16px 6px}
+  .arch-bico{width:46px; height:46px; border-radius:15px}
+  .arch-bico svg{width:24px; height:24px}
+  .arch-bt h2{font-size:21px}
+  .arch-bt p{font-size:13px}
+  .arch-bn{font-size:44px}
+  .arch-banda .arch-rej{gap:18px 20px; padding-left:6px}
+  .arch-banda::before{
+    content:''; position:absolute; inset:0; z-index:-1; opacity:.5; pointer-events:none;
+    background-image:radial-gradient(color-mix(in srgb, var(--tt) 40%, transparent) 1px, transparent 1.4px); background-size:22px 22px;
+    -webkit-mask-image:linear-gradient(100deg, transparent 30%, #000); mask-image:linear-gradient(100deg, transparent 30%, #000);
+  }
+  .arch-pila::before{transform:translate(7px,7px) rotate(1.1deg)}
+  .arch-pila::after{transform:translate(13px,13px) rotate(2.2deg)}
+  /* tableta y PC: la cinta cuelga del borde de arriba y la tarjeta le deja sitio */
+  .arch-pila .arch-t{padding-top:32px}
+  .cinta{top:-1px; right:18px; font-size:11.5px; padding:5px 11px 6px 9px; border-radius:0 0 12px 12px}
+}
+html[data-estilo="blanda"] .arch-banda{border-color:color-mix(in srgb, var(--tt) 22%, transparent)}
+@media (prefers-reduced-motion:reduce){
+  .arch-banda.entra, .arch-banda.entra .arch-t, .arch-banda.entra .arch-pila, .arch-pila::before, .arch-pila::after{animation:none; transition:none}
+}
 /* ═══ ESCRITORIO · «tarjetas anchas + cajón» (solo Colores, solo PC) ═══════════
    Juanjo (15 nov): «quita el muestrario de la derecha, lo importante es el
    listado». Elegida la opción C de la maqueta:
@@ -5116,6 +5208,8 @@ body[data-seccion="gramos"] .arch-t b{padding:0; font-size:17px; font-weight:700
 body[data-seccion="gramos"] .arch-t .arch-sub{padding:0}
 body[data-seccion="gramos"] .arch-t .g-tipo{margin:2px 0 0; justify-self:start}
 body[data-seccion="gramos"] .arch-t .arch-pastillas{padding:6px 0 0 7px; min-height:30px}
+body[data-seccion="gramos"] .arch-t > .cinta{grid-column:auto; grid-row:auto}
+body[data-seccion="gramos"] .arch-pila .arch-t{padding-top:34px; min-height:166px}
 html[data-tamano="grande"] body[data-seccion="gramos"] .arch-t b{font-size:19px}
 html[data-estilo="blanda"] body[data-seccion="gramos"] .arch-t{border:0 !important; border-radius:30px !important}
 
@@ -13056,7 +13150,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">e3ff5256</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">e306ec9a</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -18974,8 +19068,39 @@ const gColoresDe = g => {
 /** Deja solo los sellos que llevan el color elegido en la fila «Lleva». */
 const gFiltroColor = lista => gColorFiltro ? lista.filter(g => gColoresDe(g).includes(gColorFiltro)) : lista;
 
+
+var gFirmaBandas = '';
+/** Una tarjeta del archivador. Si el sello tiene varios modelos va en «pila»:
+ *  unas cartas detrás y una cinta con cuántos son, para verlo desde lejos. */
+function gTarjeta(g){
+  const fid = gFotoId(g);
+  const con = tieneFoto(fid);
+  const cols = gColoresDe(g);
+  const nv = gVars(g).length;
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'arch-t'; b.dataset.id = g.id;
+  b.setAttribute('aria-current', String(g.id === gramoSel));
+  b.innerHTML =
+    (nv > 1 ? gCinta(nv) : '') +
+    `<div class="arch-foto${con ? '' : ' sin'}"${marcaFoto(fid)}>${con ? '' : icono('sellos')}
+</div>` +
+    `<b>${resaltar(g.nombre, $q.value)}</b>` +
+    `<span class="arch-sub">${esc(gMoldeTxt(g) || 'Sin molde')}</span>` +
+    gTipoPildora(g) +
+    `<div class="arch-pastillas">${cols.slice(0, 6).map(r => gGota(gHex(r), 20)).join('')}${
+      cols.length > 6 ? `<span>+${cols.length - 6}</span>` : ''}${
+      cols.length ? '' : '<em class="falta">sin colores</em>'}</div>`;
+  b.onclick = () => abrirGramo(g.id);
+  if(nv < 2) return b;
+  const pila = document.createElement('div');
+  pila.className = 'arch-pila';
+  pila.appendChild(b);
+  return pila;
+}
+
 /** La cuadrícula. Es lo que se ve en la pestaña Sellos. */
 function pintarArchivador(){
+  const habia = !!$lista.querySelector('.arch-banda');
   soltarFotos($lista);
   $lista.innerHTML = '';
   // Los colores más usados en los sellos, para tener a mano la fila «Lleva».
@@ -18998,27 +19123,26 @@ function pintarArchivador(){
       }).join('')}</div>`;
     frag.appendChild(fila);
   }
-  const rej = document.createElement('div');
-  rej.className = 'arch-rej';
-  for(const g of gFiltrados){
-    const fid = gFotoId(g);
-    const con = tieneFoto(fid);
-    const cols = gColoresDe(g);
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'arch-t'; b.dataset.id = g.id;
-    b.setAttribute('aria-current', String(g.id === gramoSel));
-    const nv = gVars(g).length;
-    b.innerHTML =
-      `<div class="arch-foto${con ? '' : ' sin'}"${marcaFoto(fid)}>${con ? '' : icono('sellos')}
-</div>` +
-      `<b>${resaltar(g.nombre, $q.value)}</b>` +
-      `<span class="arch-sub">${esc([gMoldeTxt(g), nv > 1 ? nv + ' variantes' : ''].filter(Boolean).join(' · ') || 'Sin molde')}</span>` +
-      gTipoPildora(g) +
-      `<div class="arch-pastillas">${cols.slice(0, 6).map(r => gGota(gHex(r), 20)).join('')}${
-        cols.length > 6 ? `<span>+${cols.length - 6}</span>` : ''}${
-        cols.length ? '' : '<em class="falta">sin colores</em>'}</div>`;
-    b.onclick = () => abrirGramo(g.id);
-    rej.appendChild(b);
+  // Un apartado (banda) por tipo, con su fondo: Emblemas · Sellos · SeriAdornos.
+  // Los que no tienen nada no salen. La animación de entrada solo corre cuando
+  // CAMBIA lo que se mira (otra pestaña u otro tipo), no al teclear en el buscador.
+  const firma = SECCION + '|' + (gTipoFiltro || '');
+  const entra = !habia || firma !== gFirmaBandas; gFirmaBandas = firma;
+  const bandas = document.createDocumentFragment();
+  let nb = 0;
+  for(const t of gTipos()){
+    const lista = gFiltrados.filter(g => gTipoDe(g) === t.id);
+    if(!lista.length) continue;
+    const banda = document.createElement('section');
+    banda.className = 'arch-banda t-' + t.id + (entra ? ' entra' : '');
+    banda.style.setProperty('--b', nb++);
+    banda.setAttribute('aria-label', t.corto);
+    banda.innerHTML = gBandaCabecera(t, lista.length);
+    const rej = document.createElement('div');
+    rej.className = 'arch-rej';
+    lista.forEach((g, i) => { const c = gTarjeta(g); c.style.setProperty('--i', i); rej.appendChild(c); });
+    banda.appendChild(rej);
+    bandas.appendChild(banda);
   }
   if(!gFiltrados.length){
     const v = document.createElement('div');
@@ -19033,7 +19157,7 @@ function pintarArchivador(){
         ? 'Cada sello guarda su foto y los colores que lleva.<button class="btn btn-1" id="g-primero-lista" type="button">Añadir el primero</button>'
         : 'Aparecerán aquí en cuanto se vayan apuntando.');
     frag.appendChild(v);
-  }else frag.appendChild(rej);
+  }else frag.appendChild(bandas);
   $lista.appendChild(frag);
   for(const c of $lista.querySelectorAll('[data-lleva]'))
     c.onclick = () => { gColorFiltro = gColorFiltro === c.dataset.lleva ? null : c.dataset.lleva; actualizar(); };
@@ -20116,9 +20240,9 @@ function pantallaCopiaAuto(volver){
    ═══════════════════════════════════════════════════════════════════ */
 function gTipos(){
   return [
-    {id: 'emblema', uno: 'Emblema', varios: 'emblemas', corto: 'Emblemas'},
-    {id: 'sello',   uno: 'Sello',   varios: 'sellos',   corto: 'Sellos'},
-    {id: 'propio',  uno: 'Sello SeriAdornos', varios: 'sellos SeriAdornos', corto: 'SeriAdornos'},
+    {id: 'emblema', uno: 'Emblema', varios: 'emblemas', corto: 'Emblemas', nota: 'Plastisol con fieltro de soporte'},
+    {id: 'sello',   uno: 'Sello',   varios: 'sellos',   corto: 'Sellos', nota: 'Los que se hacen para clientes'},
+    {id: 'propio',  uno: 'Sello SeriAdornos', varios: 'sellos SeriAdornos', corto: 'SeriAdornos', nota: 'Nuestros sellos propios, no son de clientes'},
   ];
 }
 function gTipoDe(g){ return g && (g.tipo === 'emblema' || g.tipo === 'propio') ? g.tipo : 'sello'; }
@@ -20184,6 +20308,26 @@ function gTipoEditorEnlazar(raiz, poner){
 }
 
 function gTituloMuro(){ return gTipoFiltro ? 'Todos los ' + gTipoInfo(gTipoFiltro).varios : 'Todos los sellos'; }
+
+/** Iconos de los apartados (trazo, heredan el color del tipo). */
+function gTipoIcono(id){
+  const d = {
+    emblema: '<path d="M12 3 4.5 6v5.5c0 4.4 3.1 7.7 7.5 9.5 4.4-1.8 7.5-5.1 7.5-9.5V6L12 3z"/><path d="m9 12 2.2 2.2L15.5 10" stroke-linecap="round"/>',
+    sello:   '<path d="M9 4h6v5a3 3 0 0 0 1.5 2.6c.9.6 1.5 1.5 1.5 2.4v1H6v-1c0-.9.6-1.8 1.5-2.4A3 3 0 0 0 9 9V4z"/><path d="M5 20h14" stroke-linecap="round"/>',
+    propio:  '<path d="m12 3 2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 9.3l6-.8L12 3z"/>',
+  }[id] || '';
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+}
+/** La cabecera de un apartado: icono, nombre, para qué es y cuántos hay. */
+function gBandaCabecera(t, n){
+  return `<header class="arch-bh"><span class="arch-bico">${gTipoIcono(t.id)}</span>
+    <div class="arch-bt"><h2>${esc(t.corto === 'SeriAdornos' ? 'Sellos SeriAdornos' : t.corto)}</h2><p>${esc(t.nota)}</p></div>
+    <span class="arch-bn" aria-label="${n} en este apartado">${String(n).padStart(2, '0')}</span></header>`;
+}
+/** La cinta de «N modelos» de las tarjetas con varias variantes. */
+function gCinta(n){
+  return `<span class="cinta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg>${n} modelos</span>`;
+}
 
 /* ═══════════════════════════════════════════════════════════════════════
    ESCRITORIO · el cajón de la ficha (solo Colores, solo PC). Ver escritorio.css.

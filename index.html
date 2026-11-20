@@ -5916,6 +5916,13 @@ function crearNube({url, clave}){
        era más blanda que la de verdad y la prueba pasaba. Ya la mira. */
     const hayCuerpo = init.body !== undefined && init.body !== null;
     if(json && hayCuerpo && !cab['Content-Type']) cab['Content-Type'] = 'application/json';
+    /* Si la sesión ya se sabe caducada se renueva ANTES de pedir, en vez de
+       gastar una subida de foto entera para enterarse. Sin red no pasa nada:
+       se sigue con el testigo que hay y la petición fallará como siempre. */
+    if(reintento && ses?.refresh && Date.now() > (ses.caduca || 0)){
+      const ok = await renovar();
+      if(ok === false){ salir(); const err = new Error('sesión caducada'); err.sesion = true; throw err; }
+    }
     if(ses?.access) cab['Authorization'] = 'Bearer ' + ses.access;
 
     let r;
@@ -5941,6 +5948,18 @@ function crearNube({url, clave}){
     if(!r.ok){
       let detalle = '';
       try{ const j = await r.json(); detalle = j.message || j.error || ''; }catch(_){}
+      /* FALLO REAL (20 nov): cambiar la foto de un sello con la sesión caducada
+         enseñaba «"exp" claim timestamp check failed». El almacén de archivos de
+         Supabase NO contesta 401 a un testigo caducado, contesta 400 con ese
+         texto; la renovación de arriba solo miraba el 401 y el error llegaba
+         crudo hasta la pantalla. Se reconoce por el texto y se trata igual. */
+      if(r.status !== 401 && ses?.refresh && reintento && /"?exp"? claim|jwt expired|invalidjwt/i.test(detalle)){
+        const ok = await renovar();
+        if(ok === true) return peticion(ruta, opciones, false);
+        if(ok === 'sinred'){ const err = new Error('sin conexión'); err.sinRed = true; throw err; }
+        salir();
+        const err = new Error('sesión caducada'); err.sesion = true; throw err;
+      }
       const err = new Error(detalle || ('error ' + r.status));
       err.status = r.status;
       // Un 401 que llega hasta aquí es una sesión que ya no vale (ya se intentó
@@ -13150,7 +13169,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">e306ec9a</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">04eb6f12</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

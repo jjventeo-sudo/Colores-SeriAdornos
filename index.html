@@ -5215,6 +5215,41 @@ html[data-estilo="blanda"] body[data-seccion="gramos"] .arch-t{border:0 !importa
 
 
 }
+/* ═══ PASAR DE UN SELLO A OTRO: contador, puntitos y animaciones (20 nov) ═══ */
+.g-tira{display:flex; align-items:center; gap:10px; margin:0 0 12px}
+.g-tira-b{
+  flex:0 0 auto; width:38px; height:38px; border-radius:50%; display:grid; place-items:center; cursor:pointer;
+  color:var(--texto); background:var(--panel-2); border:1px solid var(--linea);
+  transition:transform .15s var(--salida), opacity .2s var(--salida), background .2s var(--salida);
+}
+.g-tira-b svg{width:18px; height:18px}
+.g-tira-b:hover{background:color-mix(in srgb, var(--texto) 8%, var(--panel-2))}
+.g-tira-b:active{transform:scale(.92)}
+.g-tira-b[aria-disabled="true"]{opacity:.32}
+.g-tira-c{flex:1 1 auto; min-width:0; display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center}
+.g-tira-c > span:first-child{
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--texto-2);
+  font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
+}
+.g-tira-c b{color:var(--texto); font-weight:700}
+.g-tira-pts{display:flex; gap:6px; align-items:center; height:8px}
+.g-tira-pts i{
+  width:6px; height:6px; border-radius:999px; background:color-mix(in srgb, var(--texto) 24%, transparent);
+  transition:width .3s var(--salida), background .3s var(--salida);
+}
+.g-tira-pts i.on{width:20px; background:var(--marca-2, var(--tinta))}
+@media (min-width:861px){ body[data-seccion="gramos"] .g-tira{margin-right:58px} }
+
+/* Al pasar, la ficha entra por el lado hacia el que empuja el dedo; en el tope, un pequeño rebote */
+@keyframes g-pasa-sig{from{opacity:0; transform:translateX(26px)}to{opacity:1; transform:none}}
+@keyframes g-pasa-ant{from{opacity:0; transform:translateX(-26px)}to{opacity:1; transform:none}}
+@keyframes g-tope-sig{0%{transform:none}35%{transform:translateX(-14px)}70%{transform:translateX(3px)}100%{transform:none}}
+@keyframes g-tope-ant{0%{transform:none}35%{transform:translateX(14px)}70%{transform:translateX(-3px)}100%{transform:none}}
+.ficha.g-pasa-sig{animation:g-pasa-sig calc(.28s * var(--ritmo,1)) var(--salida) both}
+.ficha.g-pasa-ant{animation:g-pasa-ant calc(.28s * var(--ritmo,1)) var(--salida) both}
+.ficha.g-tope-sig{animation:g-tope-sig calc(.38s * var(--ritmo,1)) var(--salida)}
+.ficha.g-tope-ant{animation:g-tope-ant calc(.38s * var(--ritmo,1)) var(--salida)}
+@media (prefers-reduced-motion:reduce){ .g-tira-pts i, .g-tira-b{transition:none} }
 </style>
 </head>
 <body>
@@ -13169,7 +13204,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">04eb6f12</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">ba648da5</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -17334,6 +17369,7 @@ function pintarFichaGramo(){
 
   $ficha.innerHTML = `
     <button class="volver" id="g-volver" type="button">${G_ICONO_ATRAS} Todos los sellos</button>
+    ${gTiraHtml(raw, vs, g._v)}
     <div class="g-foto g-grande${hay ? '' : ' sin'}"${marcaFoto(fid)} id="g-foto" ${hay ? 'role="button" tabindex="0" aria-label="Ver la foto grande"' : ''}>
       ${hay ? '' : `${icono('sellos')}<span>Sin foto todavía</span>`}
     </div>
@@ -17360,6 +17396,7 @@ function pintarFichaGramo(){
 
   enlazarFotos($ficha);
   document.getElementById('g-volver').onclick = cerrarFicha;
+  gTiraEnlazar();
   const $f = document.getElementById('g-foto');
   if(hay && $f){
     const ver = () => verFotoGrande(fid, g.nombre);
@@ -20349,6 +20386,114 @@ function gCinta(n){
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
+   PASAR DE UN SELLO A OTRO (20 nov)
+
+   Con un sello abierto, una sola «tira» continua:
+     · deslizar el dedo (móvil/tableta) o las flechas ← → (PC) pasa al
+       siguiente MODELO del sello; al llegar al último, al siguiente sello
+       (empezando por su primer modelo). Hacia atrás, al revés.
+     · el orden es el que se ve en la pantalla: los apartados (Emblemas,
+       Sellos, Sellos SeriAdornos) y lo que haya filtrado o buscado.
+     · en el primero y en el último hace un tope (no da la vuelta).
+   Arriba de la ficha, un contador y unos puntitos dicen dónde estás.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/** Todos los pasos de la tira, en el orden en que se ven las tarjetas: [{id, v}] (sello y modelo). */
+function gTira(){
+  const out = [];
+  for(const t of gTipos())
+    for(const g of gFiltrados)
+      if(gTipoDe(g) === t.id) for(const v of gVars(g)) out.push({id: g.id, v: v.id});
+  return out;
+}
+
+/** Dónde estamos: paso k de la tira, sello y modelo (1, 2, 3…). null si lo abierto no está en la lista. */
+function gPosicion(){
+  const raw = porIdG.get(gramoSel);
+  if(!raw) return null;
+  const vs = gVars(raw), vid = gVarActiva(raw).id;
+  const tira = gTira();
+  const k = tira.findIndex(x => x.id === raw.id && x.v === vid);
+  if(k < 0) return null;
+  const ids = [...new Set(tira.map(x => x.id))];
+  return {tira, k, sello: ids.indexOf(raw.id) + 1, sellos: ids.length, nv: vs.length, v: vs.findIndex(x => x.id === vid) + 1};
+}
+
+const G_ICONO_SIG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
+
+/** El contador de arriba de la ficha. Con un solo sello y un solo modelo no hay a dónde pasar: no sale. */
+function gTiraHtml(raw, vs, activa){
+  const pos = gPosicion();
+  if(!pos || (pos.sellos < 2 && pos.nv < 2)) return '';
+  const txt = `Sello <b>${pos.sello}</b> de ${pos.sellos}` + (pos.nv > 1 ? ` · Modelo <b>${pos.v}</b> de ${pos.nv}` : '');
+  const puntos = pos.nv > 1
+    ? `<span class="g-tira-pts" aria-hidden="true">${vs.map((_, i) => `<i${i === pos.v - 1 ? ' class="on"' : ''}></i>`).join('')}</span>` : '';
+  const b = (d, ico, nom, fuera) => `<button type="button" class="g-tira-b" data-pasar="${d}" aria-label="${nom}"${fuera ? ' aria-disabled="true"' : ''}>${ico}</button>`;
+  return `<div class="g-tira" role="group" aria-label="Pasar de un sello a otro">
+    ${b(-1, G_ICONO_ATRAS, 'Anterior', pos.k === 0)}
+    <div class="g-tira-c" aria-live="polite"><span>${txt}</span>${puntos}</div>
+    ${b(1, G_ICONO_SIG, 'Siguiente', pos.k === pos.tira.length - 1)}
+  </div>`;
+}
+function gTiraEnlazar(){
+  for(const b of $ficha.querySelectorAll('[data-pasar]'))
+    b.onclick = () => gPasar(+b.dataset.pasar);
+}
+
+/** Reinicia una animación de la ficha (clase que se quita sola al acabar). */
+function gAnimarFicha(clase){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  $ficha.classList.remove('g-pasa-sig', 'g-pasa-ant', 'g-tope-sig', 'g-tope-ant');
+  void $ficha.offsetWidth;
+  $ficha.classList.add(clase);
+  $ficha.addEventListener('animationend', () => $ficha.classList.remove(clase), {once: true});
+}
+
+/** dir = 1 (siguiente) o -1 (anterior). Devuelve true si ha pasado. */
+function gPasar(dir){
+  if(SECCION !== 'gramos' || document.body.dataset.ficha !== 'on') return false;
+  const pos = gPosicion();
+  if(!pos) return false;
+  const sig = pos.tira[pos.k + dir];
+  if(!sig){
+    gAnimarFicha(dir > 0 ? 'g-tope-sig' : 'g-tope-ant');
+    brindis(dir > 0 ? 'Es el último sello' : 'Es el primero');
+    return false;
+  }
+  gramoSel = sig.id;
+  const raw = porIdG.get(sig.id);
+  if(gVars(raw).length > 1) gVarSel[sig.id] = sig.v;
+  pintarFichaGramo();
+  // La tarjeta de la lista se marca sin repintar todo, y en PC se acerca a la vista.
+  for(const el of $lista.querySelectorAll('[data-id]')) el.setAttribute('aria-current', String(el.dataset.id === sig.id));
+  if(!matchMedia('(max-width:860px)').matches)
+    $lista.querySelector('[data-id][aria-current="true"]')?.scrollIntoView({block: 'nearest'});
+  $ficha.scrollTop = 0;
+  const col = document.getElementById('columna-ficha'); if(col) col.scrollTop = 0;
+  gAnimarFicha(dir > 0 ? 'g-pasa-sig' : 'g-pasa-ant');
+  return true;
+}
+
+// El dedo: hacia la izquierda = siguiente, como las fotos del móvil. No sobre las pastillas (se desplazan de lado).
+if(HAY_GRAMOS) escucharDeslizar(document.getElementById('columna-ficha'), {
+  puede: e => SECCION === 'gramos' && document.body.dataset.ficha === 'on' && !$dlg.open
+    && !e.target.closest('.g-vars, .g-tira-b'),
+  izquierda: () => gPasar(1),
+  derecha:   () => gPasar(-1),
+});
+// El teclado (PC): ← y →.
+document.addEventListener('keydown', e => {
+  if(e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  if(e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+  if(SECCION !== 'gramos' || document.body.dataset.ficha !== 'on' || !gramoSel) return;
+  if($dlg.open || document.querySelector('dialog[open]') || !$visor.hidden || !$escaner.hidden) return;
+  const a = document.activeElement;
+  if(a && a.closest('input, textarea, select, [contenteditable]')) return;
+  e.preventDefault();
+  gPasar(e.key === 'ArrowRight' ? 1 : -1);
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
    ESCRITORIO · el cajón de la ficha (solo Colores, solo PC). Ver escritorio.css.
 
    · Un botón ✕ y la tecla Escape cierran la ficha.
@@ -20412,7 +20557,7 @@ function cajonVaciar(){
 window.__app = {
   comprobarCopias, copiaProblema, pantallaCopia, restaurarCopiaAuto, COPIA_AUTO,
   nLista, nPorId, nLimpia, guardarNota, editarNota, abrirNota, nResumen, nTiempo, nCron, nCronIniciar, nFiltrar,
-  gColoresDe, get notaSel(){ return notaSel; },
+  gColoresDe, gPasar, gPosicion, gTira, get notaSel(){ return notaSel; },
   get DATOS(){ return DATOS; }, porId, materias, busq, norm, nube, MODO,
   anotar, anotarMateria, empujar, guardar, reconstruir, actualizar, sincronizar,
   verPigmento, pantallaChoques, avisarCopia, mantenerPantalla,

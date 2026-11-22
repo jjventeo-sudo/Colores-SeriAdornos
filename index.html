@@ -4847,14 +4847,15 @@ html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) 
 .g-tipo-propio{--tt:var(--marca-2)}
 .pto{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--tt,var(--texto-3)); flex:0 0 auto}
 
-.arch-tipos{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; margin:0 0 12px; padding:0}
+.arch-tipos{display:grid; grid-template-columns:repeat(var(--cols,4),minmax(0,1fr)); gap:6px; margin:0 0 12px; padding:0}
 .arch-tipo-b{
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-height:54px; padding:6px 4px 7px; min-width:0;
   border-radius:var(--r-m); border:1px solid var(--linea); background:var(--panel-2); color:var(--texto-2);
   font:inherit; font-size:12.5px; font-weight:620; letter-spacing:-.005em; cursor:pointer; line-height:1.15;
   transition:background .22s var(--salida), color .22s var(--salida), border-color .22s var(--salida), transform .12s var(--salida);
 }
-.arch-tipo-b span{display:inline-flex; align-items:center; gap:6px; white-space:nowrap}
+.arch-tipo-b span{display:inline-flex; align-items:center; gap:6px; white-space:nowrap; max-width:100%; min-width:0}
+.arch-tipo-b .tn{display:block; overflow:hidden; text-overflow:ellipsis}
 .arch-tipo-b em{
   font-style:normal; font-family:var(--mono); font-size:15px; font-weight:500; font-variant-numeric:tabular-nums;
   color:var(--texto-3); transition:color .22s var(--salida);
@@ -4977,6 +4978,94 @@ html[data-estilo="blanda"] .arch-banda{border-color:color-mix(in srgb, var(--tt)
 @media (prefers-reduced-motion:reduce){
   .arch-banda.entra, .arch-banda.entra .arch-t, .arch-banda.entra .arch-pila, .arch-pila::before, .arch-pila::after{animation:none; transition:none}
 }
+/* ═══ GESTIONAR TIPOS DE SELLO (22 nov) ═══ */
+.arch-tipos-gest{
+  display:none; align-items:center; gap:7px; margin-left:auto; padding:4px 12px 4px 9px; min-height:30px; flex:0 0 auto;
+  border-radius:999px; border:1px dashed var(--linea-fuerte); background:transparent; color:var(--texto-2);
+  font-family:"Plex",ui-sans-serif,-apple-system,"Segoe UI",Roboto,system-ui,sans-serif; font-size:12.5px; font-weight:600; letter-spacing:0; text-transform:none; cursor:pointer;
+  transition:color .2s var(--salida), border-color .2s var(--salida), background .2s var(--salida), transform .12s var(--salida);
+}
+body[data-seccion="gramos"] .arch-tipos-gest{display:inline-flex}
+.arch-tipos-gest svg{width:15px; height:15px}
+.arch-tipos-gest:hover{color:var(--texto); border-color:var(--texto-3); background:var(--panel-2)}
+.arch-tipos-gest:active{transform:scale(.97)}
+.arch-tipos-gest:focus-visible{outline:2px solid var(--texto); outline-offset:2px}
+
+/* Más de cuatro botones: en el móvil, una sola fila que se desliza; en pantallas anchas, se reparten en filas */
+.arch-tipos.rueda{
+  display:flex; overflow-x:auto; scroll-snap-type:x proximity; scrollbar-width:none; padding-bottom:2px;
+  -webkit-mask-image:linear-gradient(90deg, #000 calc(100% - 26px), transparent);
+  mask-image:linear-gradient(90deg, #000 calc(100% - 26px), transparent);
+}
+.arch-tipos.rueda::-webkit-scrollbar{display:none}
+.arch-tipos.rueda .arch-tipo-b{flex:0 0 auto; min-width:92px; padding-inline:14px; scroll-snap-align:start}
+@media (min-width:601px){
+  .arch-tipos.rueda{display:grid; grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); overflow:visible; padding:0; -webkit-mask-image:none; mask-image:none}
+  body[data-seccion="gramos"] .arch-tipos.rueda{max-width:760px}
+}
+
+dialog.dlg-tipos{border:0; padding:0; background:transparent; max-width:100%; max-height:100%; color:var(--texto)}
+dialog.dlg-tipos::backdrop{background:rgba(10,12,14,.55); backdrop-filter:blur(4px)}
+dialog.dlg-tipos .hoja{width:min(560px,calc(100vw - 24px))}
+dialog.dlg-tipos-chico .hoja{width:min(440px,calc(100vw - 24px))}
+.tg-intro{margin:0 0 14px; font-size:14px; line-height:1.45; color:var(--texto-2)}
+.tg-lista{display:flex; flex-direction:column; gap:8px; margin:0 0 14px}
+.tg-fila{
+  --tt:var(--texto-3);
+  border-radius:var(--r-l,18px); border:1px solid var(--linea); background:var(--panel-2); overflow:hidden;
+  transition:border-color .22s var(--salida), background .22s var(--salida), box-shadow .22s var(--salida);
+}
+.tg-fila.abierta{
+  border-color:color-mix(in srgb, var(--tt) 45%, transparent);
+  background:linear-gradient(135deg, color-mix(in srgb, var(--tt) 10%, var(--panel-2)), var(--panel-2) 70%);
+  box-shadow:0 8px 22px -14px color-mix(in srgb, var(--tt) 60%, transparent);
+}
+.tg-cab{display:flex; align-items:center; gap:4px; padding-right:6px}
+.tg-abre{
+  flex:1 1 auto; min-width:0; display:flex; align-items:center; gap:11px; min-height:56px; padding:8px 8px 8px 16px;
+  background:none; border:0; color:var(--texto); font:inherit; text-align:left; cursor:pointer; border-radius:var(--r-l,18px);
+}
+.tg-abre:focus-visible{outline:2px solid var(--texto); outline-offset:-3px}
+.tg-abre .pto{width:12px; height:12px; box-shadow:0 0 0 4px color-mix(in srgb, var(--tt) 22%, transparent)}
+.tg-nom{font-size:16px; font-weight:650; letter-spacing:-.01em; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.tg-n{margin-left:auto; font-family:var(--mono); font-size:12px; color:var(--texto-3); white-space:nowrap; font-variant-numeric:tabular-nums}
+.tg-chev{width:18px; height:18px; flex:0 0 auto; color:var(--texto-3); transition:transform .3s var(--salida)}
+.tg-fila.abierta .tg-chev{transform:rotate(90deg)}
+.tg-orden{display:inline-flex; flex:0 0 auto}
+.tg-orden .btn-icono{width:36px; height:36px}
+.tg-orden .btn-icono svg{width:18px; height:18px}
+.tg-orden .btn-icono[disabled]{opacity:.28; pointer-events:none}
+.tg-cuerpo{padding:4px 16px 16px; animation:tg-abre .32s var(--salida) both}
+@keyframes tg-abre{from{opacity:0; transform:translateY(-6px)}}
+.tg-cuerpo .campo em, .tg-nuevo .campo em{font-style:normal; text-transform:none; letter-spacing:0; opacity:.7}
+.tg-ayuda{margin:-6px 0 14px; font-size:12px; line-height:1.4; color:var(--texto-3)}
+.tg-cuerpo .n-paleta-fila, .tg-nuevo .n-paleta-fila{gap:10px; margin-top:2px}
+.tg-err{margin:0 0 10px; padding:8px 12px; border-radius:var(--r-m); font-size:13px; color:var(--rojo); background:color-mix(in srgb, var(--rojo) 12%, transparent)}
+.tg-err[hidden]{display:none}
+.tg-cuerpo input[aria-invalid="true"], .tg-nuevo input[aria-invalid="true"]{border-color:var(--rojo)}
+.tg-quita{width:100%; color:var(--rojo)}
+.tg-quita[disabled]{opacity:.4; cursor:not-allowed}
+.tg-mas{width:100%; border-style:dashed; background:transparent}
+.tg-mas svg{width:16px; height:16px}
+.tg-nuevo{
+  padding:16px 16px 6px; border-radius:var(--r-l,18px); --tt:var(--texto-3);
+  border:1px solid color-mix(in srgb, var(--tt) 45%, transparent);
+  background:linear-gradient(135deg, color-mix(in srgb, var(--tt) 10%, var(--panel-2)), var(--panel-2) 70%);
+  animation:tg-abre .32s var(--salida) both;
+}
+.tg-nuevo h4{margin:0 0 12px; font-size:15px; font-weight:700; letter-spacing:-.01em}
+.tg-nuevo-pie{display:flex; gap:10px; margin:6px 0 10px}
+.tg-nuevo-pie .btn{flex:1 1 auto}
+.tg-nuevo-pie .btn[disabled]{opacity:.42; cursor:not-allowed}
+.tg-deshacer{
+  display:flex; align-items:center; gap:12px; margin:0 0 14px; padding:10px 12px 10px 14px; border-radius:var(--r-m);
+  background:color-mix(in srgb, var(--ambar) 14%, var(--panel-2)); border:1px solid color-mix(in srgb, var(--ambar) 38%, transparent);
+  font-size:13.5px; line-height:1.35; animation:tg-abre .3s var(--salida) both;
+}
+.tg-deshacer span{flex:1 1 auto}
+.tg-deshacer .btn{height:36px; padding:0 16px; font-size:13.5px}
+.tg-dest{display:flex; flex-wrap:wrap; gap:8px}
+@media (prefers-reduced-motion:reduce){ .tg-cuerpo, .tg-nuevo, .tg-deshacer, .tg-chev{animation:none; transition:none} }
 /* ═══ ESCRITORIO · «tarjetas anchas + cajón» (solo Colores, solo PC) ═══════════
    Juanjo (15 nov): «quita el muestrario de la derecha, lo importante es el
    listado». Elegida la opción C de la maqueta:
@@ -5214,6 +5303,70 @@ html[data-tamano="grande"] body[data-seccion="gramos"] .arch-t b{font-size:19px}
 html[data-estilo="blanda"] body[data-seccion="gramos"] .arch-t{border:0 !important; border-radius:30px !important}
 
 
+}
+/* ═══ ESCRITORIO · Notas igual que Colores y Sellos: tarjetas anchas + cajón (20 nov) ═══
+   Juanjo: «quítame el trozo de la derecha, que las notas se vean en toda la
+   pantalla como el resto de pestañas». Antes: una columna estrecha de notas a
+   la izquierda y, a la derecha, un hueco con «Elige una nota».
+
+     · la lista ocupa toda la pantalla, en tarjetas (2 a 4 columnas);
+     · la nota sale como cajón por la derecha al tocar una tarjeta;
+     · el hueco de «Elige una nota» desaparece.
+
+   Solo con ≥ 861 px. El móvil no cambia. */
+@media (min-width:861px){
+  body[data-seccion="notas"]{--cajon:clamp(560px,44vw,720px)}
+
+  body[data-seccion="notas"] .cuerpo{position:relative; overflow:hidden}
+  body[data-seccion="notas"] .columna-lista{
+    flex:1 1 0; min-width:0; border-right:0; margin-right:0;
+    transition:margin-right .5s var(--salida);
+  }
+  body[data-seccion="notas"][data-ficha="on"] .columna-lista{margin-right:var(--cajon)}
+  body[data-seccion="notas"] .chips-cli{padding:2px 26px 10px}
+  body[data-seccion="notas"] .contador{padding:6px 28px 10px}
+
+  /* Las tarjetas, en rejilla */
+  body[data-seccion="notas"] .lista{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
+    gap:16px; align-content:start; padding:8px 26px 48px;
+  }
+  body[data-seccion="notas"] .lista > :not(.fila-nota){grid-column:1 / -1; min-width:0}
+  body[data-seccion="notas"] .lista > .fila-nota{
+    width:auto; min-width:0; margin:0; min-height:150px; padding:18px 20px 16px;
+    justify-content:flex-start; gap:8px;
+    transition:transform .3s var(--salida), box-shadow .3s var(--salida), background-color .15s var(--salida);
+  }
+  body[data-seccion="notas"] .lista > .fila-nota > *{flex-shrink:0}   /* nada se encoge: es la tarjeta la que crece */
+  body[data-seccion="notas"] .lista > .fila-nota:hover{transform:translateY(-3px)}
+  body[data-seccion="notas"] .lista > .fila-nota .fila-nombre{
+    font-size:18px; font-weight:700; line-height:1.18;
+    display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden;
+    flex:0 0 auto; padding-bottom:2px;   /* sin esto la tarjeta lo encogía y se cortaban las letras de abajo */
+  }
+  body[data-seccion="notas"] .lista > .fila-nota .n-fila-pie{margin-top:auto; padding-top:6px}
+  html[data-estilo="blanda"] body[data-seccion="notas"] .lista > .fila-nota{border:0 !important; border-radius:30px !important}
+  html[data-tamano="grande"] body[data-seccion="notas"] .lista > .fila-nota .fila-nombre{font-size:20px}
+  body[data-seccion="notas"] .lista-nada{display:block}
+
+  /* El cajón de la nota */
+  body[data-seccion="notas"] .columna-ficha{
+    position:absolute; top:0; right:0; bottom:0; width:var(--cajon); z-index:20;
+    transform:translateX(104%); visibility:hidden; box-shadow:none;
+    border-left:1px solid var(--linea-fuerte);
+    transition:transform .5s var(--salida), visibility .5s var(--salida), box-shadow .5s var(--salida);
+  }
+  body[data-seccion="notas"][data-ficha="on"] .columna-ficha{
+    transform:none; visibility:visible; box-shadow:-26px 0 60px rgba(0,0,0,.28);
+  }
+  body[data-seccion="notas"] .ficha:not(.es-muro){max-width:none; padding-top:22px}
+  body[data-seccion="notas"] .n-tit-cab{padding-right:58px}              /* deja sitio al ✕ del cajón */
+  body[data-seccion="notas"][data-ficha="on"] .cajon-x{display:grid}
+
+  html[data-cristal="on"] body[data-seccion="notas"] .columna-lista{flex:1 1 0}
+  html[data-cristal="on"] body[data-seccion="notas"] .columna-ficha{top:0; right:14px; bottom:14px; border-radius:26px}
+  html[data-cristal="on"] body[data-seccion="notas"][data-ficha="on"] .columna-lista{margin-right:calc(var(--cajon) + 14px)}
+  html:not([data-cristal="on"]) body[data-seccion="notas"] .lista{padding-bottom:48px}
 }
 /* ═══ PASAR DE UN SELLO A OTRO: contador, puntitos y animaciones (20 nov) ═══ */
 .g-tira{display:flex; align-items:center; gap:10px; margin:0 0 12px}
@@ -6609,6 +6762,7 @@ function crearNube({url, clave}){
       else if(a.clave === 'robots') d.robots = a.datos;
       else if(a.clave === 'notas_cat_colores' && a.datos && typeof a.datos === 'object' && !Array.isArray(a.datos)) d.notas_cat_colores = a.datos;
       else if(a.clave === 'notas_cats_ocultas' && Array.isArray(a.datos)) d.notas_cats_ocultas = a.datos;
+      else if(a.clave === 'tipos_sello' && Array.isArray(a.datos)) d.tipos_sello = a.datos;
       else if(String(a.clave).startsWith('nota:')){
         const nn = a.datos && !a.datos.borrada ? nLimpia(a.datos) : null;
         d.notas = (d.notas || []).filter(x => x.id !== (a.datos && a.datos.id));
@@ -12819,6 +12973,8 @@ function aplicarDeLaNube(res){
       DATOS.notas_cat_colores = a.datos; n++;
     }else if(a.clave === 'notas_cats_ocultas' && Array.isArray(a.datos)){
       DATOS.notas_cats_ocultas = a.datos; n++;
+    }else if(a.clave === 'tipos_sello' && Array.isArray(a.datos)){
+      DATOS.tipos_sello = a.datos; n++;
     }else if(String(a.clave).startsWith('nota:')){
       n += notaDeNube(a.datos);
     }else if(a.clave === 'papelera_hasta' && typeof a.datos === 'string'){
@@ -13204,7 +13360,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">ba648da5</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">dbedd67e</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -18570,6 +18726,7 @@ function abrirNota(id){
 
 /** La ficha cuando no hay ninguna nota abierta (en el ordenador, la columna de la derecha). */
 function muroDeNotas(){
+  if(!matchMedia('(max-width:860px)').matches){ cajonVaciar(); return; }   // PC: sin muro, la nota es un cajón
   $ficha.classList.remove('es-muro');
   const $col = document.getElementById('columna-ficha');
   if($col) $col.style.removeProperty('--tono');
@@ -19168,7 +19325,8 @@ function pintarArchivador(){
     top.unshift([gColorFiltro, uso.get(gColorFiltro) || 0]);
 
   const frag = document.createDocumentFragment();
-  if(DATOS.gramos.length) frag.appendChild(gBarraTipos());
+  if(DATOS.gramos.length && gTipos().length > 1) frag.appendChild(gBarraTipos());
+  gPonerBotonTipos();
   if(top.length){
     const fila = document.createElement('div');
     fila.className = 'arch-lleva';
@@ -19193,6 +19351,7 @@ function pintarArchivador(){
     banda.className = 'arch-banda t-' + t.id + (entra ? ' entra' : '');
     banda.style.setProperty('--b', nb++);
     banda.setAttribute('aria-label', t.corto);
+    if(t.color) banda.style.setProperty('--tt', t.color);
     banda.innerHTML = gBandaCabecera(t, lista.length);
     const rej = document.createElement('div');
     rej.className = 'arch-rej';
@@ -19206,7 +19365,7 @@ function pintarArchivador(){
     v.innerHTML = DATOS.gramos.length
       ? (gTipoFiltro && !gCuenta(gTipoFiltro)
           ? `<b>Todavía no hay ${esc(gTipoInfo(gTipoFiltro).varios)}</b>` + (puedeEditar
-              ? `Al crear un sello eliges si es emblema, sello o sello SeriAdornos.<button class="btn btn-1" id="g-primero-lista" type="button">Añadir ${gTipoInfo(gTipoFiltro).id === 'emblema' ? 'el primer emblema' : 'el primero'}</button>`
+              ? `Al crear un sello eliges de qué tipo es.<button class="btn btn-1" id="g-primero-lista" type="button">Añadir el primero</button>`
               : 'Aparecerán aquí en cuanto se vayan apuntando.')
           : '<b>Ningún sello coincide</b>Prueba con menos letras, o quita el filtro de arriba.')
       : '<b>Todavía no hay sellos</b>' + (puedeEditar
@@ -19215,6 +19374,8 @@ function pintarArchivador(){
     frag.appendChild(v);
   }else frag.appendChild(bandas);
   $lista.appendChild(frag);
+  { const r = $lista.querySelector('.arch-tipos.rueda'), on = r && r.querySelector('[aria-pressed="true"]');   // la barra se desliza: el elegido a la vista
+    if(on) r.scrollLeft = Math.max(0, on.offsetLeft - (r.clientWidth - on.offsetWidth) / 2); }
   for(const c of $lista.querySelectorAll('[data-lleva]'))
     c.onclick = () => { gColorFiltro = gColorFiltro === c.dataset.lleva ? null : c.dataset.lleva; actualizar(); };
   document.getElementById('g-primero-lista')?.addEventListener('click', () => editarGramo(null));
@@ -20294,65 +20455,128 @@ function pantallaCopiaAuto(volver){
    y cualquier ficha de una app sin actualizar, no lo traen: cuentan como
    «sello», que es lo que eran.
    ═══════════════════════════════════════════════════════════════════ */
-function gTipos(){
-  return [
-    {id: 'emblema', uno: 'Emblema', varios: 'emblemas', corto: 'Emblemas', nota: 'Plastisol con fieltro de soporte'},
-    {id: 'sello',   uno: 'Sello',   varios: 'sellos',   corto: 'Sellos', nota: 'Los que se hacen para clientes'},
-    {id: 'propio',  uno: 'Sello SeriAdornos', varios: 'sellos SeriAdornos', corto: 'SeriAdornos', nota: 'Nuestros sellos propios, no son de clientes'},
-  ];
+/* Los tipos son una lista que se puede cambiar (ver tipos_gest.js): se guarda como una fila
+   de `colores_ajustes` («tipos_sello»), igual que los colores de las categorías de notas.
+   Mientras nadie la toque, son los tres de siempre. Cada tipo:
+     id      estable (el sello lo guarda en `tipo`); los tres de siempre conservan el suyo
+     uno     «Emblema»                 · varios  «emblemas»
+     corto   etiqueta del botón (si no, el plural con mayúscula) · nota  la frase bajo el título
+     color   '#rrggbb'; sin él, el de siempre de cada tipo (por clase CSS) */
+const G_TIPOS_BASE = [
+  {id: 'emblema', uno: 'Emblema', varios: 'emblemas', corto: 'Emblemas', nota: 'Plastisol con fieltro de soporte', color: ''},
+  {id: 'sello',   uno: 'Sello',   varios: 'sellos',   corto: 'Sellos', nota: 'Los que se hacen para clientes', color: ''},
+  {id: 'propio',  uno: 'Sello SeriAdornos', varios: 'sellos SeriAdornos', corto: 'SeriAdornos', nota: 'Nuestros sellos propios, no son de clientes', color: ''},
+];
+const gMayus = t => t ? t.charAt(0).toUpperCase() + t.slice(1) : '';
+const gHexOk = h => typeof h === 'string' && /^#[0-9a-f]{6}$/i.test(h);
+/** Deja la lista guardada en algo seguro de usar (la nube la puede traer rara o a medias). */
+function gTiposLimpiar(l){
+  if(!Array.isArray(l)) return G_TIPOS_BASE.map(t => ({...t}));
+  const vistos = new Set(), out = [];
+  for(const t of l){
+    if(!t || typeof t !== 'object') continue;
+    const id = typeof t.id === 'string' ? t.id.trim() : '';
+    const uno = typeof t.uno === 'string' ? t.uno.trim().slice(0, 40) : '';
+    if(!/^[A-Za-z0-9_-]{1,24}$/.test(id) || !uno || vistos.has(id)) continue;
+    vistos.add(id);
+    const varios = (typeof t.varios === 'string' && t.varios.trim()) ? t.varios.trim().slice(0, 40) : gPluralDe(uno);
+    out.push({id, uno, varios,
+      corto: typeof t.corto === 'string' ? t.corto.trim().slice(0, 24) : '',
+      nota: typeof t.nota === 'string' ? t.nota.trim().slice(0, 90) : '',
+      color: gHexOk(t.color) ? t.color : ''});
+  }
+  return out.length ? out : G_TIPOS_BASE.map(t => ({...t}));
 }
-function gTipoDe(g){ return g && (g.tipo === 'emblema' || g.tipo === 'propio') ? g.tipo : 'sello'; }
-function gTipoInfo(id){ return gTipos().find(t => t.id === id) || gTipos()[1]; }
+/** Plural en castellano de un nombre de tipo: «Emblema» → «emblemas», «Sello grande» → «sellos grandes»,
+    «Sello SeriAdornos» → «sellos SeriAdornos». Es una propuesta: se puede corregir a mano. */
+function gPluralDe(uno){
+  const pl = w => {
+    const sinTilde = {á: 'a', é: 'e', í: 'i', ó: 'o', ú: 'u'};
+    if(/[áéíóú]n$/i.test(w)) return w.slice(0, -2) + sinTilde[w.charAt(w.length - 2).toLowerCase()] + 'nes';   // tampón → tampones
+    if(/[aeiouáéó]$/i.test(w)) return w + 's';
+    if(/z$/i.test(w)) return w.slice(0, -1) + 'ces';
+    if(/[sx]$/i.test(w)) return w;
+    return w + 'es';
+  };
+  const stop = new Set(['de', 'del', 'para', 'con', 'en', 'a', 'y', 'o', 'por', 'sin', 'sobre']);
+  const ws = String(uno || '').trim().split(/\s+/).filter(Boolean);
+  let corte = false;
+  return ws.map((w, i) => {
+    if(i > 0 && (corte || stop.has(w.toLowerCase()) || /^[A-ZÁÉÍÓÚÑ]/.test(w))){ corte = true; return w; }
+    return pl(i === 0 ? w.toLowerCase() : w);
+  }).join(' ');
+}
+var gTiposMemo = {ref: undefined, val: null};
+function gTipos(){
+  const l = DATOS.tipos_sello;
+  if(gTiposMemo.val && gTiposMemo.ref === l) return gTiposMemo.val;
+  gTiposMemo = {ref: l, val: gTiposLimpiar(l).map(t => ({...t, corto: t.corto || gMayus(t.varios)}))};
+  return gTiposMemo.val;
+}
+/** El tipo «por defecto»: el que tenía todo sello antiguo («sello») y, si ya no existe, el primero. */
+function gTipoBase(){ const l = gTipos(); return l.find(t => t.id === 'sello') || l[0]; }
+function gTipoDe(g){ const id = g && g.tipo; return gTipos().some(t => t.id === id) ? id : gTipoBase().id; }
+function gTipoInfo(id){ return gTipos().find(t => t.id === id) || gTipoBase(); }
 function gTipoNombre(g){ return gTipoInfo(gTipoDe(g)).uno; }
+/** `style="--tt:…"` si el tipo tiene color propio; si no, manda el de siempre (clase CSS). */
+const gTipoEstilo = id => { const t = gTipos().find(x => x.id === id); return t && t.color ? ` style="--tt:${t.color}"` : ''; };
 
 /** El filtro elegido arriba (null = todos). Se recuerda en este aparato. */
 var gTipoFiltro = (function(){
-  try{ var v = localStorage.getItem('g-tipo'); return v === 'emblema' || v === 'sello' || v === 'propio' ? v : null; }
+  try{ return localStorage.getItem('g-tipo') || null; }
   catch(_){ return null; }
 })();
+/** Si el tipo del filtro ya no existe (se eliminó), se quita solo. */
+function gRevisarFiltro(){ if(gTipoFiltro && !gTipos().some(t => t.id === gTipoFiltro)) gPonerTipoFiltro(null); }
 function gPonerTipoFiltro(v){
   gTipoFiltro = v || null;
   try{ if(gTipoFiltro) localStorage.setItem('g-tipo', gTipoFiltro); else localStorage.removeItem('g-tipo'); }catch(_){}
 }
-function gFiltroTipo(lista){ return gTipoFiltro ? lista.filter(g => gTipoDe(g) === gTipoFiltro) : lista; }
+function gFiltroTipo(lista){ gRevisarFiltro(); return gTipoFiltro ? lista.filter(g => gTipoDe(g) === gTipoFiltro) : lista; }
 /** Un sello nuevo sale del tipo que se está mirando. */
-function gTipoNuevo(){ return gTipoFiltro || 'sello'; }
+function gTipoNuevo(){ gRevisarFiltro(); return gTipoFiltro || gTipoBase().id; }
 
 function gCuenta(tipo){ return DATOS.gramos.filter(g => gTipoDe(g) === tipo).length; }
 
 /** «N sellos», o «N de M emblemas» si hay un tipo elegido. */
 function gContador(total){
+  gRevisarFiltro();
   const t = gTipoFiltro ? gTipoInfo(gTipoFiltro) : null;
   const base = t ? gCuenta(t.id) : total;
   const nombre = t ? t.varios : (total === 1 ? 'sello' : 'sellos');
   const n = gFiltrados.length;
-  return n === base ? `<b>${n}</b> ${t && n === 1 ? t.uno.toLowerCase() : nombre}`
-                    : `<b>${n}</b> de ${base} ${nombre}`;
+  return n === base ? `<b>${n}</b> ${t && n === 1 ? esc(t.uno.toLowerCase()) : esc(nombre)}`
+                    : `<b>${n}</b> de ${base} ${esc(nombre)}`;
 }
 
 /** La etiqueta pequeña de una tarjeta o ficha. */
 function gTipoPildora(g){
   const id = gTipoDe(g);
-  return `<span class="g-tipo g-tipo-${id}">${esc(gTipoInfo(id).uno)}</span>`;
+  return `<span class="g-tipo g-tipo-${id}"${gTipoEstilo(id)}>${esc(gTipoInfo(id).uno)}</span>`;
 }
 
-/** La barra de arriba: Todos · Emblemas · Sellos · SeriAdornos, con lo que hay de cada uno. */
+/** La barra de arriba: Todos · y un botón por tipo, con lo que hay de cada uno.
+    Con un solo tipo no hace falta (sería lo mismo que «Todos»). */
 function gBarraTipos(){
+  gRevisarFiltro();
+  const tipos = gTipos();
   const el = document.createElement('div');
   el.className = 'arch-tipos'; el.setAttribute('role', 'group'); el.setAttribute('aria-label', 'Tipo de sello');
-  const b = (id, txt, n) => `<button type="button" class="arch-tipo-b${id ? ' t-' + id : ''}" data-tipo="${id}" aria-pressed="${(gTipoFiltro || '') === id}"><span>${
-    id ? '<i class="pto"></i>' : ''}${esc(txt)}</span><em>${n}</em></button>`;
-  el.innerHTML = b('', 'Todos', DATOS.gramos.length) + gTipos().map(t => b(t.id, t.corto, gCuenta(t.id))).join('');
+  const n = tipos.length + 1;
+  if(n > 4) el.classList.add('rueda'); else el.style.setProperty('--cols', n);
+  const b = (id, txt, num, estilo) => `<button type="button" class="arch-tipo-b${id ? ' t-' + id : ''}" data-tipo="${id}" aria-pressed="${(gTipoFiltro || '') === id}" title="${esc(txt)}"${estilo || ''}><span>${
+    id ? '<i class="pto"></i>' : ''}<span class="tn">${esc(txt)}</span></span><em>${num}</em></button>`;
+  el.innerHTML = b('', 'Todos', DATOS.gramos.length) + tipos.map(t => b(t.id, t.corto, gCuenta(t.id), gTipoEstilo(t.id))).join('');
   for(const x of el.querySelectorAll('[data-tipo]'))
     x.onclick = () => { gPonerTipoFiltro(x.dataset.tipo && x.dataset.tipo !== gTipoFiltro ? x.dataset.tipo : null); actualizar(); };
   return el;
 }
 
-/** Las tres opciones del editor. Se cambian sin repintar el formulario. */
+/** Las opciones del editor (una por tipo). Se cambian sin repintar el formulario. */
 function gTipoEditorHtml(actual){
   return `<div class="campo g-tipo-campo"><span>Tipo</span>
     <div class="g-tipo-ed" role="radiogroup" aria-label="Tipo">${gTipos().map(t =>
-      `<button type="button" class="g-tipo-op t-${t.id}" role="radio" data-tipo-ed="${t.id}" aria-checked="${t.id === actual}"><i class="pto"></i>${esc(t.uno)}</button>`).join('')}
+      `<button type="button" class="g-tipo-op t-${t.id}" role="radio" data-tipo-ed="${t.id}" aria-checked="${t.id === actual}"${gTipoEstilo(t.id)}><i class="pto"></i>${esc(t.uno)}</button>`).join('')}
     </div></div>`;
 }
 function gTipoEditorEnlazar(raiz, poner){
@@ -20363,26 +20587,357 @@ function gTipoEditorEnlazar(raiz, poner){
     };
 }
 
-function gTituloMuro(){ return gTipoFiltro ? 'Todos los ' + gTipoInfo(gTipoFiltro).varios : 'Todos los sellos'; }
+function gTituloMuro(){ gRevisarFiltro(); return gTipoFiltro ? 'Todos los ' + gTipoInfo(gTipoFiltro).varios : 'Todos los sellos'; }
 
-/** Iconos de los apartados (trazo, heredan el color del tipo). */
+/** Iconos de los apartados (trazo, heredan el color del tipo). Los tipos nuevos llevan una etiqueta. */
+const G_ICONOS_TIPO = {
+  emblema: '<path d="M12 3 4.5 6v5.5c0 4.4 3.1 7.7 7.5 9.5 4.4-1.8 7.5-5.1 7.5-9.5V6L12 3z"/><path d="m9 12 2.2 2.2L15.5 10" stroke-linecap="round"/>',
+  sello:   '<path d="M9 4h6v5a3 3 0 0 0 1.5 2.6c.9.6 1.5 1.5 1.5 2.4v1H6v-1c0-.9.6-1.8 1.5-2.4A3 3 0 0 0 9 9V4z"/><path d="M5 20h14" stroke-linecap="round"/>',
+  propio:  '<path d="m12 3 2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 9.3l6-.8L12 3z"/>',
+  otro:    '<path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7a1 1 0 0 1 .7.3l7.6 7.6a1 1 0 0 1 0 1.4l-7.3 7.3a1 1 0 0 1-1.4 0l-7.6-7.6a1 1 0 0 1-.4-.7z"/><circle cx="8.3" cy="8.3" r="1.4"/>',
+};
 function gTipoIcono(id){
-  const d = {
-    emblema: '<path d="M12 3 4.5 6v5.5c0 4.4 3.1 7.7 7.5 9.5 4.4-1.8 7.5-5.1 7.5-9.5V6L12 3z"/><path d="m9 12 2.2 2.2L15.5 10" stroke-linecap="round"/>',
-    sello:   '<path d="M9 4h6v5a3 3 0 0 0 1.5 2.6c.9.6 1.5 1.5 1.5 2.4v1H6v-1c0-.9.6-1.8 1.5-2.4A3 3 0 0 0 9 9V4z"/><path d="M5 20h14" stroke-linecap="round"/>',
-    propio:  '<path d="m12 3 2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 9.3l6-.8L12 3z"/>',
-  }[id] || '';
-  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">${G_ICONOS_TIPO[id] || G_ICONOS_TIPO.otro}</svg>`;
 }
 /** La cabecera de un apartado: icono, nombre, para qué es y cuántos hay. */
 function gBandaCabecera(t, n){
   return `<header class="arch-bh"><span class="arch-bico">${gTipoIcono(t.id)}</span>
-    <div class="arch-bt"><h2>${esc(t.corto === 'SeriAdornos' ? 'Sellos SeriAdornos' : t.corto)}</h2><p>${esc(t.nota)}</p></div>
+    <div class="arch-bt"><h2>${esc(gMayus(t.varios))}</h2>${t.nota ? `<p>${esc(t.nota)}</p>` : ''}</div>
     <span class="arch-bn" aria-label="${n} en este apartado">${String(n).padStart(2, '0')}</span></header>`;
 }
 /** La cinta de «N modelos» de las tarjetas con varias variantes. */
 function gCinta(n){
   return `<span class="cinta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg>${n} modelos</span>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   GESTIONAR TIPOS DE SELLO (22 nov)
+
+   Crear tipos nuevos, cambiarles el nombre (en singular y plural), el color y la
+   frase que va bajo el título, ordenarlos y eliminarlos. Los cambios se guardan
+   al momento (como los colores de las categorías de notas) en la fila
+   «tipos_sello» de `colores_ajustes`, así que viajan a los demás aparatos y
+   entran en las copias de seguridad sin tocar la base de datos.
+
+   Eliminar un tipo NUNCA deja sellos sin tipo: se elige a qué otro pasan y se
+   confirma escribiendo ELIMINAR. Mientras no se cierre la ventana se puede deshacer.
+   ═══════════════════════════════════════════════════════════════════ */
+const G_PALETA_TIPOS = [...N_PALETA, ['Ámbar', '#d9a441'], ['Azul', '#7f9bd0'], ['Coral', '#f0857f']];
+
+/** Guarda la lista de tipos (en este aparato y en la nube, con cola si no hay red). */
+function gGuardarTipos(lista){
+  if(!puedeEditar){ brindis(SIN_PERMISO); return false; }
+  DATOS.tipos_sello = lista.map(t => ({
+    id: t.id, uno: t.uno, varios: t.varios,
+    corto: t.corto && t.corto !== gMayus(t.varios) ? t.corto : '',   // sólo si es una etiqueta propia
+    nota: t.nota || '', color: gHexOk(t.color) ? t.color : '',
+  }));
+  nSubirAjuste('tipos_sello', DATOS.tipos_sello);
+  return true;
+}
+const gSinTildes = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+function gIdTipoNuevo(){
+  const usados = new Set(gTipos().map(t => t.id));
+  let id;
+  do { id = 't' + Math.random().toString(36).slice(2, 7); } while(usados.has(id) || !/^[a-z0-9]{2,}$/.test(id));
+  return id;
+}
+/** El primer tono de la paleta que aún no usa ningún tipo (para que los nuevos no se parezcan). */
+function gColorLibreTipo(){
+  const usados = new Set(gTipos().map(t => (t.color || '').toLowerCase()));
+  const libre = G_PALETA_TIPOS.find(([, h]) => !usados.has(h.toLowerCase()));
+  return (libre || G_PALETA_TIPOS[gTipos().length % G_PALETA_TIPOS.length])[1];
+}
+const G_SVG_ARRIBA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>';
+const G_SVG_ABAJO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+const G_SVG_CERRAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+const G_SVG_AJUSTES = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>';
+
+/** El botoncito «Gestionar tipos» va en la línea del contador (sólo quien puede editar; el CSS lo esconde fuera de Sellos). */
+function gPonerBotonTipos(){
+  const fila = document.querySelector('.contador');
+  if(!fila) return;
+  let b = document.getElementById('g-gest-tipos');
+  if(!puedeEditar){ if(b) b.remove(); return; }
+  if(b) return;
+  b = document.createElement('button');
+  b.type = 'button'; b.className = 'arch-tipos-gest'; b.id = 'g-gest-tipos';
+  b.innerHTML = G_SVG_AJUSTES + '<span>Gestionar tipos</span>';
+  b.onclick = () => gGestionarTipos();
+  fila.appendChild(b);
+}
+
+const gPaletaTiposHtml = (actual, attr) => G_PALETA_TIPOS.map(([nom, hex]) => {
+  const on = hex.toLowerCase() === (actual || '').toLowerCase();
+  return `<button type="button" role="radio" class="n-sw${on ? ' on' : ''}" ${attr}="${hex}" aria-checked="${on}" aria-label="${nom}" title="${nom}" style="--cc:${hex}"></button>`;
+}).join('');
+
+/** Pregunta a qué tipo pasan los sellos de uno que se elimina. Devuelve el id, o null si se cancela. */
+function gElegirDestinoTipo(origen, n){
+  return new Promise(resolve => {
+    const otros = gTipos().filter(t => t.id !== origen.id);
+    let elegido = (otros.find(t => t.id === gTipoBase().id) || otros[0]).id;
+    const d = document.createElement('dialog');
+    d.className = 'dlg-tipos dlg-tipos-chico';
+    d.setAttribute('aria-labelledby', 'tg-dest-t');
+    d.innerHTML = `<div class="hoja">
+      <div class="hoja-cab"><h3 id="tg-dest-t">¿Dónde van sus sellos?</h3></div>
+      <div class="hoja-cuerpo">
+        <p class="tg-intro">«${esc(origen.uno)}» tiene <b>${n}</b> sello${n === 1 ? '' : 's'}. Ninguno se borra: elige a qué tipo pasa${n === 1 ? '' : 'n'}.</p>
+        <div class="tg-dest" role="radiogroup" aria-label="Tipo de destino">${otros.map(t =>
+          `<button type="button" role="radio" class="g-tipo-op t-${t.id}" data-dest="${t.id}" aria-checked="${t.id === elegido}"${gTipoEstilo(t.id)}><i class="pto"></i>${esc(t.uno)}</button>`).join('')}</div>
+      </div>
+      <div class="hoja-pie">
+        <button class="btn" type="button" data-no>Cancelar</button>
+        <button class="btn btn-1" type="button" data-si>Continuar</button>
+      </div></div>`;
+    document.body.appendChild(d);
+    let hecho = false;
+    const cerrar = v => { if(hecho) return; hecho = true; if(d.open) d.close(); d.remove(); resolve(v); };
+    for(const b of d.querySelectorAll('[data-dest]'))
+      b.onclick = () => { elegido = b.dataset.dest; for(const o of d.querySelectorAll('[data-dest]')) o.setAttribute('aria-checked', String(o === b)); };
+    d.querySelector('[data-si]').onclick = () => cerrar(elegido);
+    d.querySelector('[data-no]').onclick = () => cerrar(null);
+    d.addEventListener('cancel', e => { e.preventDefault(); cerrar(null); });
+    d.addEventListener('mousedown', e => { if(e.target === d) cerrar(null); });
+    d.showModal();
+  });
+}
+
+/** Elimina un tipo: elige destino, confirma con ELIMINAR, mueve los sellos y guarda. Devuelve la acción de deshacer o null. */
+async function gQuitarTipo(id){
+  if(!puedeEditar){ brindis(SIN_PERMISO); return null; }
+  const lista = gTipos();
+  const t = lista.find(x => x.id === id);
+  if(!t || lista.length < 2) return null;
+  const afectados = DATOS.gramos.filter(g => gTipoDe(g) === id);
+  const n = afectados.length;
+  let destino = null;
+  if(n){
+    destino = await gElegirDestinoTipo(t, n);
+    if(!destino) return null;
+  }
+  const dest = destino ? gTipoInfo(destino) : null;
+  if(!await pedirEliminar({titulo: 'Eliminar tipo', boton: 'Eliminar tipo',
+    texto: `Vas a eliminar el tipo <b>${esc(t.uno)}</b>.` + (n
+      ? ` Sus <b>${n}</b> sello${n === 1 ? '' : 's'} no se borra${n === 1 ? '' : 'n'}: pasa${n === 1 ? '' : 'n'} a <b>${esc(dest.uno)}</b>.`
+      : ' No tiene ningún sello.')})) return null;
+  const antes = DATOS.tipos_sello;                   // la lista de antes, tal cual (puede ser undefined)
+  const previos = afectados.map(g => ({id: g.id, tipo: g.tipo}));
+  if(!gGuardarTipos(lista.filter(x => x.id !== id))) return null;
+  for(const g of afectados){ g.tipo = destino; guardarGramo(g); }
+  if(gTipoFiltro === id) gPonerTipoFiltro(null);
+  actualizar();
+  return {
+    texto: `Tipo «${t.uno}» eliminado` + (n ? `. Sus ${n} sello${n === 1 ? '' : 's'} pasaron a «${dest.uno}»` : ''),
+    fn: () => {
+      const volver = antes === undefined ? G_TIPOS_BASE.map(x => ({...x})) : antes;
+      DATOS.tipos_sello = volver; nSubirAjuste('tipos_sello', volver);
+      for(const p of previos){ const g = porIdG.get(p.id); if(g){ if(p.tipo === undefined) delete g.tipo; else g.tipo = p.tipo; guardarGramo(g); } }
+      actualizar();
+    },
+  };
+}
+
+/** La ventana de «Gestionar tipos». `opciones.nuevo` la abre con el formulario de tipo nuevo. */
+function gGestionarTipos(opciones){
+  if(!puedeEditar){ brindis(SIN_PERMISO); return null; }
+  opciones = opciones || {};
+  const d = document.createElement('dialog');
+  d.className = 'dlg-tipos'; d.id = 'dlg-tipos';
+  d.setAttribute('aria-labelledby', 'tg-titulo');
+  document.body.appendChild(d);
+  let abierto = null;                  // id del tipo desplegado
+  let nuevo = opciones.nuevo ? gTipoVacio() : null;
+  let deshacer = null;                 // {texto, fn} del último tipo eliminado
+  let enfocar = null;                  // selector a enfocar tras repintar
+
+  function gTipoVacio(){ return {uno: '', varios: '', nota: '', color: gColorLibreTipo(), aMano: false}; }
+  const aviso = (el, txt) => {
+    const e = el.closest('.tg-fila, .tg-nuevo').querySelector('.tg-err');
+    e.textContent = txt || ''; e.hidden = !txt; el.setAttribute('aria-invalid', String(!!txt));
+  };
+  const nombreLibre = (uno, salvo) => {
+    const k = gSinTildes(uno);
+    return !gTipos().some(t => t.id !== salvo && gSinTildes(t.uno) === k);
+  };
+
+  function filaHtml(t, i, n){
+    const num = gCuenta(t.id), on = abierto === t.id;
+    return `<div class="tg-fila t-${t.id}${on ? ' abierta' : ''}" data-id="${t.id}"${gTipoEstilo(t.id)}>
+      <div class="tg-cab">
+        <button type="button" class="tg-abre" aria-expanded="${on}" aria-controls="tg-c-${t.id}" data-abre="${t.id}">
+          <i class="pto"></i><span class="tg-nom">${esc(t.uno)}</span><span class="tg-n">${num} sello${num === 1 ? '' : 's'}</span>
+          <svg class="tg-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+        <span class="tg-orden">
+          <button type="button" class="btn-icono" data-sube="${t.id}" aria-label="Subir «${esc(t.uno)}»"${i === 0 ? ' disabled' : ''}>${G_SVG_ARRIBA}</button>
+          <button type="button" class="btn-icono" data-baja="${t.id}" aria-label="Bajar «${esc(t.uno)}»"${i === n - 1 ? ' disabled' : ''}>${G_SVG_ABAJO}</button>
+        </span>
+      </div>
+      <div class="tg-cuerpo" id="tg-c-${t.id}"${on ? '' : ' hidden'}>
+        <label class="campo"><span>Nombre (en singular)</span><input type="text" maxlength="40" data-f="uno" value="${esc(t.uno)}" autocomplete="off" placeholder="Emblema"></label>
+        <label class="campo"><span>En plural</span><input type="text" maxlength="40" data-f="varios" value="${esc(t.varios)}" autocomplete="off" placeholder="emblemas"></label>
+        <p class="tg-ayuda">El plural sale en el título del apartado y en «Todos los …». Se propone solo, pero lo puedes corregir.</p>
+        <label class="campo"><span>Para qué es <em>(opcional)</em></span><input type="text" maxlength="90" data-f="nota" value="${esc(t.nota)}" autocomplete="off" placeholder="La frase pequeña bajo el título"></label>
+        <div class="campo"><span>Color</span><div class="n-paleta-fila" role="radiogroup" aria-label="Color de ${esc(t.uno)}">${gPaletaTiposHtml(t.color, 'data-col')}</div></div>
+        <p class="tg-err" role="alert" hidden></p>
+        <button type="button" class="btn tg-quita" data-quita="${t.id}"${n < 2 ? ' disabled title="Tiene que quedar al menos un tipo"' : ''}>Eliminar este tipo…</button>
+      </div></div>`;
+  }
+  function nuevoHtml(){
+    return `<div class="tg-nuevo" style="--tt:${nuevo.color}">
+      <h4>Tipo nuevo</h4>
+      <label class="campo"><span>Nombre (en singular)</span><input type="text" maxlength="40" id="tg-n-uno" value="${esc(nuevo.uno)}" autocomplete="off" placeholder="Por ejemplo: Etiqueta"></label>
+      <label class="campo"><span>En plural</span><input type="text" maxlength="40" id="tg-n-varios" value="${esc(nuevo.varios)}" autocomplete="off" placeholder="etiquetas"></label>
+      <label class="campo"><span>Para qué es <em>(opcional)</em></span><input type="text" maxlength="90" id="tg-n-nota" value="${esc(nuevo.nota)}" autocomplete="off" placeholder="La frase pequeña bajo el título"></label>
+      <div class="campo"><span>Color</span><div class="n-paleta-fila" role="radiogroup" aria-label="Color del tipo nuevo">${gPaletaTiposHtml(nuevo.color, 'data-ncol')}</div></div>
+      <p class="tg-err" role="alert" hidden></p>
+      <div class="tg-nuevo-pie"><button type="button" class="btn" id="tg-n-no">Cancelar</button><button type="button" class="btn btn-1" id="tg-n-si" disabled>Añadir tipo</button></div>
+    </div>`;
+  }
+
+  function pintar(){
+    const tipos = gTipos();
+    d.innerHTML = `<div class="hoja">
+      <div class="hoja-cab"><h3 id="tg-titulo">Tipos de sello</h3>
+        <button type="button" class="btn-icono" data-cierra aria-label="Cerrar">${G_SVG_CERRAR}</button></div>
+      <div class="hoja-cuerpo">
+        <p class="tg-intro">Cada tipo es un apartado en Sellos. Pulsa uno para cambiarle el nombre, el color o la frase; las flechas cambian el orden. Los cambios se guardan solos.</p>
+        ${deshacer ? `<div class="tg-deshacer" role="status"><span>${esc(deshacer.texto)}.</span><button type="button" class="btn" data-deshace>Deshacer</button></div>` : ''}
+        <div class="tg-lista">${tipos.map((t, i) => filaHtml(t, i, tipos.length)).join('')}</div>
+        ${nuevo ? nuevoHtml() : `<button type="button" class="btn tg-mas" id="tg-mas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Nuevo tipo</button>`}
+      </div>
+      <div class="hoja-pie"><button type="button" class="btn btn-1" data-cierra>Hecho</button></div></div>`;
+    enlazar();
+    if(enfocar){ const e = d.querySelector(enfocar); if(e) e.focus(); enfocar = null; }
+  }
+
+  /** Guarda un campo de un tipo ya existente (se llama al salir del campo). */
+  function guardarCampo(inp){
+    const fila = inp.closest('.tg-fila'), id = fila.dataset.id, f = inp.dataset.f;
+    const lista = gTipos().map(t => ({...t}));
+    const t = lista.find(x => x.id === id); if(!t) return;
+    let v = inp.value.replace(/\s+/g, ' ').trim();
+    if(f === 'uno'){
+      if(!v){ inp.value = t.uno; aviso(inp, 'El nombre no puede quedar vacío.'); return; }
+      if(!nombreLibre(v, id)){ inp.value = t.uno; aviso(inp, `Ya hay un tipo que se llama «${v}».`); return; }
+      if(v === t.uno){ aviso(inp, ''); return; }
+      const plAuto = !t.varios || t.varios === gPluralDe(t.uno);   // el plural era el propuesto: lo seguimos proponiendo
+      t.uno = v;
+      if(plAuto){ t.varios = gPluralDe(v); t.corto = ''; fila.querySelector('[data-f="varios"]').value = t.varios; }
+    }else if(f === 'varios'){
+      if(!v){ v = gPluralDe(t.uno); inp.value = v; }
+      if(v !== t.varios){ t.varios = v; t.corto = ''; }
+    }else if(f === 'nota'){
+      t.nota = v;
+    }
+    aviso(inp, '');
+    inp.value = v;
+    deshacer = null;
+    gGuardarTipos(lista);
+    // sin repintar la ventana (el cursor sigue donde estaba): sólo lo que se ve de la fila
+    fila.querySelector('.tg-nom').textContent = t.uno;
+    fila.querySelector('[data-sube]').setAttribute('aria-label', `Subir «${t.uno}»`);
+    fila.querySelector('[data-baja]').setAttribute('aria-label', `Bajar «${t.uno}»`);
+    d.querySelector('.tg-deshacer')?.remove();
+    actualizar();
+  }
+  function ponerColor(id, hex){
+    const lista = gTipos().map(t => ({...t}));
+    const t = lista.find(x => x.id === id); if(!t || !gHexOk(hex)) return;
+    t.color = hex; deshacer = null; gGuardarTipos(lista);
+    const fila = d.querySelector(`.tg-fila[data-id="${id}"]`);
+    fila.style.setProperty('--tt', hex);
+    for(const b of fila.querySelectorAll('[data-col]')){
+      const on = b.dataset.col.toLowerCase() === hex.toLowerCase();
+      b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on));
+    }
+    d.querySelector('.tg-deshacer')?.remove();
+    actualizar();
+  }
+  function mover(id, delta){
+    const lista = gTipos().map(t => ({...t}));
+    const i = lista.findIndex(t => t.id === id), j = i + delta;
+    if(i < 0 || j < 0 || j >= lista.length) return;
+    [lista[i], lista[j]] = [lista[j], lista[i]];
+    deshacer = null; gGuardarTipos(lista);
+    pintar();
+    const k = delta < 0 ? 'sube' : 'baja', k2 = delta < 0 ? 'baja' : 'sube';
+    const b = d.querySelector(`[data-${k}="${id}"]`);
+    (b && !b.disabled ? b : d.querySelector(`[data-${k2}="${id}"]`))?.focus();
+    actualizar();
+  }
+
+  function nuevoValido(){
+    const uno = nuevo.uno.replace(/\s+/g, ' ').trim();
+    if(!uno) return {ok: false, msg: ''};
+    if(!nombreLibre(uno)) return {ok: false, msg: `Ya hay un tipo que se llama «${uno}».`};
+    return {ok: true, msg: ''};
+  }
+  function refrescarNuevo(){
+    const v = nuevoValido(), c = d.querySelector('.tg-nuevo');
+    d.querySelector('#tg-n-si').disabled = !v.ok;
+    const e = c.querySelector('.tg-err'); e.textContent = v.msg; e.hidden = !v.msg;
+    d.querySelector('#tg-n-uno').setAttribute('aria-invalid', String(!!v.msg));
+  }
+  function anadir(){
+    const v = nuevoValido(); if(!v.ok) return;
+    const uno = nuevo.uno.replace(/\s+/g, ' ').trim();
+    const varios = nuevo.varios.replace(/\s+/g, ' ').trim() || gPluralDe(uno);
+    const t = {id: gIdTipoNuevo(), uno, varios, corto: '', nota: nuevo.nota.trim(), color: nuevo.color};
+    if(!gGuardarTipos([...gTipos().map(x => ({...x})), t])) return;
+    nuevo = null; deshacer = null; abierto = t.id;
+    pintar();
+    d.querySelector(`.tg-fila[data-id="${t.id}"]`)?.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+    actualizar();
+  }
+
+  function enlazar(){
+    for(const b of d.querySelectorAll('[data-cierra]')) b.onclick = () => d.close();
+    for(const b of d.querySelectorAll('[data-abre]'))
+      b.onclick = () => { abierto = abierto === b.dataset.abre ? null : b.dataset.abre; enfocar = `[data-abre="${b.dataset.abre}"]`; pintar(); };
+    for(const b of d.querySelectorAll('[data-sube]')) b.onclick = () => mover(b.dataset.sube, -1);
+    for(const b of d.querySelectorAll('[data-baja]')) b.onclick = () => mover(b.dataset.baja, +1);
+    for(const i of d.querySelectorAll('.tg-fila [data-f]')) i.addEventListener('change', () => guardarCampo(i));
+    for(const b of d.querySelectorAll('[data-col]')) b.onclick = () => ponerColor(b.closest('.tg-fila').dataset.id, b.dataset.col);
+    for(const b of d.querySelectorAll('[data-quita]'))
+      b.onclick = async () => {
+        const r = await gQuitarTipo(b.dataset.quita);
+        if(r){ deshacer = r; abierto = null; enfocar = '.tg-deshacer .btn'; pintar(); }
+      };
+    d.querySelector('[data-deshace]')?.addEventListener('click', () => {
+      const r = deshacer; deshacer = null; if(r) r.fn(); pintar();
+    });
+    d.querySelector('#tg-mas')?.addEventListener('click', () => { nuevo = gTipoVacio(); enfocar = '#tg-n-uno'; pintar();
+      d.querySelector('.tg-nuevo')?.scrollIntoView({block: 'nearest', behavior: 'smooth'}); });
+    if(nuevo){
+      const $uno = d.querySelector('#tg-n-uno'), $pl = d.querySelector('#tg-n-varios'), $nota = d.querySelector('#tg-n-nota');
+      $uno.addEventListener('input', () => {
+        nuevo.uno = $uno.value;
+        if(!nuevo.aMano){ nuevo.varios = $uno.value.trim() ? gPluralDe($uno.value) : ''; $pl.value = nuevo.varios; }
+        refrescarNuevo();
+      });
+      $pl.addEventListener('input', () => { nuevo.varios = $pl.value; nuevo.aMano = !!$pl.value.trim(); });
+      $nota.addEventListener('input', () => { nuevo.nota = $nota.value; });
+      for(const b of d.querySelectorAll('[data-ncol]'))
+        b.onclick = () => {
+          nuevo.color = b.dataset.ncol; d.querySelector('.tg-nuevo').style.setProperty('--tt', nuevo.color);
+          for(const o of d.querySelectorAll('[data-ncol]')){ const on = o === b; o.classList.toggle('on', on); o.setAttribute('aria-checked', String(on)); }
+        };
+      for(const i of [$uno, $pl, $nota]) i.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); anadir(); } });
+      d.querySelector('#tg-n-si').onclick = anadir;
+      d.querySelector('#tg-n-no').onclick = () => { nuevo = null; enfocar = '#tg-mas'; pintar(); };
+      refrescarNuevo();
+    }
+  }
+
+  d.addEventListener('close', () => { d.remove(); actualizar(); });
+  d.addEventListener('mousedown', e => { if(e.target === d) d.close(); });
+  pintar();
+  d.showModal();
+  if(nuevo) setTimeout(() => d.querySelector('#tg-n-uno')?.focus(), 60);
+  return d;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -20502,13 +21057,13 @@ document.addEventListener('keydown', e => {
      antes, el cajón se iría vacío mientras se desliza).
    ═══════════════════════════════════════════════════════════════════════ */
 function cajonActivo(){
-  return !matchMedia('(max-width:860px)').matches && (SECCION === 'colores' || SECCION === 'gramos') && document.body.dataset.ficha === 'on';
+  return !matchMedia('(max-width:860px)').matches && (SECCION === 'colores' || SECCION === 'gramos' || SECCION === 'notas') && document.body.dataset.ficha === 'on';
 }
 var cajonTemporizador = 0;
 function cajonVaciar(){
   clearTimeout(cajonTemporizador);
   cajonTemporizador = setTimeout(() => {
-    if(((SECCION === 'colores' && !seleccion) || (SECCION === 'gramos' && !gramoSel)) && document.body.dataset.ficha !== 'on'){
+    if(((SECCION === 'colores' && !seleccion) || (SECCION === 'gramos' && !gramoSel) || (SECCION === 'notas' && !notaSel)) && document.body.dataset.ficha !== 'on'){
       $ficha.classList.remove('es-muro');
       soltarFotos($ficha);
       $ficha.innerHTML = '';

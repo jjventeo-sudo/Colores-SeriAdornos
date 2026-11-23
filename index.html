@@ -5066,6 +5066,42 @@ dialog.dlg-tipos-chico .hoja{width:min(440px,calc(100vw - 24px))}
 .tg-deshacer .btn{height:36px; padding:0 16px; font-size:13.5px}
 .tg-dest{display:flex; flex-wrap:wrap; gap:8px}
 @media (prefers-reduced-motion:reduce){ .tg-cuerpo, .tg-nuevo, .tg-deshacer, .tg-chev{animation:none; transition:none} }
+/* ═══ PILOTO / MOLDE Y NOTA DE CADA MODELO (23 nov) ═══
+   Se distinguen por la FORMA, no por el color (los colores ya significan el tipo del sello):
+   «Piloto» es un borde discontinuo (una prueba, a medias), «Molde» es una píldora llena (hecho). */
+.g-etq{display:flex; flex-wrap:wrap; align-items:center; gap:4px; align-self:flex-start; margin:1px 4px 0; min-width:0}
+.g-etq .g-tipo{margin:0}
+.arch-t .g-etq .g-tipo{margin:0}
+.g-fase{
+  display:inline-flex; align-items:center; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:.03em; line-height:1.5; white-space:nowrap;
+}
+.g-fase-piloto{color:var(--texto); background:transparent; border:1.5px dashed var(--texto-2)}
+.g-fase-molde{color:var(--tinta-txt); background:var(--tinta); border:1.5px solid transparent}
+.g-nota-ico{display:inline-grid; place-items:center; width:22px; height:22px; border-radius:50%; color:var(--texto-2); background:var(--panel-2); border:1px solid var(--linea)}
+.g-nota-ico svg{width:13px; height:13px}
+.g-fase-mini{
+  display:inline-grid; place-items:center; width:16px; height:16px; border-radius:50%; font-style:normal; font-size:9.5px; font-weight:800; margin-left:2px; flex:0 0 auto;
+}
+.g-fase-mini.g-fase-piloto{border-width:1.5px}
+.g-pill .g-fase-mini{margin-left:4px}
+
+/* ficha */
+.g-fn{margin:2px 0 14px; display:flex; flex-direction:column; gap:10px; animation:g-fn-entra .35s var(--salida) both}
+@keyframes g-fn-entra{from{opacity:0; transform:translateY(-4px)}}
+.g-fn-cab{display:flex; gap:6px}
+.g-fn-cab .g-fase{font-size:12px; padding:3px 12px}
+.g-fn-nota{
+  display:flex; gap:10px; margin:0; padding:12px 14px; border-radius:var(--r-m); font-size:14px; line-height:1.5; color:var(--texto);
+  background:color-mix(in srgb, var(--ambar) 9%, var(--panel-2)); border:1px solid color-mix(in srgb, var(--ambar) 26%, transparent);
+}
+.g-fn-nota svg{width:17px; height:17px; flex:0 0 auto; margin-top:2px; color:var(--ambar)}
+.g-fn-nota span{white-space:pre-wrap; overflow-wrap:anywhere; min-width:0}
+
+/* editor */
+.g-fn-ed{margin:4px 0 6px}
+.g-fase-seg{max-width:340px}
+.g-fn-ed textarea{width:100%; font:inherit; font-size:15px; line-height:1.45}
+@media (prefers-reduced-motion:reduce){ .g-fn{animation:none} }
 /* ═══ ESCRITORIO · «tarjetas anchas + cajón» (solo Colores, solo PC) ═══════════
    Juanjo (15 nov): «quita el muestrario de la derecha, lo importante es el
    listado». Elegida la opción C de la maqueta:
@@ -13360,7 +13396,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">dbedd67e</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">54a199d3</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -17391,7 +17427,7 @@ function gFiltrar(txt){
   const ps = t.split(' ');
   return DATOS.gramos.filter(g => {
     const vs = gVars(g);
-    const hay = norm([g.nombre, gTipoNombre(g), gMoldeNum(g), gMoldeNum(g) ? 'molde' : '',
+    const hay = norm([g.nombre, gTipoNombre(g), gFaseNotaTexto(g), gMoldeNum(g), gMoldeNum(g) ? 'molde' : '',
       ...(vs.length > 1 ? vs.map(gNomVar) : []),
       ...vs.flatMap(v => (v.colores || []).map(gNombreColor))].join(' '));
     return ps.every(p => hay.includes(p));
@@ -17471,7 +17507,7 @@ function muroDeGramos(){
             : (g.colores || []).slice(0, 4).map(c => `<i style="background:${esc(gHex(c.ref) || '#5b5d62')}"></i>`).join('')}
         </div>
         <b>${esc(g.nombre)}</b>
-        ${gTipoPildora(g)}
+        ${gEtiquetasSello(g)}
         <span>${esc([gMoldeTxt(g) || 'Sin molde', gVars(g).length > 1 ? gVars(g).length + ' variantes' : ''].filter(Boolean).join(' · '))}</span>
       </button>`).join('')}
     </div>
@@ -17537,6 +17573,7 @@ function pintarFichaGramo(){
       <h2>${esc(g.nombre)}</h2>
       <div class="g-cli">${gMoldeTxt(g) ? esc(gMoldeTxt(g)) : '<span class="flojo">Sin número de molde</span>'}</div>
     </div>
+    ${gFaseNotaFichaHtml(g._v)}
     <div class="g-tarj">
       <div class="g-cabsec"><span>Colores${vs.length > 1 ? ` de «${esc(gNomVar(g._v, vs.indexOf(g._v)))}»` : ''}</span></div>
       ${sinColores
@@ -17605,7 +17642,7 @@ function pastillasVariantes(raw, vs, activa){
     const hex = gHex(v.colores && v.colores[0] && v.colores[0].ref);
     const on = v === activa;
     return `<button type="button" class="g-pill${on ? ' on' : ''}" data-gv="${esc(v.id)}" role="tab" aria-selected="${on}">
-      <b class="g-pv${con ? '' : ' sin'}"${marcaFoto(fid)} style="--c:${esc(hex || '#5b5d62')}"></b><span>${esc(gNomVar(v, i))}</span></button>`;
+      <b class="g-pv${con ? '' : ' sin'}"${marcaFoto(fid)} style="--c:${esc(hex || '#5b5d62')}"></b><span>${esc(gNomVar(v, i))}</span>${gFaseMini(v)}</button>`;
   }).join('') : '';
   const mas = puedeEditar ? `<button type="button" class="g-pill g-pill-mas" id="g-addvar">+ Variante</button>` : '';
   const juntar = puedeEditar && DATOS.gramos.length > 1
@@ -17727,7 +17764,7 @@ function borrarGramo(g){
       texto:`Vas a eliminar la variante <b>«${esc(gNomVar(act, ini))}»</b> de ${esc(g.nombre)}.`})) return;
     const resto = vs.filter(v => v !== act);
     const r = {...g, variantes: resto, colores: resto[0].colores};
-    if(resto.length === 1 && resto[0].id === G_V0 && !resto[0].foto && !resto[0].nombre) delete r.variantes;
+    if(resto.length === 1 && resto[0].id === G_V0 && !resto[0].foto && !resto[0].nombre && !resto[0].fase && !resto[0].nota) delete r.variantes;
     const antes = gCopia(g);
     // La foto de la variante NO se quita del servidor: así «Deshacer» la devuelve
     // entera. Pesa unos 100 KB; no merece la pena perder la posibilidad de volver.
@@ -17813,7 +17850,7 @@ function juntarGramos(base){
     const nBase = gPorMolde(base);
     const vars = baseMulti
       ? gVars(base).map(v => ({...v, colores: copia(v.colores)}))
-      : [{id: G_V0, nombre: (nombreBase || '').trim(), colores: copia(gVars(base)[0].colores)}];
+      : [{id: G_V0, nombre: (nombreBase || '').trim(), ...gVarExtra(gVars(base)[0]), colores: copia(gVars(base)[0].colores)}];
     let convertidos = false;
     for(const x of otros.filter(o => marcados.has(o.id))){
       const nx = gPorMolde(x);
@@ -17824,6 +17861,7 @@ function juntarGramos(base){
         id: (() => { let id = gNuevoVid(); while(vars.some(o => o.id === id)) id = gNuevoVid(); return id; })(),
         nombre: hijos.length > 1 ? `${nom} · ${gNomVar(v, i)}` : nom,
         foto: gFotoIdV(x, v),          // su foto se queda donde está
+        ...gVarExtra(v),                // y su piloto/molde y su nota
         // Lo apuntado era «gramos de un molde de nx sellos»; aquí es de nBase.
         // Seis decimales: con tres, 1.000 g repartidos salían como 999 g.
         colores: copia(v.colores).map(c => nx === nBase ? c
@@ -17881,7 +17919,7 @@ function editarGramo(base, duplicar, modo){
       const a = gVarActiva(base);
       g.variantes = [{id: G_V0, nombre: '', colores: copiaCols(a.colores)}];
     }else{
-      g.variantes = gVars(g).map(v => ({id: v.id, nombre: v.nombre || '', ...(v.foto ? {foto: v.foto} : {}),
+      g.variantes = gVars(g).map(v => ({id: v.id, nombre: v.nombre || '', ...(v.foto ? {foto: v.foto} : {}), ...gVarExtra(v),
                                         colores: copiaCols(v.colores)}));
     }
     delete g.colores;
@@ -17971,6 +18009,7 @@ function editarGramo(base, duplicar, modo){
       <label class="campo"><span>Nombre del sello</span>
         <input id="g-e-nombre" value="${esc(g.nombre)}" autocomplete="off" maxlength="80" placeholder="Por ejemplo: LLV. ELROW"></label>
       ${pillsEd}
+      ${gFaseNotaEditorHtml(cur())}
       <div class="g-ed-cab"><span class="g-ceja" id="g-e-cab">${esc(cabTxt())}</span></div>
       <div class="g-ed-cols">${filas || '<p class="g-vacio">Todavía no hay ningún color.</p>'}</div>
       <button class="g-anadir" type="button" id="g-e-add">${icono('nuevo')} Añadir color</button>
@@ -18007,6 +18046,7 @@ function editarGramo(base, duplicar, modo){
 
     document.getElementById('g-e-nombre').addEventListener('input', e => { g.nombre = e.target.value; });
     gTipoEditorEnlazar($dc, v => { g.tipo = v; apuntarBorrador(); });
+    gFaseNotaEditorEnlazar($dc, cur, apuntarBorrador);
     document.getElementById('g-e-molde').addEventListener('input', e => { g.molde = e.target.value; });
     for(const b of $dc.querySelectorAll('[data-quitar]'))
       b.onclick = () => { cur().colores.splice(+b.dataset.quitar, 1); apuntarBorrador(); pintar(); };
@@ -18076,12 +18116,12 @@ function editarGramo(base, duplicar, modo){
     const repe = DATOS.gramos.find(x => x.id !== g.id && norm(x.nombre) === norm(nombre) &&
                                         norm(gMoldeNum(x)) === norm(gMoldeNum(g)));
     const vars = g.variantes.map(v => ({
-      id: v.id, nombre: (v.nombre || '').trim(), ...(v.foto ? {foto: v.foto} : {}),
+      id: v.id, nombre: (v.nombre || '').trim(), ...(v.foto ? {foto: v.foto} : {}), ...gVarExtra(v),
       colores: v.colores.map(c => ({ref: c.ref, nombre: gNombreColor(c),
                                     gramos: Math.round((Number(c.gramos) || 0) * 1000) / 1000})),   // los gramos de antes se conservan sin tocar
     }));
     // Un sello con una sola variante se guarda como siempre (sin `variantes`).
-    const sencillo = vars.length === 1 && vars[0].id === G_V0 && !vars[0].foto;
+    const sencillo = vars.length === 1 && vars[0].id === G_V0 && !vars[0].foto && !vars[0].fase && !vars[0].nota;
     const r = {
       id: g.id, nombre, tipo: gTipoDe(g), molde: g.molde.trim(), cliente: (g.cliente || '').trim(),
       colores: vars[0].colores,     // copia de la primera: para una app sin actualizar
@@ -19299,7 +19339,7 @@ function gTarjeta(g){
 </div>` +
     `<b>${resaltar(g.nombre, $q.value)}</b>` +
     `<span class="arch-sub">${esc(gMoldeTxt(g) || 'Sin molde')}</span>` +
-    gTipoPildora(g) +
+    gEtiquetasSello(g) +
     `<div class="arch-pastillas">${cols.slice(0, 6).map(r => gGota(gHex(r), 20)).join('')}${
       cols.length > 6 ? `<span>+${cols.length - 6}</span>` : ''}${
       cols.length ? '' : '<em class="falta">sin colores</em>'}</div>`;
@@ -20938,6 +20978,75 @@ function gGestionarTipos(opciones){
   d.showModal();
   if(nuevo) setTimeout(() => d.querySelector('#tg-n-uno')?.focus(), 60);
   return d;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PILOTO / MOLDE Y NOTA DE CADA MODELO (23 nov)
+
+   Cada modelo (variante) de un sello puede llevar dos cosas más:
+     fase   'piloto' (prueba) o 'molde' (hecho); si no se marca, no sale nada
+     nota   texto libre para «lo diferente»: qué cambia respecto al otro, qué le pasa…
+
+   Viven dentro de la variante (`variantes[i].fase` / `.nota`), así que no hace falta
+   tabla ni SQL, y una app sin actualizar simplemente no las enseña. Un sello de un
+   solo modelo guarda sus cosas en su variante «v0»; si no hay nada que guardar,
+   se sigue guardando como siempre (sin `variantes`).
+   ═══════════════════════════════════════════════════════════════════ */
+const G_FASES = [{id: 'piloto', nombre: 'Piloto'}, {id: 'molde', nombre: 'Molde'}];
+const G_NOTA_MAX = 600;
+const gFaseDe = v => v && (v.fase === 'piloto' || v.fase === 'molde') ? v.fase : '';
+const gNotaDe = v => v && typeof v.nota === 'string' ? v.nota.trim() : '';
+/** Lo que se guarda de un modelo, sin claves vacías. */
+const gVarExtra = v => ({...(gFaseDe(v) ? {fase: gFaseDe(v)} : {}), ...(gNotaDe(v) ? {nota: gNotaDe(v).slice(0, G_NOTA_MAX)} : {})});
+const gFaseNombre = id => (G_FASES.find(f => f.id === id) || {}).nombre || '';
+/** Las fases distintas que hay entre los modelos de un sello, en orden fijo (piloto, molde). */
+const gFasesDe = g => G_FASES.map(f => f.id).filter(id => gVars(g).some(v => gFaseDe(v) === id));
+const gHayNota = g => gVars(g).some(v => gNotaDe(v));
+
+const G_ICONO_NOTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14a1 1 0 0 1 1 1V16a1 1 0 0 1-1 1h-7l-4.5 3.5V17H5a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1z"/><path d="M8 9h8M8 12.5h5"/></svg>';
+const gFasePildora = id => id ? `<span class="g-fase g-fase-${id}">${esc(gFaseNombre(id))}</span>` : '';
+
+/** Lo que va en la tarjeta o el mosaico bajo el nombre: el tipo, la fase de cada modelo y un icono si hay nota. */
+function gEtiquetasSello(g){
+  const fases = gFasesDe(g), nota = gHayNota(g);
+  return `<div class="g-etq">${gTipoPildora(g)}${fases.map(gFasePildora).join('')}${
+    nota ? `<span class="g-nota-ico" title="Tiene nota" role="img" aria-label="Tiene nota">${G_ICONO_NOTA}</span>` : ''}</div>`;
+}
+/** En la pastilla de cada modelo: una inicial pequeña de su fase. */
+const gFaseMini = v => gFaseDe(v) ? `<i class="g-fase-mini g-fase-${gFaseDe(v)}" title="${esc(gFaseNombre(gFaseDe(v)))}">${esc(gFaseNombre(gFaseDe(v)).charAt(0))}</i>` : '';
+
+/** En la ficha, bajo el título: la fase y la nota del modelo que se mira. */
+function gFaseNotaFichaHtml(v){
+  const f = gFaseDe(v), n = gNotaDe(v);
+  if(!f && !n) return '';
+  return `<div class="g-fn">${f ? `<div class="g-fn-cab">${gFasePildora(f)}</div>` : ''}${
+    n ? `<p class="g-fn-nota">${G_ICONO_NOTA}<span>${esc(n)}</span></p>` : ''}</div>`;
+}
+/** Lo que se busca: «piloto», «molde» o palabras de la nota encuentran el sello. */
+const gFaseNotaTexto = g => gVars(g).map(v => [gFaseNombre(gFaseDe(v)), gNotaDe(v)].join(' ')).join(' ');
+
+/** El bloque del editor, para el modelo que se está editando. */
+function gFaseNotaEditorHtml(v){
+  const f = gFaseDe(v);
+  return `<div class="g-fn-ed">
+    <div class="campo g-fase-campo"><span>Este modelo es</span>
+      <div class="g-seg g-fase-seg" role="radiogroup" aria-label="Piloto o molde">${G_FASES.map(x =>
+        `<button type="button" role="radio" class="g-fase-op" data-fase-ed="${x.id}" aria-checked="${f === x.id}">${esc(x.nombre)}</button>`).join('')}</div>
+      <small class="g-ayuda-u">Toca otra vez la elegida para quitar la marca.</small></div>
+    <label class="campo"><span>Nota de este modelo <em>(opcional)</em></span>
+      <textarea id="g-e-nota" rows="3" maxlength="${G_NOTA_MAX}" placeholder="Por ejemplo: lleva el borde más fino; el piloto salió con burbujas"
+        >${esc(v.nota || '')}</textarea></label></div>`;
+}
+/** `cur` da el modelo que se edita en cada momento (cambia al cambiar de pastilla). */
+function gFaseNotaEditorEnlazar(raiz, cur, apuntar){
+  for(const b of raiz.querySelectorAll('[data-fase-ed]'))
+    b.onclick = () => {
+      const v = cur(), id = b.dataset.faseEd;
+      if(gFaseDe(v) === id) delete v.fase; else v.fase = id;
+      for(const o of raiz.querySelectorAll('[data-fase-ed]')) o.setAttribute('aria-checked', String(gFaseDe(v) === o.dataset.faseEd));
+      apuntar();
+    };
+  raiz.querySelector('#g-e-nota')?.addEventListener('input', e => { cur().nota = e.target.value; apuntar(); });
 }
 
 /* ═══════════════════════════════════════════════════════════════════════

@@ -4953,6 +4953,12 @@ html[data-lista="mosaico"] body[data-seccion="colores"] .fila:not(.fila-medias) 
   box-shadow:0 6px 14px rgba(232,111,99,.32);
 }
 .cinta svg{width:13px; height:13px; flex:0 0 auto}
+/* móvil: la cinta se queda en icono y número («3») para no tapar las insignias de la foto */
+@media (max-width:600px){
+  .cinta-t{display:none}
+  .cinta{padding:4px 9px 4px 7px; top:15px; right:15px}
+  .arch-pila .arch-foto .ins-arriba{max-width:calc(100% - 62px)}
+}
 @media (min-width:601px){
   .arch-banda{padding:20px 22px 24px; margin-bottom:20px}
   .arch-banda::after{width:5px; top:18px; bottom:18px}
@@ -5114,6 +5120,31 @@ dialog.dlg-tipos-chico .hoja{width:min(440px,calc(100vw - 24px))}
 .g-unid-ay{display:block; margin:-8px 0 14px}
 .arch-proc .g-proc-n{margin-left:6px; font:500 12px var(--mono); color:var(--texto-3)}
 .arch-proc .arch-chip[disabled]{opacity:.4}
+
+/* ═══ INSIGNIAS SOBRE LA FOTO DE LA TARJETA (24 nov) ═══
+   La fase arriba a la izquierda, cómo se hace abajo a la izquierda y las unidades abajo a la derecha.
+   Cristal oscuro para que se lean sobre cualquier foto; la fase mantiene su forma (discontinua / llena). */
+.arch-foto .ins{
+  display:inline-flex; align-items:center; gap:5px; height:23px; padding:0 9px; border-radius:999px; font-size:11px; font-weight:700; line-height:1; white-space:nowrap;
+  color:#f1ece0; background:rgba(20,19,24,.66); border:0; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+}
+.arch-foto .ins svg{width:14px; height:14px; flex:0 0 auto}
+.arch-foto .ins-arriba{position:absolute; left:7px; top:7px; z-index:2; display:flex; flex-wrap:wrap; gap:4px; max-width:calc(100% - 14px)}
+.arch-foto .ins-f.g-fase-piloto{background:rgba(20,19,24,.66); color:#f1ece0; border:1.5px dashed rgba(255,255,255,.65); padding:0 8px}
+.arch-foto .ins-f.g-fase-molde{background:var(--tinta); color:var(--tinta-txt); backdrop-filter:none}
+.arch-foto .ins-abajo{position:absolute; left:7px; right:7px; bottom:7px; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:4px; pointer-events:none}
+.arch-foto .ins-p{padding:0 10px 0 7px}
+.arch-foto .ins-p-dos{padding:0 8px; gap:3px}
+.arch-foto .ins-u{margin-left:auto; font:700 12px var(--mono); padding:0 9px}
+/* tarjetas apaisadas (foto de 128 px): con unidades, «se hace con» queda solo en icono para que quepa */
+@media (min-width:601px){
+  .arch-foto .ins-p:not(:last-child){padding:0 7px}
+  .arch-foto .ins-p:not(:last-child) > span{display:none}
+}
+/* la línea del molde y el icono de nota */
+.arch-fila{display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0}
+.arch-fila .arch-sub{min-width:0; overflow-wrap:anywhere}
+.arch-fila .g-nota-ico{flex:0 0 auto; width:24px; height:24px}
 /* ═══ ESCRITORIO · «tarjetas anchas + cajón» (solo Colores, solo PC) ═══════════
    Juanjo (15 nov): «quita el muestrario de la derecha, lo importante es el
    listado». Elegida la opción C de la maqueta:
@@ -13408,7 +13439,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">5e5e607a</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">d9e155eb</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -19350,11 +19381,10 @@ function gTarjeta(g){
   b.setAttribute('aria-current', String(g.id === gramoSel));
   b.innerHTML =
     (nv > 1 ? gCinta(nv) : '') +
-    `<div class="arch-foto${con ? '' : ' sin'}"${marcaFoto(fid)}>${con ? '' : icono('sellos')}
+    `<div class="arch-foto${con ? '' : ' sin'}"${marcaFoto(fid)}>${con ? '' : icono('sellos')}${gInsigniasSello(g)}
 </div>` +
     `<b>${resaltar(g.nombre, $q.value)}</b>` +
-    `<span class="arch-sub">${esc(gMoldeTxt(g) || 'Sin molde')}</span>` +
-    gEtiquetasSello(g) +
+    `<div class="arch-fila"><span class="arch-sub">${esc(gMoldeTxt(g) || 'Sin molde')}</span>${gNotaIcono(g)}</div>` +
     `<div class="arch-pastillas">${cols.slice(0, 6).map(r => gGota(gHex(r), 20)).join('')}${
       cols.length > 6 ? `<span>+${cols.length - 6}</span>` : ''}${
       cols.length ? '' : '<em class="falta">sin colores</em>'}</div>`;
@@ -20663,7 +20693,7 @@ function gBandaCabecera(t, n){
 }
 /** La cinta de «N modelos» de las tarjetas con varias variantes. */
 function gCinta(n){
-  return `<span class="cinta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg>${n} modelos</span>`;
+  return `<span class="cinta" aria-label="${n} modelos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg>${n}<span class="cinta-t"> modelos</span></span>`;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -21035,6 +21065,23 @@ function gEtiquetasSello(g){
   return `<div class="g-etq">${gTipoPildora(g)}${fases.map(gFasePildora).join('')}${procs.map(gProcPildora).join('')}${
     un > 1 ? `<span class="g-unid" title="${un} unidades por molde">×${un}</span>` : ''}${
     nota ? `<span class="g-nota-ico" title="Tiene nota" role="img" aria-label="Tiene nota">${G_ICONO_NOTA}</span>` : ''}</div>`;
+}
+/** Iconos de «se hace con»: el robot y la espátula del engomado. */
+const G_ICONO_PROC = {
+  robot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="11" rx="3.5"/><path d="M12 8V4.5M9.5 4.5h5"/><circle cx="9" cy="13.5" r="1.2" fill="currentColor"/><circle cx="15" cy="13.5" r="1.2" fill="currentColor"/><path d="M2.5 12.5v2M21.5 12.5v2"/></svg>',
+  engomado: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 3.5l6 6-6.2 2.3-2.1-2.1z"/><path d="M12.2 9.7 3.5 18.4a1.6 1.6 0 0 0 2.1 2.1l8.7-8.7"/></svg>'
+};
+/** El icono de nota que va junto al molde en la tarjeta. */
+const gNotaIcono = g => gHayNota(g) ? `<span class="g-nota-ico" title="Tiene nota" role="img" aria-label="Tiene nota">${G_ICONO_NOTA}</span>` : '';
+/** Lo que se pone SOBRE la foto de la tarjeta: la fase (arriba), cómo se hace y las unidades (abajo). */
+function gInsigniasSello(g){
+  const fases = gFasesDe(g), procs = gProcesosDe(g), un = gPorMolde(g);
+  const arriba = fases.length ? `<div class="ins-arriba">${fases.map(id => `<span class="ins ins-f g-fase-${id}">${esc(gFaseNombre(id))}</span>`).join('')}</div>` : '';
+  const dos = procs.length > 1;
+  const proc = procs.length ? `<span class="ins ins-p${dos ? ' ins-p-dos' : ''}" title="${esc(procs.map(gProcNombre).join(' y '))}">${
+    procs.map(id => G_ICONO_PROC[id]).join('')}${dos ? '' : `<span>${esc(gProcNombre(procs[0]))}</span>`}</span>` : '';
+  const uni = un > 1 ? `<span class="ins ins-u" title="${un} unidades por molde">×${un}</span>` : '';
+  return arriba + (proc || uni ? `<div class="ins-abajo">${proc}${uni}</div>` : '');
 }
 /** En la pastilla de cada modelo: una inicial pequeña de su fase. */
 const gFaseMini = v => gFaseDe(v) ? `<i class="g-fase-mini g-fase-${gFaseDe(v)}" title="${esc(gFaseNombre(gFaseDe(v)))}">${esc(gFaseNombre(gFaseDe(v)).charAt(0))}</i>` : '';

@@ -5102,6 +5102,18 @@ dialog.dlg-tipos-chico .hoja{width:min(440px,calc(100vw - 24px))}
 .g-fase-seg{max-width:340px}
 .g-fn-ed textarea{width:100%; font:inherit; font-size:15px; line-height:1.45}
 @media (prefers-reduced-motion:reduce){ .g-fn{animation:none} }
+
+/* engomado / robot: rectángulo de esquinas suaves (la fase es una píldora; así no se confunden) */
+.g-proc{display:inline-flex; align-items:center; padding:2px 8px; border-radius:7px; font-size:11px; font-weight:700; letter-spacing:.03em; line-height:1.5; white-space:nowrap;
+  color:var(--texto-2); background:var(--panel-2); border:1px solid var(--linea-fuerte)}
+.g-fn-cab{flex-wrap:wrap}
+.g-fn-cab .g-proc{font-size:12px; padding:3px 11px}
+.g-unid{display:inline-flex; align-items:center; padding:2px 8px; border-radius:7px; font:600 11.5px var(--mono); color:var(--texto-2); background:transparent; border:1px solid var(--linea); white-space:nowrap}
+.g-unid-campo input{max-width:120px; text-align:center; font:700 17px var(--mono)}
+.g-unid-campo input.mal{border-color:var(--rojo, #e5484d)}
+.g-unid-ay{display:block; margin:-8px 0 14px}
+.arch-proc .g-proc-n{margin-left:6px; font:500 12px var(--mono); color:var(--texto-3)}
+.arch-proc .arch-chip[disabled]{opacity:.4}
 /* ═══ ESCRITORIO · «tarjetas anchas + cajón» (solo Colores, solo PC) ═══════════
    Juanjo (15 nov): «quita el muestrario de la derecha, lo importante es el
    listado». Elegida la opción C de la maqueta:
@@ -13396,7 +13408,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">54a199d3</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">5e5e607a</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -17571,7 +17583,7 @@ function pintarFichaGramo(){
     <div class="s-titulo g-tit">
       ${gTipoPildora(g)}
       <h2>${esc(g.nombre)}</h2>
-      <div class="g-cli">${gMoldeTxt(g) ? esc(gMoldeTxt(g)) : '<span class="flojo">Sin número de molde</span>'}</div>
+      <div class="g-cli">${gMoldeTxt(g) ? esc(gMoldeTxt(g)) : '<span class="flojo">Sin número de molde</span>'}${gPorMolde(g) > 1 ? ` · <b class="g-cli-u">${gPorMolde(g)} unidades por molde</b>` : ''}</div>
     </div>
     ${gFaseNotaFichaHtml(g._v)}
     <div class="g-tarj">
@@ -17764,7 +17776,7 @@ function borrarGramo(g){
       texto:`Vas a eliminar la variante <b>«${esc(gNomVar(act, ini))}»</b> de ${esc(g.nombre)}.`})) return;
     const resto = vs.filter(v => v !== act);
     const r = {...g, variantes: resto, colores: resto[0].colores};
-    if(resto.length === 1 && resto[0].id === G_V0 && !resto[0].foto && !resto[0].nombre && !resto[0].fase && !resto[0].nota) delete r.variantes;
+    if(resto.length === 1 && resto[0].id === G_V0 && !resto[0].foto && !resto[0].nombre && !resto[0].fase && !resto[0].proceso && !resto[0].nota) delete r.variantes;
     const antes = gCopia(g);
     // La foto de la variante NO se quita del servidor: así «Deshacer» la devuelve
     // entera. Pesa unos 100 KB; no merece la pena perder la posibilidad de volver.
@@ -18008,6 +18020,7 @@ function editarGramo(base, duplicar, modo){
         <input id="g-e-molde" value="${esc(g.molde)}" autocomplete="off" inputmode="text" maxlength="24" placeholder="Por ejemplo: 235"></label>
       <label class="campo"><span>Nombre del sello</span>
         <input id="g-e-nombre" value="${esc(g.nombre)}" autocomplete="off" maxlength="80" placeholder="Por ejemplo: LLV. ELROW"></label>
+      ${gUnidadesEditorHtml(g)}
       ${pillsEd}
       ${gFaseNotaEditorHtml(cur())}
       <div class="g-ed-cab"><span class="g-ceja" id="g-e-cab">${esc(cabTxt())}</span></div>
@@ -18047,6 +18060,7 @@ function editarGramo(base, duplicar, modo){
     document.getElementById('g-e-nombre').addEventListener('input', e => { g.nombre = e.target.value; });
     gTipoEditorEnlazar($dc, v => { g.tipo = v; apuntarBorrador(); });
     gFaseNotaEditorEnlazar($dc, cur, apuntarBorrador);
+    gUnidadesEditorEnlazar($dc, g, apuntarBorrador);
     document.getElementById('g-e-molde').addEventListener('input', e => { g.molde = e.target.value; });
     for(const b of $dc.querySelectorAll('[data-quitar]'))
       b.onclick = () => { cur().colores.splice(+b.dataset.quitar, 1); apuntarBorrador(); pintar(); };
@@ -18095,6 +18109,7 @@ function editarGramo(base, duplicar, modo){
       document.getElementById('g-e-nombre')?.focus();
       return;
     }
+    if(!gUnidadesValidar($dc)) return;
     for(let vi = 0; vi < g.variantes.length; vi++){
       const v = g.variantes[vi];
       const donde = g.variantes.length > 1 ? ` en «${gNomVar(v, vi)}»` : '';
@@ -18121,7 +18136,7 @@ function editarGramo(base, duplicar, modo){
                                     gramos: Math.round((Number(c.gramos) || 0) * 1000) / 1000})),   // los gramos de antes se conservan sin tocar
     }));
     // Un sello con una sola variante se guarda como siempre (sin `variantes`).
-    const sencillo = vars.length === 1 && vars[0].id === G_V0 && !vars[0].foto && !vars[0].fase && !vars[0].nota;
+    const sencillo = vars.length === 1 && vars[0].id === G_V0 && !vars[0].foto && !vars[0].fase && !vars[0].proceso && !vars[0].nota;
     const r = {
       id: g.id, nombre, tipo: gTipoDe(g), molde: g.molde.trim(), cliente: (g.cliente || '').trim(),
       colores: vars[0].colores,     // copia de la primera: para una app sin actualizar
@@ -19367,6 +19382,7 @@ function pintarArchivador(){
   const frag = document.createDocumentFragment();
   if(DATOS.gramos.length && gTipos().length > 1) frag.appendChild(gBarraTipos());
   gPonerBotonTipos();
+  { const fp = gBarraProceso(); if(fp) frag.appendChild(fp); }
   if(top.length){
     const fila = document.createElement('div');
     fila.className = 'arch-lleva';
@@ -20572,7 +20588,7 @@ function gPonerTipoFiltro(v){
   gTipoFiltro = v || null;
   try{ if(gTipoFiltro) localStorage.setItem('g-tipo', gTipoFiltro); else localStorage.removeItem('g-tipo'); }catch(_){}
 }
-function gFiltroTipo(lista){ gRevisarFiltro(); return gTipoFiltro ? lista.filter(g => gTipoDe(g) === gTipoFiltro) : lista; }
+function gFiltroTipo(lista){ gRevisarFiltro(); return gFiltroProceso(gTipoFiltro ? lista.filter(g => gTipoDe(g) === gTipoFiltro) : lista); }
 /** Un sello nuevo sale del tipo que se está mirando. */
 function gTipoNuevo(){ gRevisarFiltro(); return gTipoFiltro || gTipoBase().id; }
 
@@ -20981,11 +20997,13 @@ function gGestionarTipos(opciones){
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   PILOTO / MOLDE Y NOTA DE CADA MODELO (23 nov)
+   PILOTO / MOLDE, ENGOMADO / ROBOT, NOTA Y UNIDADES (23-24 nov)
 
-   Cada modelo (variante) de un sello puede llevar dos cosas más:
-     fase   'piloto' (prueba) o 'molde' (hecho); si no se marca, no sale nada
-     nota   texto libre para «lo diferente»: qué cambia respecto al otro, qué le pasa…
+   Cada modelo (variante) de un sello puede llevar tres cosas más:
+     fase     'piloto' (prueba) o 'molde' (hecho); si no se marca, no sale nada
+     proceso  'engomado' (a mano) o 'robot'; igual, opcional
+     nota     texto libre para «lo diferente»: qué cambia respecto al otro, qué le pasa…
+   Y el sello entero lleva `porMolde`: las unidades que salen de un molde (1 si no se pone).
 
    Viven dentro de la variante (`variantes[i].fase` / `.nota`), así que no hace falta
    tabla ni SQL, y una app sin actualizar simplemente no las enseña. Un sello de un
@@ -20995,21 +21013,27 @@ function gGestionarTipos(opciones){
 const G_FASES = [{id: 'piloto', nombre: 'Piloto'}, {id: 'molde', nombre: 'Molde'}];
 const G_NOTA_MAX = 600;
 const gFaseDe = v => v && (v.fase === 'piloto' || v.fase === 'molde') ? v.fase : '';
+const G_PROCESOS = [{id: 'engomado', nombre: 'Engomado'}, {id: 'robot', nombre: 'Robot'}];
+const gProcDe = v => v && (v.proceso === 'engomado' || v.proceso === 'robot') ? v.proceso : '';
+const gProcNombre = id => (G_PROCESOS.find(f => f.id === id) || {}).nombre || '';
+const gProcesosDe = g => G_PROCESOS.map(f => f.id).filter(id => gVars(g).some(v => gProcDe(v) === id));
 const gNotaDe = v => v && typeof v.nota === 'string' ? v.nota.trim() : '';
 /** Lo que se guarda de un modelo, sin claves vacías. */
-const gVarExtra = v => ({...(gFaseDe(v) ? {fase: gFaseDe(v)} : {}), ...(gNotaDe(v) ? {nota: gNotaDe(v).slice(0, G_NOTA_MAX)} : {})});
+const gVarExtra = v => ({...(gFaseDe(v) ? {fase: gFaseDe(v)} : {}), ...(gProcDe(v) ? {proceso: gProcDe(v)} : {}), ...(gNotaDe(v) ? {nota: gNotaDe(v).slice(0, G_NOTA_MAX)} : {})});
 const gFaseNombre = id => (G_FASES.find(f => f.id === id) || {}).nombre || '';
 /** Las fases distintas que hay entre los modelos de un sello, en orden fijo (piloto, molde). */
 const gFasesDe = g => G_FASES.map(f => f.id).filter(id => gVars(g).some(v => gFaseDe(v) === id));
 const gHayNota = g => gVars(g).some(v => gNotaDe(v));
 
 const G_ICONO_NOTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14a1 1 0 0 1 1 1V16a1 1 0 0 1-1 1h-7l-4.5 3.5V17H5a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1z"/><path d="M8 9h8M8 12.5h5"/></svg>';
+const gProcPildora = id => id ? `<span class="g-proc g-proc-${id}">${esc(gProcNombre(id))}</span>` : '';
 const gFasePildora = id => id ? `<span class="g-fase g-fase-${id}">${esc(gFaseNombre(id))}</span>` : '';
 
 /** Lo que va en la tarjeta o el mosaico bajo el nombre: el tipo, la fase de cada modelo y un icono si hay nota. */
 function gEtiquetasSello(g){
-  const fases = gFasesDe(g), nota = gHayNota(g);
-  return `<div class="g-etq">${gTipoPildora(g)}${fases.map(gFasePildora).join('')}${
+  const fases = gFasesDe(g), procs = gProcesosDe(g), nota = gHayNota(g), un = gPorMolde(g);
+  return `<div class="g-etq">${gTipoPildora(g)}${fases.map(gFasePildora).join('')}${procs.map(gProcPildora).join('')}${
+    un > 1 ? `<span class="g-unid" title="${un} unidades por molde">×${un}</span>` : ''}${
     nota ? `<span class="g-nota-ico" title="Tiene nota" role="img" aria-label="Tiene nota">${G_ICONO_NOTA}</span>` : ''}</div>`;
 }
 /** En la pastilla de cada modelo: una inicial pequeña de su fase. */
@@ -21017,22 +21041,25 @@ const gFaseMini = v => gFaseDe(v) ? `<i class="g-fase-mini g-fase-${gFaseDe(v)}"
 
 /** En la ficha, bajo el título: la fase y la nota del modelo que se mira. */
 function gFaseNotaFichaHtml(v){
-  const f = gFaseDe(v), n = gNotaDe(v);
-  if(!f && !n) return '';
-  return `<div class="g-fn">${f ? `<div class="g-fn-cab">${gFasePildora(f)}</div>` : ''}${
+  const f = gFaseDe(v), pr = gProcDe(v), n = gNotaDe(v);
+  if(!f && !pr && !n) return '';
+  return `<div class="g-fn">${f || pr ? `<div class="g-fn-cab">${gFasePildora(f)}${gProcPildora(pr)}</div>` : ''}${
     n ? `<p class="g-fn-nota">${G_ICONO_NOTA}<span>${esc(n)}</span></p>` : ''}</div>`;
 }
 /** Lo que se busca: «piloto», «molde» o palabras de la nota encuentran el sello. */
-const gFaseNotaTexto = g => gVars(g).map(v => [gFaseNombre(gFaseDe(v)), gNotaDe(v)].join(' ')).join(' ');
+const gFaseNotaTexto = g => gVars(g).map(v => [gFaseNombre(gFaseDe(v)), gProcNombre(gProcDe(v)), gNotaDe(v)].join(' ')).join(' ') + (gPorMolde(g) > 1 ? ' unidades por molde ' + gPorMolde(g) : '');
 
 /** El bloque del editor, para el modelo que se está editando. */
 function gFaseNotaEditorHtml(v){
-  const f = gFaseDe(v);
+  const f = gFaseDe(v), pr = gProcDe(v);
   return `<div class="g-fn-ed">
     <div class="campo g-fase-campo"><span>Este modelo es</span>
       <div class="g-seg g-fase-seg" role="radiogroup" aria-label="Piloto o molde">${G_FASES.map(x =>
         `<button type="button" role="radio" class="g-fase-op" data-fase-ed="${x.id}" aria-checked="${f === x.id}">${esc(x.nombre)}</button>`).join('')}</div>
       <small class="g-ayuda-u">Toca otra vez la elegida para quitar la marca.</small></div>
+    <div class="campo g-fase-campo"><span>Se hace con</span>
+      <div class="g-seg g-fase-seg" role="radiogroup" aria-label="Engomado o robot">${G_PROCESOS.map(x =>
+        `<button type="button" role="radio" class="g-fase-op" data-proc-ed="${x.id}" aria-checked="${pr === x.id}">${esc(x.nombre)}</button>`).join('')}</div></div>
     <label class="campo"><span>Nota de este modelo <em>(opcional)</em></span>
       <textarea id="g-e-nota" rows="3" maxlength="${G_NOTA_MAX}" placeholder="Por ejemplo: lleva el borde más fino; el piloto salió con burbujas"
         >${esc(v.nota || '')}</textarea></label></div>`;
@@ -21046,7 +21073,62 @@ function gFaseNotaEditorEnlazar(raiz, cur, apuntar){
       for(const o of raiz.querySelectorAll('[data-fase-ed]')) o.setAttribute('aria-checked', String(gFaseDe(v) === o.dataset.faseEd));
       apuntar();
     };
+  for(const b of raiz.querySelectorAll('[data-proc-ed]'))
+    b.onclick = () => {
+      const v = cur(), id = b.dataset.procEd;
+      if(gProcDe(v) === id) delete v.proceso; else v.proceso = id;
+      for(const o of raiz.querySelectorAll('[data-proc-ed]')) o.setAttribute('aria-checked', String(gProcDe(v) === o.dataset.procEd));
+      apuntar();
+    };
   raiz.querySelector('#g-e-nota')?.addEventListener('input', e => { cur().nota = e.target.value; apuntar(); });
+}
+
+/* ── Unidades por molde (del sello entero) ── */
+const gUnidadesOk = t => { const n = gNumero(t, true); return n && Number.isInteger(n) && n >= 1 && n <= 999 ? n : null; };
+function gUnidadesEditorHtml(g){
+  return `<label class="campo g-unid-campo"><span>Unidades por molde <em>(opcional)</em></span>
+    <input id="g-e-unid" inputmode="numeric" autocomplete="off" maxlength="3" value="${gPorMolde(g) > 1 ? gPorMolde(g) : ''}" placeholder="1" aria-describedby="g-e-unid-ay"></label>
+    <small class="g-ayuda-u g-unid-ay" id="g-e-unid-ay">Cuántas unidades salen de cada molde. Si lo dejas vacío cuenta como 1.</small>`;
+}
+function gUnidadesEditorEnlazar(raiz, g, apuntar){
+  const i = raiz.querySelector('#g-e-unid'); if(!i) return;
+  i.addEventListener('input', () => {
+    const t = i.value.trim(), n = t === '' ? 1 : gUnidadesOk(t);
+    i.classList.toggle('mal', n === null);
+    if(n !== null){ g.porMolde = n; apuntar(); }
+  });
+}
+/** Al guardar: un número mal escrito NO se guarda con el de antes diciendo «Guardado». */
+function gUnidadesValidar(raiz){
+  const i = raiz.querySelector('#g-e-unid');
+  if(!i || i.value.trim() === '' || gUnidadesOk(i.value)) return true;
+  i.classList.add('mal'); i.focus(); brindis('Unidades por molde: un número del 1 al 999');
+  return false;
+}
+
+/* ── Filtro «Se hace con»: Engomado / Robot ── */
+var gFiltroProc = (function(){ try{ return localStorage.getItem('g-proc') || null; }catch(_){ return null; } })();
+const gTieneProc = (g, id) => gVars(g).some(v => gProcDe(v) === id);
+function gPonerFiltroProc(v){
+  gFiltroProc = v || null;
+  try{ if(gFiltroProc) localStorage.setItem('g-proc', gFiltroProc); else localStorage.removeItem('g-proc'); }catch(_){}
+}
+function gFiltroProceso(lista){
+  if(gFiltroProc && !DATOS.gramos.some(g => gTieneProc(g, gFiltroProc))) gPonerFiltroProc(null);   // ya no queda ninguno
+  return gFiltroProc ? lista.filter(g => gTieneProc(g, gFiltroProc)) : lista;
+}
+/** La fila «Se hace con». Solo sale si algún sello lleva marca. */
+function gBarraProceso(){
+  const n = id => DATOS.gramos.filter(g => gTieneProc(g, id)).length;
+  const cuenta = G_PROCESOS.map(x => [x, n(x.id)]);
+  if(!cuenta.some(([, k]) => k)) return null;
+  const el = document.createElement('div');
+  el.className = 'arch-lleva arch-proc';
+  el.innerHTML = `<span class="g-ceja">Se hace con</span><div class="arch-chips" role="group" aria-label="Filtrar por engomado o robot">${
+    cuenta.map(([x, k]) => `<button type="button" class="chip arch-chip" data-proc="${x.id}" aria-pressed="${gFiltroProc === x.id}"${k ? '' : ' disabled'}><span>${esc(x.nombre)}</span><b class="g-proc-n">${k}</b></button>`).join('')}</div>`;
+  for(const b of el.querySelectorAll('[data-proc]'))
+    b.onclick = () => { gPonerFiltroProc(gFiltroProc === b.dataset.proc ? null : b.dataset.proc); actualizar(); };
+  return el;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════

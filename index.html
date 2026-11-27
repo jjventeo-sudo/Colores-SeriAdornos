@@ -5814,6 +5814,11 @@ dialog.dlg-tiempos-ed .hoja{width:min(640px,calc(100vw - 24px))}
 .tt-in input::placeholder{color:var(--texto-3); font-family:inherit; font-size:13px}
 .tt-aplicar .tv-nom b,.tt-aplicar .tv-nom small{white-space:normal; overflow:visible; text-overflow:clip}
 @media (max-width:420px){ .te-p-campos{grid-template-columns:minmax(0,1fr) 110px} .te-mueve .btn-icono{width:36px} }
+
+/* ── Lista en PC: la rejilla no contaba la altura del contenido y cortaba las píldoras de abajo ── */
+@media (min-width:861px){
+  body[data-seccion="tiempos"] .lista > .fila-tiempo{height:max-content; min-height:0}
+}
 /* ═══ PASAR DE UN SELLO A OTRO: contador, puntitos y animaciones (20 nov) ═══ */
 .g-tira{display:flex; align-items:center; gap:10px; margin:0 0 12px}
 .g-tira-b{
@@ -13825,7 +13830,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">fab27082</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">4c750f0f</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

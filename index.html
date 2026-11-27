@@ -5690,6 +5690,33 @@ body[data-seccion="tiempos"] .fila-tiempo .fila-nombre{font-weight:650}
   .buscador:has(.limpiar.on) #q{padding-right:94px !important}
   #solapas [data-sec="escanear"]{display:none !important}
 }
+
+/* ── Ordenador: la ficha del tiempo se abre a PANTALLA COMPLETA (no en cajón de media pantalla) ──
+   La tabla de 9 columnas y los pasos necesitan ancho. El ✕ de arriba a la derecha (y Escape) la cierran. */
+@media (min-width:861px){
+  body[data-seccion="tiempos"]{--cajon:100%}
+  body[data-seccion="tiempos"][data-ficha="on"] .columna-lista,
+  html[data-cristal="on"] body[data-seccion="tiempos"][data-ficha="on"] .columna-lista{margin-right:0}
+  html[data-cristal="on"] body[data-seccion="tiempos"] .columna-ficha{left:14px}
+  body[data-seccion="tiempos"] .columna-lista{transition:visibility 0s 0s}
+  body[data-seccion="tiempos"][data-ficha="on"] .columna-lista{visibility:hidden; transition:visibility 0s .5s}   /* ya tapada: fuera de la vista y del tabulador */
+  body[data-seccion="tiempos"] .columna-ficha{border-left:0; background:var(--fondo)}
+  html[data-cristal="on"] body[data-seccion="tiempos"] .columna-ficha{background:color-mix(in srgb,var(--fondo) 92%,transparent); backdrop-filter:blur(22px)}
+  body[data-seccion="tiempos"] .ficha:not(.es-muro){max-width:1080px; margin:0 auto; padding:30px 40px 24px}
+  body[data-seccion="tiempos"] .t-tit{padding-right:64px}
+  body[data-seccion="tiempos"] .t-tit h2{font-size:34px}
+  body[data-seccion="tiempos"] .t-cifras{grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px}
+  body[data-seccion="tiempos"] .t-cifra{padding:16px 18px 15px}
+  body[data-seccion="tiempos"] .t-cifra b{font-size:30px}
+  body[data-seccion="tiempos"] .t-recuentos{gap:12px}
+  body[data-seccion="tiempos"] .t-pasos{grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px}
+  body[data-seccion="tiempos"] .t-tabla{min-width:0}
+  body[data-seccion="tiempos"] .t-tabla th,body[data-seccion="tiempos"] .t-tabla td{padding:10px 10px; font-size:12.5px}
+  body[data-seccion="tiempos"] .t-tabla thead th{white-space:normal}
+  body[data-seccion="tiempos"] .t-sellos{grid-template-columns:repeat(2,minmax(0,1fr))}
+  body[data-seccion="tiempos"] .t-vincular{grid-column:1 / -1}
+  body[data-seccion="tiempos"] .t-erp pre{max-height:none}
+}
 /* ═══ PASAR DE UN SELLO A OTRO: contador, puntitos y animaciones (20 nov) ═══ */
 .g-tira{display:flex; align-items:center; gap:10px; margin:0 0 12px}
 .g-tira-b{
@@ -13698,7 +13725,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">db45bede</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">3ee7b97c</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>

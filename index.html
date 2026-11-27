@@ -5717,6 +5717,103 @@ body[data-seccion="tiempos"] .fila-tiempo .fila-nombre{font-weight:650}
   body[data-seccion="tiempos"] .t-vincular{grid-column:1 / -1}
   body[data-seccion="tiempos"] .t-erp pre{max-height:none}
 }
+
+/* ── La foto del sello al que está vinculado ── */
+.t-fila-cuerpo{display:flex; align-items:center; gap:13px; min-width:0}
+.t-fila-foto{position:relative; flex:0 0 76px; width:76px}
+.t-fila-foto .arch-foto{margin:0; width:76px; height:76px; aspect-ratio:auto; border-radius:var(--r-m)}
+.t-fila-foto .arch-foto.sin svg{width:28px; height:28px}
+.t-mas{
+  position:absolute; right:-5px; bottom:-5px; z-index:3; min-width:24px; height:24px; padding:0 6px; border-radius:999px;
+  display:grid; place-items:center; font-style:normal; font-family:var(--mono); font-size:11px; font-weight:600;
+  background:var(--tinta); color:var(--tinta-txt); box-shadow:0 2px 6px rgba(0,0,0,.35);
+}
+.t-fila-textos{flex:1 1 auto; min-width:0; display:grid; gap:3px; text-align:left}
+.t-fila-textos .fila-nombre{display:block}
+.t-fila-sello{
+  font-size:12.5px; line-height:1.3; color:var(--texto-3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.t-fila-sello::before{content:"Sello · "; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase}
+
+.t-cab{display:flex; align-items:flex-start; gap:16px}
+.t-cab .t-tit{flex:1 1 auto; min-width:0}
+.t-heroes{display:flex; gap:10px; flex:0 0 auto; align-items:flex-start; padding-top:4px}
+.t-hero{
+  padding:0; border:0; background:none; width:92px; cursor:pointer; border-radius:var(--r-m); flex:0 0 auto;
+  transition:transform .2s var(--salida), box-shadow .2s var(--salida);
+}
+.t-hero .arch-foto{margin:0; width:92px; height:92px; aspect-ratio:auto}
+.t-hero:hover{transform:translateY(-2px); box-shadow:0 10px 22px -12px rgba(0,0,0,.6)}
+.t-hero:active{transform:scale(.97)}
+.t-hero:focus-visible{outline:2px solid var(--texto); outline-offset:3px}
+.t-hero-mas{align-self:center; font-family:var(--mono); font-size:13px; color:var(--texto-3)}
+.t-sello-nombre{margin-top:6px; font-size:14px; font-weight:600; color:var(--texto-2)}
+.t-sello-fila .t-mini{margin:0; width:52px; height:52px; aspect-ratio:auto; flex:0 0 52px; border-radius:12px}
+.t-sello-fila .t-mini.sin svg{width:22px; height:22px}
+@media (max-width:600px){
+  .t-cab{gap:13px}
+  .t-hero{width:80px} .t-hero .arch-foto{width:80px; height:80px}
+  .t-hero:nth-child(n+2),.t-hero-mas{display:none}
+  .t-cab .t-tit h2{font-size:26px}
+}
+@media (min-width:861px){
+  body[data-seccion="tiempos"] .t-hero{width:120px} body[data-seccion="tiempos"] .t-hero .arch-foto{width:120px; height:120px}
+  body[data-seccion="tiempos"] .t-cab{gap:22px}
+  body[data-seccion="tiempos"] .t-fila-foto{flex-basis:84px; width:84px}
+  body[data-seccion="tiempos"] .t-fila-foto .arch-foto{width:84px; height:84px}
+}
+
+/* ── Modificar y tarifas ── */
+.t-chip-tarifas{margin-left:auto}
+body:not([data-seccion="tiempos"]) #t-tarifas{display:none}
+.t-barra-ficha .btn-icono{flex:0 0 58px; width:58px; padding:0}
+.t-barra-ficha .btn-icono svg{width:20px; height:20px}
+dialog.dlg-tiempos-ed .hoja{width:min(640px,calc(100vw - 24px))}
+.te-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 12px}
+.te-grid .te-ancho{grid-column:1 / -1}
+.te-pasos{list-style:none; margin:8px 0 12px; padding:0; display:grid; gap:10px}
+.te-paso{--tc:var(--texto-3); padding:12px 12px 10px; border-radius:var(--r-m); background:var(--panel-2); border:1px solid var(--linea); border-left:3px solid var(--tc)}
+.te-p-cab{display:flex; align-items:center; gap:8px; margin-bottom:10px}
+.te-p-cab select{flex:1 1 auto; min-width:0; height:44px}
+.te-mueve{display:inline-flex; gap:2px}
+.te-p-cab .btn-icono{width:40px; height:40px; flex:0 0 auto; font-size:17px}
+.te-p-cab .btn-icono[disabled]{opacity:.25; pointer-events:none}
+.te-quita{color:var(--rojo)}
+.te-p-campos{display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:0 10px}
+.te-p-campos .campo{margin-bottom:8px}
+.te-res{margin:0; font-family:var(--mono); font-size:12px; color:var(--texto-2); line-height:1.5}
+.te-res b{color:var(--texto); font-weight:600}
+.te-aviso-p{color:var(--ambar)}
+.te-añade{width:100%; gap:8px; border-style:dashed; background:transparent}
+.te-añade svg{width:17px; height:17px}
+.te-tarifas-link{background:none; border:0; padding:6px 2px; color:var(--texto); font:inherit; font-size:12px; text-decoration:underline; text-underline-offset:3px; cursor:pointer; letter-spacing:.04em}
+.te-total{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:10px 20px; border-top:1px solid var(--linea); background:var(--panel)}
+.te-total span{display:block; font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--texto-3)}
+.te-total b{display:block; margin-top:2px; font-family:var(--mono); font-size:17px; font-weight:500}
+.tu-error{margin:10px 0 0; padding:10px 12px; border-radius:var(--r-m); background:color-mix(in srgb,var(--rojo) 12%,transparent); color:var(--rojo); font-size:13.5px}
+.tu-error[hidden]{display:none}
+.tt-lista{display:grid; gap:8px; margin-bottom:12px}
+.tt-fila{--tc:var(--texto-3); display:flex; align-items:center; gap:12px; padding:8px 12px; border-radius:var(--r-m); background:var(--panel-2); border:1px solid var(--linea)}
+.tt-nom{flex:1 1 auto; min-width:0; display:grid; grid-template-columns:auto 1fr; column-gap:10px; align-items:center}
+.tt-nom i{grid-row:1 / span 2; width:10px; height:10px; border-radius:50%; background:var(--tc); box-shadow:0 0 0 3px color-mix(in srgb,var(--tc) 22%,transparent)}
+.tt-nom b{font-size:14.5px; font-weight:620}
+.tt-nom small{font-family:var(--mono); font-size:10.5px; color:var(--texto-3); letter-spacing:.06em}
+.tt-in{display:inline-flex; align-items:center; gap:6px; flex:0 0 auto}
+.tt-in input{width:104px; text-align:right; font-family:var(--mono)}
+.tt-in em{font-style:normal; color:var(--texto-3)}
+.tt-aplicar{margin-top:4px}
+@media (min-width:861px){ body[data-seccion="tiempos"] .t-barra-ficha{max-width:none} }
+.te-pasos{grid-template-columns:minmax(0,1fr)}
+.te-paso{min-width:0}
+.te-p-campos > *{min-width:0}
+.te-p-campos .campo input{width:100%}
+.te-p-cab select,.tt-in input{
+  border-radius:12px; border:1px solid var(--linea-fuerte); background:var(--fondo); color:var(--texto); padding:0 12px; font:inherit; font-size:15px;
+}
+.tt-in input{height:44px; font-family:var(--mono)}
+.tt-in input::placeholder{color:var(--texto-3); font-family:inherit; font-size:13px}
+.tt-aplicar .tv-nom b,.tt-aplicar .tv-nom small{white-space:normal; overflow:visible; text-overflow:clip}
+@media (max-width:420px){ .te-p-campos{grid-template-columns:minmax(0,1fr) 110px} .te-mueve .btn-icono{width:36px} }
 /* ═══ PASAR DE UN SELLO A OTRO: contador, puntitos y animaciones (20 nov) ═══ */
 .g-tira{display:flex; align-items:center; gap:10px; margin:0 0 12px}
 .g-tira-b{
@@ -7119,6 +7216,7 @@ function crearNube({url, clave}){
       else if(a.clave === 'notas_cat_colores' && a.datos && typeof a.datos === 'object' && !Array.isArray(a.datos)) d.notas_cat_colores = a.datos;
       else if(a.clave === 'notas_cats_ocultas' && Array.isArray(a.datos)) d.notas_cats_ocultas = a.datos;
       else if(a.clave === 'tipos_sello' && Array.isArray(a.datos)) d.tipos_sello = a.datos;
+      else if(a.clave === 'tiempos_tarifas' && a.datos && typeof a.datos === 'object' && !Array.isArray(a.datos)) d.tiempos_tarifas = a.datos;
       else if(String(a.clave).startsWith('nota:')){
         const nn = a.datos && !a.datos.borrada ? nLimpia(a.datos) : null;
         d.notas = (d.notas || []).filter(x => x.id !== (a.datos && a.datos.id));
@@ -13338,6 +13436,8 @@ function aplicarDeLaNube(res){
       DATOS.notas_cats_ocultas = a.datos; n++;
     }else if(a.clave === 'tipos_sello' && Array.isArray(a.datos)){
       DATOS.tipos_sello = a.datos; n++;
+    }else if(a.clave === 'tiempos_tarifas' && a.datos && typeof a.datos === 'object' && !Array.isArray(a.datos)){
+      DATOS.tiempos_tarifas = a.datos; n++;
     }else if(String(a.clave).startsWith('nota:')){
       n += notaDeNube(a.datos);
     }else if(String(a.clave).startsWith('tiempo:')){
@@ -13725,7 +13825,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">3ee7b97c</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">fab27082</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -21828,6 +21928,12 @@ function tFechaTxt(iso){
 function tLista(){ return DATOS.tiempos || (DATOS.tiempos = []); }
 function tPorId(id){ return tLista().find(t => t.id === id); }
 function tIdNuevo(){ return 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+/** La foto del sello: la de su primer modelo que la tenga. */
+function tFotoDe(g){
+  for(const v of gVars(g)){ const id = gFotoIdV(g, v); if(tieneFoto(id)) return id; }
+  return null;
+}
+const tFotoHtml = (g, clase = '') => { const id = tFotoDe(g); return `<div class="arch-foto t-foto ${clase}${id ? '' : ' sin'}"${id ? marcaFoto(id) : ''}>${id ? '' : icono('sellos')}</div>`; };
 const tSellosDe = t => (t.sellos || []).map(id => porIdG.get(id)).filter(Boolean);
 const tDeSello = gid => tLista().filter(t => (t.sellos || []).includes(gid));
 function tCmp(a, b){
@@ -21842,7 +21948,7 @@ function tLimpiaCuerpo(d){
   const num = (v, dec) => { if(v == null || v === '') return null; v = Number(v); return Number.isFinite(v) ? Math.round(v * 10 ** dec) / 10 ** dec : null; };
   const obj = (o, claves, dec) => { const r = {}; for(const k of claves) r[k] = num(o && o[k], dec); return r; };
   return {
-    cliente: txt(d.cliente, 120), numCliente: txt(d.numCliente, 30), fecha: /^\d{4}-\d{2}-\d{2}$/.test(d.fecha || '') ? d.fecha : '',
+    pct: num(d.pct, 2) ?? 15, cliente: txt(d.cliente, 120), numCliente: txt(d.numCliente, 30), fecha: /^\d{4}-\d{2}-\d{2}$/.test(d.fecha || '') ? d.fecha : '',
     modelo: txt(d.modelo, 60), titulo: txt(d.titulo, 160), piezas: num(d.piezas, 3), costeSeg: num(d.costeSeg, 6),
     pasos: (Array.isArray(d.pasos) ? d.pasos : []).filter(p => p && typeof p === 'object').slice(0, 80).map((p, i) => ({
       n: num(p.n, 0) ?? i + 1, trabajo: txt(p.trabajo, 30).toUpperCase(), desc: txt(p.desc, 100),
@@ -21960,6 +22066,12 @@ function actualizarTiempos(){
       b.onclick = () => { tFiltroCli = b.dataset.tcli || null; actualizar(); };
   }
   document.getElementById('limpiar').classList.toggle('on', !!$q.value);
+  if(puedeEditar && !document.getElementById('t-tarifas')){
+    const b = document.createElement('button');
+    b.id = 't-tarifas'; b.type = 'button'; b.className = 'chip t-chip-tarifas'; b.textContent = 'Tarifas';
+    b.title = 'Coste de cada paso y cómo se calcula'; b.onclick = () => tEditarTarifas();
+    document.querySelector('.contador')?.appendChild(b);
+  }
   pintarListaTiempos();
   if(!tiempoSel) muroDeTiempos(); else pintarFichaTiempo();
 }
@@ -21973,10 +22085,14 @@ function pintarListaTiempos(){
     b.dataset.id = t.id;
     b.setAttribute('aria-current', String(t.id === tiempoSel));
     const tot = t.totales || {};
+    const ss = tSellosDe(t);
+    b.classList.toggle('t-con-sello', !!ss.length);
     b.innerHTML =
       `<div class="n-fila-cab"><span class="g-ceja n-et-cat">${esc(tFechaTxt(t.fecha) || 'Sin fecha')}</span>${tPildoraVinc(t)}</div>` +
-      `<div class="fila-nombre">${resaltar(t.cliente || 'Sin cliente', $q.value)}</div>` +
-      `<div class="n-fila-txt">${esc(t.modelo || 'Sin modelo')}${t.numCliente ? ' · cliente ' + esc(t.numCliente) : ''}</div>` +
+      `<div class="t-fila-cuerpo">${ss.length ? `<span class="t-fila-foto">${tFotoHtml(ss[0])}${ss.length > 1 ? `<i class="t-mas">+${ss.length - 1}</i>` : ''}</span>` : ''}` +
+      `<span class="t-fila-textos"><span class="fila-nombre">${resaltar(t.cliente || 'Sin cliente', $q.value)}</span>` +
+      `<span class="n-fila-txt">${esc(t.modelo || 'Sin modelo')}${t.numCliente ? ' · cliente ' + esc(t.numCliente) : ''}</span>` +
+      (ss.length ? `<span class="t-fila-sello">${esc(ss[0].nombre)}${ss.length > 1 ? ' y ' + (ss.length - 1) + ' más' : ''}</span>` : '') + `</span></div>` +
       `<div class="n-fila-pie">` +
       (tot.segEsc ? `<span class="n-dato" style="--tc:${T_PASOS.MICROIN.c}"><i></i>${esc(tNum(tot.segEsc, 1))} s</span>` : '') +
       `<span class="n-dato" style="--tc:#d9a441"><i></i>${esc(tEur(tot.costeUni))}</span>` +
@@ -21995,6 +22111,7 @@ function pintarListaTiempos(){
     frag.appendChild(v);
   }
   $lista.appendChild(frag);
+  enlazarFotos($lista);
   document.getElementById('t-primera-lista')?.addEventListener('click', () => tAbrirSubir());
 }
 
@@ -22068,11 +22185,15 @@ function pintarFichaTiempo(){
 
   $ficha.innerHTML = `
     <button class="volver" id="t-volver" type="button">${G_ICONO_ATRAS} ${venido ? `Volver a «${esc(venido.nombre)}»` : 'Todos los tiempos'}</button>
+    <div class="t-cab">
+    ${sellos.length ? `<div class="t-heroes">${sellos.slice(0, 3).map(g => `<button type="button" class="t-hero" data-ir-sello="${esc(g.id)}" aria-label="Abrir el sello ${esc(g.nombre)}" title="${esc(g.nombre)}">${tFotoHtml(g)}</button>`).join('')}${sellos.length > 3 ? `<span class="t-hero-mas">+${sellos.length - 3}</span>` : ''}</div>` : ''}
     <div class="s-titulo t-tit">
       <span class="g-ceja">Tiempo de producción</span>
       <h2>${esc(t.cliente || 'Sin cliente')}</h2>
       <div class="g-cli">${esc([t.modelo, t.numCliente ? 'cliente ' + t.numCliente : '', tFechaTxt(t.fecha)].filter(Boolean).join(' · '))}</div>
+      ${sellos.length ? `<div class="t-sello-nombre">Sello: ${esc(sellos.map(g => g.nombre).join(' · '))}</div>` : ''}
       ${t.titulo ? `<p class="t-titulo-hoja">${esc(t.titulo)}</p>` : ''}
+    </div>
     </div>
     <div class="t-cifras">
       <div class="t-cifra hl"><span class="g-ceja">Coste por unidad</span><b>${esc(tNum(tot.costeUni, 3, 2))}<small> €</small></b><em>${t.pasos.length} paso${t.pasos.length === 1 ? '' : 's'}</em></div>
@@ -22096,6 +22217,7 @@ function pintarFichaTiempo(){
       <div class="t-erp"><pre>${esc(erp)}</pre><button class="btn" id="t-copiar" type="button">${T_ICO_COPIA} Copiar</button></div>` : ''}
     <div class="g-cabsec t-cabsec"><span>Sellos vinculados</span><span>${sellos.length}</span></div>
     <div class="t-sellos">${sellos.length ? sellos.map(g => `<button class="t-sello-fila" type="button" data-ir-sello="${esc(g.id)}">
+        ${tFotoHtml(g, 't-mini')}
         <span class="t-sello-nom"><b>${esc(g.nombre)}</b><small>${esc(gMoldeTxt(g) || 'Sin molde')}</small></span>
         ${puedeEditar ? `<span class="t-quita" role="button" tabindex="0" data-quita="${esc(g.id)}" aria-label="Quitar el vínculo con ${esc(g.nombre)}" title="Quitar el vínculo">✕</span>` : ''}
         ${T_ICO_DER}</button>`).join('')
@@ -22103,11 +22225,13 @@ function pintarFichaTiempo(){
       ${puedeEditar ? `<button class="btn t-vincular" id="t-vincular" type="button">${T_ICO_LINK} ${sellos.length ? 'Vincular otro sello' : 'Vincular a un sello'}</button>` : ''}
     </div>
     ${(t.versiones || []).length ? `<details class="t-det"><summary>Versiones anteriores · ${t.versiones.length}</summary><ul class="t-vers">${t.versiones.map(v =>
-      `<li><b>${esc(tFechaTxt(v.fecha) || 'Sin fecha')}</b><span>${esc(tEur(v.totales && v.totales.costeUni))} por unidad${v.totales && v.totales.segEsc ? ' · ' + esc(tNum(v.totales.segEsc, 1)) + ' s' : ''} · ${v.pasos.length} pasos</span>${v.archivo ? `<small>${esc(v.archivo)}</small>` : ''}</li>`).join('')}</ul></details>` : ''}
+      `<li><b>${esc(tFechaTxt(v.subido || v.fecha) || 'Sin fecha')}</b><span>${esc(tEur(v.totales && v.totales.costeUni))} por unidad${v.totales && v.totales.segEsc ? ' · ' + esc(tNum(v.totales.segEsc, 1)) + ' s' : ''} · ${v.pasos.length} pasos</span>${v.archivo ? `<small>${esc(v.archivo)}</small>` : ''}</li>`).join('')}</ul></details>` : ''}
     <p class="t-meta">${t.archivo ? `Archivo: ${esc(t.archivo)}. ` : ''}${t.subido ? `Subido el ${esc(tFechaTxt(t.subido))}${t.por ? ' por ' + esc(t.por) : ''}.` : ''}</p>
-    ${puedeEditar ? `<div class="barra-ficha t-barra-ficha"><button class="btn" id="t-actualizar" type="button">${T_ICO_SUBE} Subir hoja nueva</button>
+    ${puedeEditar ? `<div class="barra-ficha t-barra-ficha"><button class="btn btn-1" id="t-editar" type="button">${icono('editar')} Modificar</button>
+      <button class="btn btn-icono" id="t-actualizar" type="button" aria-label="Subir una hoja nueva de Excel" title="Subir una hoja nueva de Excel">${T_ICO_SUBE}</button>
       <button class="btn btn-icono g-borrar" id="t-borrar" type="button" aria-label="Eliminar este tiempo" title="Eliminar este tiempo">${icono('borrar')}</button></div>` : ''}`;
 
+  enlazarFotos($ficha);
   const det = document.getElementById('t-det-tabla');
   if(det && matchMedia('(min-width:861px)').matches) det.open = true;
   document.getElementById('t-volver').onclick = () => {
@@ -22126,6 +22250,7 @@ function pintarFichaTiempo(){
     q.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.stopPropagation(); tQuitarVinculo(t.id, q.dataset.quita); } };
   document.getElementById('t-copiar')?.addEventListener('click', () => tCopiar(erp));
   document.getElementById('t-vincular')?.addEventListener('click', () => tElegirSellos(t));
+  document.getElementById('t-editar')?.addEventListener('click', () => tEditar(t.id));
   document.getElementById('t-actualizar')?.addEventListener('click', () => tAbrirSubir());
   document.getElementById('t-borrar')?.addEventListener('click', () => tBorrar(t.id));
 }
@@ -22412,6 +22537,281 @@ document.addEventListener('drop', e => {
 });
 
 /* ═══════════════════════════════════════════════════════════════════════
+   TIEMPOS · modificar y recalcular como en el Excel (27 nov)
+
+   Las fórmulas son las de la hoja «TIEMPO DE 1 SELLO»:
+     · Seg. escaneo   = REDONDEAR.MAS(seg. unidad × (1 + 15 %), 1 decimal)
+     · Seg. plancha   = seg. escaneo × piezas por plancha
+     · Microinyección: coste plancha = seg. escaneo × coste por segundo × piezas
+     · Resto de pasos: coste plancha = su tarifa (en el Excel venía de otro libro;
+       aquí es la tabla «Tarifas», que se puede cambiar)
+     · Coste unidad   = coste plancha ÷ piezas · Unid./hora = ENTERO(3600 ÷ seg. escaneo)
+     · Totales = sumas · Recuentos = cuántos pasos de cada clase
+   El 15 % y el coste por segundo se pueden cambiar en cada tiempo.
+   ═══════════════════════════════════════════════════════════════════════ */
+const T_TIPOS = ['MICROIN', 'HORNEPL', 'ENFRIAR', 'ENGOM.FIN', 'ENGOM.REV', 'LIMPIAR', 'VULCANIZAR', 'PELARPV'];
+/* Los costes de la hoja de Juanjo (27 nov). ENGOM.REV y PELARPV no aparecían con coste: se rellenan en «Tarifas». */
+const T_TARIFAS_DEF = {'HORNEPL': 0.18, 'ENFRIAR': 0.08, 'ENGOM.FIN': 0.18, 'ENGOM.REV': null, 'LIMPIAR': 0.2, 'VULCANIZAR': 0.35, 'PELARPV': null};
+
+/** Las tarifas en vigor: las guardadas, o las de partida donde no haya. null = sin tarifa. */
+function tTarifas(){
+  const g = DATOS.tiempos_tarifas && typeof DATOS.tiempos_tarifas === 'object' && !Array.isArray(DATOS.tiempos_tarifas) ? DATOS.tiempos_tarifas : {};
+  const r = {};
+  for(const k of T_TIPOS){
+    if(k === 'MICROIN') continue;
+    const v = g[k] !== undefined ? g[k] : T_TARIFAS_DEF[k];
+    r[k] = v === null || v === '' || v === undefined || !Number.isFinite(Number(v)) ? null : Number(v);
+  }
+  return r;
+}
+const tRed = (x, d) => Math.round(x * 10 ** d) / 10 ** d;
+/** REDONDEAR.MAS(x; 1): hacia arriba con un decimal (sin que el error de coma flotante suba de más). */
+const tSube1 = x => Math.ceil(tRed(x * 10, 6)) / 10;
+const tComa = x => String(x).replace('.', ',');
+
+/** Recalcula pasos, totales, recuentos y texto con las fórmulas del Excel. No toca nada más. */
+function tCalcula(t, tarifas){
+  tarifas = tarifas || tTarifas();
+  const pz = t.piezas > 0 ? Number(t.piezas) : 1;
+  const pct = t.pct != null && Number.isFinite(Number(t.pct)) ? Number(t.pct) : 15;
+  const cs = t.costeSeg != null && Number.isFinite(Number(t.costeSeg)) ? Number(t.costeSeg) : 0.005;
+  const pasos = (t.pasos || []).map((p, i) => {
+    const seg = p.segUnid == null || p.segUnid === '' ? null : Number(p.segUnid);
+    const segEsc = tSube1((seg || 0) * (1 + pct / 100));
+    const costePlancha = p.trabajo === 'MICROIN' ? segEsc * cs * pz : (tarifas[p.trabajo] || 0);
+    const unHora = segEsc > 0 ? Math.floor(tRed(3600 / segEsc, 6)) : null;
+    return {
+      n: i + 1, trabajo: p.trabajo, desc: p.desc == null ? '' : p.desc,
+      segUnid: seg, segEsc: tRed(segEsc, 3), segPlancha: tRed(segEsc * pz, 3),
+      costePlancha: tRed(costePlancha, 4), costeUni: costePlancha > 0 ? tRed(costePlancha / pz, 4) : 0, unHora,
+      texto: seg != null && p.desc ? `${p.desc}:${tComa(seg)}"/u (${tComa(tRed(segEsc, 3))} esc)=${unHora == null ? '' : unHora} u/h` : '',
+    };
+  });
+  const suma = k => tRed(pasos.reduce((a, p) => a + (Number(p[k]) || 0), 0), 4);
+  const cuenta = (...ks) => pasos.filter(p => ks.includes(p.trabajo)).length;
+  return {
+    ...t, pasos,
+    totales: {segUnid: suma('segUnid'), segEsc: suma('segEsc'), segPlancha: suma('segPlancha'), costePlancha: suma('costePlancha'), costeUni: suma('costeUni')},
+    recuentos: {horneados: cuenta('HORNEPL', 'VULCANIZAR'), enfriados: cuenta('ENFRIAR'), engomados: cuenta('ENGOM.FIN', 'ENGOM.REV'), limpieza: cuenta('LIMPIAR'), pelados: cuenta('PELARPV')},
+  };
+}
+
+/** Pasos cuyo coste fijo en la hoja no es el de la tabla de tarifas (se avisará antes de recalcular). */
+function tCostesDistintos(t){
+  const tf = tTarifas();
+  return (t.pasos || []).filter(p => p.trabajo !== 'MICROIN' && p.costePlancha != null && tf[p.trabajo] != null && Math.abs(p.costePlancha - tf[p.trabajo]) > 1e-9)
+    .map(p => ({trabajo: p.trabajo, era: p.costePlancha, sera: tf[p.trabajo]}));
+}
+
+/** Lo que se guarda de una versión anterior (sin sus propias versiones ni vínculos). */
+function tInstantanea(t){
+  const v = JSON.parse(JSON.stringify(t));
+  delete v.versiones; delete v.sellos; delete v.id; delete v.creado; delete v.creadoPor; delete v.editado; delete v.autor;
+  v.subido = t.editado || t.subido || t.creado || '';
+  return v;
+}
+const tCuerpoIgual = (a, b) => igualJSON({p: a.pasos, t: a.totales, pz: a.piezas, pct: a.pct, cs: a.costeSeg, cl: a.cliente, m: a.modelo, n: a.numCliente, f: a.fecha, o: a.observaciones},
+                                          {p: b.pasos, t: b.totales, pz: b.piezas, pct: b.pct, cs: b.costeSeg, cl: b.cliente, m: b.modelo, n: b.numCliente, f: b.fecha, o: b.observaciones});
+
+const tParse = v => { const s = String(v == null ? '' : v).trim().replace(',', '.'); if(s === '') return null; const n = Number(s); return Number.isFinite(n) ? n : NaN; };
+const tFmtIn = x => x == null ? '' : String(x).replace('.', ',');
+
+// ── La ventana de modificar ───────────────────────────────────────────
+function tEditar(id){
+  const orig = tPorId(id);
+  if(!orig) return;
+  if(!puedeEditar){ brindis(SIN_PERMISO); return; }
+  if(document.getElementById('dlg-tiempos-ed')) return;
+  const d = document.createElement('dialog');
+  d.className = 'dlg-tipos dlg-tiempos dlg-tiempos-ed'; d.id = 'dlg-tiempos-ed';
+  d.setAttribute('aria-labelledby', 'te-titulo');
+  document.body.appendChild(d);
+  const w = {
+    cliente: orig.cliente, numCliente: orig.numCliente, fecha: orig.fecha, modelo: orig.modelo,
+    piezas: orig.piezas, pct: orig.pct != null ? orig.pct : 15, costeSeg: orig.costeSeg != null ? orig.costeSeg : 0.005,
+    observaciones: orig.observaciones || '',
+    pasos: orig.pasos.map(p => ({trabajo: p.trabajo, desc: p.desc, segUnid: p.segUnid})),
+  };
+  const dif = tCostesDistintos(orig);
+
+  const pasoRes = (c, p) => {
+    if(p.trabajo === 'MICROIN'){
+      return c.segUnid != null
+        ? `<b>${esc(tNum(c.segEsc, 1))} s</b> con +${esc(tNum(w.pct, 2))} % · ${esc(tEur(c.costeUni, 4))} · ${c.unHora == null ? '—' : esc(c.unHora)} u/h`
+        : '<span class="te-aviso-p">Escribe los segundos por unidad</span>';
+    }
+    const tf = tTarifas()[p.trabajo];
+    return tf == null ? '<span class="te-aviso-p">Sin tarifa: ponla en «Tarifas» o saldrá a 0 €</span>' : `Coste fijo de la tarifa: <b>${esc(tEur(tf, 2))}</b>`;
+  };
+  const resumenHtml = c => `<div><span>Coste por unidad</span><b>${esc(tEur(c.totales.costeUni))}</b></div><div><span>Microinyección</span><b>${c.totales.segEsc ? esc(tNum(c.totales.segEsc, 1)) + ' s' : '—'}</b></div><div><span>Pasos</span><b>${c.pasos.length}</b></div>`;
+
+  function pinta(){
+    const c = tCalcula(w);
+    d.innerHTML = `<div class="hoja">
+      <div class="hoja-cab"><h3 id="te-titulo">Modificar tiempo</h3><button type="button" class="btn-icono" data-cierra aria-label="Cerrar sin guardar">${'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>'}</button></div>
+      <div class="hoja-cuerpo">
+        <p class="tg-intro">Cambia lo que quieras: los segundos, el coste, las piezas… y se recalcula solo, igual que en el Excel.</p>
+        ${dif.length ? `<div class="tu-aviso"><p>${T_ICO_ALERTA}<span>Este tiempo traía costes distintos a la tabla de tarifas (${dif.map(x => `${esc(tInfoPaso(x.trabajo).n)}: ${esc(tNum(x.era, 2, 2))} → ${esc(tNum(x.sera, 2, 2))} €`).join(' · ')}). Al guardar se usarán las tarifas.</span></p></div>` : ''}
+        <div class="te-grid">
+          <label class="campo te-ancho"><span>Cliente</span><input type="text" data-c="cliente" value="${esc(w.cliente)}" maxlength="120" autocomplete="off"></label>
+          <label class="campo"><span>Nº cliente</span><input type="text" data-c="numCliente" value="${esc(w.numCliente)}" maxlength="30" inputmode="numeric" autocomplete="off"></label>
+          <label class="campo"><span>Fecha</span><input type="date" data-c="fecha" value="${esc(w.fecha)}"></label>
+          <label class="campo te-ancho"><span>Modelo</span><input type="text" data-c="modelo" value="${esc(w.modelo)}" maxlength="60" autocomplete="off"></label>
+          <label class="campo"><span>Piezas por plancha</span><input type="text" inputmode="decimal" data-c="piezas" value="${esc(tFmtIn(w.piezas))}" autocomplete="off"></label>
+          <label class="campo"><span>% de escaneo</span><input type="text" inputmode="decimal" data-c="pct" value="${esc(tFmtIn(w.pct))}" autocomplete="off"></label>
+          <label class="campo te-ancho"><span>Coste por segundo (€)</span><input type="text" inputmode="decimal" data-c="costeSeg" value="${esc(tFmtIn(w.costeSeg))}" autocomplete="off"></label>
+        </div>
+        <div class="g-cabsec t-cabsec"><span>Pasos</span><button type="button" class="te-tarifas-link" data-tarifas>Tarifas</button></div>
+        <ol class="te-pasos">${w.pasos.map((p, i) => {
+          const cp = c.pasos[i], inf = tInfoPaso(p.trabajo);
+          const conSeg = p.trabajo === 'MICROIN' || p.segUnid != null;
+          return `<li class="te-paso" data-i="${i}" style="--tc:${inf.c}">
+            <div class="te-p-cab"><span class="t-n">${i + 1}</span>
+              <select data-f="trabajo" aria-label="Clase del paso ${i + 1}">${T_TIPOS.map(k => `<option value="${esc(k)}"${k === p.trabajo ? ' selected' : ''}>${esc(tInfoPaso(k).n)} · ${esc(k)}</option>`).join('')}${T_TIPOS.includes(p.trabajo) ? '' : `<option value="${esc(p.trabajo)}" selected>${esc(p.trabajo)}</option>`}</select>
+              <span class="te-mueve"><button type="button" class="btn-icono" data-sube="${i}" aria-label="Subir el paso ${i + 1}"${i === 0 ? ' disabled' : ''}>↑</button><button type="button" class="btn-icono" data-baja="${i}" aria-label="Bajar el paso ${i + 1}"${i === w.pasos.length - 1 ? ' disabled' : ''}>↓</button></span>
+              <button type="button" class="btn-icono te-quita" data-quita="${i}" aria-label="Quitar el paso ${i + 1}">${icono('borrar')}</button></div>
+            <div class="te-p-campos">
+              <label class="campo"><span>Descripción</span><input type="text" data-f="desc" value="${esc(p.desc)}" maxlength="100" autocomplete="off"></label>
+              ${conSeg ? `<label class="campo"><span>Seg. por unidad</span><input type="text" inputmode="decimal" data-f="segUnid" value="${esc(tFmtIn(p.segUnid))}" autocomplete="off"></label>` : ''}
+            </div>
+            <p class="te-res" data-res="${i}">${pasoRes(cp, p)}</p></li>`;
+        }).join('')}</ol>
+        <button type="button" class="btn te-añade" data-añade>${T_ICO_MAS} Añadir un paso</button>
+        <label class="campo" style="margin-top:16px"><span>Observaciones</span><textarea data-c="observaciones" rows="3" maxlength="1500">${esc(w.observaciones)}</textarea></label>
+        <p class="tu-error" id="te-error" role="alert" hidden></p>
+      </div>
+      <div class="te-total" id="te-total" aria-live="polite">${resumenHtml(c)}</div>
+      <div class="hoja-pie"><button class="btn" type="button" data-cierra>Cancelar</button><button class="btn btn-1" type="button" id="te-guarda">Guardar cambios</button></div></div>`;
+    enlaza();
+  }
+  /** Repinta solo lo calculado (no los campos: así no se pierde el cursor al teclear). */
+  function refresca(){
+    const c = tCalcula(w);
+    d.querySelector('#te-total').innerHTML = resumenHtml(c);
+    for(const el of d.querySelectorAll('[data-res]')){ const i = +el.dataset.res; el.innerHTML = pasoRes(c.pasos[i], w.pasos[i]); }
+  }
+  function enlaza(){
+    for(const b of d.querySelectorAll('[data-cierra]')) b.onclick = () => d.close();
+    for(const el of d.querySelectorAll('[data-c]')){
+      el.oninput = () => {
+        const k = el.dataset.c, v = el.value;
+        if(k === 'piezas' || k === 'pct' || k === 'costeSeg') w[k] = tParse(v);
+        else w[k] = v;
+        refresca();
+      };
+    }
+    for(const li of d.querySelectorAll('.te-paso')){
+      const i = +li.dataset.i;
+      li.querySelector('[data-f="desc"]').oninput = e => { w.pasos[i].desc = e.target.value; refresca(); };
+      const seg = li.querySelector('[data-f="segUnid"]'); if(seg) seg.oninput = e => { w.pasos[i].segUnid = tParse(e.target.value); refresca(); };
+      li.querySelector('[data-f="trabajo"]').onchange = e => {
+        const antes = w.pasos[i].trabajo;
+        w.pasos[i].trabajo = e.target.value;
+        if(e.target.value !== 'MICROIN' && (w.pasos[i].desc === '' || w.pasos[i].desc == null)) w.pasos[i].desc = '1';
+        if(e.target.value !== 'MICROIN' && antes === 'MICROIN' && w.pasos[i].segUnid == null) w.pasos[i].segUnid = null;
+        pinta();
+      };
+    }
+    for(const b of d.querySelectorAll('[data-sube]')) b.onclick = () => { const i = +b.dataset.sube; [w.pasos[i - 1], w.pasos[i]] = [w.pasos[i], w.pasos[i - 1]]; pinta(); };
+    for(const b of d.querySelectorAll('[data-baja]')) b.onclick = () => { const i = +b.dataset.baja; [w.pasos[i + 1], w.pasos[i]] = [w.pasos[i], w.pasos[i + 1]]; pinta(); };
+    for(const b of d.querySelectorAll('[data-quita]')) b.onclick = () => { w.pasos.splice(+b.dataset.quita, 1); pinta(); };
+    d.querySelector('[data-añade]').onclick = () => {
+      const ult = w.pasos[w.pasos.length - 1];
+      w.pasos.push({trabajo: 'MICROIN', desc: '', segUnid: null});
+      void ult; pinta();
+      const ls = d.querySelectorAll('.te-paso'); const nuevo = ls[ls.length - 1];
+      nuevo.scrollIntoView({block: 'center', behavior: 'smooth'}); nuevo.querySelector('[data-f="desc"]').focus({preventScroll: true});
+    };
+    d.querySelector('[data-tarifas]').onclick = () => tEditarTarifas(() => refresca());
+    d.querySelector('#te-guarda').onclick = guardar;
+  }
+  function error(txt){ const e = d.querySelector('#te-error'); e.textContent = txt; e.hidden = !txt; if(txt) e.scrollIntoView({block: 'center', behavior: 'smooth'}); }
+  function guardar(){
+    if(!String(w.cliente || '').trim()) return error('Escribe el cliente.');
+    if(!(w.piezas > 0)) return error('Las piezas por plancha tienen que ser un número mayor que 0.');
+    if(!Number.isFinite(w.pct) || w.pct < 0 || w.pct > 100) return error('El % de escaneo tiene que estar entre 0 y 100.');
+    if(!Number.isFinite(w.costeSeg) || w.costeSeg < 0) return error('El coste por segundo tiene que ser un número (por ejemplo 0,005).');
+    if(!w.pasos.length) return error('Añade al menos un paso.');
+    for(const [i, p] of w.pasos.entries()){
+      if(p.segUnid !== null && !Number.isFinite(p.segUnid)) return error(`Los segundos del paso ${i + 1} no son un número.`);
+      if(p.segUnid !== null && p.segUnid < 0) return error(`Los segundos del paso ${i + 1} no pueden ser negativos.`);
+    }
+    const actual = tPorId(id);
+    if(!actual){ d.close(); return brindis('Ese tiempo ya no existe: lo ha borrado otro aparato'); }
+    const calc = tCalcula(w);
+    const nuevo = tLimpia({
+      ...actual, cliente: w.cliente.trim(), numCliente: String(w.numCliente || '').trim(), fecha: w.fecha, modelo: String(w.modelo || '').trim(),
+      piezas: w.piezas, pct: w.pct, costeSeg: w.costeSeg, observaciones: String(w.observaciones || '').trim(),
+      pasos: calc.pasos, totales: calc.totales, recuentos: calc.recuentos,
+    });
+    if(!nuevo) return error('No he podido guardar los cambios.');
+    if(tCuerpoIgual(actual, nuevo)){ d.close(); return brindis('No había cambios'); }
+    nuevo.versiones = [tLimpiaCuerpo(tInstantanea(actual)), ...(actual.versiones || [])].slice(0, 10);
+    if(!guardarTiempo(nuevo)) return;
+    d.close(); actualizar(); brindis('Tiempo guardado');
+  }
+  d.addEventListener('cancel', e => { e.preventDefault(); });      // Escape no tira lo escrito: se cierra con ✕ o Cancelar
+  d.addEventListener('keydown', e => { if(e.key === 'Escape') e.stopPropagation(); });   // y tampoco cierra la ficha que hay debajo
+  d.addEventListener('close', () => d.remove());
+  pinta();
+  d.showModal();
+}
+
+// ── Tarifas ───────────────────────────────────────────────────────────
+function tEditarTarifas(alCerrar){
+  if(!puedeEditar){ brindis(SIN_PERMISO); return; }
+  if(document.getElementById('dlg-tiempos-tarifas')) return;
+  const d = document.createElement('dialog');
+  d.className = 'dlg-tipos dlg-tipos-chico dlg-tiempos'; d.id = 'dlg-tiempos-tarifas';
+  d.setAttribute('aria-labelledby', 'tt-titulo');
+  document.body.appendChild(d);
+  const tf = tTarifas();
+  const claves = T_TIPOS.filter(k => k !== 'MICROIN');
+  const n = tLista().length;
+  let aplicar = false;
+  d.innerHTML = `<div class="hoja">
+    <div class="hoja-cab"><h3 id="tt-titulo">Tarifas de los pasos</h3></div>
+    <div class="hoja-cuerpo">
+      <p class="tg-intro">Es el coste de cada paso <b>por plancha</b> (€). La microinyección no lleva tarifa: sale de los segundos × el coste por segundo de cada tiempo.</p>
+      <div class="tt-lista">${claves.map(k => `<label class="tt-fila" style="--tc:${tInfoPaso(k).c}"><span class="tt-nom"><i></i><b>${esc(tInfoPaso(k).n)}</b><small>${esc(k)}</small></span>
+        <span class="tt-in"><input type="text" inputmode="decimal" data-k="${esc(k)}" value="${esc(tFmtIn(tf[k]))}" placeholder="sin tarifa" autocomplete="off" aria-label="Tarifa de ${esc(tInfoPaso(k).n)} (${esc(k)})"><em>€</em></span></label>`).join('')}</div>
+      ${n ? `<button type="button" role="checkbox" class="tv-fila tt-aplicar" aria-checked="false" id="tt-aplicar"><span class="tv-nom"><b>Recalcular también los ${n} tiempo${n === 1 ? '' : 's'} ya guardados</b><small>Si no lo marcas, cada tiempo se recalcula con las tarifas nuevas cuando lo modifiques.</small></span><span class="tv-tik"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span></button>` : ''}
+      <p class="tu-error" id="tt-error" role="alert" hidden></p>
+    </div>
+    <div class="hoja-pie"><button class="btn" type="button" data-no>Cancelar</button><button class="btn btn-1" type="button" id="tt-guarda">Guardar tarifas</button></div></div>`;
+  d.querySelector('#tt-aplicar')?.addEventListener('click', e => { aplicar = !aplicar; e.currentTarget.setAttribute('aria-checked', String(aplicar)); });
+  d.querySelector('[data-no]').onclick = () => d.close();
+  d.querySelector('#tt-guarda').onclick = () => {
+    const nuevas = {};
+    for(const inp of d.querySelectorAll('[data-k]')){
+      const v = tParse(inp.value);
+      if(Number.isNaN(v) || (v !== null && v < 0)){
+        const e = d.querySelector('#tt-error'); e.textContent = `La tarifa de ${tInfoPaso(inp.dataset.k).n} (${inp.dataset.k}) no es un número válido.`; e.hidden = false; inp.focus(); return;
+      }
+      nuevas[inp.dataset.k] = v;
+    }
+    DATOS.tiempos_tarifas = nuevas;
+    nSubirAjuste('tiempos_tarifas', nuevas);
+    let hechos = 0;
+    if(aplicar){
+      for(const t of tLista().slice()){
+        const c = tCalcula(t);
+        const nuevo = tLimpia({...t, pasos: c.pasos, totales: c.totales, recuentos: c.recuentos});
+        if(!nuevo || tCuerpoIgual(t, nuevo)) continue;
+        nuevo.versiones = [tLimpiaCuerpo(tInstantanea(t)), ...(t.versiones || [])].slice(0, 10);
+        if(guardarTiempo(nuevo)) hechos++;
+      }
+    }
+    d.close(); actualizar();
+    brindis(aplicar ? `Tarifas guardadas · ${hechos} tiempo${hechos === 1 ? '' : 's'} recalculado${hechos === 1 ? '' : 's'}` : 'Tarifas guardadas');
+    if(alCerrar) alCerrar();
+  };
+  d.addEventListener('keydown', e => { if(e.key === 'Escape') e.stopPropagation(); });
+  d.addEventListener('close', () => d.remove());
+  d.showModal();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
    PASAR DE UN SELLO A OTRO (20 nov)
 
    Con un sello abierto, una sola «tira» continua:
@@ -22584,7 +22984,7 @@ window.__app = {
   comprobarCopias, copiaProblema, pantallaCopia, restaurarCopiaAuto, COPIA_AUTO,
   nLista, nPorId, nLimpia, guardarNota, editarNota, abrirNota, nResumen, nTiempo, nCron, nCronIniciar, nFiltrar,
   gColoresDe, gPasar, gPosicion, gTira, get notaSel(){ return notaSel; },
-  tLista, tPorId, tLimpia, guardarTiempo, tDeSello, tiempoLeerHoja, get tiempoSel(){ return tiempoSel; },
+  tLista, tPorId, tLimpia, guardarTiempo, tDeSello, tiempoLeerHoja, tCalcula, tTarifas, get tiempoSel(){ return tiempoSel; },
   get DATOS(){ return DATOS; }, porId, materias, busq, norm, nube, MODO,
   anotar, anotarMateria, empujar, guardar, reconstruir, actualizar, sincronizar,
   verPigmento, pantallaChoques, avisarCopia, mantenerPantalla,

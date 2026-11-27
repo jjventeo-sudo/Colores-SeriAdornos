@@ -3679,8 +3679,8 @@ dialog.dlg-eliminar .btn-peligro:not([disabled]){
 @media (prefers-reduced-motion:reduce){ .n-cron{animation:none} .n-cron[data-estado="listo"] .n-cron-reloj{animation:none} }
 
 /* La pestaña de Notas no tiene riel ni botón de PDF */
-body[data-seccion="notas"] .riel{display:none !important}
-body[data-seccion="notas"] #btn-pdf{display:none}
+body:is([data-seccion="notas"],[data-seccion="tiempos"]) .riel{display:none !important}
+body:is([data-seccion="notas"],[data-seccion="tiempos"]) #btn-pdf{display:none}
 
 /* ── EL ARCHIVADOR ─────────────────────────────────────────────────── */
 .arch-lleva{padding:2px 0 10px}
@@ -3801,16 +3801,16 @@ body[data-seccion="notas"] #btn-pdf{display:none}
 @media (prefers-reduced-motion:reduce){ .n-sw{animation:none} }
 
 /* Los filtros de categoría: se ven TODAS sin deslizar de lado. Si no caben en 2 líneas, «+N más» despliega el resto. */
-body[data-seccion="notas"] .chips-cli{display:block; overflow:visible; padding:2px 18px 10px}
-body[data-seccion="notas"] .chips-cli[hidden]{display:none}
+body:is([data-seccion="notas"],[data-seccion="tiempos"]) .chips-cli{display:block; overflow:visible; padding:2px 18px 10px}
+body:is([data-seccion="notas"],[data-seccion="tiempos"]) .chips-cli[hidden]{display:none}
 .n-cats-fila{display:flex; flex-wrap:wrap; gap:6px; position:relative}
 .n-cats-fila.n-plegada{max-height:calc(2 * 34px + 6px); overflow:hidden}
-body[data-seccion="notas"] .chips-cli .chip{height:34px; min-height:34px; padding:0 12px; flex:0 0 auto}
+body:is([data-seccion="notas"],[data-seccion="tiempos"]) .chips-cli .chip{height:34px; min-height:34px; padding:0 12px; flex:0 0 auto}
 @media (pointer:coarse){
-  body[data-seccion="notas"] .chips-cli .chip{height:40px; min-height:40px}
+  body:is([data-seccion="notas"],[data-seccion="tiempos"]) .chips-cli .chip{height:40px; min-height:40px}
   .n-cats-fila.n-plegada{max-height:calc(2 * 40px + 6px)}
 }
-body[data-seccion="notas"] .chips-cli .chip .n{margin-left:7px; opacity:.6}
+body:is([data-seccion="notas"],[data-seccion="tiempos"]) .chips-cli .chip .n{margin-left:7px; opacity:.6}
 .n-cats-mas{
   margin:8px 0 0 4px; padding:6px 4px; background:none; border:0; cursor:pointer; color:var(--texto-2);
   font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
@@ -5394,58 +5394,301 @@ html[data-estilo="blanda"] body[data-seccion="gramos"] .arch-t{border:0 !importa
 
    Solo con ≥ 861 px. El móvil no cambia. */
 @media (min-width:861px){
-  body[data-seccion="notas"]{--cajon:clamp(560px,44vw,720px)}
+  body:is([data-seccion="notas"],[data-seccion="tiempos"]){--cajon:clamp(560px,44vw,720px)}
 
-  body[data-seccion="notas"] .cuerpo{position:relative; overflow:hidden}
-  body[data-seccion="notas"] .columna-lista{
+  body:is([data-seccion="notas"],[data-seccion="tiempos"]) .cuerpo{position:relative; overflow:hidden}
+  body:is([data-seccion="notas"],[data-seccion="tiempos"]) .columna-lista{
     flex:1 1 0; min-width:0; border-right:0; margin-right:0;
     transition:margin-right .5s var(--salida);
   }
-  body[data-seccion="notas"][data-ficha="on"] .columna-lista{margin-right:var(--cajon)}
-  body[data-seccion="notas"] .chips-cli{padding:2px 26px 10px}
-  body[data-seccion="notas"] .contador{padding:6px 28px 10px}
+  body:is([data-seccion="notas"],[data-seccion="tiempos"])[data-ficha="on"] .columna-lista{margin-right:var(--cajon)}
+  body:is([data-seccion="notas"],[data-seccion="tiempos"]) .chips-cli{padding:2px 26px 10px}
+  body:is([data-seccion="notas"],[data-seccion="tiempos"]) .contador{padding:6px 28px 10px}
 
   /* Las tarjetas, en rejilla */
-  body[data-seccion="notas"] .lista{
+  body:is([data-seccion="notas"],[data-seccion="tiempos"]) .lista{
     display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
     gap:16px; align-content:start; padding:8px 26px 48px;
   }
-  body[data-seccion="notas"] .lista > :not(.fila-nota){grid-column:1 / -1; min-width:0}
-  body[data-seccion="notas"] .lista > .fila-nota{
+  body:is([data-seccion="notas"],[data-seccion="tiempos"]) .lista > :not(.fila-nota){grid-column:1 / -1; min-width:0}
+  body:is([data-seccion="notas"],[data-seccion="tiempos"]) .lista > .fila-nota{
     width:auto; min-width:0; margin:0; min-height:150px; padding:18px 20px 16px;
     justify-content:flex-start; gap:8px;
     transition:transform .3s var(--salida), box-shadow .3s var(--salida), background-color .15s var(--salida);
   }
-  body[data-seccion="notas"] .lista > .fila-nota > *{flex-shrink:0}   /* nada se encoge: es la tarjeta la que crece */
-  body[data-seccion="notas"] .lista > .fila-nota:hover{transform:translateY(-3px)}
-  body[data-seccion="notas"] .lista > .fila-nota .fila-nombre{
+  body:is([data-seccion="notas"],[data-seccion="tiempos"]) .lista > .fila-nota > *{flex-shrink:0}   /* nada se encoge: es la tarjeta la que crece */
+  body:is([data-seccion="notas"],[data-seccion="tiempos"]) .lista > .fila-nota:hover{transform:translateY(-3px)}
+  body:is([data-seccion="notas"],[data-seccion="tiempos"]) .lista > .fila-nota .fila-nombre{
     font-size:18px; font-weight:700; line-height:1.18;
     display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden;
     flex:0 0 auto; padding-bottom:2px;   /* sin esto la tarjeta lo encogía y se cortaban las letras de abajo */
   }
-  body[data-seccion="notas"] .lista > .fila-nota .n-fila-pie{margin-top:auto; padding-top:6px}
-  html[data-estilo="blanda"] body[data-seccion="notas"] .lista > .fila-nota{border:0 !important; border-radius:30px !important}
-  html[data-tamano="grande"] body[data-seccion="notas"] .lista > .fila-nota .fila-nombre{font-size:20px}
-  body[data-seccion="notas"] .lista-nada{display:block}
+  body:is([data-seccion="notas"],[data-seccion="tiempos"]) .lista > .fila-nota .n-fila-pie{margin-top:auto; padding-top:6px}
+  html[data-estilo="blanda"] body:is([data-seccion="notas"],[data-seccion="tiempos"]) .lista > .fila-nota{border:0 !important; border-radius:30px !important}
+  html[data-tamano="grande"] body:is([data-seccion="notas"],[data-seccion="tiempos"]) .lista > .fila-nota .fila-nombre{font-size:20px}
+  body:is([data-seccion="notas"],[data-seccion="tiempos"]) .lista-nada{display:block}
 
   /* El cajón de la nota */
-  body[data-seccion="notas"] .columna-ficha{
+  body:is([data-seccion="notas"],[data-seccion="tiempos"]) .columna-ficha{
     position:absolute; top:0; right:0; bottom:0; width:var(--cajon); z-index:20;
     transform:translateX(104%); visibility:hidden; box-shadow:none;
     border-left:1px solid var(--linea-fuerte);
     transition:transform .5s var(--salida), visibility .5s var(--salida), box-shadow .5s var(--salida);
   }
-  body[data-seccion="notas"][data-ficha="on"] .columna-ficha{
+  body:is([data-seccion="notas"],[data-seccion="tiempos"])[data-ficha="on"] .columna-ficha{
     transform:none; visibility:visible; box-shadow:-26px 0 60px rgba(0,0,0,.28);
   }
-  body[data-seccion="notas"] .ficha:not(.es-muro){max-width:none; padding-top:22px}
-  body[data-seccion="notas"] .n-tit-cab{padding-right:58px}              /* deja sitio al ✕ del cajón */
-  body[data-seccion="notas"][data-ficha="on"] .cajon-x{display:grid}
+  body:is([data-seccion="notas"],[data-seccion="tiempos"]) .ficha:not(.es-muro){max-width:none; padding-top:22px}
+  body:is([data-seccion="notas"],[data-seccion="tiempos"]) .n-tit-cab{padding-right:58px}              /* deja sitio al ✕ del cajón */
+  body:is([data-seccion="notas"],[data-seccion="tiempos"])[data-ficha="on"] .cajon-x{display:grid}
 
-  html[data-cristal="on"] body[data-seccion="notas"] .columna-lista{flex:1 1 0}
-  html[data-cristal="on"] body[data-seccion="notas"] .columna-ficha{top:0; right:14px; bottom:14px; border-radius:26px}
-  html[data-cristal="on"] body[data-seccion="notas"][data-ficha="on"] .columna-lista{margin-right:calc(var(--cajon) + 14px)}
-  html:not([data-cristal="on"]) body[data-seccion="notas"] .lista{padding-bottom:48px}
+  html[data-cristal="on"] body:is([data-seccion="notas"],[data-seccion="tiempos"]) .columna-lista{flex:1 1 0}
+  html[data-cristal="on"] body:is([data-seccion="notas"],[data-seccion="tiempos"]) .columna-ficha{top:0; right:14px; bottom:14px; border-radius:26px}
+  html[data-cristal="on"] body:is([data-seccion="notas"],[data-seccion="tiempos"])[data-ficha="on"] .columna-lista{margin-right:calc(var(--cajon) + 14px)}
+  html:not([data-cristal="on"]) body:is([data-seccion="notas"],[data-seccion="tiempos"]) .lista{padding-bottom:48px}
+}
+/* ═══ TIEMPOS (27 nov) ═══════════════════════════════════════════════════
+   La lista reutiliza las tarjetas de las notas (.fila-nota) y su rejilla de PC;
+   aquí solo lo propio: pastilla de vínculo, cifras, pasos con barras, tabla
+   completa, ventana de subida y el botón «Tiene tiempo» del sello. */
+
+body[data-seccion="tiempos"] .fila-tiempo .fila-nombre{font-weight:650}
+
+/* Pastilla «3 sellos» / «Sin vincular» */
+.t-vinc{
+  display:inline-flex; align-items:center; gap:6px; height:24px; padding:0 10px 0 8px; border-radius:999px;
+  font-size:12px; font-weight:600; letter-spacing:0; white-space:nowrap;
+}
+.t-vinc svg{width:13px; height:13px; flex:0 0 auto}
+.t-vinc.ok{color:var(--verde); background:color-mix(in srgb,var(--verde) 14%,transparent)}
+.t-vinc.pend{color:var(--ambar); background:color-mix(in srgb,var(--ambar) 15%,transparent)}
+
+/* ── La ficha ── */
+.t-tit .g-cli{font-family:var(--mono); font-size:13px; letter-spacing:.01em}
+.t-titulo-hoja{margin:8px 0 0; font-size:13px; line-height:1.4; color:var(--texto-3)}
+.t-cifras{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:16px 0 4px}
+.t-cifra{
+  position:relative; padding:13px 14px 12px; border-radius:var(--r-m); min-width:0; overflow:hidden;
+  background:linear-gradient(180deg,var(--panel-luz),var(--panel)); border:1px solid var(--linea);
+  box-shadow:inset 0 1px 0 var(--canto);
+  animation:t-sube .5s var(--salida) both;
+}
+.t-cifra:nth-child(2){animation-delay:.05s} .t-cifra:nth-child(3){animation-delay:.1s} .t-cifra:nth-child(4){animation-delay:.15s}
+.t-cifra b{display:block; margin-top:5px; font-family:var(--mono); font-weight:500; font-size:25px; line-height:1.1; letter-spacing:-.02em; font-variant-numeric:tabular-nums; white-space:nowrap}
+.t-cifra b small{font-size:13px; color:var(--texto-3); font-weight:500; letter-spacing:0}
+.t-cifra em{display:block; margin-top:3px; font-style:normal; font-family:var(--mono); font-size:11.5px; color:var(--texto-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.t-cifra.hl{
+  background:linear-gradient(135deg,color-mix(in srgb,#f0857f 16%,var(--panel-luz)),var(--panel) 75%);
+  border-color:color-mix(in srgb,#f0857f 40%,transparent);
+}
+@keyframes t-sube{from{opacity:0; transform:translateY(8px)}}
+
+.t-cabsec{display:flex; justify-content:space-between; padding:0 2px; margin-top:22px}
+.t-recuentos{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; margin-top:8px}
+.t-recuentos div{
+  padding:10px 4px 9px; text-align:center; border-radius:var(--r-m); background:var(--panel-2); border:1px solid var(--linea); min-width:0;
+}
+.t-recuentos b{display:block; font-family:var(--mono); font-size:20px; font-weight:500; line-height:1.1; font-variant-numeric:tabular-nums}
+.t-recuentos span{display:block; margin-top:4px; font-size:10.5px; color:var(--texto-3); letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.t-recuentos .cero{opacity:.45}
+
+/* Paso a paso */
+.t-pasos{list-style:none; margin:8px 0 0; padding:0; display:grid; gap:8px}
+.t-paso{
+  --tc:var(--texto-3);
+  position:relative; display:grid; grid-template-columns:30px minmax(0,1fr) auto; gap:4px 12px; align-items:center;
+  padding:11px 14px 14px; border-radius:var(--r-m); overflow:hidden;
+  background:linear-gradient(180deg,var(--panel-luz),var(--panel)); border:1px solid var(--linea);
+  box-shadow:inset 0 1px 0 var(--canto);
+  animation:t-sube .45s var(--salida) both;
+}
+.t-paso:nth-child(2){animation-delay:.04s} .t-paso:nth-child(3){animation-delay:.08s} .t-paso:nth-child(4){animation-delay:.12s}
+.t-paso:nth-child(5){animation-delay:.16s} .t-paso:nth-child(n+6){animation-delay:.2s}
+.t-n{
+  width:26px; height:26px; border-radius:50%; display:grid; place-items:center; flex:0 0 auto;
+  font-family:var(--mono); font-size:12px; font-weight:600; color:var(--tc);
+  background:color-mix(in srgb,var(--tc) 15%,var(--fondo)); border:1px solid color-mix(in srgb,var(--tc) 45%,transparent);
+}
+.t-pt{min-width:0}
+.t-pt b{display:block; font-size:15px; font-weight:620; letter-spacing:-.01em; line-height:1.25}
+.t-pt small,.t-pd small{display:block; font-family:var(--mono); font-size:11px; color:var(--texto-3); margin-top:1px; letter-spacing:.04em}
+.t-pd{text-align:right; min-width:0}
+.t-pd b{display:block; font-family:var(--mono); font-size:13.5px; font-weight:500; font-variant-numeric:tabular-nums; white-space:nowrap}
+.t-pd small{letter-spacing:0; white-space:nowrap}
+.t-barra{grid-column:1 / -1; height:4px; border-radius:4px; background:color-mix(in srgb,var(--texto) 8%,transparent); overflow:hidden; margin-top:6px}
+.t-barra i{display:block; height:100%; width:var(--w); border-radius:4px; background:var(--tc); transform-origin:left; animation:t-barra .8s .15s var(--salida) both}
+@keyframes t-barra{from{transform:scaleX(0)}}
+
+/* Tabla completa */
+.t-det{margin-top:14px; border:1px solid var(--linea); border-radius:var(--r-m); background:var(--panel-2); overflow:hidden}
+.t-det > summary{
+  list-style:none; cursor:pointer; padding:14px 16px; font-size:14px; font-weight:600; color:var(--texto);
+  display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:48px;
+}
+.t-det > summary::-webkit-details-marker{display:none}
+.t-det > summary::after{content:""; width:9px; height:9px; border-right:2px solid var(--texto-3); border-bottom:2px solid var(--texto-3); transform:rotate(45deg); transition:transform .25s var(--salida); margin-right:3px}
+.t-det[open] > summary::after{transform:rotate(-135deg)}
+.t-det > summary:focus-visible{outline:2px solid var(--texto); outline-offset:-3px}
+.t-tabla-caja{overflow-x:auto; padding:0 0 4px; border-top:1px solid var(--linea); -webkit-overflow-scrolling:touch}
+.t-tabla{border-collapse:collapse; width:100%; min-width:700px; font-family:var(--mono); font-size:12px; font-variant-numeric:tabular-nums}
+.t-tabla th,.t-tabla td{padding:9px 10px; text-align:right; border-bottom:1px solid var(--linea); white-space:nowrap}
+.t-tabla thead th{font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--texto-3); text-align:right; white-space:nowrap; line-height:1.25; vertical-align:bottom}
+.t-tabla thead th:nth-child(-n+3),.t-tabla tbody th,.t-tabla td.t-izq{text-align:left}
+.t-tabla tbody th{font-weight:500}
+.t-tabla td:first-child{text-align:center; color:var(--texto-3)}
+.t-tabla tfoot th,.t-tabla tfoot td{font-weight:600; border-bottom:0; background:color-mix(in srgb,var(--texto) 5%,transparent)}
+.t-tp{display:inline-flex; align-items:center; gap:7px}
+.t-tp::before{content:""; width:8px; height:8px; border-radius:50%; background:var(--tc)}
+
+.t-obs{margin:8px 2px 0; padding:12px 14px; border-radius:var(--r-m); background:var(--panel-2); border:1px solid var(--linea); font-size:14px; line-height:1.5; color:var(--texto-2); white-space:pre-wrap}
+.t-erp{margin-top:8px; display:grid; gap:10px; padding:12px; border-radius:var(--r-m); background:var(--panel-2); border:1px solid var(--linea)}
+.t-erp pre{margin:0; font-family:var(--mono); font-size:12px; line-height:1.55; color:var(--texto-2); white-space:pre-wrap; word-break:break-word; max-height:180px; overflow:auto}
+.t-erp .btn{justify-self:start; gap:8px}
+.t-erp .btn svg,.t-vincular svg,.t-barra-ficha .btn svg{width:17px; height:17px}
+
+/* Sellos vinculados */
+.t-sellos{margin-top:8px; display:grid; gap:8px}
+.t-sello-fila{
+  display:flex; align-items:center; gap:10px; width:100%; min-height:60px; padding:10px 14px; text-align:left;
+  border-radius:var(--r-m); background:linear-gradient(180deg,var(--panel-luz),var(--panel)); border:1px solid var(--linea);
+  color:var(--texto); font:inherit; cursor:pointer;
+  transition:transform .15s var(--salida), border-color .2s var(--salida), background .2s var(--salida);
+}
+.t-sello-fila:hover{border-color:var(--linea-fuerte)}
+.t-sello-fila:active{transform:scale(.985)}
+.t-sello-fila:focus-visible{outline:2px solid var(--texto); outline-offset:2px}
+.t-sello-fila > svg{width:18px; height:18px; color:var(--texto-3); flex:0 0 auto}
+.t-sello-nom{flex:1 1 auto; min-width:0}
+.t-sello-nom b{display:block; font-size:15.5px; font-weight:620; letter-spacing:-.01em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.t-sello-nom small{display:block; margin-top:2px; font-family:var(--mono); font-size:11.5px; color:var(--texto-3)}
+.t-quita{
+  width:36px; height:36px; display:grid; place-items:center; border-radius:50%; flex:0 0 auto; color:var(--texto-3); font-size:14px;
+  transition:background .15s var(--salida), color .15s var(--salida);
+}
+.t-quita:hover{background:color-mix(in srgb,var(--rojo) 14%,transparent); color:var(--rojo)}
+.t-quita:focus-visible{outline:2px solid var(--texto); outline-offset:1px}
+.t-sin-sellos{margin:0; font-size:14px; color:var(--texto-3)}
+.t-vincular{width:100%; gap:8px; border-style:dashed; background:transparent}
+
+.t-vers{list-style:none; margin:0; padding:0 16px 8px; border-top:1px solid var(--linea)}
+.t-vers li{display:grid; gap:2px; padding:11px 0; border-bottom:1px solid var(--linea)}
+.t-vers li:last-child{border-bottom:0}
+.t-vers b{font-size:14px} .t-vers span{font-family:var(--mono); font-size:12px; color:var(--texto-2)} .t-vers small{font-size:11.5px; color:var(--texto-3)}
+.t-meta{margin:18px 2px 0; font-size:12px; line-height:1.5; color:var(--texto-3)}
+.t-barra-ficha{margin-top:18px}
+.t-barra-ficha .btn:first-child{flex:1 1 auto; gap:8px}
+
+/* ── Ventanas ── */
+.tu-drop{
+  display:grid; justify-items:center; gap:4px; padding:30px 18px; text-align:center; cursor:pointer;
+  border:1.5px dashed var(--linea-fuerte); border-radius:var(--r-l); background:var(--panel-2); color:var(--texto-2);
+  transition:border-color .2s var(--salida), background .2s var(--salida), transform .2s var(--salida);
+}
+.tu-drop:hover,.tu-drop.sobre{border-color:var(--texto); background:color-mix(in srgb,var(--texto) 6%,var(--panel-2))}
+.tu-drop.sobre{transform:scale(1.015)}
+.tu-drop b{font-size:16px; color:var(--texto); font-weight:650}
+.tu-drop-ico{width:46px; height:46px; display:grid; place-items:center; border-radius:50%; background:color-mix(in srgb,var(--texto) 9%,transparent); color:var(--texto); margin-bottom:6px}
+.tu-drop-ico svg{width:24px; height:24px}
+.tu-errores{margin-top:14px; padding:12px 14px; border-radius:var(--r-m); background:color-mix(in srgb,var(--rojo) 12%,transparent); color:var(--rojo); font-size:13.5px; line-height:1.4}
+.tu-errores p{margin:0 0 8px} .tu-errores p:last-child{margin:0}
+.hoja-cab h3 small{font-size:13px; font-weight:500; color:var(--texto-3); letter-spacing:0}
+.tu-arch{font-family:var(--mono); font-size:12px; color:var(--texto-3); word-break:break-all}
+.tu-campos{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-bottom:12px}
+.tu-campo:first-child{grid-column:1 / -1}
+.tu-campo{padding:9px 12px 10px; border-radius:var(--r-m); background:var(--panel-2); border:1px solid var(--linea); min-width:0}
+.tu-campo span{display:block; font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--texto-3)}
+.tu-campo b{display:block; margin-top:3px; font-size:15px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.tu-campo b.mono{font-family:var(--mono); font-weight:500; font-size:14px}
+.tu-campo.falta b{color:var(--ambar); font-weight:500}
+.tu-aviso{margin:0 0 10px; padding:11px 13px; border-radius:var(--r-m); background:color-mix(in srgb,var(--ambar) 13%,transparent); border:1px solid color-mix(in srgb,var(--ambar) 35%,transparent); font-size:13.5px; line-height:1.4}
+.tu-aviso p{margin:0; display:flex; gap:9px; align-items:flex-start}
+.tu-aviso p svg{width:17px; height:17px; flex:0 0 auto; margin-top:1px; color:var(--ambar)}
+.tu-opciones{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+.tu-op[aria-checked="true"]{background:var(--tinta); color:var(--tinta-txt); border-color:transparent}
+.tu-resumen{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:6px 0 10px}
+.tu-resumen div{padding:10px 12px; border-radius:var(--r-m); background:linear-gradient(180deg,var(--panel-luz),var(--panel)); border:1px solid var(--linea)}
+.tu-resumen span{display:block; font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--texto-3)}
+.tu-resumen b{display:block; margin-top:3px; font-family:var(--mono); font-size:17px; font-weight:500}
+.tu-pasos{list-style:none; margin:0 0 10px; padding:0; display:grid; gap:4px}
+.tu-pasos li{--tc:var(--texto-3); display:grid; grid-template-columns:26px minmax(0,1fr) auto; gap:10px; align-items:center; padding:6px 4px; font-size:13px; border-bottom:1px solid var(--linea)}
+.tu-pasos li:last-child{border-bottom:0}
+.tu-pasos li b{font-weight:560; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.tu-pasos li > span:last-child{font-family:var(--mono); font-size:11.5px; color:var(--texto-2); white-space:nowrap}
+.tu-nota{margin:0 0 12px; font-size:12px; line-height:1.45; color:var(--texto-3)}
+.tu-dup{display:grid; gap:8px; margin-top:6px}
+.tu-dup p{margin:0 0 2px; font-size:13.5px; line-height:1.4}
+.tu-radio{
+  text-align:left; padding:11px 14px; border-radius:var(--r-m); background:var(--panel-2); border:1.5px solid var(--linea);
+  color:var(--texto); font:inherit; cursor:pointer; display:grid; gap:2px;
+  transition:border-color .2s var(--salida), background .2s var(--salida);
+}
+.tu-radio b{font-size:14.5px; font-weight:620} .tu-radio small{font-size:12px; color:var(--texto-3); line-height:1.35}
+.tu-radio[aria-checked="true"]{border-color:var(--texto); background:color-mix(in srgb,var(--texto) 7%,var(--panel-2))}
+.tu-radio:focus-visible,.tu-op:focus-visible{outline:2px solid var(--texto); outline-offset:2px}
+
+/* Elegir sellos */
+.tv-lista{display:grid; gap:6px; margin-top:4px; max-height:46vh; overflow-y:auto; padding:2px}
+.tv-fila{
+  display:flex; align-items:center; gap:12px; width:100%; min-height:54px; padding:8px 12px 8px 14px; text-align:left;
+  border-radius:var(--r-m); background:var(--panel-2); border:1.5px solid var(--linea); color:var(--texto); font:inherit; cursor:pointer;
+  transition:border-color .2s var(--salida), background .2s var(--salida), transform .12s var(--salida);
+}
+.tv-fila:active{transform:scale(.985)}
+.tv-fila:focus-visible{outline:2px solid var(--texto); outline-offset:2px}
+.tv-nom{flex:1 1 auto; min-width:0}
+.tv-nom b{display:block; font-size:15px; font-weight:620; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.tv-nom small{display:block; font-family:var(--mono); font-size:11.5px; color:var(--texto-3); margin-top:1px}
+.tv-tik{width:26px; height:26px; flex:0 0 auto; display:grid; place-items:center; border-radius:50%; border:1.5px solid var(--linea-fuerte); color:transparent; transition:all .2s var(--salida)}
+.tv-tik svg{width:15px; height:15px}
+.tv-fila[aria-checked="true"]{border-color:var(--texto); background:color-mix(in srgb,var(--texto) 7%,var(--panel-2))}
+.tv-fila[aria-checked="true"] .tv-tik{background:var(--tinta); border-color:transparent; color:var(--tinta-txt)}
+
+/* ── El botón «Tiene tiempo» en la ficha del sello ── */
+.t-sello-bloque{display:grid; grid-template-columns:minmax(0,1fr); gap:8px; margin:14px 0 4px}
+.t-sello-btn{
+  --tc:#f0857f;
+  display:flex; align-items:center; gap:13px; width:100%; min-width:0; min-height:64px; padding:10px 14px 10px 12px; text-align:left;
+  border-radius:var(--r-l); color:var(--texto); font:inherit; cursor:pointer;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--tc) 15%,var(--panel-luz)),var(--panel) 80%);
+  border:1px solid color-mix(in srgb,var(--tc) 38%,transparent); box-shadow:inset 0 1px 0 var(--canto);
+  transition:transform .15s var(--salida), border-color .2s var(--salida), box-shadow .2s var(--salida);
+}
+.t-sello-btn:hover{border-color:color-mix(in srgb,var(--tc) 65%,transparent); box-shadow:0 10px 24px -14px color-mix(in srgb,var(--tc) 70%,transparent)}
+.t-sello-btn:active{transform:scale(.985)}
+.t-sello-btn:focus-visible{outline:2px solid var(--texto); outline-offset:2px}
+.t-sello-ico{width:42px; height:42px; flex:0 0 auto; display:grid; place-items:center; border-radius:50%; color:var(--tc); background:color-mix(in srgb,var(--tc) 16%,var(--fondo)); border:1px solid color-mix(in srgb,var(--tc) 45%,transparent)}
+.t-sello-ico svg{width:22px; height:22px}
+.t-sello-tx{flex:1 1 auto; min-width:0}
+.t-sello-tx b{display:block; font-size:16px; font-weight:650; letter-spacing:-.01em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.t-sello-tx small{display:block; margin-top:2px; font-family:var(--mono); font-size:12px; color:var(--texto-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.t-sello-ir{width:20px; height:20px; color:var(--texto-3); flex:0 0 auto}
+.t-sello-ir svg{width:100%; height:100%}
+
+/* ── Móvil estrecho ── */
+@media (max-width:420px){
+  .t-cifra b{font-size:22px}
+  .t-recuentos b{font-size:18px}
+  .t-recuentos span{font-size:9.5px}
+}
+@media (prefers-reduced-motion:reduce){
+  .t-cifra,.t-paso,.t-barra i{animation:none}
+}
+
+/* ── La cámara dentro del buscador (en móvil sustituye a «Escanear» de la barra) ── */
+.q-camara{display:none}
+@media (max-width:860px){
+  .buscador .q-camara{
+    display:grid; place-items:center; position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    width:38px; height:38px; border-radius:50%; border:0; background:transparent; color:var(--texto-2); cursor:pointer; padding:0;
+    transition:background .15s var(--salida), color .15s var(--salida), transform .12s var(--salida);
+  }
+  .buscador .q-camara svg{position:static; transform:none; top:auto; left:auto; width:21px; height:21px; color:inherit; pointer-events:none}
+  .buscador .q-camara:active{transform:translateY(-50%) scale(.92); background:color-mix(in srgb,var(--texto) 10%,transparent)}
+  .buscador .q-camara:focus-visible{outline:2px solid var(--texto); outline-offset:1px}
+  #q{padding-right:54px !important}
+  .buscador:has(.limpiar.on) .q-camara{right:48px}
+  .buscador:has(.limpiar.on) #q{padding-right:94px !important}
+  #solapas [data-sec="escanear"]{display:none !important}
 }
 /* ═══ PASAR DE UN SELLO A OTRO: contador, puntitos y animaciones (20 nov) ═══ */
 .g-tira{display:flex; align-items:center; gap:10px; margin:0 0 12px}
@@ -5513,6 +5756,9 @@ html[data-estilo="blanda"] body[data-seccion="gramos"] .arch-t{border:0 !importa
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m20 20-3.6-3.6"/><circle cx="11" cy="11" r="6.5"/></svg>
       <input id="q" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search"
              placeholder="Buscar color, cliente o pigmento" aria-label="Buscar">
+      <button class="q-camara" id="q-camara" type="button" aria-label="Escanear el QR de una pegatina" title="Escanear el QR de una pegatina">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2a2 2 0 0 0 1.7-1l.4-.7A2 2 0 0 1 11.5 3.5h1a2 2 0 0 1 1.7 1.1l.4.7a2 2 0 0 0 1.7 1h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg>
+      </button>
       <button class="limpiar" id="limpiar" aria-label="Limpiar búsqueda">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
       </button>
@@ -5538,6 +5784,10 @@ html[data-estilo="blanda"] body[data-seccion="gramos"] .arch-t{border:0 !importa
       <button data-sec="notas" aria-pressed="false" role="tab" aria-label="Notas" title="Notas de trabajo">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3.5h7.5L19 8v12.5H7z" fill="currentColor" stroke="none" opacity=".3"/><path d="M7 3.5h7.5L19 8v12.5H7z"/><path d="M14.5 3.5V8H19"/><path d="M10 12.5h6"/><path d="M10 16h6"/></svg>
         <span>Notas</span>
+      </button>
+      <button data-sec="tiempos" aria-pressed="false" role="tab" aria-label="Tiempos" title="Tiempos de producción">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8" fill="currentColor" stroke="none" opacity=".3"/><circle cx="12" cy="13" r="8"/><path d="M12 8.5V13l3 1.8"/><path d="M9.5 2.5h5"/></svg>
+        <span>Tiempos</span>
       </button>
       <!-- Escanear no es una sección: abre la cámara. Va en la barra porque es
            lo que se hace con el móvil en la mano delante del molde o del bote. -->
@@ -6847,6 +7097,11 @@ function crearNube({url, clave}){
         d.notas = (d.notas || []).filter(x => x.id !== (a.datos && a.datos.id));
         if(nn) d.notas.push(nn);
       }
+      else if(String(a.clave).startsWith('tiempo:')){
+        const tt = a.datos && !a.datos.borrada ? tLimpia(a.datos) : null;
+        d.tiempos = (d.tiempos || []).filter(x => x.id !== (a.datos && a.datos.id));
+        if(tt) d.tiempos.push(tt);
+      }
       else if(a.clave === 'papelera_hasta') d.papelera_hasta = a.datos;
     }
     d.historial = res.preparaciones || [];
@@ -7665,6 +7920,7 @@ let porIdG = new Map(DATOS.gramos.map(g => [g.id, g]));
 let gramoSel = null;        // el sello abierto
 let notaSel = null;         // la nota abierta (Notas de trabajo)
 let notaCat = null;         // categoría de notas filtrada (null = todas)
+let tiempoSel = null;       // el tiempo abierto (pestaña Tiempos)
 let nFiltradas = [];
 let gColorFiltro = null;    // el color de la fila «Lleva» del archivador
 let gFiltrados = [];
@@ -8532,6 +8788,7 @@ function actualizar(tarde = false){
   // hueco de pantalla: así el botón de atrás del móvil, el abrir y cerrar
   // ficha y el resto del andamiaje valen igual para las dos cosas.
   if(SECCION === 'notas') return actualizarNotas();
+  if(SECCION === 'tiempos') return actualizarTiempos();
   if(SECCION === 'gramos') return actualizarGramos();
   if(SECCION === 'sellos') return actualizarSellos();
   intentarEnlace();
@@ -8685,7 +8942,7 @@ $lista.addEventListener('click', e=>{
   // editor lo recupera solo, porque el borrador va guardado con su mismo id.
   if(b.dataset.medias) return SECCION === 'sellos'
     ? editarSello(null, false, b.dataset.medias) : seguirFormula(b.dataset.medias);
-  if(SECCION === 'notas') return;                  // cada fila de nota lleva su propio clic
+  if(SECCION === 'notas' || SECCION === 'tiempos') return;   // cada fila lleva su propio clic
   if(SECCION === 'gramos') return abrirGramo(b.dataset.id);
   if(SECCION === 'sellos') return abrirSello(b.dataset.id);
   abrir(b.dataset.id, b.querySelector('.muestra'));
@@ -8950,9 +9207,9 @@ function cerrarFicha(){
   cerrarCapa('ficha');
   document.body.dataset.ficha='';
   seleccion = null; selloSel = null; rectificando = null;
-  gramoSel = null; notaSel = null;
+  gramoSel = null; notaSel = null; tiempoSel = null;
   for(const el of $lista.querySelectorAll('.fila, .arch-t')) el.setAttribute('aria-current','false');
-  if(SECCION === 'sellos') muroDeSellos(); else if(SECCION === 'notas') muroDeNotas(); else pintarFicha();
+  if(SECCION === 'sellos') muroDeSellos(); else if(SECCION === 'notas') muroDeNotas(); else if(SECCION === 'tiempos') muroDeTiempos(); else pintarFicha();
 }
 
 const MURO_TOPE = 240;
@@ -13056,6 +13313,8 @@ function aplicarDeLaNube(res){
       DATOS.tipos_sello = a.datos; n++;
     }else if(String(a.clave).startsWith('nota:')){
       n += notaDeNube(a.datos);
+    }else if(String(a.clave).startsWith('tiempo:')){
+      n += tiempoDeNube(a.datos);
     }else if(a.clave === 'papelera_hasta' && typeof a.datos === 'string'){
       papeleraHasta = a.datos; DATOS.papelera_hasta = papeleraHasta; n++;
     }
@@ -13158,7 +13417,7 @@ if(MODO === 'nube'){
    OPCIONES
    ═══════════════════════════════════════════════════════════════════ */
 document.getElementById('btn-nuevo').onclick =
-  ()=>SECCION === 'notas' ? editarNota(null) : SECCION === 'gramos' ? editarGramo(null) : SECCION === 'sellos' ? editarSello(null) : elegirNueva();
+  ()=>SECCION === 'notas' ? editarNota(null) : SECCION === 'tiempos' ? tAbrirSubir() : SECCION === 'gramos' ? editarGramo(null) : SECCION === 'sellos' ? editarSello(null) : elegirNueva();
 /* ═══════════════════════════════════════════════════════════════════
    OPCIONES
 
@@ -13407,7 +13666,7 @@ function pantallaCopia(volver){
   $dc.innerHTML = `
     <p class="op-p">${MODO === 'nube'
       ? `Es la única red de seguridad fuera de la nube: un archivo que se abre y
-         se lee por sí solo, sin depender de nada. Lleva fórmulas, pigmentos, sellos, notas,
+         se lee por sí solo, sin depender de nada. Lleva fórmulas, pigmentos, sellos, notas, tiempos,
          clientes y robots; <b>las fotos no</b>. ${(()=>{
            const u = leerFecha(CLAVE_COPIA);
            if(!u) return '<b>Todavía no has descargado ninguna.</b>';
@@ -13439,7 +13698,7 @@ function pantallaDatos(volver){
     <p class="op-p num">${nFormulas(DATOS.formulas.length)} · ${DATOS.materias_primas.length} materias primas ·
       ${DATOS.grupos_equivalencia.length} grupos de equivalencia${
       HAY_SELLOS ? ` · ${DATOS.sellos.length} sello${DATOS.sellos.length===1?'':'s'}` : ''}</p>
-    <p class="op-p flojo">Versión <b class="num">d9e155eb</b>. Si acabas de subir una nueva y aquí
+    <p class="op-p flojo">Versión <b class="num">db45bede</b>. Si acabas de subir una nueva y aquí
       sigue el número de antes, cierra la app y vuelve a abrirla.</p>
     <div class="op-botones">
       <button class="btn" id="op-calibracion">Cómo se calculan los colores</button>
@@ -13933,7 +14192,7 @@ function copiaNoValida(j){
 /** Qué REPONDRÍA la copia respecto a lo que hay AHORA (no respecto a los datos de
     fábrica). Nunca borra: lo que tienes y no está en la copia se queda. */
 function reconciliarActual(copia){
-  const r = {formulas: {}, nuevas: [], materias: [], gramos: [], notas: [], ajustes: [], danadas: 0};
+  const r = {formulas: {}, nuevas: [], materias: [], gramos: [], notas: [], tiempos: [], ajustes: [], danadas: 0};
   for(const f of (copia.formulas || [])){
     if(!formulaValida(f)){ r.danadas++; continue; }
     const actual = porId.get(f.id);
@@ -13957,6 +14216,11 @@ function reconciliarActual(copia){
     const nn = nLimpia(x);
     if(!nn){ r.danadas++; continue; }
     if(!nPorId(nn.id)) r.notas.push(nn);             // las notas que faltan vuelven
+  }
+  for(const x of (copia.tiempos || [])){
+    const tt = tLimpia(x);
+    if(!tt){ r.danadas++; continue; }
+    if(!tPorId(tt.id)) r.tiempos.push(tt);           // los tiempos que faltan vuelven
   }
   for(const [clave, lista, actual] of [['clientes', copia.clientes, CLIENTES],
                                         ['robots', copia.robots, ROBOTS],
@@ -13988,7 +14252,7 @@ function restaurarNube(j){
   const nuevo = reconciliarActual(j);
   const nEd = Object.keys(nuevo.formulas).length;
   const total = nEd + nuevo.nuevas.length + nuevo.materias.length +
-                nuevo.gramos.length + nuevo.notas.length + nuevo.ajustes.reduce((s, a) => s + a.faltan.length, 0);
+                nuevo.gramos.length + nuevo.notas.length + nuevo.tiempos.length + nuevo.ajustes.reduce((s, a) => s + a.faltan.length, 0);
   const fecha = j.fecha ? new Date(j.fecha).toLocaleString('es-ES',
     {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}) : null;
   const pl = (q, uno, varios) => `${q} ${q === 1 ? uno : varios}`;
@@ -13998,6 +14262,7 @@ function restaurarNube(j){
     nuevo.materias.length ? `${pl(nuevo.materias.length, 'pigmento', 'pigmentos')} repuesto${nuevo.materias.length === 1 ? '' : 's'}` : '',
     nuevo.gramos.length ? `${pl(nuevo.gramos.length, 'sello', 'sellos')} recuperado${nuevo.gramos.length === 1 ? '' : 's'}` : '',
     nuevo.notas.length ? `${pl(nuevo.notas.length, 'nota', 'notas')} recuperada${nuevo.notas.length === 1 ? '' : 's'}` : '',
+    nuevo.tiempos.length ? `${pl(nuevo.tiempos.length, 'tiempo', 'tiempos')} recuperado${nuevo.tiempos.length === 1 ? '' : 's'}` : '',
     ...nuevo.ajustes.map(a => `${pl(a.faltan.length, 'elemento', 'elementos')} de «${a.clave}» repuesto${a.faltan.length === 1 ? '' : 's'}`),
   ].filter(Boolean);
 
@@ -14058,6 +14323,11 @@ function restaurarNube(j){
       await subir(nube.subirAjustes([{clave: 'nota:' + x.id, datos: x}]));
     }
     nLista().sort(nCmp);
+    for(const x of nuevo.tiempos){
+      tLista().push(x);
+      await subir(nube.subirAjustes([{clave: 'tiempo:' + x.id, datos: x}]));
+    }
+    tLista().sort(tCmp);
     for(const {clave, faltan} of nuevo.ajustes){
       const destino = clave === 'clientes' ? CLIENTES : clave === 'robots' ? ROBOTS : AGUJAS;
       destino.push(...faltan); DATOS[clave] = destino;
@@ -17049,6 +17319,7 @@ function pintarSolapas(){
        botón de Sellos y el de Colores se queda como "inicio". */
     $s.querySelector('[data-sec="gramos"]')?.remove();
     $s.querySelector('[data-sec="notas"]')?.remove();
+    $s.querySelector('[data-sec="tiempos"]')?.remove();
     $s.dataset.sola = 'colores';
   }
   for(const b of $s.querySelectorAll('[data-sec]'))
@@ -17060,6 +17331,7 @@ function pintarSolapas(){
   /* Y en los móviles de 360 px de ancho ni el corto cabe: se quita el verbo. */
   const minimo = matchMedia('(max-width:380px)').matches;
   $q.placeholder = SECCION === 'notas' ? (minimo ? 'Buscar nota' : 'Buscar en las notas')
+    : SECCION === 'tiempos' ? 'Buscar tiempo'
     : SECCION === 'gramos'
     ? (minimo ? 'Sello o molde' : corto ? 'Buscar sello o molde' : 'Buscar sello, molde o color')
     : SECCION === 'sellos'
@@ -17067,7 +17339,7 @@ function pintarSolapas(){
     : (minimo ? 'Color o cliente' : corto ? 'Buscar color o cliente' : 'Buscar color, cliente o pigmento');
   const nuevo = document.getElementById('btn-nuevo');
   if(nuevo){
-    nuevo.title = SECCION === 'notas' ? 'Nueva nota' : SECCION === 'gramos' ? 'Nuevo sello' : SECCION === 'sellos' ? 'Nuevo molde' : 'Nuevo color';
+    nuevo.title = SECCION === 'notas' ? 'Nueva nota' : SECCION === 'tiempos' ? 'Subir hoja' : SECCION === 'gramos' ? 'Nuevo sello' : SECCION === 'sellos' ? 'Nuevo molde' : 'Nuevo color';
     nuevo.setAttribute('aria-label', nuevo.title);
   }
 }
@@ -17081,7 +17353,7 @@ function cambiarSeccion(sec){
   if(SECCION === sec) return;
   SECCION = sec;
   seleccion = null; selloSel = null; gramoSel = null;
-  notaSel = null; notaCat = null; gColorFiltro = null;
+  notaSel = null; notaCat = null; gColorFiltro = null; tiempoSel = null; tFiltroCli = null; tVieneDe = null;
   $q.value = '';
   ponerFiltro(null);
   soloFaltaS = false;
@@ -17154,7 +17426,7 @@ function escucharDeslizar(zona, {puede, izquierda, derecha}){
 }
 
 if(HAY_GRAMOS) escucharDeslizar(document.querySelector('.cuerpo'), {
-  puede: ()=> document.body.dataset.ficha !== 'on' && !$dlg.open && SECCION !== 'notas',
+  puede: ()=> document.body.dataset.ficha !== 'on' && !$dlg.open && SECCION !== 'notas' && SECCION !== 'tiempos',
   izquierda: ()=>deslizarSeccion('gramos'),
   derecha:   ()=>deslizarSeccion('colores'),
 });
@@ -17617,6 +17889,7 @@ function pintarFichaGramo(){
       <div class="g-cli">${gMoldeTxt(g) ? esc(gMoldeTxt(g)) : '<span class="flojo">Sin número de molde</span>'}${gPorMolde(g) > 1 ? ` · <b class="g-cli-u">${gPorMolde(g)} unidades por molde</b>` : ''}</div>
     </div>
     ${gFaseNotaFichaHtml(g._v)}
+    ${tBotonSelloHtml(raw.id)}
     <div class="g-tarj">
       <div class="g-cabsec"><span>Colores${vs.length > 1 ? ` de «${esc(gNomVar(g._v, vs.indexOf(g._v)))}»` : ''}</span></div>
       ${sinColores
@@ -20369,7 +20642,7 @@ function copiaResumenTexto(r){
   r = r || {};
   const pl = (q, a, b) => `${q} ${q === 1 ? a : b}`;
   return [pl(r.formulas || 0, 'fórmula', 'fórmulas'), pl(r.materias || 0, 'pigmento', 'pigmentos'),
-          r.gramos ? pl(r.gramos, 'sello', 'sellos') : '', r.notas ? pl(r.notas, 'nota', 'notas') : '']
+          r.gramos ? pl(r.gramos, 'sello', 'sellos') : '', r.notas ? pl(r.notas, 'nota', 'notas') : '', r.tiempos ? pl(r.tiempos, 'tiempo', 'tiempos') : '']
     .filter(Boolean).join(' · ');
 }
 
@@ -20482,7 +20755,7 @@ async function restaurarCopiaAuto(id, btn){
     const archivo = {
       app: 'colores-seriadornos', version: 1, fecha: c.hecha,
       formulas: d.formulas, materias_primas: d.materias_primas, gramos: d.gramos || [],
-      notas: d.notas || [], clientes: d.clientes, robots: d.robots, agujas: d.agujas,
+      notas: d.notas || [], tiempos: d.tiempos || [], clientes: d.clientes, robots: d.robots, agujas: d.agujas,
       historial_preparaciones: d.historial || [],
     };
     const fallo = copiaNoValida(archivo);
@@ -20505,7 +20778,7 @@ function pantallaCopiaAuto(volver){
   }
   $dc.innerHTML = `
     <p class="op-p">Cada noche la app guarda <b>una copia completa dentro de Supabase</b> y conserva
-      las últimas 14. Lleva fórmulas, pigmentos, sellos, notas, clientes, robots y botes preparados;
+      las últimas 14. Lleva fórmulas, pigmentos, sellos, notas, tiempos, clientes, robots y botes preparados;
       <b>las fotos no</b>. Restaurar nunca borra nada de lo que tienes ahora.</p>
     <div id="cp-estado" class="cp-estado">Comprobando…</div>
     <div class="op-botones">
@@ -21179,6 +21452,939 @@ function gBarraProceso(){
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
+   LEER UNA HOJA DE TIEMPOS (.xlsx) SIN LIBRERÍAS (27 nov)
+
+   Un .xlsx es un zip con XML dentro. Se lee aquí mismo, en el aparato:
+   el archivo no sale a ningún sitio y no se modifica. Para el zip se usa
+   `DecompressionStream` (lo traen Chrome, Edge, Safari y Firefox actuales);
+   si el navegador no lo tiene, se dice claro en vez de fallar a medias.
+
+   De las fórmulas se coge el RESULTADO que el archivo ya trae guardado: no se
+   ejecutan. Es lo que hace falta, porque los costes de horneado, enfriado…
+   salen de OTRO Excel vinculado que aquí no existe.
+
+   `tiempoLeerHoja(buffer, nombreArchivo)` devuelve el tiempo ya ordenado
+   (cabecera, pasos, totales, recuentos) más `avisos`: cosas dudosas que se le
+   enseñan a quien sube la hoja antes de guardar.
+   ═══════════════════════════════════════════════════════════════════════ */
+const TXL_MAX_BYTES = 6 * 1024 * 1024;
+
+function txlU16(v, o){ return v.getUint16(o, true); }
+function txlU32(v, o){ return v.getUint32(o, true); }
+
+/** Abre el zip y devuelve {nombre: () => Promise<Uint8Array>}. */
+function txlZip(buf){
+  const v = new DataView(buf), u8 = new Uint8Array(buf);
+  if(u8.length < 22 || u8[0] !== 0x50 || u8[1] !== 0x4b) throw new Error('No parece un archivo de Excel (.xlsx).');
+  let eocd = -1;
+  for(let i = u8.length - 22; i >= Math.max(0, u8.length - 22 - 65557); i--){
+    if(txlU32(v, i) === 0x06054b50){ eocd = i; break; }
+  }
+  if(eocd < 0) throw new Error('El archivo está dañado: no encuentro su índice.');
+  const n = txlU16(v, eocd + 10);
+  let p = txlU32(v, eocd + 16);
+  const dec = new TextDecoder('utf-8');
+  const ficheros = new Map();
+  for(let k = 0; k < n; k++){
+    if(txlU32(v, p) !== 0x02014b50) throw new Error('El archivo está dañado: índice roto.');
+    const metodo = txlU16(v, p + 10), comp = txlU32(v, p + 20);
+    const lNom = txlU16(v, p + 28), lExt = txlU16(v, p + 30), lCom = txlU16(v, p + 32), pos = txlU32(v, p + 42);
+    const nombre = dec.decode(u8.subarray(p + 46, p + 46 + lNom));
+    ficheros.set(nombre, {metodo, comp, pos});
+    p += 46 + lNom + lExt + lCom;
+  }
+  const leer = async nombre => {
+    const f = ficheros.get(nombre);
+    if(!f) return null;
+    if(txlU32(v, f.pos) !== 0x04034b50) throw new Error('El archivo está dañado: dato roto.');
+    const ini = f.pos + 30 + txlU16(v, f.pos + 26) + txlU16(v, f.pos + 28);
+    const datos = u8.subarray(ini, ini + f.comp);
+    if(f.metodo === 0) return datos;
+    if(f.metodo !== 8) throw new Error('El archivo usa una compresión que no sé leer.');
+    if(typeof DecompressionStream !== 'function') throw new Error('Este navegador no sabe abrir archivos de Excel. Prueba con Chrome o Edge actualizados.');
+    const flujo = new Blob([datos]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return new Uint8Array(await new Response(flujo).arrayBuffer());
+  };
+  return {tiene: n => ficheros.has(n), texto: async n => { const d = await leer(n); return d ? dec.decode(d) : null; }};
+}
+
+function txlXml(txt){
+  const d = new DOMParser().parseFromString(txt, 'application/xml');
+  if(d.querySelector('parsererror')) throw new Error('El archivo está dañado: no puedo leer una de sus hojas.');
+  return d;
+}
+
+/** «B7» → {col: 2, fila: 7} */
+function txlRef(ref){
+  const m = /^([A-Z]+)(\d+)$/.exec(ref || '');
+  if(!m) return null;
+  let c = 0; for(const ch of m[1]) c = c * 26 + (ch.charCodeAt(0) - 64);
+  return {col: c, fila: +m[2]};
+}
+const txlColLetra = c => { let s = ''; while(c > 0){ s = String.fromCharCode(65 + (c - 1) % 26) + s; c = Math.floor((c - 1) / 26); } return s; };
+
+/** Días desde 1900 (el sistema de fechas de Excel) → «2026-04-24». */
+function txlFecha(serie){
+  const ms = Math.round((serie - 25569) * 86400000);
+  const d = new Date(ms);
+  return isNaN(d) ? '' : d.toISOString().slice(0, 10);
+}
+
+/** ¿Este formato de número es de fecha? (los de fábrica 14-22 y 45-47, o uno propio con d/m/a) */
+function txlEsFormatoFecha(id, formatos){
+  if((id >= 14 && id <= 22) || (id >= 45 && id <= 47)) return true;
+  const f = formatos.get(id);
+  return !!f && /[dmy]/i.test(f.replace(/"[^"]*"|\[[^\]]*\]|\\./g, '')) && !/[#0]/.test(f.replace(/"[^"]*"|\[[^\]]*\]|\\./g, ''));
+}
+
+/** Lee la primera hoja y devuelve {nombre, celdas: Map('B7' -> {v, fecha})}. */
+async function txlLeerLibro(buf){
+  const zip = txlZip(buf);
+  const wb = await zip.texto('xl/workbook.xml');
+  if(!wb) throw new Error('No parece un archivo de Excel (.xlsx).');
+  const hoja = txlXml(wb).querySelector('sheets > sheet');
+  if(!hoja) throw new Error('El archivo no tiene ninguna hoja.');
+  const rid = hoja.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id') || hoja.getAttribute('r:id');
+  let destino = 'xl/worksheets/sheet1.xml';
+  const rels = await zip.texto('xl/_rels/workbook.xml.rels');
+  if(rels){
+    for(const r of txlXml(rels).querySelectorAll('Relationship'))
+      if(r.getAttribute('Id') === rid){ destino = 'xl/' + r.getAttribute('Target').replace(/^\/?(xl\/)?/, ''); break; }
+  }
+  const compartidas = [];
+  const ss = await zip.texto('xl/sharedStrings.xml');
+  if(ss) for(const si of txlXml(ss).querySelectorAll('si')) compartidas.push([...si.querySelectorAll('t')].map(t => t.textContent).join(''));
+  // estilos: qué celdas son fechas
+  const formatos = new Map(), xfs = [];
+  const st = await zip.texto('xl/styles.xml');
+  if(st){
+    const sd = txlXml(st);
+    for(const nf of sd.querySelectorAll('numFmts > numFmt')) formatos.set(+nf.getAttribute('numFmtId'), nf.getAttribute('formatCode') || '');
+    for(const xf of sd.querySelectorAll('cellXfs > xf')) xfs.push(+xf.getAttribute('numFmtId') || 0);
+  }
+  const hx = await zip.texto(destino);
+  if(!hx) throw new Error('No encuentro la hoja dentro del archivo.');
+  const celdas = new Map();
+  for(const c of txlXml(hx).querySelectorAll('sheetData c')){
+    const ref = c.getAttribute('r'), t = c.getAttribute('t') || 'n';
+    const vEl = c.querySelector('v');
+    let v = null;
+    if(t === 'inlineStr') v = [...c.querySelectorAll('is t')].map(x => x.textContent).join('');
+    else if(vEl && vEl.textContent !== ''){
+      if(t === 's') v = compartidas[+vEl.textContent] ?? '';
+      else if(t === 'str') v = vEl.textContent;
+      else if(t === 'b') v = vEl.textContent === '1';
+      else if(t === 'e') v = null;
+      else v = Number(vEl.textContent);
+    }else if(t === 'str') v = '';
+    if(v === null) continue;
+    let fecha = false;
+    if(typeof v === 'number' && txlEsFormatoFecha(xfs[+c.getAttribute('s') || 0] || 0, formatos)) fecha = true;
+    celdas.set(ref, {v, fecha});
+  }
+  return {nombre: hoja.getAttribute('name') || '', celdas};
+}
+
+const txlTxt = x => x == null ? '' : String(x).replace(/\s+/g, ' ').trim();
+const txlNum = x => (typeof x === 'number' && isFinite(x)) ? x : (typeof x === 'string' && x.trim() !== '' && isFinite(Number(x.replace(',', '.'))) ? Number(x.replace(',', '.')) : null);
+const txlRedond = (x, d) => x == null ? null : Math.round(x * 10 ** d) / 10 ** d;
+
+/**
+ * Lee la hoja de tiempos. Se busca por los rótulos de la propia hoja («CLIENTE»,
+ * «LINEA», «total»…) y no por casillas fijas: si alguien añade una fila arriba, sigue valiendo.
+ */
+async function tiempoLeerHoja(buf, nombreArchivo){
+  if(!(buf instanceof ArrayBuffer)) throw new Error('No he podido leer el archivo.');
+  if(buf.byteLength > TXL_MAX_BYTES) throw new Error('El archivo es demasiado grande para ser una hoja de tiempos.');
+  const {nombre, celdas} = await txlLeerLibro(buf);
+  const filas = new Map();
+  for(const [ref, c] of celdas){
+    const p = txlRef(ref); if(!p) continue;
+    if(!filas.has(p.fila)) filas.set(p.fila, new Map());
+    filas.get(p.fila).set(p.col, c);
+  }
+  const get = (fila, col) => (filas.get(fila) || new Map()).get(col) || null;
+  const val = (fila, col) => { const c = get(fila, col); return c ? c.v : null; };
+  /** Primer valor no vacío a la derecha de una casilla. */
+  const aLaDerecha = (fila, col, tope = 12) => {
+    for(let k = col + 1; k <= col + tope; k++){ const c = get(fila, k); if(c && txlTxt(c.v) !== '') return c; }
+    return null;
+  };
+  /** Busca una casilla por su rótulo (sin mayúsculas ni espacios de más). */
+  const buscar = (rotulo, desdeFila = 1, hastaFila = 1e9) => {
+    const r = rotulo.toLowerCase();
+    for(const f of [...filas.keys()].sort((a, b) => a - b)){
+      if(f < desdeFila || f > hastaFila) continue;
+      for(const [col, c] of [...filas.get(f)].sort((a, b) => a[0] - b[0]))
+        if(typeof c.v === 'string' && txlTxt(c.v).toLowerCase() === r) return {fila: f, col};
+    }
+    return null;
+  };
+
+  const avisos = [];
+  const filaLinea = buscar('linea');
+  if(!filaLinea) throw new Error('No parece una hoja de tiempos: no encuentro la tabla de pasos (la columna «LINEA»).');
+  const cab = filaLinea.fila;
+
+  // ── Cabecera ──
+  const txtDe = rot => { const p = buscar(rot, 1, cab); const c = p && aLaDerecha(p.fila, p.col); return c ? txlTxt(c.v) : ''; };
+  const cliente = txtDe('cliente');
+  const pNum = buscar('numero cliente', 1, cab), cNum = pNum && aLaDerecha(pNum.fila, pNum.col);
+  const numCliente = cNum ? txlTxt(cNum.v) : '';
+  const pFecha = buscar('fecha', 1, cab), cFecha = pFecha && aLaDerecha(pFecha.fila, pFecha.col);
+  let fecha = '';
+  if(cFecha){
+    if(typeof cFecha.v === 'number' && cFecha.fecha) fecha = txlFecha(cFecha.v);
+    else{
+      const m = /^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})$/.exec(txlTxt(cFecha.v));
+      if(m) fecha = `${m[3].length === 2 ? '20' + m[3] : m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+    }
+  }
+  // «MODELO» sale dos veces: el código (a la izquierda) y el nombre de la hoja (en medio)
+  const modelos = [];
+  for(const f of [...filas.keys()].sort((a, b) => a - b)){
+    if(f >= cab) break;
+    for(const [col, c] of [...filas.get(f)].sort((a, b) => a[0] - b[0]))
+      if(typeof c.v === 'string' && txlTxt(c.v).toLowerCase() === 'modelo'){ const d = aLaDerecha(f, col); if(d) modelos.push(txlTxt(d.v)); }
+  }
+  const modelo = modelos[0] || '';
+  const titulo = modelos[1] || '';
+  const pPz = buscar('piezas planch', 1, cab) || [...filas.keys()].filter(f => f < cab).flatMap(f => [...filas.get(f)].filter(([, c]) => typeof c.v === 'string' && /^piezas/i.test(txlTxt(c.v))).map(([col]) => ({fila: f, col})))[0];
+  const piezas = pPz ? txlNum(val(pPz.fila + 1, pPz.col)) : null;
+  const pCs = [...filas.keys()].filter(f => f < cab).flatMap(f => [...filas.get(f)].filter(([, c]) => typeof c.v === 'string' && /^cost\.?\s*seg/i.test(txlTxt(c.v))).map(([col]) => ({fila: f, col})))[0];
+  const costeSeg = pCs ? txlNum(val(pCs.fila + 1, pCs.col)) : null;
+
+  if(!cliente) avisos.push({id: 'cliente', txt: 'No he encontrado el nombre del cliente en la hoja.'});
+  if(!modelo) avisos.push({id: 'modelo', txt: 'No he encontrado el modelo en la hoja.'});
+  // El código del modelo y el que va entre paréntesis en el nombre deberían ser el mismo.
+  const enTitulo = (/\(([A-Za-z0-9._-]{4,})\)/.exec(titulo) || [])[1] || '';
+  const candidatos = [...new Set([modelo, enTitulo].filter(Boolean))];
+  if(modelo && enTitulo && modelo.toLowerCase() !== enTitulo.toLowerCase())
+    avisos.push({id: 'modelo-distinto', txt: `El modelo de la casilla es «${modelo}» pero el nombre de la hoja dice «${enTitulo}».`, candidatos});
+
+  // ── Columnas de la tabla, por su rótulo ──
+  const colDe = {};
+  for(const [col, c] of filas.get(cab)){
+    const t = txlTxt(c.v).toLowerCase();
+    if(t === 'trabajo') colDe.trabajo = col;
+    else if(t.startsWith('descrip')) colDe.desc = col;
+    else if(t === 'seg.unid') colDe.segUnid = col;
+    else if(t.startsWith('seg.escan')) colDe.segEsc = col;
+    else if(t === 'seg/plancha') colDe.segPlancha = col;
+    else if(t.startsWith('coste plch')) colDe.costePlancha = col;
+    else if(t === 'cost.uni') colDe.costeUni = col;
+    else if(t === 'un/hora') colDe.unHora = col;
+    else if(t.startsWith('texto para copiar')) colDe.texto = col;
+  }
+  if(!colDe.trabajo) throw new Error('No parece una hoja de tiempos: falta la columna «TRABAJO».');
+
+  // ── Pasos: hasta la fila «total» ──
+  const pasos = [];
+  let filaTotal = null;
+  for(const f of [...filas.keys()].sort((a, b) => a - b)){
+    if(f <= cab) continue;
+    const trabajo = txlTxt(val(f, colDe.trabajo));
+    if(trabajo.toLowerCase() === 'total'){ filaTotal = f; break; }
+    if(!trabajo) continue;
+    const n = txlNum(val(f, 1));
+    const celda = k => colDe[k] ? val(f, colDe[k]) : null;
+    const desc = celda('desc');
+    pasos.push({
+      n: n != null ? n : pasos.length + 1,
+      trabajo: trabajo.toUpperCase(),
+      desc: desc == null ? '' : txlTxt(desc),
+      segUnid: txlRedond(txlNum(celda('segUnid')), 3),
+      segEsc: txlRedond(txlNum(celda('segEsc')), 3),
+      segPlancha: txlRedond(txlNum(celda('segPlancha')), 3),
+      costePlancha: txlRedond(txlNum(celda('costePlancha')), 4),
+      costeUni: txlRedond(txlNum(celda('costeUni')), 4),
+      unHora: txlRedond(txlNum(celda('unHora')), 0),
+      texto: txlTxt(celda('texto')),
+    });
+  }
+  if(!pasos.length) throw new Error('La hoja no tiene ningún paso apuntado.');
+
+  // ── Totales y recuentos ──
+  const totales = {segUnid: null, segEsc: null, segPlancha: null, costePlancha: null, costeUni: null};
+  const recuentos = {horneados: null, enfriados: null, engomados: null, limpieza: null, pelados: null};
+  if(filaTotal){
+    for(const k of Object.keys(totales)) if(colDe[k]) totales[k] = txlRedond(txlNum(val(filaTotal, colDe[k])), 4);
+    const claves = {horneados: 'horneados', enfriados: 'enfriados', engomados: 'engomados', limpieza: 'limpieza', pelados: 'pelados'};
+    for(const f of [...filas.keys()].sort((a, b) => a - b)){
+      if(f <= filaTotal) continue;
+      const rot = txlTxt(val(f, colDe.trabajo)).toLowerCase();
+      if(claves[rot]){ const c = aLaDerecha(f, colDe.trabajo); recuentos[claves[rot]] = c ? txlNum(c.v) : null; }
+    }
+  }
+  // Si la hoja no trae totales, se calculan (y se dice).
+  const suma = k => txlRedond(pasos.reduce((a, p) => a + (p[k] || 0), 0), 4);
+  for(const k of Object.keys(totales)) if(totales[k] == null){ totales[k] = suma(k); if(filaTotal == null || colDe[k]) avisos.push({id: 'total-calculado', txt: 'La hoja no traía alguno de los totales: los he calculado yo.'}); break; }
+  const cuenta = (...ts) => pasos.filter(p => ts.includes(p.trabajo)).length;
+  const calc = {horneados: cuenta('HORNEPL', 'VULCANIZAR'), enfriados: cuenta('ENFRIAR'), engomados: cuenta('ENGOM.FIN', 'ENGOM.REV'), limpieza: cuenta('LIMPIAR'), pelados: cuenta('PELARPV')};
+  for(const k of Object.keys(recuentos)) if(recuentos[k] == null) recuentos[k] = calc[k];
+  // Comprobación: la suma de los pasos debería dar el total de la hoja.
+  const sumaCoste = suma('costeUni');
+  if(totales.costeUni != null && Math.abs(sumaCoste - totales.costeUni) > 0.005)
+    avisos.push({id: 'suma', txt: `Los costes de los pasos suman ${sumaCoste.toFixed(3)} € pero la hoja dice ${totales.costeUni.toFixed(3)} €. Se guarda lo que dice la hoja.`});
+  const faltaCoste = pasos.filter(p => p.costeUni == null && p.costePlancha == null).length;
+  if(faltaCoste) avisos.push({id: 'sin-coste', txt: `${faltaCoste} paso${faltaCoste === 1 ? '' : 's'} sin coste en la hoja.`});
+  if(pasos.some(p => p.costeUni === 0 && p.trabajo !== 'MICROIN'))
+    avisos.push({id: 'coste-cero', txt: 'Algún paso (que no es de microinyección) tiene coste 0: puede que la hoja no pudiera traer su tarifa del otro Excel.'});
+
+  // ── Observaciones: lo que haya bajo el rótulo «OBSERVACIONES» ──
+  let observaciones = '';
+  const pObs = buscar('observaciones', filaTotal ? 1 : cab);
+  if(pObs){
+    const lineas = [];
+    for(let f = pObs.fila + 1; f <= pObs.fila + 6; f++){
+      const c = get(f, pObs.col);
+      const t = c ? txlTxt(c.v) : '';
+      if(t) lineas.push(t);
+    }
+    observaciones = lineas.join('\n');
+  }
+
+  return {
+    cliente, numCliente, fecha, modelo, titulo, piezas, costeSeg,
+    pasos, totales, recuentos, observaciones,
+    hoja: nombre.trim(), archivo: nombreArchivo || '', avisos,
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TIEMPOS (27 nov)
+
+   Las hojas de «tiempo de 1 sello» que se hacen en Excel (cliente, modelo, los
+   pasos con sus segundos y su coste, totales) se suben aquí; la app lee los
+   datos y los guarda. Cada tiempo se puede vincular a uno o varios sellos: en la
+   ficha del sello sale un botón «Tiene tiempo» que lleva a la ficha del tiempo.
+
+   Dónde se guardan: cada tiempo es UNA fila de `colores_ajustes` con la clave
+   «tiempo:<id>» (igual que las notas): hereda la cola sin cobertura, la copia
+   diaria y los permisos, sin tabla nueva ni SQL. Borrar lo marca `borrada`.
+   El vínculo vive en el tiempo (`sellos: [ids]`): el sello no cambia.
+
+   Todo lo que trae la hoja se guarda y se enseña tal cual (todas sus columnas,
+   los totales, los recuentos y las observaciones). Si se sube otra hoja del
+   mismo cliente y modelo se puede ACTUALIZAR el tiempo: el anterior se queda
+   en «Versiones anteriores».
+   ═══════════════════════════════════════════════════════════════════════ */
+ICONOS.tiempos = {
+  t: ['M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17z', 'M12 7.8V12l2.8 1.8', 'M9.5 2h5'],
+  f: ['M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17z'],
+};
+
+/* Estado: `var`, no `let`, porque la pantalla puede pintarse al arrancar antes de que llegue este módulo. */
+var tFiltradas = [];
+var tFiltroCli = null;        // null = todos · '__sin' = sin vincular · «cliente» = ese cliente
+var tVieneDe = null;          // {gid}: se llegó a este tiempo desde la ficha de ese sello
+
+const T_PASOS = {
+  'MICROIN':    {n: 'Microinyección', c: '#f0857f'},
+  'HORNEPL':    {n: 'Horneado',       c: '#d9a441'},
+  'ENFRIAR':    {n: 'Enfriado',       c: '#6fa8d6'},
+  'ENGOM.FIN':  {n: 'Engomado',       c: '#8fbf6a'},
+  'ENGOM.REV':  {n: 'Engomado',       c: '#8fbf6a'},
+  'LIMPIAR':    {n: 'Limpieza',       c: '#a9a498'},
+  'VULCANIZAR': {n: 'Vulcanizado',    c: '#b79be0'},
+  'PELARPV':    {n: 'Pelado',         c: '#d6a27a'},
+};
+const tInfoPaso = cod => T_PASOS[cod] || {n: cod ? cod.charAt(0) + cod.slice(1).toLowerCase() : 'Paso', c: '#a9a498'};
+
+const tNum = (x, max = 1, min = 0) => x == null ? '—' : Number(x).toLocaleString('es-ES', {minimumFractionDigits: min, maximumFractionDigits: max});
+const tEur = (x, max = 3) => x == null ? '—' : tNum(x, max, 2) + ' €';
+function tFechaTxt(iso){
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(iso || '') ? new Date(iso + 'T12:00:00') : new Date(iso);
+  return isNaN(d) ? '' : d.toLocaleDateString('es-ES', {day: 'numeric', month: 'short', year: 'numeric'}).replace(/\./g, '');
+}
+
+function tLista(){ return DATOS.tiempos || (DATOS.tiempos = []); }
+function tPorId(id){ return tLista().find(t => t.id === id); }
+function tIdNuevo(){ return 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+const tSellosDe = t => (t.sellos || []).map(id => porIdG.get(id)).filter(Boolean);
+const tDeSello = gid => tLista().filter(t => (t.sellos || []).includes(gid));
+function tCmp(a, b){
+  return String(b.fecha || '').localeCompare(String(a.fecha || ''))
+    || String(a.cliente || '').localeCompare(String(b.cliente || ''), 'es')
+    || String(a.modelo || '').localeCompare(String(b.modelo || ''), 'es');
+}
+
+/** Una hoja que llega de fuera (la nube, una copia) puede venir rota: se arregla o se tira. */
+function tLimpiaCuerpo(d){
+  const txt = (v, max) => String(v == null ? '' : v).slice(0, max);
+  const num = (v, dec) => { if(v == null || v === '') return null; v = Number(v); return Number.isFinite(v) ? Math.round(v * 10 ** dec) / 10 ** dec : null; };
+  const obj = (o, claves, dec) => { const r = {}; for(const k of claves) r[k] = num(o && o[k], dec); return r; };
+  return {
+    cliente: txt(d.cliente, 120), numCliente: txt(d.numCliente, 30), fecha: /^\d{4}-\d{2}-\d{2}$/.test(d.fecha || '') ? d.fecha : '',
+    modelo: txt(d.modelo, 60), titulo: txt(d.titulo, 160), piezas: num(d.piezas, 3), costeSeg: num(d.costeSeg, 6),
+    pasos: (Array.isArray(d.pasos) ? d.pasos : []).filter(p => p && typeof p === 'object').slice(0, 80).map((p, i) => ({
+      n: num(p.n, 0) ?? i + 1, trabajo: txt(p.trabajo, 30).toUpperCase(), desc: txt(p.desc, 100),
+      segUnid: num(p.segUnid, 3), segEsc: num(p.segEsc, 3), segPlancha: num(p.segPlancha, 3),
+      costePlancha: num(p.costePlancha, 4), costeUni: num(p.costeUni, 4), unHora: num(p.unHora, 0), texto: txt(p.texto, 200),
+    })),
+    totales: obj(d.totales, ['segUnid', 'segEsc', 'segPlancha', 'costePlancha', 'costeUni'], 4),
+    recuentos: obj(d.recuentos, ['horneados', 'enfriados', 'engomados', 'limpieza', 'pelados'], 0),
+    observaciones: txt(d.observaciones, 1500), hoja: txt(d.hoja, 60), archivo: txt(d.archivo, 200),
+    subido: txt(d.subido, 40), por: txt(d.por, 60),
+  };
+}
+function tLimpia(d){
+  if(!d || typeof d !== 'object' || typeof d.id !== 'string' || !d.id) return null;
+  return {
+    id: d.id, ...tLimpiaCuerpo(d),
+    sellos: [...new Set((Array.isArray(d.sellos) ? d.sellos : []).filter(x => typeof x === 'string' && x))].slice(0, 60),
+    versiones: (Array.isArray(d.versiones) ? d.versiones : []).filter(v => v && typeof v === 'object').slice(0, 10).map(tLimpiaCuerpo),
+    creado: String(d.creado || '').slice(0, 40), creadoPor: String(d.creadoPor || '').slice(0, 60),
+    editado: String(d.editado || '').slice(0, 40), autor: String(d.autor || '').slice(0, 60),
+  };
+}
+
+/** Un tiempo que llega de la nube. Devuelve 1 si algo cambió. */
+function tiempoDeNube(d){
+  if(!d || typeof d.id !== 'string') return 0;
+  const l = tLista();
+  const i = l.findIndex(x => x.id === d.id);
+  if(d.borrada){
+    if(i < 0) return 0;
+    l.splice(i, 1);
+    if(tiempoSel === d.id){ tiempoSel = null; if(SECCION === 'tiempos') cerrarFicha(); }
+    return 1;
+  }
+  const t = tLimpia(d);
+  if(!t) return 0;
+  if(i >= 0){ if(igualJSON(l[i], t)) return 0; l[i] = t; }
+  else l.push(t);
+  l.sort(tCmp);
+  return 1;
+}
+
+/** Guarda un tiempo: en este aparato, en el espejo y hacia la nube (con cola). */
+function guardarTiempo(t, sinFirma){
+  if(!puedeEditar){ brindis(SIN_PERMISO); return false; }
+  const ahora = new Date().toISOString();
+  if(!sinFirma){ t.editado = ahora; t.autor = NOMBRE; }
+  if(!t.creado){ t.creado = ahora; t.creadoPor = NOMBRE; }
+  const l = tLista();
+  const i = l.findIndex(x => x.id === t.id);
+  if(t.borrada){ if(i >= 0) l.splice(i, 1); }
+  else if(i >= 0) l[i] = t; else l.push(t);
+  l.sort(tCmp);
+  if(MODO === 'nube'){
+    marcarSync('subiendo');
+    nube.subirAjustes([{clave: 'tiempo:' + t.id, datos: t}])
+      .then(ok => marcarSync(ok ? 'al-dia' : 'pendiente'))
+      .catch(e => falloNube(e));
+    nube.guardarEspejo(DATOS, ultimaSync, ROL);
+  }
+  return true;
+}
+
+// ── Búsqueda y lista ───────────────────────────────────────────────────
+function tFiltrar(txt){
+  let l = tLista().slice().sort(tCmp);
+  if(tFiltroCli === '__sin') l = l.filter(t => !tSellosDe(t).length);
+  else if(tFiltroCli) l = l.filter(t => t.cliente === tFiltroCli);
+  const q = norm(txt || '');
+  if(!q) return l;
+  const ps = q.split(' ');
+  return l.filter(t => {
+    const hay = norm([t.cliente, t.numCliente, t.modelo, t.titulo, t.observaciones, t.archivo,
+      ...t.pasos.flatMap(p => [p.trabajo, tInfoPaso(p.trabajo).n, p.desc]),
+      ...tSellosDe(t).map(g => g.nombre + ' ' + (gMoldeTxt(g) || ''))].join(' '));
+    return ps.every(p => hay.includes(p));
+  });
+}
+const tPildoraVinc = t => {
+  const n = tSellosDe(t).length;
+  return n ? `<span class="t-vinc ok">${T_ICO_LINK}${n} sello${n === 1 ? '' : 's'}</span>` : `<span class="t-vinc pend">${T_ICO_ALERTA}Sin vincular</span>`;
+};
+const T_ICO_LINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>';
+const T_ICO_ALERTA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4 2.8 19.5h18.4L12 4z"/><path d="M12 10v4.5M12 17.4v.1"/></svg>';
+const T_ICO_DER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 5.5 6.5 6.5-6.5 6.5"/></svg>';
+const T_ICO_SUBE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15.5V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4.5 14.5v3.2a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3.2"/></svg>';
+const T_ICO_COPIA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 8.5V6.5a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg>';
+const T_ICO_MAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+
+function actualizarTiempos(){
+  tFiltradas = tFiltrar($q.value);
+  const total = tLista().length;
+  document.getElementById('contador').innerHTML = tFiltradas.length === total
+    ? `<b>${total}</b> tiempo${total === 1 ? '' : 's'}`
+    : `<b>${tFiltradas.length}</b> de ${total} tiempo${total === 1 ? '' : 's'}`;
+  for(const id of ['chip-pend', 'chip-pigmento', 'aviso-cal', 'riel']){
+    const el = document.getElementById(id);
+    if(el) el.hidden = true;
+  }
+  // Los filtros ocupan el sitio de los chips de clientes: Todos · Sin vincular · cada cliente.
+  const sin = tLista().filter(t => !tSellosDe(t).length).length;
+  const cuenta = new Map();
+  for(const t of tLista()){ const k = (t.cliente || '').trim(); if(k) cuenta.set(k, (cuenta.get(k) || 0) + 1); }
+  if(tFiltroCli && tFiltroCli !== '__sin' && !cuenta.has(tFiltroCli)) tFiltroCli = null;
+  if(tFiltroCli === '__sin' && !sin) tFiltroCli = null;
+  const $c = document.getElementById('chips-cli');
+  if($c){
+    $c.hidden = !total;
+    const chips = [['', 'Todos', total], ...(sin ? [['__sin', 'Sin vincular', sin]] : []), ...[...cuenta].sort((a, b) => a[0].localeCompare(b[0], 'es')).map(([c, n]) => [c, c, n])];
+    $c.innerHTML = total
+      ? `<div class="n-cats-fila">${chips.map(([v, e, n]) =>
+          `<button class="chip n-cat" type="button" data-tcli="${esc(v)}" aria-pressed="${(tFiltroCli || '') === v}">${esc(e)} <span class="n">${n}</span></button>`).join('')}</div>`
+      : '';
+    for(const b of $c.querySelectorAll('[data-tcli]'))
+      b.onclick = () => { tFiltroCli = b.dataset.tcli || null; actualizar(); };
+  }
+  document.getElementById('limpiar').classList.toggle('on', !!$q.value);
+  pintarListaTiempos();
+  if(!tiempoSel) muroDeTiempos(); else pintarFichaTiempo();
+}
+
+function pintarListaTiempos(){
+  $lista.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  for(const t of tFiltradas){
+    const b = document.createElement('button');
+    b.className = 'fila fila-nota fila-tiempo'; b.type = 'button'; b.role = 'option';
+    b.dataset.id = t.id;
+    b.setAttribute('aria-current', String(t.id === tiempoSel));
+    const tot = t.totales || {};
+    b.innerHTML =
+      `<div class="n-fila-cab"><span class="g-ceja n-et-cat">${esc(tFechaTxt(t.fecha) || 'Sin fecha')}</span>${tPildoraVinc(t)}</div>` +
+      `<div class="fila-nombre">${resaltar(t.cliente || 'Sin cliente', $q.value)}</div>` +
+      `<div class="n-fila-txt">${esc(t.modelo || 'Sin modelo')}${t.numCliente ? ' · cliente ' + esc(t.numCliente) : ''}</div>` +
+      `<div class="n-fila-pie">` +
+      (tot.segEsc ? `<span class="n-dato" style="--tc:${T_PASOS.MICROIN.c}"><i></i>${esc(tNum(tot.segEsc, 1))} s</span>` : '') +
+      `<span class="n-dato" style="--tc:#d9a441"><i></i>${esc(tEur(tot.costeUni))}</span>` +
+      `<span class="n-dato" style="--tc:#a9a498"><i></i>${t.pasos.length} paso${t.pasos.length === 1 ? '' : 's'}</span></div>`;
+    b.onclick = () => abrirTiempo(t.id);
+    frag.appendChild(b);
+  }
+  if(!tFiltradas.length){
+    const v = document.createElement('div');
+    v.className = 'lista-nada';
+    v.innerHTML = tLista().length
+      ? '<b>Ningún tiempo coincide</b>Prueba con menos letras o quita el filtro de arriba.'
+      : '<b>Todavía no hay tiempos</b>' + (puedeEditar
+        ? 'Sube la hoja de Excel del tiempo de un sello y la app guarda sus pasos, sus segundos y su coste.<button class="btn btn-1" id="t-primera-lista" type="button">Subir la primera hoja</button>'
+        : 'Aparecerán aquí en cuanto se vayan subiendo.');
+    frag.appendChild(v);
+  }
+  $lista.appendChild(frag);
+  document.getElementById('t-primera-lista')?.addEventListener('click', () => tAbrirSubir());
+}
+
+function abrirTiempo(id){
+  abrirCapa('ficha');
+  tiempoSel = id;
+  document.body.dataset.ficha = 'on';
+  pintarFichaTiempo();
+  pintarListaTiempos();
+  document.getElementById('columna-ficha').scrollTop = 0;
+}
+
+/** La ficha cuando no hay ningún tiempo abierto (en el ordenador, el cajón se vacía). */
+function muroDeTiempos(){
+  tVieneDe = null;
+  if(!matchMedia('(max-width:860px)').matches){ cajonVaciar(); return; }
+  $ficha.classList.remove('es-muro');
+  const $col = document.getElementById('columna-ficha');
+  if($col) $col.style.removeProperty('--tono');
+  $ficha.innerHTML = `<div class="vacio">${icono('tiempos')}
+    <p><b>${tLista().length ? 'Elige un tiempo' : 'Todavía no hay tiempos'}</b>${tLista().length
+      ? 'Cada tiempo guarda los pasos de un sello con sus segundos, su coste y los sellos a los que va unido.'
+      : (puedeEditar
+        ? 'Sube la hoja de Excel del tiempo de un sello: la app lee los pasos, los segundos y el coste, y los guarda.'
+        : 'Aquí aparecerán los tiempos de los sellos.')}</p>
+    ${puedeEditar ? '<button class="btn btn-1" id="t-primera">Subir una hoja</button>' : ''}
+    </div>`;
+  document.getElementById('t-primera')?.addEventListener('click', () => tAbrirSubir());
+}
+
+/** Salta de sección y abre algo (esperando a que termine la vuelta atrás del historial, como hace el resto de la app). */
+function tIrA(sec, fn){
+  const ir = () => { cambiarSeccion(sec); fn(); };
+  if(historialVa && capas.length){ trasVolver = ir; cerrarTodo(); } else ir();
+}
+
+// ── La ficha de un tiempo ──────────────────────────────────────────────
+function tTablaHtml(t){
+  const f = (x, max, min = 0) => x == null ? '' : tNum(x, max, min);
+  const cero = x => x ? tNum(x, 3) : '—';
+  const tot = t.totales || {};
+  return `<table class="t-tabla">
+    <thead><tr><th scope="col">Línea</th><th scope="col">Trabajo</th><th scope="col">Descripción</th><th scope="col">Seg. unid.</th><th scope="col">Seg. escaneo +15 %</th><th scope="col">Seg. plancha</th><th scope="col">Coste plancha</th><th scope="col">Coste unid.</th><th scope="col">Unid./hora</th></tr></thead>
+    <tbody>${t.pasos.map(p => `<tr>
+      <td>${esc(p.n)}</td><th scope="row"><span class="t-tp" style="--tc:${tInfoPaso(p.trabajo).c}">${esc(p.trabajo)}</span></th><td class="t-izq">${esc(p.desc)}</td>
+      <td>${f(p.segUnid, 3)}</td><td>${p.segEsc ? tNum(p.segEsc, 3) : '—'}</td><td>${p.segPlancha ? tNum(p.segPlancha, 3) : '—'}</td>
+      <td>${f(p.costePlancha, 4, 2)}</td><td>${f(p.costeUni, 4, 2)}</td><td>${f(p.unHora, 0)}</td></tr>`).join('')}</tbody>
+    <tfoot><tr><th scope="row" colspan="3">Total</th><td>${cero(tot.segUnid)}</td><td>${cero(tot.segEsc)}</td><td>${cero(tot.segPlancha)}</td><td>${tot.costePlancha != null ? tNum(tot.costePlancha, 4, 2) : '—'}</td><td>${tot.costeUni != null ? tNum(tot.costeUni, 4, 2) : '—'}</td><td></td></tr></tfoot>
+  </table>`;
+}
+/** Lo que se pega en «Observaciones» del ERP: solo los pasos de microinyección con segundos (como la columna de la hoja). */
+const tTextoErp = t => t.pasos.filter(p => p.texto && p.segUnid != null).map(p => p.texto).join('\n');
+
+function pintarFichaTiempo(){
+  const t = tPorId(tiempoSel);
+  if(!t){
+    const abierto = document.body.dataset.ficha === 'on';
+    tiempoSel = null;
+    if(abierto){ cerrarFicha(); brindis('Ese tiempo ya no existe: lo ha borrado otro aparato'); }
+    muroDeTiempos(); return;
+  }
+  $ficha.classList.remove('es-muro');
+  soltarFotos($ficha);
+  { const col = document.getElementById('columna-ficha'); if(col) col.style.setProperty('--tono', T_PASOS.MICROIN.c); }
+  const tot = t.totales || {}, rc = t.recuentos || {};
+  const maxCoste = Math.max(0.0001, ...t.pasos.map(p => p.costeUni || 0));
+  const sellos = tSellosDe(t);
+  const venido = tVieneDe && porIdG.get(tVieneDe.gid);
+  const erp = tTextoErp(t);
+  const cuentas = [['horneados', 'Horneados'], ['enfriados', 'Enfriados'], ['engomados', 'Engomados'], ['limpieza', 'Limpieza'], ['pelados', 'Pelados']];
+
+  $ficha.innerHTML = `
+    <button class="volver" id="t-volver" type="button">${G_ICONO_ATRAS} ${venido ? `Volver a «${esc(venido.nombre)}»` : 'Todos los tiempos'}</button>
+    <div class="s-titulo t-tit">
+      <span class="g-ceja">Tiempo de producción</span>
+      <h2>${esc(t.cliente || 'Sin cliente')}</h2>
+      <div class="g-cli">${esc([t.modelo, t.numCliente ? 'cliente ' + t.numCliente : '', tFechaTxt(t.fecha)].filter(Boolean).join(' · '))}</div>
+      ${t.titulo ? `<p class="t-titulo-hoja">${esc(t.titulo)}</p>` : ''}
+    </div>
+    <div class="t-cifras">
+      <div class="t-cifra hl"><span class="g-ceja">Coste por unidad</span><b>${esc(tNum(tot.costeUni, 3, 2))}<small> €</small></b><em>${t.pasos.length} paso${t.pasos.length === 1 ? '' : 's'}</em></div>
+      <div class="t-cifra"><span class="g-ceja">Microinyección</span><b>${tot.segEsc ? esc(tNum(tot.segEsc, 1)) : '—'}<small> s</small></b><em>${tot.segUnid ? esc(tNum(tot.segUnid, 1)) + ' s + 15 %' : 'sin segundos'}</em></div>
+      <div class="t-cifra"><span class="g-ceja">Piezas por plancha</span><b>${esc(tNum(t.piezas, 2))}</b><em>plancha ${esc(tEur(tot.costePlancha))}</em></div>
+      <div class="t-cifra"><span class="g-ceja">Coste por segundo</span><b>${esc(tNum(t.costeSeg, 4, 3))}<small> €</small></b><em>en microinyección</em></div>
+    </div>
+    <div class="g-cabsec t-cabsec"><span>Qué hace falta por unidad</span></div>
+    <div class="t-recuentos">${cuentas.map(([k, n]) => `<div class="${rc[k] ? '' : 'cero'}"><b>${rc[k] == null ? '—' : rc[k]}</b><span>${n}</span></div>`).join('')}</div>
+    <div class="g-cabsec t-cabsec"><span>Paso a paso</span><span>${t.pasos.length}</span></div>
+    <ol class="t-pasos">${t.pasos.map(p => {
+      const inf = tInfoPaso(p.trabajo), w = Math.max(4, Math.round((p.costeUni || 0) / maxCoste * 100));
+      return `<li class="t-paso" style="--tc:${inf.c}"><span class="t-n">${esc(p.n)}</span>
+        <span class="t-pt"><b>${esc(inf.n)}${p.desc && p.desc !== '1' ? ' · ' + esc(p.desc) : ''}</b><small>${esc(p.trabajo)}</small></span>
+        <span class="t-pd">${p.segUnid != null ? `<b>${esc(tNum(p.segUnid, 3))} s → ${esc(tNum(p.segEsc, 3))} s</b><small>${esc(tEur(p.costeUni))}${p.unHora ? ' · ' + esc(tNum(p.unHora, 0)) + ' u/h' : ''}</small>` : `<b>${esc(tEur(p.costeUni, 2))}</b><small>coste del paso</small>`}</span>
+        <span class="t-barra"><i style="--w:${w}%"></i></span></li>`;
+    }).join('')}</ol>
+    <details class="t-det" id="t-det-tabla"><summary>Tabla completa, como en la hoja</summary><div class="t-tabla-caja" tabindex="0" role="region" aria-label="Tabla completa de la hoja">${tTablaHtml(t)}</div></details>
+    ${t.observaciones ? `<div class="g-cabsec t-cabsec"><span>Observaciones</span></div><p class="t-obs">${esc(t.observaciones)}</p>` : ''}
+    ${erp ? `<div class="g-cabsec t-cabsec"><span>Para pegar en Observaciones</span></div>
+      <div class="t-erp"><pre>${esc(erp)}</pre><button class="btn" id="t-copiar" type="button">${T_ICO_COPIA} Copiar</button></div>` : ''}
+    <div class="g-cabsec t-cabsec"><span>Sellos vinculados</span><span>${sellos.length}</span></div>
+    <div class="t-sellos">${sellos.length ? sellos.map(g => `<button class="t-sello-fila" type="button" data-ir-sello="${esc(g.id)}">
+        <span class="t-sello-nom"><b>${esc(g.nombre)}</b><small>${esc(gMoldeTxt(g) || 'Sin molde')}</small></span>
+        ${puedeEditar ? `<span class="t-quita" role="button" tabindex="0" data-quita="${esc(g.id)}" aria-label="Quitar el vínculo con ${esc(g.nombre)}" title="Quitar el vínculo">✕</span>` : ''}
+        ${T_ICO_DER}</button>`).join('')
+      : '<p class="t-sin-sellos">Todavía no está vinculado a ningún sello.</p>'}
+      ${puedeEditar ? `<button class="btn t-vincular" id="t-vincular" type="button">${T_ICO_LINK} ${sellos.length ? 'Vincular otro sello' : 'Vincular a un sello'}</button>` : ''}
+    </div>
+    ${(t.versiones || []).length ? `<details class="t-det"><summary>Versiones anteriores · ${t.versiones.length}</summary><ul class="t-vers">${t.versiones.map(v =>
+      `<li><b>${esc(tFechaTxt(v.fecha) || 'Sin fecha')}</b><span>${esc(tEur(v.totales && v.totales.costeUni))} por unidad${v.totales && v.totales.segEsc ? ' · ' + esc(tNum(v.totales.segEsc, 1)) + ' s' : ''} · ${v.pasos.length} pasos</span>${v.archivo ? `<small>${esc(v.archivo)}</small>` : ''}</li>`).join('')}</ul></details>` : ''}
+    <p class="t-meta">${t.archivo ? `Archivo: ${esc(t.archivo)}. ` : ''}${t.subido ? `Subido el ${esc(tFechaTxt(t.subido))}${t.por ? ' por ' + esc(t.por) : ''}.` : ''}</p>
+    ${puedeEditar ? `<div class="barra-ficha t-barra-ficha"><button class="btn" id="t-actualizar" type="button">${T_ICO_SUBE} Subir hoja nueva</button>
+      <button class="btn btn-icono g-borrar" id="t-borrar" type="button" aria-label="Eliminar este tiempo" title="Eliminar este tiempo">${icono('borrar')}</button></div>` : ''}`;
+
+  const det = document.getElementById('t-det-tabla');
+  if(det && matchMedia('(min-width:861px)').matches) det.open = true;
+  document.getElementById('t-volver').onclick = () => {
+    if(venido){ const gid = tVieneDe.gid; tVieneDe = null; tIrA('gramos', () => abrirGramo(gid)); }
+    else cerrarFicha();
+  };
+  for(const b of $ficha.querySelectorAll('[data-ir-sello]')){
+    const ir = () => { tVieneDe = null; tIrA('gramos', () => abrirGramo(b.dataset.irSello)); };
+    b.onclick = e => {
+      const q = e.target.closest('[data-quita]');
+      if(q){ e.stopPropagation(); return tQuitarVinculo(t.id, q.dataset.quita); }
+      ir();
+    };
+  }
+  for(const q of $ficha.querySelectorAll('[data-quita]'))
+    q.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.stopPropagation(); tQuitarVinculo(t.id, q.dataset.quita); } };
+  document.getElementById('t-copiar')?.addEventListener('click', () => tCopiar(erp));
+  document.getElementById('t-vincular')?.addEventListener('click', () => tElegirSellos(t));
+  document.getElementById('t-actualizar')?.addEventListener('click', () => tAbrirSubir());
+  document.getElementById('t-borrar')?.addEventListener('click', () => tBorrar(t.id));
+}
+
+function tCopiar(texto){
+  const ok = () => brindis('Texto copiado');
+  const viejo = () => {
+    const ta = document.createElement('textarea');
+    ta.value = texto; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta); ta.select();
+    let bien = false; try{ bien = document.execCommand('copy'); }catch(_){}
+    ta.remove();
+    brindis(bien ? 'Texto copiado' : 'No he podido copiarlo: selecciónalo y cópialo a mano');
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(ok, viejo);
+  else viejo();
+}
+
+function tQuitarVinculo(tid, gid){
+  const t = tPorId(tid); if(!t || !puedeEditar) return;
+  const antes = t.sellos.slice();
+  const g = porIdG.get(gid);
+  guardarTiempo({...t, sellos: t.sellos.filter(x => x !== gid)});
+  actualizar();
+  brindisAccion(`Vínculo con «${g ? g.nombre : 'el sello'}» quitado`, 'Deshacer', () => {
+    const v = tPorId(tid); if(v){ guardarTiempo({...v, sellos: antes}); actualizar(); }
+  });
+}
+
+async function tBorrar(id){
+  const t = tPorId(id); if(!t) return;
+  if(!puedeEditar){ brindis(SIN_PERMISO); return; }
+  if(!await pedirEliminar({titulo: 'Eliminar tiempo', boton: 'Eliminar',
+    texto: `Vas a eliminar el tiempo de <b>${esc(t.cliente || 'Sin cliente')}</b>${t.modelo ? ' (' + esc(t.modelo) + ')' : ''}.`,
+    nota: 'Los sellos a los que está vinculado no se borran: solo pierden el botón «Tiene tiempo».'})) return;
+  const copia = JSON.parse(JSON.stringify(t));
+  guardarTiempo({...t, borrada: true}, true);
+  tiempoSel = null; tVieneDe = null;
+  cerrarFicha();
+  actualizar();
+  brindisAccion('Tiempo eliminado', 'Deshacer', () => { guardarTiempo({...copia, borrada: false}, true); actualizar(); });
+}
+
+// ── Vincular a sellos ─────────────────────────────────────────────────
+/** Los sellos, con los que se parecen al cliente primero. */
+function tSellosOrdenados(t){
+  const pal = norm([t.cliente, t.titulo].join(' ')).split(' ').filter(w => w.length >= 4 && !/^(sello|tiempo|s\.?l\.?)$/.test(w));
+  const punt = g => { const n = norm(g.nombre + ' ' + (gMoldeTxt(g) || '')); return pal.filter(w => n.includes(w)).length; };
+  return (DATOS.gramos || []).filter(g => !g.borrado).map(g => ({g, p: punt(g)}))
+    .sort((a, b) => b.p - a.p || String(a.g.nombre).localeCompare(String(b.g.nombre), 'es'));
+}
+
+/** Ventana para elegir sellos (varios). Devuelve la lista de ids elegidos, o null si se cancela. */
+function tElegirSellos(t, alGuardar){
+  if(!puedeEditar){ brindis(SIN_PERMISO); return Promise.resolve(null); }
+  return new Promise(resolve => {
+    const d = document.createElement('dialog');
+    d.className = 'dlg-tipos dlg-tiempos'; d.id = 'dlg-tiempos-vinc';
+    d.setAttribute('aria-labelledby', 'tv-titulo');
+    document.body.appendChild(d);
+    const elegidos = new Set(t.sellos || []);
+    const orden = tSellosOrdenados(t);
+    let filtro = '';
+    d.innerHTML = `<div class="hoja">
+      <div class="hoja-cab"><h3 id="tv-titulo">¿A qué sellos lo vinculas?</h3></div>
+      <div class="hoja-cuerpo">
+        <p class="tg-intro">Tiempo de <b>${esc(t.cliente || 'Sin cliente')}</b>${t.modelo ? ' · ' + esc(t.modelo) : ''}. En la ficha de cada sello elegido saldrá el botón «Tiene tiempo». Puedes dejarlo para más tarde.</p>
+        <label class="campo"><span>Buscar sello</span><input type="search" id="tv-q" autocomplete="off" placeholder="Nombre o molde"></label>
+        <div class="tv-lista" id="tv-lista" role="group" aria-label="Sellos"></div>
+        ${orden.length ? '' : '<p class="tg-intro">Todavía no hay sellos. Créalos en la pestaña Sellos y vuelve aquí.</p>'}
+      </div>
+      <div class="hoja-pie"><button class="btn" type="button" data-no>Más tarde</button><button class="btn btn-1" type="button" data-si id="tv-si">Vincular</button></div></div>`;
+    const $l = d.querySelector('#tv-lista'), $si = d.querySelector('#tv-si');
+    const pintarLista = () => {
+      const q = norm(filtro);
+      const ver = orden.filter(({g}) => !q || q.split(' ').every(w => norm(g.nombre + ' ' + (gMoldeTxt(g) || '')).includes(w))).slice(0, 80);
+      $l.innerHTML = ver.length ? ver.map(({g, p}) => `<button type="button" role="checkbox" class="tv-fila" aria-checked="${elegidos.has(g.id)}" data-g="${esc(g.id)}">
+          <span class="tv-nom"><b>${esc(g.nombre)}</b><small>${esc(gMoldeTxt(g) || 'Sin molde')}${p ? ' · se parece al cliente' : ''}</small></span><span class="tv-tik">${'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>'}</span></button>`).join('')
+        : '<p class="tg-intro">Ningún sello coincide.</p>';
+      for(const b of $l.querySelectorAll('[data-g]'))
+        b.onclick = () => {
+          const id = b.dataset.g;
+          if(elegidos.has(id)) elegidos.delete(id); else elegidos.add(id);
+          b.setAttribute('aria-checked', String(elegidos.has(id))); texto();
+        };
+    };
+    const texto = () => { $si.textContent = elegidos.size ? `Vincular (${elegidos.size})` : 'Guardar sin sellos'; };
+    pintarLista(); texto();
+    d.querySelector('#tv-q').addEventListener('input', e => { filtro = e.target.value; pintarLista(); });
+    let hecho = false;
+    const cerrar = v => { if(hecho) return; hecho = true; if(d.open) d.close(); d.remove(); resolve(v); };
+    d.querySelector('[data-no]').onclick = () => cerrar(null);
+    $si.onclick = () => {
+      const ids = [...elegidos];
+      const actual = tPorId(t.id);
+      if(actual){ guardarTiempo({...actual, sellos: ids}); actualizar(); if(ids.length) brindis(`Vinculado a ${ids.length} sello${ids.length === 1 ? '' : 's'}`); }
+      cerrar(ids);
+    };
+    d.addEventListener('cancel', e => { e.preventDefault(); cerrar(null); });
+    d.addEventListener('mousedown', e => { if(e.target === d) cerrar(null); });
+    d.showModal();
+  });
+}
+
+// ── Subir hojas ───────────────────────────────────────────────────────
+const tNombreCorto = n => String(n || '').length > 46 ? String(n).slice(0, 43) + '…' : String(n || '');
+
+function tAbrirSubir(archivos){
+  if(!puedeEditar){ brindis(SIN_PERMISO); return; }
+  if(document.getElementById('dlg-tiempos')) return;
+  const d = document.createElement('dialog');
+  d.className = 'dlg-tipos dlg-tiempos'; d.id = 'dlg-tiempos';
+  d.setAttribute('aria-labelledby', 'tu-titulo');
+  document.body.appendChild(d);
+  let cola = [];             // [{nombre, datos, error}]
+  let pos = 0;               // la hoja que se está revisando
+  let guardadas = [];        // ids de los tiempos guardados en esta sesión
+  let leyendo = false;
+  let opcionDup = 'actualizar';    // si ya hay uno del mismo modelo: 'actualizar' | 'nuevo'
+  let modeloElegido = '';
+
+  const cierraBtn = `<button type="button" class="btn-icono" data-cierra aria-label="Cerrar">${'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>'}</button>`;
+
+  function pantallaElegir(){
+    const errores = cola.filter(x => x.error);
+    d.innerHTML = `<div class="hoja">
+      <div class="hoja-cab"><h3 id="tu-titulo">Subir hojas de tiempos</h3>${cierraBtn}</div>
+      <div class="hoja-cuerpo">
+        <p class="tg-intro">Elige la hoja de Excel (.xlsx) del tiempo de un sello, o varias a la vez. La app solo la lee: tu archivo no se modifica ni sale de este aparato.</p>
+        <label class="tu-drop" id="tu-drop" for="tu-fichero">
+          <span class="tu-drop-ico">${T_ICO_SUBE}</span>
+          <b>${leyendo ? 'Leyendo…' : 'Suelta aquí tus hojas'}</b>
+          <span>${leyendo ? 'Un momento' : 'o toca para elegirlas'}</span>
+          <input type="file" id="tu-fichero" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple hidden>
+        </label>
+        ${errores.length ? `<div class="tu-errores" role="alert">${errores.map(x => `<p><b>${esc(tNombreCorto(x.nombre))}</b><br>${esc(x.error)}</p>`).join('')}</div>` : ''}
+      </div>
+      <div class="hoja-pie"><button class="btn btn-1" type="button" data-cierra>Cerrar</button></div></div>`;
+    const inp = d.querySelector('#tu-fichero'), drop = d.querySelector('#tu-drop');
+    inp.onchange = () => { const fs = [...inp.files]; inp.value = ''; if(fs.length) leer(fs); };
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('sobre'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('sobre'));
+    drop.addEventListener('drop', e => { e.preventDefault(); e.stopPropagation(); drop.classList.remove('sobre'); const fs = [...(e.dataTransfer.files || [])]; if(fs.length) leer(fs); });
+    enlazarCierre();
+  }
+
+  async function leer(fs){
+    if(leyendo) return;
+    leyendo = true; cola = []; pos = 0; pantallaElegir();
+    for(const f of fs){
+      try{
+        if(!/\.xlsx$/i.test(f.name)) throw new Error('Solo sé leer hojas de Excel en formato .xlsx.');
+        const datos = await tiempoLeerHoja(await f.arrayBuffer(), f.name);
+        cola.push({nombre: f.name, datos});
+      }catch(e){ cola.push({nombre: f.name, error: (e && e.message) || 'No he podido leer este archivo.'}); }
+    }
+    leyendo = false;
+    pos = cola.findIndex(x => !x.error);
+    if(pos < 0) return pantallaElegir();
+    pantallaRevisar();
+  }
+
+  /** ¿Hay ya un tiempo del mismo cliente y modelo? */
+  const duplicado = (dat, modelo) => tLista().find(t => norm(t.cliente) === norm(dat.cliente) && norm(t.modelo) === norm(modelo));
+
+  function pantallaRevisar(){
+    const it = cola[pos], dat = it.datos;
+    const dudaModelo = dat.avisos.find(a => a.id === 'modelo-distinto');
+    if(!modeloElegido || !(dudaModelo ? dudaModelo.candidatos : [dat.modelo]).includes(modeloElegido))
+      modeloElegido = dudaModelo ? (dudaModelo.candidatos[1] || dudaModelo.candidatos[0]) : dat.modelo;
+    const dup = duplicado(dat, modeloElegido);
+    const otros = dat.avisos.filter(a => a.id !== 'modelo-distinto');
+    const n = cola.filter(x => !x.error).length, num = cola.slice(0, pos + 1).filter(x => !x.error).length;
+    const campo = (rot, v, mono) => `<div class="tu-campo${v ? '' : ' falta'}"><span>${esc(rot)}</span><b${mono ? ' class="mono"' : ''}>${v ? esc(v) : 'No consta'}</b></div>`;
+    d.innerHTML = `<div class="hoja">
+      <div class="hoja-cab"><h3 id="tu-titulo">Esto es lo que he leído${n > 1 ? ` <small>· hoja ${num} de ${n}</small>` : ''}</h3>${cierraBtn}</div>
+      <div class="hoja-cuerpo">
+        <p class="tg-intro">Compruébalo antes de guardar. <span class="tu-arch">${esc(tNombreCorto(it.nombre))}</span></p>
+        <div class="tu-campos">
+          ${campo('Cliente', dat.cliente)}${campo('Nº cliente', dat.numCliente, true)}
+          ${campo('Modelo', modeloElegido, true)}${campo('Fecha', tFechaTxt(dat.fecha))}
+          ${campo('Piezas por plancha', dat.piezas != null ? tNum(dat.piezas, 2) : '', true)}${campo('Coste por segundo', dat.costeSeg != null ? tNum(dat.costeSeg, 4, 3) + ' €' : '', true)}
+        </div>
+        ${dudaModelo ? `<div class="tu-aviso" role="group" aria-label="Elegir el modelo correcto"><p>${T_ICO_ALERTA}<span><b>Duda:</b> ${esc(dudaModelo.txt)} ¿Cuál es el bueno?</span></p>
+          <div class="tu-opciones">${dudaModelo.candidatos.map(c => `<button type="button" class="chip tu-op" role="radio" data-modelo="${esc(c)}" aria-checked="${c === modeloElegido}">${esc(c)}</button>`).join('')}</div></div>` : ''}
+        ${otros.map(a => `<div class="tu-aviso"><p>${T_ICO_ALERTA}<span>${esc(a.txt)}</span></p></div>`).join('')}
+        <div class="tu-resumen">
+          <div><span>Coste por unidad</span><b>${esc(tEur(dat.totales.costeUni))}</b></div>
+          <div><span>Microinyección</span><b>${dat.totales.segEsc ? esc(tNum(dat.totales.segEsc, 1)) + ' s' : '—'}</b></div>
+          <div><span>Pasos</span><b>${dat.pasos.length}</b></div>
+        </div>
+        <ul class="tu-pasos">${dat.pasos.map(p => `<li style="--tc:${tInfoPaso(p.trabajo).c}"><span class="t-n">${esc(p.n)}</span><b>${esc(tInfoPaso(p.trabajo).n)}${p.desc && p.desc !== '1' ? ' · ' + esc(p.desc) : ''}</b><span>${p.segUnid != null ? esc(tNum(p.segUnid, 3)) + ' s → ' + esc(tNum(p.segEsc, 3)) + ' s · ' : ''}${esc(tEur(p.costeUni))}</span></li>`).join('')}</ul>
+        <p class="tu-nota">Los costes de horneado, enfriado, engomado, limpieza y vulcanizado los toma tu hoja de otro Excel vinculado. Guardo los valores que traía el archivo; si cambian las tarifas, sube la hoja nueva.</p>
+        ${dup ? `<div class="tu-dup" role="radiogroup" aria-label="Ya hay un tiempo de este modelo"><p><b>Ya hay un tiempo de este cliente y modelo</b> (${esc(tFechaTxt(dup.fecha) || 'sin fecha')}).</p>
+          <button type="button" role="radio" class="tu-radio" data-dup="actualizar" aria-checked="${opcionDup === 'actualizar'}"><b>Actualizarlo</b><small>El anterior se queda en «Versiones anteriores» y se conservan sus sellos vinculados.</small></button>
+          <button type="button" role="radio" class="tu-radio" data-dup="nuevo" aria-checked="${opcionDup === 'nuevo'}"><b>Guardar como uno nuevo</b><small>Los dos quedan en la lista.</small></button></div>` : ''}
+      </div>
+      <div class="hoja-pie"><button class="btn" type="button" data-salta>${n > 1 && num < n ? 'Saltar esta hoja' : 'Cancelar'}</button><button class="btn btn-1" type="button" data-guarda id="tu-guarda">${dup && opcionDup === 'actualizar' ? 'Actualizar tiempo' : 'Guardar tiempo'}</button></div></div>`;
+    for(const b of d.querySelectorAll('[data-modelo]')) b.onclick = () => { modeloElegido = b.dataset.modelo; pantallaRevisar(); };
+    for(const b of d.querySelectorAll('[data-dup]')) b.onclick = () => { opcionDup = b.dataset.dup; pantallaRevisar(); };
+    d.querySelector('[data-salta]').onclick = siguiente;
+    d.querySelector('[data-guarda]').onclick = () => guardar(it, dup);
+    enlazarCierre();
+  }
+
+  async function guardar(it, dup){
+    const dat = it.datos, ahora = new Date().toISOString();
+    const cuerpo = {cliente: dat.cliente, numCliente: dat.numCliente, fecha: dat.fecha, modelo: modeloElegido, titulo: dat.titulo,
+      piezas: dat.piezas, costeSeg: dat.costeSeg, pasos: dat.pasos, totales: dat.totales, recuentos: dat.recuentos,
+      observaciones: dat.observaciones, hoja: dat.hoja, archivo: dat.archivo, subido: ahora, por: NOMBRE};
+    let t;
+    if(dup && opcionDup === 'actualizar'){
+      const {versiones, sellos, id, creado, creadoPor} = dup;
+      const viejo = JSON.parse(JSON.stringify(dup)); delete viejo.versiones; delete viejo.sellos; delete viejo.id;
+      t = tLimpia({id, creado, creadoPor, sellos, ...cuerpo, versiones: [viejo, ...(versiones || [])].slice(0, 10)});
+    }else{
+      t = tLimpia({id: tIdNuevo(), ...cuerpo, sellos: []});
+    }
+    if(!t) return brindis('No he podido guardar esa hoja');
+    if(!guardarTiempo(t)) return;
+    guardadas.push(t.id);
+    actualizar();
+    const sellos = await tElegirSellos(t);
+    void sellos;
+    siguiente();
+  }
+
+  function siguiente(){
+    opcionDup = 'actualizar'; modeloElegido = '';
+    const prox = cola.findIndex((x, i) => i > pos && !x.error);
+    if(prox >= 0){ pos = prox; return pantallaRevisar(); }
+    fin();
+  }
+  function fin(){
+    const ids = guardadas.slice();
+    if(d.open) d.close();
+    if(!ids.length) return;
+    if(ids.length === 1) abrirTiempo(ids[0]);
+    else brindis(`${ids.length} tiempos guardados`);
+  }
+  function enlazarCierre(){
+    for(const b of d.querySelectorAll('[data-cierra]')) b.onclick = () => d.close();
+  }
+
+  d.addEventListener('close', () => { d.remove(); actualizar(); });
+  d.addEventListener('cancel', () => { /* Escape: cierra y listo */ });
+  pantallaElegir();
+  d.showModal();
+  if(archivos && archivos.length) leer([...archivos]);
+}
+
+// ── Cosas que cuelgan de todo el documento ────────────────────────────
+// El botón «Tiene tiempo» de la ficha de un sello.
+function tBotonSelloHtml(gid){
+  const ts = tDeSello(gid);
+  if(!ts.length) return '';
+  return `<div class="t-sello-bloque">${ts.map(t => {
+    const tot = t.totales || {};
+    const res = [tot.segEsc ? tNum(tot.segEsc, 1) + ' s' : '', tEur(tot.costeUni) + ' por unidad'].filter(Boolean).join(' · ');
+    return `<button type="button" class="t-sello-btn" data-ir-tiempo="${esc(t.id)}" data-desde-sello="${esc(gid)}">
+      <span class="t-sello-ico">${icono('tiempos')}</span>
+      <span class="t-sello-tx"><b>${ts.length > 1 ? 'Tiempo · ' + esc(t.modelo || t.cliente) : 'Tiene tiempo'}</b><small>${esc(res)}</small></span>
+      <span class="t-sello-ir">${T_ICO_DER}</span></button>`;
+  }).join('')}</div>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-ir-tiempo]');
+  if(!b) return;
+  const tid = b.dataset.irTiempo, gid = b.dataset.desdeSello;
+  if(!tPorId(tid)) return brindis('Ese tiempo ya no existe');
+  tIrA('tiempos', () => { tVieneDe = gid ? {gid} : null; abrirTiempo(tid); });
+});
+// Soltar un .xlsx encima de la lista de tiempos abre la subida.
+document.addEventListener('dragover', e => {
+  if(SECCION !== 'tiempos' || !puedeEditar || !e.dataTransfer || ![...(e.dataTransfer.types || [])].includes('Files')) return;
+  e.preventDefault();
+});
+document.addEventListener('drop', e => {
+  if(SECCION !== 'tiempos' || !puedeEditar || document.getElementById('dlg-tiempos')) return;
+  const fs = [...((e.dataTransfer && e.dataTransfer.files) || [])];
+  if(!fs.length) return;
+  e.preventDefault();
+  tAbrirSubir(fs);
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
    PASAR DE UN SELLO A OTRO (20 nov)
 
    Con un sello abierto, una sola «tira» continua:
@@ -21295,13 +22501,13 @@ document.addEventListener('keydown', e => {
      antes, el cajón se iría vacío mientras se desliza).
    ═══════════════════════════════════════════════════════════════════════ */
 function cajonActivo(){
-  return !matchMedia('(max-width:860px)').matches && (SECCION === 'colores' || SECCION === 'gramos' || SECCION === 'notas') && document.body.dataset.ficha === 'on';
+  return !matchMedia('(max-width:860px)').matches && (SECCION === 'colores' || SECCION === 'gramos' || SECCION === 'notas' || SECCION === 'tiempos') && document.body.dataset.ficha === 'on';
 }
 var cajonTemporizador = 0;
 function cajonVaciar(){
   clearTimeout(cajonTemporizador);
   cajonTemporizador = setTimeout(() => {
-    if(((SECCION === 'colores' && !seleccion) || (SECCION === 'gramos' && !gramoSel) || (SECCION === 'notas' && !notaSel)) && document.body.dataset.ficha !== 'on'){
+    if(((SECCION === 'colores' && !seleccion) || (SECCION === 'gramos' && !gramoSel) || (SECCION === 'notas' && !notaSel) || (SECCION === 'tiempos' && !tiempoSel)) && document.body.dataset.ficha !== 'on'){
       $ficha.classList.remove('es-muro');
       soltarFotos($ficha);
       $ficha.innerHTML = '';
@@ -21351,6 +22557,7 @@ window.__app = {
   comprobarCopias, copiaProblema, pantallaCopia, restaurarCopiaAuto, COPIA_AUTO,
   nLista, nPorId, nLimpia, guardarNota, editarNota, abrirNota, nResumen, nTiempo, nCron, nCronIniciar, nFiltrar,
   gColoresDe, gPasar, gPosicion, gTira, get notaSel(){ return notaSel; },
+  tLista, tPorId, tLimpia, guardarTiempo, tDeSello, tiempoLeerHoja, get tiempoSel(){ return tiempoSel; },
   get DATOS(){ return DATOS; }, porId, materias, busq, norm, nube, MODO,
   anotar, anotarMateria, empujar, guardar, reconstruir, actualizar, sincronizar,
   verPigmento, pantallaChoques, avisarCopia, mantenerPantalla,
